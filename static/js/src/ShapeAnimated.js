@@ -18,12 +18,12 @@ export class ShapeAnimated extends Shape {
 		this.drawShape();
 		// this.loader_text = new THREE.FontLoader();
 		this.loader_text = new FontLoader();
-        this.loader_text.load( '/static/fonts/threejs/Standard_Regular.json', function ( font ) {
+        this.loader_text.load( 'static/fonts/threejs/Standard_Regular.json', function ( font ) {
 			this.font_regular = font;
 			this.frontFont = font;
 			this.backFont = font;
 		}.bind(this));
-		this.loader_text.load( '/static/fonts/threejs/Standard_Bold.json', function ( font ) {
+		this.loader_text.load( 'static/fonts/threejs/Standard_Bold.json', function ( font ) {
 			this.font_bold = font;
 		}.bind(this));
 		this.loader_image = new THREE.TextureLoader();
