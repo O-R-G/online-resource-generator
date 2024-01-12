@@ -1,0 +1,611 @@
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+html {
+    font-size: 14px;
+}
+body {
+    font-family: monospace;
+    font-size: 1rem;
+}
+main {
+    padding: 20px;
+    background-color: #000;
+    color: #fff;
+}
+textarea {
+    resize: none;
+    display: block;
+    border: 1px solid;
+    width: 100%;
+    /* border-left: 1px solid; */
+    /* border-right: 1px solid; */
+}
+canvas {
+    display: block;
+}
+canvas + canvas {
+    margin-top: 60px;
+}
+.color-option {
+    display: inline-block;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+
+.selected-option {
+    border: 1px solid #000;
+    position: relative;
+}
+.selected-option[value='null']:before,
+.selected-option[value='null']:after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 141.4%;
+    border-top: 1px solid #000;
+    transform-origin: center;
+    
+}
+.selected-option[value='null']:before {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+.selected-option[value='null']:after {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.color-options-wrapper {
+    position: absolute;
+    width: 150px;
+    /* display: flex; */
+    flex-wrap: wrap;
+    display: none;
+    z-index: 100;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    box-sizing: content-box;
+}
+.pseudo-select.expanded .color-options-wrapper {
+    display: flex;
+}
+.btn {
+    padding: 8px 10px;
+    border: 2px solid #000;
+    cursor: pointer;
+    
+}
+.square-btn {
+    /* font-size: 2em; */
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 0.9;
+    width: 30px;
+    height: 30px;
+    /* display: inline-block; */
+}
+
+#static-container {
+    display: flex;
+}
+#static-control-panel {
+    flex: 0 0 300px;
+    padding-right: 20px;
+}
+#logo-container {
+    display: none;
+}
+input,
+input[type="text"],
+select,
+label[for^="background-image-story"],
+label[for^="background-image-post"],
+textarea
+{
+    float: right;
+    height: 30px;
+    font-size: 14px;
+    padding: 3px 10px 3px 10px;
+    width: 240px;
+    border: none;
+    color: #FFF;
+    background-color: #666060;
+    clear: both;
+}
+select
+{        
+    appearance: none;
+    border-radius: 0;
+    position: relative;
+    background: url(/media/svg/v-9-k.svg) 98% / 10% no-repeat #FFF;        
+    background-color: #666060;
+}
+textarea
+{
+    height: initial;
+    border: none;
+    margin: 0;
+}
+label
+{
+    vertical-align: top;
+}
+textarea + select
+{
+    margin-top: 3px;
+}
+#panel,
+.control-panel
+{
+    font-size: 16px;
+    width: 500px;
+    display: inline-block;
+    vertical-align: top;
+    padding-right: 20px;
+}
+.common-control
+{
+    font-size: 16px;
+    width: 500px;
+    padding-right: 20px;
+}
+
+.waiting-for-format #panel-format .panel-section:after
+{
+    content: none;
+}
+#main{
+    padding: 20px;
+    text-align: center;
+}
+#content
+{
+    max-width: none;
+    padding: 0;
+    text-align: left;
+    display: inline-block;
+}
+.body
+{
+    font-size: 1rem;
+}
+#menu-btn,
+#accessibility
+{
+    display: none;
+}
+
+.org-main-canvas
+{
+/*        width: 100%;*/
+    display: block;
+}
+#main[format="post"] #canvas-static,
+#main[format="post"] #canvas-three
+{
+    height: 540px;
+}
+#main[format="story"] #canvas-static,
+#main[format="story"] #canvas-three
+{
+    height: 960px;
+}
+
+#animated-container
+{
+    display: none;
+}
+.viewing-three #animated-container
+{
+    display: block;
+}
+.viewing-three #static-container
+{
+    display: none;
+}
+.panel-section,
+.watermarks-container
+{
+    margin-bottom: 8px;
+}    
+.field-id-background-image-controls
+{
+    display: none;
+}
+
+input[type="file"]
+{
+    display: none;
+}
+.pseudo-label
+{
+    display: inline-block;
+}
+label[for^="background-image-story"],
+label[for^="background-image-post"]
+{
+    cursor: pointer;
+    padding-top: 4px;
+    text-align: center;
+}
+label[for^="background-image-story"]:hover,
+label[for^="background-image-post"]:hover
+{
+    background-color: #ccc;
+}
+/*#stop,
+body.recording #record,
+body.recording #record + div
+{
+    display: none;
+}*/
+body.recording .download-video-button
+{
+/*        display: inline-block;*/
+    background-color: red;
+    color: #fff;
+}
+
+.float-container:after
+{
+    content: "";
+    display: block;
+    clear: both;
+    height: 0;
+}
+.btn
+{
+    width: 270px;
+    height: 90px;
+    /*margin-top: 20px;*/
+}
+.btn:hover
+{
+    color: #000;
+    background-color: #fff;
+    border-color: #fff;
+}
+#action-container,
+.action-container
+{
+    margin-top: 20px;
+}
+.square-wrapper
+{
+    padding: 0;
+}
+#canvas-container,
+.canvas-container
+{
+    display: inline-block;
+}
+
+.three-control
+{
+    display: none;
+}
+.viewing-three .three-control
+{
+    display: block;
+}
+.viewing-three .hidden-from-three
+{
+    display: none;
+}
+.flex-container
+{
+    display: flex;
+}
+.flex-container > .watermark
+{
+    flex-basis: 100%;
+}
+.typography-control
+{
+    width: 240px;
+    float: right;
+    flex-wrap: wrap;
+}
+.typography-control > select {
+    margin-right: 3px;
+}
+.typography-control > select:last-child {
+    margin-right: 0px;
+}
+
+.flex-item
+{
+    margin-top: 3px;
+/*        flex: 0 0 31.1%;*/
+    flex-basis: 0;
+    float: none;
+    font-size: 10px;
+}
+.flex-item:last-child
+{
+    flex: 1;
+}
+.typography-flex-item
+{
+    flex: 1;
+}
+.btn-add-watermark,
+.button-like-label
+{
+    cursor: pointer;
+    text-align: center;
+    padding: 5px 0 2px 0;
+    background-color: #666060;
+    font-size: 14px;
+}
+.button-like-label
+{
+    display: block;
+    width: 100%;
+    margin-top: 0;
+    cursor: pointer;
+}
+.button-like-label:hover
+{
+    /* background-color: #ccc;
+    color: #000;*/
+}
+.btn-remove-watermark
+{
+    display: inline-block;
+    font-size: 16px;
+}
+input#restart-animation
+{
+    cursor:pointer;
+}
+label
+{
+    cursor: pointer;
+    font-size: 1rem;
+}
+label[for^='watermark']
+{
+    position: relative;
+    display: inline-block;
+    width: 50%;
+    padding-right: 10px;
+}
+label[for^='watermark'].not-supported:after
+{
+    content: "this position is not compatible to this shape.";
+    display: block;
+    position: absolute;
+    bottom: 0;
+    transform: translate(0, 100%);
+    left: 0;
+    font-size: 14px;
+    line-height: 16px;
+    color: #ff0;
+    width: calc(100% - 10px);
+}
+#btn-confirm-format,
+#btn-change-format
+{
+    /* display: inline-block;*/
+    width: 540px;
+    background-color: #666060;
+    -webkit-appearance: none;
+    appearance: none;
+    font-size: 14px;
+    color: #FFF;
+    border: none;
+    margin: 0;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    cursor: pointer;
+    flex: 1;
+    margin-bottom: 8px;
+    margin-left: 3px;
+}
+.waiting-for-format #btn-change-format,
+#btn-confirm-format
+{
+    display: none;
+}
+.waiting-for-format #btn-confirm-format
+{
+    display: inline-block;
+}
+.control-panel,
+#canvas-container,
+#action-container
+{
+    transition: opacity .25s;
+}
+.waiting-for-format .control-panel,
+.waiting-for-format #canvas-container,
+.waiting-for-format #action-container
+{
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+}
+#panel-second-shape,
+.waiting-for-format #panel-animation
+{
+    display: none;
+}
+#main[format="story"] #panel-second-shape
+{
+    display: block;
+}
+input[type="checkbox"]
+{
+    height: 0;
+}
+input[type="checkbox"] + label.button-like-label:before
+{
+    content: none;
+}
+.viewing-three label[for="activateAnimation"].button-like-label
+{
+    background-color: #ccc;
+    color: #000;
+}
+input[value="fetch"]
+{
+    cursor: pointer;
+    margin-top: 2px;
+}
+/*.btn-add-watermark:hover,
+.button-like-label:hover
+{
+    background-color: #888;
+}*/
+.viewing-image-control .field-id-background-image-controls
+{
+    display: block;
+}
+#common-control-bottom .btn
+{
+    margin-top: 10px;
+}
+@media screen and (max-width: 1080px)
+{
+    #content
+    {
+        width: 540px;
+    }
+    .control-panel,
+    #panel-format,
+    .common-control
+    {
+        width: 100%;
+        padding-right: 0;
+    }
+    .common-control
+    {
+        
+    }
+}
+@media screen and (max-width: 823px)
+{
+    .box.home-block
+    {
+        margin: 0;
+    }
+    .panel-section input[type="checkbox"] + label
+    {
+        margin-left: 0;
+        text-indent: 0;
+    }
+}
+@media screen and (max-width: 500px)
+{
+    #content
+    {
+        width: 100%;
+        margin-top: 0;
+    }
+    .control-panel,
+    #panel-format,
+    .panel
+    {
+        width: auto;
+        display: block;
+        font-size: 16px;
+    }
+    label,
+    .pseudo-label
+    {
+        display: block;
+    }
+    input[type="number"]
+    {
+        width: 110px;
+    }
+    select,
+    input[type="number"],
+    input[name="record"],
+    input[type="submit"],
+    textarea,
+    label[for="background-image"],
+    label[for^="background-image-story"],
+    label[for^="background-image-post"]
+    {
+        font-size: 16px;
+        float: left;
+        margin-top: 8px;
+        width: 100%;
+        border: none;
+        background-color: #666060;
+    }
+    .typography-control
+    {
+        width: 100%;
+    }
+    label[for^="background-image-story"],
+    label[for^="background-image-post"]
+    {
+        display: inline-block;
+    }
+    .panel-section,
+    .watermarks-container
+    {
+        margin-bottom: 15px;
+    }
+    .org-main-canvas
+    {
+        position: absolute;
+        width: 100% !important;
+        height: 100% !important;
+        top: 0;
+        left: 0;
+        /*margin-top: 10px;*/
+    }
+    #action-container,
+    .action-container
+    {
+        margin-top: 30px;
+    }
+    .btn
+    {
+        width: 100%;
+    }
+    textarea
+    {
+        width: 100%;
+    }
+    #main[format="post"] #canvas-static-wrapper,
+    #main[format="post"] #canvas-animated-wrapper
+    {
+        padding-bottom: 0;
+        padding-top: 100%;
+    }
+    #main[format="story"] #canvas-static-wrapper,
+    #main[format="story"] #canvas-animated-wrapper
+    {
+        padding-bottom: 0;
+        padding-top: 177.8%;
+    }
+    #main[format="post"] #canvas-static,
+    #main[format="post"] #canvas-three,
+    #main[format="story"] #canvas-static,
+    #main[format="story"] #canvas-three
+    {
+        height: 100%;
+    }
+    #canvas-container,
+    .canvas-container
+    {
+        display: block;
+        position: relative;
+    }
+    .common-control
+    {
+        width: auto;
+        padding-right: 0;
+    }
+}
