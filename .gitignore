@@ -2,7 +2,7 @@
 options.js
 static/fonts/*
 static/fonts/_threejs/*.json
-!static/fonts/fonts.txt
+!static/fonts/_fonts.txt
 # static/fonts/_threejs/*.json
 # !static/fonts/_*
 webpack.config.js
