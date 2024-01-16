@@ -25,10 +25,23 @@ textarea {
 }
 canvas {
     display: block;
+    min-height: 200px;
 }
 canvas + canvas {
     margin-top: 60px;
 }
+/* option {
+    position: relative;
+}
+option:after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: blue;
+    right: 5px;
+    top: 5px;
+} */
 .color-option {
     display: inline-block;
     cursor: pointer;
@@ -334,7 +347,8 @@ body.recording .download-video-button
     flex: 1;
 }
 .btn-add-watermark,
-.button-like-label
+.button-like-label,
+.btn-add
 {
     cursor: pointer;
     text-align: center;

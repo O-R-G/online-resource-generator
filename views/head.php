@@ -16,6 +16,15 @@ $uu = new URL();
 $css = array(
 	'static/css/main.css'
 );
+$fonts_root = __DIR__ . '/../static/fonts';
+$fonts = scandir($fonts_root);
+foreach($fonts as $font) {
+	if(substr($font, 0, 1) === '.' || substr($font, 0, 1) === '_') continue;
+	$files = scandir($fonts_root . '/' . $font);
+	foreach($files as $f) {
+		if(substr($f, -4) === '.css') $css[] = 'static/fonts/' . $font . '/' . $f;
+	}
+}
 ?><!DOCTYPE html>
 <html lang="en">
 <head>

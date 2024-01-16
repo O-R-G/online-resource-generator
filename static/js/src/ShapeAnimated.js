@@ -18,12 +18,12 @@ export class ShapeAnimated extends Shape {
 		this.drawShape();
 		// this.loader_text = new THREE.FontLoader();
 		this.loader_text = new FontLoader();
-        this.loader_text.load( 'static/fonts/threejs/Standard_Regular.json', function ( font ) {
+        this.loader_text.load( 'static/fonts/_threejs/Standard_Regular.json', function ( font ) {
 			this.font_regular = font;
 			this.frontFont = font;
 			this.backFont = font;
 		}.bind(this));
-		this.loader_text.load( 'static/fonts/threejs/Standard_Bold.json', function ( font ) {
+		this.loader_text.load( 'static/fonts/_threejs/Standard_Bold.json', function ( font ) {
 			this.font_bold = font;
 		}.bind(this));
 		this.loader_image = new THREE.TextureLoader();
@@ -68,7 +68,7 @@ export class ShapeAnimated extends Shape {
 		this.timer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		let scale = 540 / 960;
-		this.scale = this.format == 'post' ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
+		this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
 		this.devicePixelRatio = window.devicePixelRatio;
 		this.frontTextPosition = Object.values(this.options.textPositionOptions)[0].value;
 		this.backTextPosition = Object.values(this.options.textPositionOptions)[0].value;

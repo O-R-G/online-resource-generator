@@ -437,10 +437,12 @@ export class ShapeStatic extends Shape {
     	}
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
-        if(fontSize == 160 || fontSize == 80)
-            var fontStyle = fontSize + "px standard-bold";
+		// console.log(this.options.fontOptions);
+		// console.log(fontSize);
+        if(this.options.fontOptions[fontSize]['name'] == 'large' || this.options.fontOptions[fontSize]['name'] == 'medium')
+            var fontStyle = fontSize + "px eurostile_extended_black";
         else
-            var fontStyle = fontSize + "px standard";
+            var fontStyle = fontSize + "px new-century-schoolbook";
 
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
         	this.str = str;
@@ -459,7 +461,7 @@ export class ShapeStatic extends Shape {
 	            this.context.fillText(str, this.shapeCenter.x, this.shapeCenter.y + text_dev_y);
 	            return;
 	        }
-
+			let ln;
 	        // multiple lines - align-left
 	        if(align == 'align-left') {
         		this.context.textAlign='left';
@@ -473,16 +475,48 @@ export class ShapeStatic extends Shape {
 	            if(lines.length % 2 == 0) {
             		for(var i = 0; i < lines.length/2; i++) {
                 		let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 0.5);
-                    	this.context.fillText(lines[lines.length/2 + i], x, this.shapeCenter.y + dev + text_dev_y);
-                    	this.context.fillText(lines[lines.length/2 - 1 - i], x, this.shapeCenter.y - dev + text_dev_y);
+						ln = lines[lines.length/2 + i];
+						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+							this.context.fillStyle = '#ffffff';
+							ln = ln.substring(1, ln.length - 2);
+						}
+						else
+							this.context.fillStyle = this.textColor;
+                    	this.context.fillText(ln, x, this.shapeCenter.y + dev + text_dev_y);
+
+						ln = lines[lines.length/2 - 1 - i];
+						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+							this.context.fillStyle = '#ffffff';
+							ln = ln.substring(1, ln.length - 2);
+						}
+						else
+							this.context.fillStyle = this.textColor;
+                    	this.context.fillText(ln, x, this.shapeCenter.y - dev + text_dev_y);
                 	}
             	} else {
             		let middle_idx = parseInt(lines.length/2);
             		this.context.fillText(lines[middle_idx], x, this.shapeCenter.y + text_dev_y);
             		for(i = 0; i < middle_idx; i++) {
 	                	let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
-	                    this.context.fillText(lines[middle_idx + (i + 1)], x, this.shapeCenter.y + dev + text_dev_y);
-	                    this.context.fillText(lines[middle_idx - (i + 1)], x, this.shapeCenter.y - dev + text_dev_y);
+						ln = lines[middle_idx + (i + 1)];
+						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+							this.context.fillStyle = '#ffffff';
+							ln = ln.substring(1, ln.length - 2);
+						}
+						else
+							this.context.fillStyle = this.textColor;
+
+	                    this.context.fillText(ln, x, this.shapeCenter.y + dev + text_dev_y);
+
+						ln = lines[middle_idx - (i + 1)];
+						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+							this.context.fillStyle = '#ffffff';
+							ln = ln.substring(1, ln.length - 2);
+						}
+						else
+							this.context.fillStyle = this.textColor;
+
+	                    this.context.fillText(ln, x, this.shapeCenter.y - dev + text_dev_y);
 	                }
             	}
             	return;
@@ -491,16 +525,47 @@ export class ShapeStatic extends Shape {
             if(lines.length % 2 == 0) {
                 for(i = 0; i < lines.length/2; i++) {
                     let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 0.5);
-                    this.context.fillText(lines[lines.length/2 + i], this.shapeCenter.x, this.shapeCenter.y + dev + text_dev_y);
-                    this.context.fillText(lines[lines.length/2 - 1 - i], this.shapeCenter.x, this.shapeCenter.y - dev + text_dev_y);
+					ln = lines[lines.length/2 + i];
+					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+						this.context.fillStyle = '#ffffff';
+						ln = ln.substring(1, ln.length - 2);
+					}
+					else
+						this.context.fillStyle = this.textColor;
+
+                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y + dev + text_dev_y);
+					ln = lines[lines.length/2 - 1 - i];
+					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+						this.context.fillStyle = '#ffffff';
+						ln = ln.substring(1, ln.length - 2);
+					}
+					else
+						this.context.fillStyle = this.textColor;
+
+                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y - dev + text_dev_y);
                 }
             } else {
                 let middle_idx = parseInt(lines.length/2);
                 this.context.fillText(lines[middle_idx], this.shapeCenter.x, this.shapeCenter.y + text_dev_y);
                 for(i = 0; i < middle_idx; i++) {
                     let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
-                    this.context.fillText(lines[middle_idx + (i + 1)], this.shapeCenter.x, this.shapeCenter.y + dev + text_dev_y);
-                    this.context.fillText(lines[middle_idx - (i + 1)], this.shapeCenter.x, this.shapeCenter.y - dev + text_dev_y);
+					ln = lines[middle_idx + (i + 1)];
+					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+						this.context.fillStyle = '#ffffff';
+						ln = ln.substring(1, ln.length - 2);
+					}
+					else
+						this.context.fillStyle = this.textColor;
+                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y + dev + text_dev_y);
+
+					ln = lines[middle_idx - (i + 1)];
+					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+						this.context.fillStyle = '#ffffff';
+						ln = ln.substring(1, ln.length - 2);
+					}
+					else
+						this.context.fillStyle = this.textColor;
+                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y - dev + text_dev_y);
                 }
             }
             return; // end of writing main text

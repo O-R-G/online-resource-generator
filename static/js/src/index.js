@@ -12,9 +12,11 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 //     x: 0,
 //     y: 0
 // };
+const main = document.getElementById('main');
+if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 function init(data){
-    const main = document.getElementById('main');
-    let format = main.getAttribute('format') ? main.getAttribute('format') : 'post';
+    
+    let format = main.getAttribute('format');
     // main.classList.remove('waiting-for-format');
     main.setAttribute('format', format);
     // renderElements(main, data);
@@ -27,7 +29,7 @@ function init(data){
         main.appendChild( container );
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
-        let cvs = new Canvas(wrapper, format, 'canvas-' + id, {'baseOptions': baseOptions}, data[id]['isThree']);
+        let cvs = new Canvas(wrapper, format, 'canvas-' + id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
         data[id]['canvas'] = cvs;
         cvs.addControl(control);        
         let shapeCenter = isThree ? {x: 0, y: 0} : {x: cvs['canvas'].width / 2, y: cvs['canvas'].height / 2};

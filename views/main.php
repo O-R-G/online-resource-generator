@@ -5,9 +5,9 @@
     */
     // $mode = 'development';
     $isTestShapeAnimated = isset($_GET['isTestShapeAnimated']);
-    $format = isset($_GET['format']) ? $_GET['format'] : 'post';    
+    $format = isset($_GET['format']) ? $_GET['format'] : ''; 
 
-?><main id='main' format="<?= $format; ?>">
+?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?>>
     <!-- <section id='content' class='body'>
         <div id="static-container">
             <div id="panel-static-wrapper" class="control-panel"></div>

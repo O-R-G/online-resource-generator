@@ -99,7 +99,7 @@ export class Shape {
         this.fields[id] = temp_select;
         return temp_panel_section;
     }
-    renderTextField(id, displayName, textPositionOptions, textColorOptions, fontOptions, content = null, extraClass='')
+    renderTextField(id, displayName, textPositionOptions, textColorOptions, fontOptions, extraClass='')
     {
 
         let temp_panel_section = document.createElement('DIV');
@@ -120,15 +120,29 @@ export class Shape {
         flex_container.appendChild(temp_select_textPosition);
         flex_container.appendChild(temp_select_textColor);
         flex_container.appendChild(temp_select_font);
+
+        // let add = document.createElement('div');
+        // add.className = 'btn-add btn-add-text';
+        // add.innerText= 'Add text';
+        // this.addTextButton = add;
+    	// add.addEventListener('click', function(){
+    	// 	this.addText(id);
+    	// }.bind(this));
+        
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(flex_container);
+        // temp_panel_section.appendChild(add);
         this.fields[id] = temp_textarea;
         this.fields[id + '-position'] = temp_select_textPosition;
         this.fields[id + '-color'] = temp_select_textColor;
         this.fields[id + '-font'] = temp_select_font;
         return temp_panel_section;
     }
+    addText(btn, id) {
+        let type_control = this.field[id].parentNode;
+        
 
+    }
     divToNl(nodes){
         let output = '';
         [].forEach.call(nodes, function(el){
@@ -164,8 +178,10 @@ export class Shape {
         temp_label.innerText = displayName;
         let temp_right = document.createElement('DIV');
         temp_right.className = 'flex-container typography-control';
-        let temp_input = document.createElement('INPUT');
-        temp_input.type = 'text';
+        // let temp_input = document.createElement('INPUT');
+        // temp_input.type = 'text';
+        let temp_input = document.createElement('TEXTAREA');
+        // temp_input.type = 'text';
         temp_input.className = 'field-id-' +id + ' watermark ' + extraClass;
         temp_right.appendChild(temp_input);
 
@@ -255,7 +271,19 @@ export class Shape {
                 el.selected = 'selected';                    
         });
     }
-
+    // renderAddButton(type, display){
+    //     let output = document.createElement('div');
+    //     output.className='btn-add btn-add-'+type;
+    //     output.innerText= 'Add a ' + display;
+    //     return output;
+    // }
+    renderControlSection(type, id, sectionClass){
+        let output = document.createElement('div');
+        output.className = "panel-section float-container " + sectionClass;
+        if(type === 'shape') {
+            return 
+        }
+    }
     renderControl(isThree = false){
         this.control.appendChild(this.renderSelectField('shape', 'Shape', this.options.shapeOptions));
 	    this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
@@ -263,7 +291,8 @@ export class Shape {
 	    	this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
             if(!this.canvasObj.fields['record'])
                 this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
-	    	this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions, this.str));
+	    	this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
+            // this.control.appendChild(this.renderAddButton('text', 'Text'));
 	    }
 	    else
 	    {
@@ -273,8 +302,8 @@ export class Shape {
             this.fields['shape-back-color'].selectedIndex = 1;
             if(!this.canvasObj.fields['record'])
                 this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
-	    	this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions, this.frontText));
-    		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions, this.backText));
+	    	this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
+    		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 	    }
 	    
 	    // this.control_wrapper.appendChild(this.renderAddWaterMark());

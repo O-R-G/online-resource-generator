@@ -4,6 +4,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 
 export class Canvas {
 	constructor(wrapper, format, id="canvas", options, isThree = false){
+        console.log(options);
 		for(const property in options){
 			this[property] = options[property];
 		}
@@ -20,6 +21,8 @@ export class Canvas {
         this.isdebug = false;
 	}
 	init(){
+        console.log(this.format);
+        
 		this.canvas = document.createElement('CANVAS');
         this.canvas.setAttribute('format', this.format);
 		if(!this.isThree)
@@ -27,8 +30,11 @@ export class Canvas {
 		
 		this.canvas.id = this.id;
         this.canvas.className = "org-main-canvas";
-		this.canvas.width = this.isThree ? 540 : 1080;
-        // this.canvas.width = 1080;\this.autoRecordingQueue = [];
+		this.canvas.width = this.isThree ? this.formatOptions[this.format].w / 2 : this.formatOptions[this.format].w;
+        this.canvas.style.width = this.formatOptions[this.format].w / 2 + 'px';
+        let h = this.formatOptions[this.format].h === 'auto' ?  this.formatOptions[this.format].w : this.formatOptions[this.format].h;
+        this.canvas.height = this.isThree ? h / 2 : h;
+        this.canvas.style.width = h / 2 + 'px';
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
         this.isRecording = false;
@@ -38,11 +44,11 @@ export class Canvas {
 
 		if(!this.isThree)
 		{
-			this.canvas.height = this.format == 'post' ? this.canvas.width : 1920;
+			// this.canvas.height = this.formatOptions[this.format].h === 'auto' ? this.formatOptions[this.format].w / 2 : this.formatOptions[this.format].h / 2;
 		}
 		else
 		{
-			this.canvas.height = this.format == 'post' ? this.canvas.width : 960;
+			// this.canvas.height = this.formatOptions[this.format].h === 'auto' ? this.formatOptions[this.format].w : this.formatOptions[this.format].h;
 			this.initThree();
 		}
 
@@ -328,16 +334,16 @@ export class Canvas {
     }
     renderFormatField(){
 
-        let formatOptions = {
-            'post': {
-                'name': 'post'
-            },
-            'story': {
-                'name': 'story'
-            }
-        }
+        // let formatOptions = {
+        //     'post': {
+        //         'name': 'post'
+        //     },
+        //     'story': {
+        //         'name': 'story'
+        //     }
+        // }
 
-        let formatField = this.renderSelectField('format', 'Format', formatOptions);
+        let formatField = this.renderSelectField('format', 'Format', this.formatOptions);
         let options = formatField.querySelectorAll('option');
         // let selectedIndex = 0;
         [].forEach.call(options, function(el, i){
@@ -523,7 +529,7 @@ export class Canvas {
         if( (isSync || event.target.checked)&& this.shapes.length < 2)
         {
             
-            let format = 'story';
+            let format = this.format;
             let shapeCenter = {
                 x: this.isThree ? 0 : this.canvas.width / 2,
                 y: this.isThree ? this.canvas.height / 4 : this.canvas.height / 4
