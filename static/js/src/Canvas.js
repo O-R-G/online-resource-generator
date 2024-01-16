@@ -642,11 +642,8 @@ export class Canvas {
         // console.log(event);
         if(event) event.preventDefault();
         let data = new FormData(this.fields['record']);
-        console.log(this.autoRecordingQueue);
-        console.log(this.autoRecordingQueueIdx);
         if(this.autoRecordingQueue.length == 0) return;
         recordName = recordName == '' ? this.autoRecordingQueue[this.autoRecordingQueueIdx] : recordName;
-        console.log('requestRecordByName:' + recordName);
         data.set('recordName', recordName);
         
         let url = '/static/php/recordNameHandler.php';

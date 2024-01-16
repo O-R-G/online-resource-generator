@@ -91,10 +91,10 @@ canvas + canvas {
     /* display: inline-block; */
 }
 
-#static-container {
+.generator-container {
     display: flex;
 }
-#static-control-panel {
+.control-panel {
     flex: 0 0 300px;
     padding-right: 20px;
 }
@@ -162,50 +162,48 @@ textarea + select
 }
 #main{
     padding: 20px;
-    text-align: center;
+    /* text-align: center; */
+    /* text-align: left; */
+    /* max-width: none; */
+    display: inline-block;
 }
-#content
+/* #content
 {
     max-width: none;
     padding: 0;
     text-align: left;
     display: inline-block;
-}
-.body
+} */
+/* .body
 {
     font-size: 1rem;
-}
-#menu-btn,
-#accessibility
-{
-    display: none;
-}
+} */
 
 .org-main-canvas
 {
 /*        width: 100%;*/
     display: block;
 }
-#main[format="post"] #canvas-static,
-#main[format="post"] #canvas-three
+#main[format="post"] [data-is-three="false"] canvas,
+#main[format="post"] [data-is-three="true"] canvas
 {
     height: 540px;
 }
-#main[format="story"] #canvas-static,
-#main[format="story"] #canvas-three
+#main[format="story"] [data-is-three="false"] canvas,
+#main[format="story"] [data-is-three="true"] canvas
 {
     height: 960px;
 }
 
-#animated-container
+[data-is-three='true']
 {
     display: none;
 }
-.viewing-three #animated-container
+.viewing-three [data-is-three='true']
 {
     display: block;
 }
-.viewing-three #static-container
+.viewing-three [data-is-three='false']
 {
     display: none;
 }
@@ -444,7 +442,7 @@ label[for^='watermark'].not-supported:after
 }
 input[type="checkbox"]
 {
-    height: 0;
+    display: none;
 }
 input[type="checkbox"] + label.button-like-label:before
 {

@@ -1,3 +1,7 @@
 .DS_Store
-config/options.js
-static/fonts/threejs/*.json
+options.js
+static/fonts/*
+!static/fonts/fonts.txt
+# static/fonts/_threejs/*.json
+# !static/fonts/_*
+webpack.config.js

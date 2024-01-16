@@ -719,7 +719,6 @@ export class ShapeStatic extends Shape {
 
 	}
 	clipRectangle(){
-		console.log('clipRect');
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -746,8 +745,6 @@ export class ShapeStatic extends Shape {
 	    this.context.fill();
 	}
 	clipCircle(){
-		console.log(this.frame.w);
-		console.log(this.padding);
 		let r = (this.frame.w - (this.padding * 2)) / 2;
 		// console.log(r);
 		// this.context.save();
@@ -857,11 +854,6 @@ export class ShapeStatic extends Shape {
   	}
 
 	draw(){
-		// console.log('>>> staticShape draw()');
-		// this.canvasObj.drawBase();
-		// this.context.restore();
-		// this.context.fillStyle = this.base;
-		
 		if(this.shapeMethod == 'draw')
 		{
 			if(this.shape.base == 'rectangle')
