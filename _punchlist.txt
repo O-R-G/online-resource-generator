@@ -1,0 +1,9 @@
++ make the height responsive to the content 
+  > changed to custom because real-time updating of canvas size is too complex
++ change the shape option 'square' to 'fill' so that it fills the whole canvas
+x add a dropdown for text block positions
+  > micro adjustment for text block positions should be enough
++ micro adjustment for text block positions
+- logo (maybe as an 'upload' of watermark fields?)
+- rotation
+- fix animated shapes 
