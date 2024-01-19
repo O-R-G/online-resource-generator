@@ -4,7 +4,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 
 export class Canvas {
 	constructor(wrapper, format, id="canvas", options, isThree = false){
-        console.log(options);
+        // console.log(options);
 		for(const property in options){
 			this[property] = options[property];
 		}
@@ -20,9 +20,7 @@ export class Canvas {
 		this.init();
         this.isdebug = false;
 	}
-	init(){
-        console.log(this.format);
-        
+	init(){        
 		this.canvas = document.createElement('CANVAS');
         this.canvas.setAttribute('format', this.format);
 		if(!this.isThree)
@@ -30,11 +28,17 @@ export class Canvas {
 		
 		this.canvas.id = this.id;
         this.canvas.className = "org-main-canvas";
-		this.canvas.width = this.isThree ? this.formatOptions[this.format].w / 2 : this.formatOptions[this.format].w;
-        this.canvas.style.width = this.formatOptions[this.format].w / 2 + 'px';
-        let h = this.formatOptions[this.format].h === 'auto' ?  this.formatOptions[this.format].w : this.formatOptions[this.format].h;
-        this.canvas.height = this.isThree ? h / 2 : h;
-        this.canvas.style.width = h / 2 + 'px';
+        this.updateCanvasSize(
+            {
+                'width': this.formatOptions[this.format].w,
+                'height': this.formatOptions[this.format].h
+            }, false
+        );
+		// this.canvas.width = this.isThree ? this.formatOptions[this.format].w / 2 : this.formatOptions[this.format].w;
+        // this.canvas.style.width = this.formatOptions[this.format].w / 2 + 'px';
+        // let h = this.formatOptions[this.format].h === 'auto' ?  this.formatOptions[this.format].w : this.formatOptions[this.format].h;
+        // this.canvas.height = this.isThree ? this.formatOptions[this.format].h / 2 : this.formatOptions[this.format].h;
+        // this.canvas.style.height = this.formatOptions[this.format].h / 2 + 'px';
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
         this.isRecording = false;
@@ -326,36 +330,55 @@ export class Canvas {
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
+        let temp_right = document.createElement('div');
+        temp_right.className = 'input-section flex-container';
         let temp_select = this.renderSelect(id, options);
+        temp_right.appendChild(temp_select);
         temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(temp_select);
+        temp_panel_section.appendChild(temp_right);
         this.fields[id] = temp_select;
         return temp_panel_section;
     }
     renderFormatField(){
-
-        // let formatOptions = {
-        //     'post': {
-        //         'name': 'post'
-        //     },
-        //     'story': {
-        //         'name': 'story'
-        //     }
-        // }
-
+        
         let formatField = this.renderSelectField('format', 'Format', this.formatOptions);
+        if(this.format == 'custom') {
+            
+            // let customSizeField = document.createElement('div');
+            // customSizeField.id="custom-size-wrapper";
+            // customSizeField.className = 'flex-container'
+            let customWidth = document.createElement('input');
+            customWidth.id="custom-width-input";
+            customWidth.placeholder = 'W';
+            customWidth.className = 'flex-item';
+            customWidth.setAttribute('flex', 1);
+            customWidth.value = parseInt(this.canvas.style.width);
+            let cross = document.createElement('span');
+            cross.innerHTML = '&times;';
+            cross.className = 'flex-item';
+            let customHeight = document.createElement('input');
+            customHeight.id="custom-height-input";
+            customHeight.className = 'flex-item';
+            customHeight.placeholder="H";
+            customHeight.setAttribute('flex', 1);
+            customHeight.value = parseInt(this.canvas.style.height);
+            let temp_right = formatField.querySelector('.input-section');
+            temp_right.appendChild(customWidth);
+            temp_right.appendChild(cross);
+            temp_right.appendChild(customHeight);
+            // formatField.querySelector('.input-section').appendChild(customSizeField);
+            // console.log(formatField);
+        }
         let options = formatField.querySelectorAll('option');
-        // let selectedIndex = 0;
         [].forEach.call(options, function(el, i){
             if(el.value == this.format)
                 el.selected = true;
             
         }.bind(this));
-
-        formatField.addEventListener('change', function(event){
+        let select = formatField.querySelector('select');
+        select.addEventListener('change', function(event){
             this.changeFormat(event, this.format);
         }.bind(this));
-
         return formatField;
     }
     renderButtonLikeCheckbox(id, text, extraClass=""){
@@ -368,8 +391,13 @@ export class Canvas {
         let temp_input = document.createElement('INPUT');
         temp_input.type = 'checkbox';
         temp_input.id = id;
-        temp_panel_section.appendChild(temp_input);
-        temp_panel_section.appendChild(temp_label);
+        let temp_right = document.createElement('div');
+        temp_right.className = 'input-section flex-container';
+        temp_right.appendChild(temp_input);
+        temp_right.appendChild(temp_label);
+        // temp_panel_section.appendChild(temp_input);
+        // temp_panel_section.appendChild(temp_label);
+        temp_panel_section.appendChild(temp_right);
         temp_input.onchange = function(event){ this.toggleSecondShape(event) }.bind(this);
         
         return temp_panel_section;
@@ -456,6 +484,14 @@ export class Canvas {
 	        this.updateBase(e.target.value);
             this.counterpart.updateBase(e.target.value);
 	    }.bind(this);
+        let sCustomWidth = this.control_top.querySelector('#custom-width-input');
+        if(sCustomWidth) sCustomWidth.onchange = () => {
+            this.updateCanvasSize({width: parseInt(sCustomWidth.value)});
+        };
+        let sCustomHeight = this.control_top.querySelector('#custom-height-input');
+        if(sCustomHeight) sCustomHeight.onchange = () => {
+            this.updateCanvasSize({height: parseInt(sCustomHeight.value)});
+        };
     }
     addListenersBottom(){
         this.downloadImageButton.onclick = function(){
@@ -562,8 +598,10 @@ export class Canvas {
         let container = document.createElement('DIV');
         // container.className = 'panel-section float-container';
         container.className = 'panel-section float-container hide';
-        let form = document.createElement('FORM');
+        let form = document.createElement('form');
         form.setAttribute('method', 'POST');
+        form.setAttribute('flex', 'full');
+        form.className = 'flex-item';
         let label = document.createElement('LABEL');
         label.setAttribute('for', 'recordName');
         label.innerText = 'Record';
@@ -580,11 +618,15 @@ export class Canvas {
         let button = document.createElement('INPUT');
         button.type = 'submit';
         button.value = 'fetch';
-        form.appendChild(label);
+        // form.appendChild(label);
         form.appendChild(input);
         form.appendChild(input_action);
         form.appendChild(button);
-        container.appendChild(form);
+        let temp_right = document.createElement('div');
+        temp_right.className = 'input-section flex-container';
+        temp_right.append(form);
+        container.appendChild(label);
+        container.appendChild(temp_right);
         this.fields['recordName'] = input;
         this.fields['record'] = form;
         this.fields['fetch'] = button;
@@ -817,6 +859,23 @@ export class Canvas {
         this.shapes.forEach(function(el){
             el.sync();
         });
+    }
+    updateCanvasSize(size, draw=true){
+        let updated = false;
+        if(size.width) {
+            updated = true;
+            this.canvas.width = this.isThree ? size.width : size.width * 2;
+            this.canvas.style.width = size.width + 'px';
+        }
+        if(size.height) {
+            updated = true;
+            this.canvas.height = this.isThree ? size.height : size.height * 2;
+            this.canvas.style.height = size.height + 'px';
+        }
+        for(let i = 0; i < this.shapes.length; i++) {
+            this.shapes[i].updateFrame();
+        }
+        if(updated && draw) this.draw();
     }
     updateReadyState(){
         this.readyState++;

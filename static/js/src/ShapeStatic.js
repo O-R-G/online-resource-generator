@@ -10,6 +10,8 @@ export class ShapeStatic extends Shape {
 		this.textColor = Object.values(this.options.textColorOptions)[0].color.code;
 		this.textPosition = Object.values(this.options.textPositionOptions)[0].value;
 		this.fontSize = Object.keys(this.options.fontOptions)[0];
+		this.textShiftX = 0;
+		this.textShiftY = 0;
 		// console.log('fontSize = ' + this.fontSize);
 		// this.str = '';
 		
@@ -431,14 +433,13 @@ export class ShapeStatic extends Shape {
 		this.textColor = this.processStaticColorData(colorData);
         if(!silent) this.canvasObj.draw();
     }
-    write(str = '', align='center', color='default', fontSize = 'default', silent = false){
+    write(str = '', align='center', color='default', fontSize = 'default', shift=null){
+		console.log(shift);
     	if(color == 'default'){
     		this.context.fillStyle = this.textColor;
     	}
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
-		// console.log(this.options.fontOptions);
-		// console.log(fontSize);
         if(this.options.fontOptions[fontSize]['name'] == 'large' || this.options.fontOptions[fontSize]['name'] == 'medium')
             var fontStyle = fontSize + "px eurostile_extended_black";
         else
@@ -457,10 +458,15 @@ export class ShapeStatic extends Shape {
 	        	lines = this.str.split('\n');
 	        }
         	let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
+			let x = shift && shift.x ? shift.x : 0, 
+			    y = shift && shift.y ? shift.y : 0;
         	if(lines.length == 1) {
-	            this.context.fillText(str, this.shapeCenter.x, this.shapeCenter.y + text_dev_y);
+				x += this.shapeCenter.x;
+				y += this.shapeCenter.y + text_dev_y;
+	            this.context.fillText(str, x, y);
 	            return;
 	        }
+			y += this.shapeCenter.y;
 			let ln;
 	        // multiple lines - align-left
 	        if(align == 'align-left') {
@@ -470,9 +476,9 @@ export class ShapeStatic extends Shape {
 	                if(this.context.measureText(lines[i]).width > textWidth)
 	                    textWidth = this.context.measureText(lines[i]).width;
 	            }
-	            let x = this.shapeCenter.x - textWidth / 2;
-
-	            if(lines.length % 2 == 0) {
+	            x += this.shapeCenter.x - textWidth / 2;
+				
+				if(lines.length % 2 == 0) {
             		for(var i = 0; i < lines.length/2; i++) {
                 		let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 0.5);
 						ln = lines[lines.length/2 + i];
@@ -482,7 +488,7 @@ export class ShapeStatic extends Shape {
 						}
 						else
 							this.context.fillStyle = this.textColor;
-                    	this.context.fillText(ln, x, this.shapeCenter.y + dev + text_dev_y);
+                    	this.context.fillText(ln, x, y + dev + text_dev_y);
 
 						ln = lines[lines.length/2 - 1 - i];
 						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
@@ -491,11 +497,11 @@ export class ShapeStatic extends Shape {
 						}
 						else
 							this.context.fillStyle = this.textColor;
-                    	this.context.fillText(ln, x, this.shapeCenter.y - dev + text_dev_y);
+                    	this.context.fillText(ln, x, y - dev + text_dev_y);
                 	}
             	} else {
             		let middle_idx = parseInt(lines.length/2);
-            		this.context.fillText(lines[middle_idx], x, this.shapeCenter.y + text_dev_y);
+            		this.context.fillText(lines[middle_idx], x, y + text_dev_y);
             		for(i = 0; i < middle_idx; i++) {
 	                	let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
 						ln = lines[middle_idx + (i + 1)];
@@ -506,7 +512,7 @@ export class ShapeStatic extends Shape {
 						else
 							this.context.fillStyle = this.textColor;
 
-	                    this.context.fillText(ln, x, this.shapeCenter.y + dev + text_dev_y);
+	                    this.context.fillText(ln, x, y + dev + text_dev_y);
 
 						ln = lines[middle_idx - (i + 1)];
 						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
@@ -516,7 +522,7 @@ export class ShapeStatic extends Shape {
 						else
 							this.context.fillStyle = this.textColor;
 
-	                    this.context.fillText(ln, x, this.shapeCenter.y - dev + text_dev_y);
+	                    this.context.fillText(ln, x, y - dev + text_dev_y);
 	                }
             	}
             	return;
@@ -589,40 +595,39 @@ export class ShapeStatic extends Shape {
         } else {
         	lines = str.split('\n');
         }
-        // console.log('===================================');
-        // console.log(lines);
-        // console.log('===================================');
-        let x, y;
+        
+		let x, y;
 		this.context.fillStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
-    	if(this.shape.base == 'rectangle' || this.shape.base == 'square'){
-    		let side = this.frame.w - this.padding * 2;
+    	if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
+    		let side_x = this.frame.w - this.padding * 2;
+			let side_y = this.frame.h - this.padding * 2;
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
     		
     		if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
-    			x =  this.shapeCenter.x - side / 2 + inner_p_x;
+    			x =  this.shapeCenter.x - side_x / 2 + inner_p_x;
     		}
     		else if(align.indexOf('right') !== -1){
     			this.context.textAlign = 'right';
-    			x =  this.shapeCenter.x + side / 2 - inner_p_x;
+    			x =  this.shapeCenter.x + side_x / 2 - inner_p_x;
     		}
     		else if(align.indexOf('center') !== -1){
     			this.context.textAlign = 'center';
     			x = this.shapeCenter.x;
     		}
     		if(align.indexOf('top') !== -1){
-    			y = this.shapeCenter.y - side / 2 + inner_p_y + actualAscent;
+    			y = this.shapeCenter.y - side_y / 2 + inner_p_y + actualAscent;
     		}
     		else if(align.indexOf('middle') !== -1){
     			this.context.textBaseline = 'middle';
     			metrics = this.context.measureText(str);
     			actualAscent = metrics.actualBoundingBoxAscent;
     			y = this.shapeCenter.y;
-    			x = align.indexOf('left') !== -1 ? this.shapeCenter.x - side / 2 + inner_p_y + actualAscent : this.shapeCenter.x + side / 2 - inner_p_y - actualAscent;
+    			x = align.indexOf('left') !== -1 ? this.shapeCenter.x - side_x / 2 + inner_p_y + actualAscent : this.shapeCenter.x + side_x / 2 - inner_p_y - actualAscent;
     		}
     		else if(align.indexOf('bottom') !== -1){
-    			y = this.shapeCenter.y + side / 2 - inner_p_y;
+    			y = this.shapeCenter.y + side_y / 2 - inner_p_y;
     		}
     	}
     	else if(this.shape.base == 'hexagon'){
@@ -698,6 +703,8 @@ export class ShapeStatic extends Shape {
     		}
     		else return;
     	}
+		x += shift && shift.x ? parseInt(shift.x) : 0, 
+		y += shift && shift.y ? parseInt(shift.y) : 0;
     	if(align.indexOf('middle') !== -1 && this.shape.base == 'rectangle'){
     		this.context.save();
     		this.context.translate(x, y);
@@ -748,9 +755,10 @@ export class ShapeStatic extends Shape {
     	
     	return output;
     }
-    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, silent = false){
+    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, silent = false){
     	// console.log(">>> updateWatermark()");
-    	super.updateWatermark(idx, str, position, color, fontSize);
+		// console.log("silent = " + silent);
+    	super.updateWatermark(idx, str, position, color, fontSize, font, shift);
 
 		if(!silent) this.canvasObj.draw();
 	}
@@ -759,26 +767,27 @@ export class ShapeStatic extends Shape {
 		this.watermarks.forEach(function(el, i){
 			// console.log(el.fontSize);
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
-				this.write(el.str, el.position, el.color, el.fontSize);
+				this.write(el.str, el.position, el.color, el.fontSize, el.shift);
 		}.bind(this));
 	}
 	checkWatermarkPosition(position, label){
     	super.checkWatermarkPosition(position, label);
     }
 
-	drawRectangle(x, y){
+	drawRectangle(){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
         let paddingY = this.padding;
-        let side = this.frame.w - this.padding * 2;
+        let side_x = this.frame.w - this.padding * 2;
+		let side_y = this.frame.h - this.padding * 2;
         this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
         this.context.fillStyle = this.color;
         this.context.beginPath();
         this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-        this.context.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-        this.context.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-        this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
+        this.context.arc(this.frame.x + side_x + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
+        this.context.arc(this.frame.x + side_x + paddingX - this.cornerRadius, this.frame.y + side_y + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
+        this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side_y + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
         this.context.closePath();
         this.context.fill();
 
@@ -921,7 +930,7 @@ export class ShapeStatic extends Shape {
 	draw(){
 		if(this.shapeMethod == 'draw')
 		{
-			if(this.shape.base == 'rectangle')
+			if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 				this.drawRectangle();
 			else if(this.shape.base == 'circle')
 				this.drawCircle();
@@ -933,7 +942,7 @@ export class ShapeStatic extends Shape {
 		else if(this.shapeMethod == 'clip')
 		{
 			this.context.save();
-			if(this.shape.base == 'rectangle')
+			if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 				this.clipRectangle();
 			else if(this.shape.base == 'circle')
 				this.clipCircle();
@@ -944,7 +953,7 @@ export class ShapeStatic extends Shape {
 			this.fillColorByShape(this.colorData);
 			this.context.restore();
 		}
-		this.write(this.str, this.textPosition);
+		this.write(this.str, this.textPosition, 'default', 'default', {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
 		// this.animate();
@@ -982,18 +991,23 @@ export class ShapeStatic extends Shape {
         let temp_panel_section = document.createElement('DIV');
         temp_panel_section.className  = "panel-section float-container " + extraClass;
         let temp_pseudo_label = document.createElement('DIV');
-        temp_pseudo_label.className = 'pseudo-label'
+        temp_pseudo_label.className = 'pseudo-label';
         temp_pseudo_label.innerText = displayName;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', input_id);
+		temp_label.setAttribute('flex', 'full');
+		temp_label.className = 'flex-item';
         temp_label.innerText = 'upload';
         let temp_input = document.createElement('INPUT');
         temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
         temp_input.id = input_id;
         temp_input.type = 'file';
+		let temp_right = document.createElement('DIV');
+		temp_right.className = 'input-section flex-container';
+		temp_right.appendChild(temp_input);
+		temp_right.appendChild(temp_label);
         temp_panel_section.appendChild(temp_pseudo_label);
-        temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(temp_input);
+        temp_panel_section.appendChild(temp_right);
         return temp_panel_section;
     }
 
@@ -1058,6 +1072,14 @@ export class ShapeStatic extends Shape {
 	    this.fields['text-position'].onchange = function(e){
 	    	let position = e.target.value;
 	    	this.updateTextPosition(position);
+	    }.bind(this);
+
+		this.fields['text-shift-x'].onchange = function(e){
+			this.updateTextShiftX(parseInt(e.target.value));
+	    }.bind(this);
+
+		this.fields['text-shift-y'].onchange = function(e){
+			this.updateTextShiftY(parseInt(e.target.value));
 	    }.bind(this);
 
 	    // let sShape_color = this.fields['shape-color'];
@@ -1165,6 +1187,14 @@ export class ShapeStatic extends Shape {
     }
     updateTextPosition(position, silent = false){
         this.textPosition = position;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateTextShiftX(x, silent = false){
+        this.textShiftX = x;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateTextShiftY(y, silent = false){
+        this.textShiftY = y;
         if(!silent) this.canvasObj.draw();
     }
     animate(colorData = false, shape = false){

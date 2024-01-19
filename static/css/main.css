@@ -105,11 +105,14 @@ option:after {
 }
 
 .generator-container {
-    display: flex;
+    /* display: flex; */
 }
 .control-panel {
-    flex: 0 0 300px;
+    /* flex: 0 0 300px; */
+    width: 500px;
     padding-right: 20px;
+    position: sticky;
+    top: 20px;
 }
 #logo-container {
     display: none;
@@ -117,19 +120,19 @@ option:after {
 input,
 input[type="text"],
 select,
-label[for^="background-image-story"],
-label[for^="background-image-post"],
+input[type="file"] + label,
 textarea
 {
-    float: right;
+    /* float: right; */
     height: 30px;
     font-size: 14px;
     padding: 3px 10px 3px 10px;
-    width: 240px;
+    width: 100%;
+    display: block;
     border: none;
     color: #FFF;
     background-color: #666060;
-    clear: both;
+    /* clear: both; */
 }
 select
 {        
@@ -145,6 +148,9 @@ textarea
     border: none;
     margin: 0;
 }
+.typography-control textarea {
+    flex: 0 0 100%;
+}
 label
 {
     vertical-align: top;
@@ -157,7 +163,7 @@ textarea + select
 .control-panel
 {
     font-size: 16px;
-    width: 500px;
+    /* width: 500px; */
     display: inline-block;
     vertical-align: top;
     padding-right: 20px;
@@ -168,7 +174,10 @@ textarea + select
     width: 500px;
     padding-right: 20px;
 }
-
+.input-section {
+    width: 50%;
+    float: right;
+}
 .waiting-for-format #panel-format .panel-section:after
 {
     content: none;
@@ -238,15 +247,13 @@ input[type="file"]
 {
     display: inline-block;
 }
-label[for^="background-image-story"],
-label[for^="background-image-post"]
+input[type="file"] + label
 {
     cursor: pointer;
     padding-top: 4px;
     text-align: center;
 }
-label[for^="background-image-story"]:hover,
-label[for^="background-image-post"]:hover
+input[type="file"] + label:hover
 {
     background-color: #ccc;
 }
@@ -312,6 +319,8 @@ body.recording .download-video-button
 .flex-container
 {
     display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 }
 .flex-container > .watermark
 {
@@ -319,28 +328,48 @@ body.recording .download-video-button
 }
 .typography-control
 {
-    width: 240px;
-    float: right;
+    /* width: 240px;
+    float: right; */
     flex-wrap: wrap;
 }
-.typography-control > select {
+/* .typography-control > select {
     margin-right: 3px;
 }
 .typography-control > select:last-child {
     margin-right: 0px;
+} */
+.input-section * + * {
+    margin-top: 3px;
 }
-
 .flex-item
 {
-    margin-top: 3px;
-/*        flex: 0 0 31.1%;*/
-    flex-basis: 0;
     float: none;
+    /* font-size: 10px; */
+    margin: 1.5px;
+}
+/* .flex-item + .flex-item {
+    margin-left: 3px;
+} */
+.flex-item[flex='full'] {
+    flex: 0 0 calc(100% - 3px);
+    /* margin-right :0; */
+}
+.flex-item[flex='half'],
+.flex-item[flex='one-third'] {
     font-size: 10px;
+}
+.flex-item[flex='half'] {
+    flex: 0 0 calc(50% - 3px);
+}
+.flex-item[flex='one-third'] {
+    flex: 0 0 calc(33% - 3px);
+}
+.flex-item[flex='1'] {
+    flex: 1;
 }
 .flex-item:last-child
 {
-    flex: 1;
+    margin-right: 0;
 }
 .typography-flex-item
 {
@@ -402,6 +431,7 @@ label[for^='watermark'].not-supported:after
     color: #ff0;
     width: calc(100% - 10px);
 }
+
 #btn-confirm-format,
 #btn-change-format
 {
@@ -485,6 +515,16 @@ input[value="fetch"]
 {
     margin-top: 10px;
 }
+#custom-size-wrapper {
+    display: none;
+}
+[format="custom"] #custom-size-wrapper {
+    display: block;
+}
+[format="custom"] #custom-size-wrapper.flex-container {
+    display: flex;
+}
+
 @media screen and (max-width: 1080px)
 {
     #content
@@ -544,9 +584,7 @@ input[value="fetch"]
     input[name="record"],
     input[type="submit"],
     textarea,
-    label[for="background-image"],
-    label[for^="background-image-story"],
-    label[for^="background-image-post"]
+    input[type="file"] + label
     {
         font-size: 16px;
         float: left;
@@ -559,8 +597,7 @@ input[value="fetch"]
     {
         width: 100%;
     }
-    label[for^="background-image-story"],
-    label[for^="background-image-post"]
+    input[type="file"] + label
     {
         display: inline-block;
     }

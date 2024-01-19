@@ -46,7 +46,7 @@ export class Shape {
         this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
 	}
 	
-    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false){
+    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift = null){
         position = position ? position : Object.values(this.options.watermarkPositionOptions)[0].name;
         if(this.watermarks[idx] == undefined)
     	{
@@ -54,7 +54,8 @@ export class Shape {
     			'str': str,
     			'position': position,
     			'color': color,
-    			'fontSize': fontSize
+    			'fontSize': fontSize,
+                'shift': shift
     		};
     		if (font) this.watermarks[idx].font = font;
     	}	
@@ -68,6 +69,8 @@ export class Shape {
 				this.watermarks[idx].color = color;
 			if(fontSize !== false)
 				this.watermarks[idx].fontSize = fontSize;
+            if(shift !== null)
+                this.watermarks[idx].shift = shift;
     	} 		
 	}
     
@@ -93,9 +96,12 @@ export class Shape {
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
+        let temp_right = document.createElement('div');
+        temp_right.className = 'input-section flex-container';
         let temp_select = this.renderSelect(id, options);
+        temp_right.appendChild(temp_select);
         temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(temp_select);
+        temp_panel_section.appendChild(temp_right);
         this.fields[id] = temp_select;
         return temp_panel_section;
     }
@@ -107,35 +113,40 @@ export class Shape {
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
-        let temp_div = document.createElement('DIV');
+        let temp_right = document.createElement('div');
+        temp_right.className = 'input-section flex-container';
+        // temp_right.setAttribute('flex-wrap', 'wrap');
         let temp_textarea = document.createElement('TEXTAREA');
-        temp_textarea.className = 'field-id-' + id + ' ' + extraClass;
+        temp_textarea.className = 'flex-item field-id-' + id + ' ' + extraClass;
         temp_textarea.setAttribute('rows', 3);
+        temp_textarea.setAttribute('flex', 'full');
+
         let temp_select_textPosition = this.renderSelect(id + '-position', textPositionOptions, 'flex-item typography-flex-item');
         let temp_select_textColor = this.renderSelect(id + '-color', textColorOptions, 'flex-item typography-flex-item');
         let temp_select_font = this.renderSelect(id + '-font', fontOptions, 'flex-item typography-flex-item');
-        let flex_container = document.createElement('DIV');
-        flex_container.className = 'flex-container typography-control';
-        flex_container.appendChild(temp_textarea);
-        flex_container.appendChild(temp_select_textPosition);
-        flex_container.appendChild(temp_select_textColor);
-        flex_container.appendChild(temp_select_font);
-
-        // let add = document.createElement('div');
-        // add.className = 'btn-add btn-add-text';
-        // add.innerText= 'Add text';
-        // this.addTextButton = add;
-    	// add.addEventListener('click', function(){
-    	// 	this.addText(id);
-    	// }.bind(this));
+        temp_select_textPosition.setAttribute('flex', 'one-third');
+        temp_select_textColor.setAttribute('flex', 'one-third');
+        temp_select_font.setAttribute('flex', 'one-third');
         
+        let temp_input_x = this.renderInput(id + '-shift-x', 0, {'flex': 'half'}, 'flex-item');
+        let temp_input_y = this.renderInput(id + '-shift-y', 0, {'flex': 'half'}, 'flex-item');
+        
+        temp_right.appendChild(temp_textarea);
+        temp_right.appendChild(temp_select_textPosition);
+        temp_right.appendChild(temp_select_textColor);
+        temp_right.appendChild(temp_select_font);
+        temp_right.appendChild(temp_input_x);
+        temp_right.appendChild(temp_input_y);
+
         temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(flex_container);
+        temp_panel_section.appendChild(temp_right);
         // temp_panel_section.appendChild(add);
         this.fields[id] = temp_textarea;
         this.fields[id + '-position'] = temp_select_textPosition;
         this.fields[id + '-color'] = temp_select_textColor;
         this.fields[id + '-font'] = temp_select_font;
+        this.fields[id + '-shift-x'] = temp_input_x;
+        this.fields[id + '-shift-y'] = temp_input_y;
         return temp_panel_section;
     }
     addText(btn, id) {
@@ -177,51 +188,78 @@ export class Shape {
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
         let temp_right = document.createElement('DIV');
-        temp_right.className = 'flex-container typography-control';
+        temp_right.className = 'input-section flex-container typography-control';
         // let temp_input = document.createElement('INPUT');
         // temp_input.type = 'text';
         let temp_input = document.createElement('TEXTAREA');
         // temp_input.type = 'text';
-        temp_input.className = 'field-id-' +id + ' watermark ' + extraClass;
+        temp_input.className = 'field-id-' +id + ' watermark flex-item ' + extraClass;
+        temp_input.setAttribute('flex', 'full');
         temp_right.appendChild(temp_input);
 
         let temp_select_position = this.renderSelect('watermark-position-' + idx, this.options.watermarkPositionOptions, 'watermark-position flex-item typography-flex-item');
+        temp_select_position.setAttribute('flex', 'one-third');
         temp_right.appendChild(temp_select_position);
 
         let temp_select_color = this.renderSelect('watermark-color-' + idx, this.options.textColorOptions, 'watermark-color flex-item typography-flex-item');
+        temp_select_color.setAttribute('flex', 'one-third');
         temp_right.appendChild(temp_select_color);
 
         let temp_select_fontSize = this.renderSelect('watermark-fontsize-' + idx, this.options.fontOptions, 'watermark-fontsize flex-item typography-flex-item');
+        temp_select_fontSize.setAttribute('flex', 'one-third');
         temp_right.appendChild(temp_select_fontSize);
 
+        let temp_input_x = this.renderInput('watermark-shift-x-' + idx, 0, {'flex': 'half'}, 'watermark-shift-x flex-item');
+        let temp_input_y = this.renderInput('watermark-shift-y-' + idx, 0, {'flex': 'half'}, 'watermark-shift-y flex-item');
+        temp_right.appendChild(temp_input_x);
+        temp_right.appendChild(temp_input_y);
+
         this.fields['watermarks'][idx] = 
-            {
-                'text': temp_input,
-                'position': temp_select_position,
-                'color': temp_select_color,
-                'font': temp_select_fontSize
-            };
+        {
+            'text': temp_input,
+            'position': temp_select_position,
+            'color': temp_select_color,
+            'font': temp_select_fontSize,
+            'shift': {
+                x: temp_input_x,
+                y: temp_input_y
+            }
+        };
         temp_input.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value);
-            // ShapeAnimatedObj.updateWatermark(idx, e.target.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
         }.bind(this);
         temp_select_position.onchange = function(e){
             this.checkWatermarkPosition(e.target.value, temp_label);
-            this.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value);
-            // ShapeAnimatedObj.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value);
+            this.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
         }.bind(this);
         temp_select_color.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value);
-            // ShapeAnimatedObj.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
         }.bind(this);
         temp_select_fontSize.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, e.target.value);
-            // ShapeAnimatedObj.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, e.target.value);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
         }.bind(this);
-
+        temp_input_x.onchange = function(e){
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+        }.bind(this);
+        temp_input_y.onchange = function(e){
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+        }.bind(this);
+        
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
         return temp_panel_section;
+    }
+    renderInput(id, value='', attrs = null, extraClass = ''){
+        let output = document.createElement('input');
+        output.id = id;
+        output.value = value;
+        if(attrs) {
+            for(let attr in attrs) {
+                output.setAttribute(attr, attrs[attr]);
+            }
+        }
+        if(extraClass) output.className = extraClass;
+        return output;
     }
     renderAddWaterMark(){
     	let container = document.createElement('DIV');
@@ -285,7 +323,10 @@ export class Shape {
         }
     }
     renderControl(isThree = false){
-        this.control.appendChild(this.renderSelectField('shape', 'Shape', this.options.shapeOptions));
+        let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
+        // shape.querySelector('select').setAttribute('flex', 'full');
+        shape.querySelector('select').classList.add('flex-item');
+        this.control.appendChild(shape);
 	    this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
 	    if(!isThree){
 	    	this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
@@ -310,6 +351,7 @@ export class Shape {
     }
     
     updateFrame(frame){
+        frame = frame ? frame : this.generateFrame();
         this.frame = frame;
     }
 
@@ -364,5 +406,27 @@ export class Shape {
         this.watermarks = this.watermarks.slice(0, idx+1);
         this.fields.watermarks = this.fields.watermarks.slice(0, idx+1);
     }
+    generateFrame()
+    {
+        let output = {};
+        let shapeCenter = this.isThree ? {x: 0, y: 0} : {x: this.canvasObj.canvas.width / 2, y: this.canvasObj.canvas.height / 2};
+        // assuming vertically stacking only
+        let unit_w = this.canvasObj.canvas.width;
+        let unit_h = this.canvasObj.canvas.height / this.canvasObj.shapes.length;
+        if(this.shape.base == 'fill') {
+            output.w = unit_w;
+            output.h = unit_h;
+        }
+        else {
+            let length = unit_w > unit_h ? unit_h : unit_w;
+            output.w = length;
+            output.h = length;
+        }
+        
+        output.x = !this.isThree ? shapeCenter.x - output.w / 2 : shapeCenter.x;
+        output.y = !this.isThree ? shapeCenter.y - output.h / 2 : shapeCenter.y;
+        return output;
+    }
+
 }
 
