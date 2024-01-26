@@ -120,7 +120,7 @@ option:after {
 input,
 input[type="text"],
 select,
-input[type="file"] + label,
+.pseudo-upload,
 textarea
 {
     /* float: right; */
@@ -133,6 +133,12 @@ textarea
     color: #FFF;
     background-color: #666060;
     /* clear: both; */
+}
+.pseudo-upload {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: sans-serif;
 }
 select
 {        
@@ -162,8 +168,6 @@ textarea + select
 #panel,
 .control-panel
 {
-    font-size: 16px;
-    /* width: 500px; */
     display: inline-block;
     vertical-align: top;
     padding-right: 20px;
@@ -174,9 +178,12 @@ textarea + select
     width: 500px;
     padding-right: 20px;
 }
-.input-section {
+.half-right {
     width: 50%;
     float: right;
+}
+.clear-float {
+    clear: both;
 }
 .waiting-for-format #panel-format .panel-section:after
 {
@@ -188,6 +195,12 @@ textarea + select
     /* text-align: left; */
     /* max-width: none; */
     display: inline-block;
+}
+#background-image-panel-section {
+    display: none;
+}
+.viewing-background-upload + #background-image-panel-section {
+    display: block;
 }
 /* #content
 {
@@ -234,11 +247,14 @@ textarea + select
 {
     margin-bottom: 8px;
 }    
-.field-id-background-image-controls
+.field-id-image-controls
 {
     display: none;
+    margin: 1.5px 0;
 }
-
+.viewing-image-control .field-id-image-controls {
+    display: block;
+}
 input[type="file"]
 {
     display: none;
@@ -362,7 +378,7 @@ body.recording .download-video-button
     flex: 0 0 calc(50% - 3px);
 }
 .flex-item[flex='one-third'] {
-    flex: 0 0 calc(33% - 3px);
+    flex: 0 0 calc((100% - 9px) / 3);
 }
 .flex-item[flex='1'] {
     flex: 1;
@@ -431,7 +447,10 @@ label[for^='watermark'].not-supported:after
     color: #ff0;
     width: calc(100% - 10px);
 }
-
+label:not(.pseudo-upload), .pseudo-label {
+    padding-top:5px;
+    float: left;
+}
 #btn-confirm-format,
 #btn-change-format
 {
@@ -501,15 +520,6 @@ input[value="fetch"]
 {
     cursor: pointer;
     margin-top: 2px;
-}
-/*.btn-add-watermark:hover,
-.button-like-label:hover
-{
-    background-color: #888;
-}*/
-.viewing-image-control .field-id-background-image-controls
-{
-    display: block;
 }
 #common-control-bottom .btn
 {

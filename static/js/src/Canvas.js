@@ -12,6 +12,7 @@ export class Canvas {
 		this.format = format;
 		this.isThree = isThree;
 		this.id = id;
+        this.scale = isThree ? 1 : 2;
 		this.chunks = [];
 		this.shapes = [];
 		this.base = Object.values(this.baseOptions)[0].color.code;
@@ -331,8 +332,8 @@ export class Canvas {
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
         let temp_right = document.createElement('div');
-        temp_right.className = 'input-section flex-container';
-        let temp_select = this.renderSelect(id, options);
+        temp_right.className = 'half-right flex-container';
+        let temp_select = this.renderSelect(id, options, 'flex-item');
         temp_right.appendChild(temp_select);
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
@@ -342,6 +343,7 @@ export class Canvas {
     renderFormatField(){
         
         let formatField = this.renderSelectField('format', 'Format', this.formatOptions);
+        formatField.querySelector('select').setAttribute('flex', 'full');
         if(this.format == 'custom') {
             
             // let customSizeField = document.createElement('div');
@@ -362,11 +364,11 @@ export class Canvas {
             customHeight.placeholder="H";
             customHeight.setAttribute('flex', 1);
             customHeight.value = parseInt(this.canvas.style.height);
-            let temp_right = formatField.querySelector('.input-section');
+            let temp_right = formatField.querySelector('.half-right');
             temp_right.appendChild(customWidth);
             temp_right.appendChild(cross);
             temp_right.appendChild(customHeight);
-            // formatField.querySelector('.input-section').appendChild(customSizeField);
+            // formatField.querySelector('.half-right').appendChild(customSizeField);
             // console.log(formatField);
         }
         let options = formatField.querySelectorAll('option');
@@ -392,7 +394,7 @@ export class Canvas {
         temp_input.type = 'checkbox';
         temp_input.id = id;
         let temp_right = document.createElement('div');
-        temp_right.className = 'input-section flex-container';
+        temp_right.className = 'half-right flex-container';
         temp_right.appendChild(temp_input);
         temp_right.appendChild(temp_label);
         // temp_panel_section.appendChild(temp_input);
@@ -623,7 +625,7 @@ export class Canvas {
         form.appendChild(input_action);
         form.appendChild(button);
         let temp_right = document.createElement('div');
-        temp_right.className = 'input-section flex-container';
+        temp_right.className = 'half-right flex-container';
         temp_right.append(form);
         container.appendChild(label);
         container.appendChild(temp_right);
@@ -864,12 +866,12 @@ export class Canvas {
         let updated = false;
         if(size.width) {
             updated = true;
-            this.canvas.width = this.isThree ? size.width : size.width * 2;
+            this.canvas.width = size.width *  this.scale;
             this.canvas.style.width = size.width + 'px';
         }
         if(size.height) {
             updated = true;
-            this.canvas.height = this.isThree ? size.height : size.height * 2;
+            this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
         for(let i = 0; i < this.shapes.length; i++) {

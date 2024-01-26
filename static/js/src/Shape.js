@@ -97,8 +97,8 @@ export class Shape {
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
         let temp_right = document.createElement('div');
-        temp_right.className = 'input-section flex-container';
-        let temp_select = this.renderSelect(id, options);
+        temp_right.className = 'half-right flex-container';
+        let temp_select = this.renderSelect(id, options, 'flex-item');
         temp_right.appendChild(temp_select);
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
@@ -114,7 +114,7 @@ export class Shape {
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
         let temp_right = document.createElement('div');
-        temp_right.className = 'input-section flex-container';
+        temp_right.className = 'half-right flex-container';
         // temp_right.setAttribute('flex-wrap', 'wrap');
         let temp_textarea = document.createElement('TEXTAREA');
         temp_textarea.className = 'flex-item field-id-' + id + ' ' + extraClass;
@@ -188,7 +188,7 @@ export class Shape {
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
         let temp_right = document.createElement('DIV');
-        temp_right.className = 'input-section flex-container typography-control';
+        temp_right.className = 'half-right flex-container typography-control';
         // let temp_input = document.createElement('INPUT');
         // temp_input.type = 'text';
         let temp_input = document.createElement('TEXTAREA');
@@ -315,39 +315,18 @@ export class Shape {
     //     output.innerText= 'Add a ' + display;
     //     return output;
     // }
-    renderControlSection(type, id, sectionClass){
-        let output = document.createElement('div');
-        output.className = "panel-section float-container " + sectionClass;
-        if(type === 'shape') {
-            return 
-        }
-    }
-    renderControl(isThree = false){
+    // renderControlSection(type, id, sectionClass){
+    //     let output = document.createElement('div');
+    //     output.className = "panel-section float-container " + sectionClass;
+    //     if(type === 'shape') {
+    //         return 
+    //     }
+    // }
+    renderControl(){
         let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
-        // shape.querySelector('select').setAttribute('flex', 'full');
         shape.querySelector('select').classList.add('flex-item');
         this.control.appendChild(shape);
 	    this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
-	    if(!isThree){
-	    	this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
-            if(!this.canvasObj.fields['record'])
-                this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
-	    	this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
-            // this.control.appendChild(this.renderAddButton('text', 'Text'));
-	    }
-	    else
-	    {
-            // this.control.appendChild(this.renderSelectField('animation', 'Animation', this.animationOptions));
-	    	this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
-	    	this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
-            this.fields['shape-back-color'].selectedIndex = 1;
-            if(!this.canvasObj.fields['record'])
-                this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
-	    	this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
-    		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
-	    }
-	    
-	    // this.control_wrapper.appendChild(this.renderAddWaterMark());
     }
     
     updateFrame(frame){

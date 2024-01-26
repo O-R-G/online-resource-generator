@@ -1110,7 +1110,13 @@ export class ShapeAnimated extends Shape {
     	super.checkWatermarkPosition(position, label);
     }
     renderControl(){
-		super.renderControl(true);
+		super.renderControl();
+		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
+		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
+		this.fields['shape-back-color'].selectedIndex = 1;
+		if(!this.canvasObj.fields['record']) this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
+		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
+		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control_wrapper.appendChild(this.control);
 		// this.control.appendChild(super.renderAddShape());

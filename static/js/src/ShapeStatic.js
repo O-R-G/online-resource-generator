@@ -12,33 +12,36 @@ export class ShapeStatic extends Shape {
 		this.fontSize = Object.keys(this.options.fontOptions)[0];
 		this.textShiftX = 0;
 		this.textShiftY = 0;
-		// console.log('fontSize = ' + this.fontSize);
-		// this.str = '';
-		
 
 		this.timer_color = null;
 		this.timer_position = null;
 		this.timer_shape = null;
 
-		this.img = null;
-		this.imgX = 0;
-		this.imgY = 0;
-		this.imgScale = 1;
-		this.imgShiftX = 0;
-		this.imgShiftY = 0;
+		this.imgs = {
+			'background-image': {
+				img: null,
+				x: 0,
+				y: 0,
+				shiftY: 0,
+				shiftX: 0,
+				scale: 1
+			}
+		};
+
+		this.fields.imgs = {};
+		// this.imgX = 0;
+		// this.imgY = 0;
+		// this.imgScale = 1;
+		// this.imgShiftX = 0;
+		// this.imgShiftY = 0;
 	    this.shapeMethod = 'draw';
 	    this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
 
+
 	    this.renderControl();
 	    this.addListeners();
-
 	    this.updateShape(this.shape, true);
-
-	    // this.fontSettingLoaded = false;
-// console.log('---------------------');
-// console.log(this.options);
-
 	}
 	addCounterpart(obj)
 	{
@@ -358,65 +361,85 @@ export class ShapeStatic extends Shape {
         this.cornerRadius = this.animation_shape_data.current.r;
         this.canvasObj.draw();
     }
-    
-    updateImg(img, silent = false){
-    	if(this.timer_color != null)
-    	{
-    		clearInterval(this.timer_color);
-    		this.timer_color = null;
-    	}
-    	this.img = img;
-        let temp = document.createElement('canvas');
-        temp.width = this.canvasW;
-    	temp.height = this.canvasH;
-        let temp_ctx = temp.getContext('2d');
-        let length = this.frame.w - this.padding * 2;
-        	
-        let temp_scale = 1;
-        let temp_scaledW = this.img.width * temp_scale;
-        let temp_scaledH = this.img.height * temp_scale;
-        
-        if(this.img.width > this.img.height)
-        {
-        	temp_scale = length / this.img.height * this.imgScale;
-            temp_scaledW = this.img.width * temp_scale;
-            temp_scaledH = this.img.height * temp_scale;
-        }
-        else
-        {
-            temp_scale = length / this.img.width * this.imgScale;
-            temp_scaledW = this.img.width * temp_scale;
-            temp_scaledH = this.img.height * temp_scale;
-        }
+    updateImg(img, idx, silent = false){
+		console.log(idx);
+		if(!this.imgs[idx]) {
+			this.imgs[idx] = {
+				img: null,
+				x: 0,
+				y: 0,				
+				shiftY: 0,
+				shiftX: 0,
+				scale: 1
+			}
+		}
+		this.imgs[idx].img = img;
+		
+		if(idx === 'background-image') {
+			let temp = document.createElement('canvas');
+			let temp_ctx = temp.getContext('2d');
+			if(this.timer_color != null)
+			{
+				clearInterval(this.timer_color);
+				this.timer_color = null;
+			}
+			temp.width = this.canvasW;
+			temp.height = this.canvasH;
+			
+			let length = this.frame.w - this.padding * 2;
+				
+			let temp_scale = 1;
+			let temp_scaledW = this.imgs[idx].img.width * temp_scale;
+			let temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			
+			if(this.imgs[idx].img.width > this.imgs[idx].img.height)
+			{
+				temp_scale = length / this.imgs[idx].img.height * this.imgs[idx].scale;
+				temp_scaledW = this.imgs[idx].img.width * temp_scale;
+				temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			}
+			else
+			{
+				temp_scale = length / this.imgs[idx].img.width * this.imgs[idx].scale;
+				temp_scaledW = this.imgs[idx].img.width * temp_scale;
+				temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			}
 
-        this.imgX = temp.width / 2 - temp_scaledW / 2 + this.imgShiftX;
-        this.imgY = this.frame.h / 2 - temp_scaledH / 2 + this.imgShiftY + this.frame.y;
-        if(this.timer_color != null)
-        {
-        	clearInterval(this.timer_color);
-        	this.timer_color = null;
-        }
-        if(this.timer_position != null)
-        {
-        	clearInterval(this.timer_position);
-        	this.timer_position = null;
-        }
-        temp_ctx.drawImage(this.img, this.imgX, this.imgY, temp_scaledW, temp_scaledH);
+			this.imgs[idx].x = temp.width / 2 - temp_scaledW / 2 + this.imgs[idx].shiftX;
+			this.imgs[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.imgs[idx].shiftY + this.frame.y;
+			if(this.timer_color != null)
+			{
+				clearInterval(this.timer_color);
+				this.timer_color = null;
+			}
+			if(this.timer_position != null)
+			{
+				clearInterval(this.timer_position);
+				this.timer_position = null;
+			}
+			temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
 
-        this.color = this.context.createPattern(temp, "no-repeat");
-        if(!silent) this.canvasObj.draw();
+			this.color = this.context.createPattern(temp, "no-repeat");
+			
+		} 
+		if(!silent) this.canvasObj.draw();
+	}
+    updateBackgroundImg(img, silent = false){
+    	
     }
-    updateImgScale(imgScale, silent = false){
-    	this.imgScale = imgScale;
-    	this.updateImg(this.img, silent)
+    updateImgScale(imgScale, idx, silent = false){
+    	this.imgs[idx].scale = imgScale;
+    	this.updateImg(this.imgs[idx].img, idx, silent)
     };
-    updateImgPositionX(imgShiftX, silent = false){
-    	this.imgShiftX = parseFloat(imgShiftX);
-    	this.updateImg(this.img, silent)
+    updateImgPositionX(imgShiftX, idx, silent = false){
+		console.log(this.imgs);
+		console.log(idx);
+    	this.imgs[idx].shiftX = parseFloat(imgShiftX);
+    	this.updateImg(this.imgs[idx].img, idx, silent)
     };
-    updateImgPositionY(imgShiftY, silent = false){
-    	this.imgShiftY = parseFloat(imgShiftY);
-    	this.updateImg(this.img, silent)
+    updateImgPositionY(imgShiftY, idx, silent = false){
+    	this.imgs[idx].shiftY = parseFloat(imgShiftY);
+    	this.updateImg(this.imgs[idx].img, idx, silent)
     };
 	
 	updateFontSize(fontSize, silent = false){
@@ -953,10 +976,10 @@ export class ShapeStatic extends Shape {
 			this.fillColorByShape(this.colorData);
 			this.context.restore();
 		}
+		this.drawImages();
 		this.write(this.str, this.textPosition, 'default', 'default', {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
-		// this.animate();
 	}
 	// clip(){
 	// 	this.context.save();
@@ -967,25 +990,28 @@ export class ShapeStatic extends Shape {
 	// 	else if(this.shape.base == 'circle')
 	// 		this.clipCircle();
 	// }
-	renderNumeralField(id, displayName, begin, step, min=false, extraClass='')
+	renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
         let temp_panel_section = document.createElement('DIV');
-        temp_panel_section.className  = "panel-section float-container " + extraClass;
+        temp_panel_section.className  = "panel-section float-container " + extraWrapperClass;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
         let temp_input = document.createElement('INPUT');
-        // temp_input.id = id;
         temp_input.className = 'field-id-' + id + ' ' + extraClass;
         temp_input.type = 'number';
         temp_input.value = begin;
-        temp_input.setAttribute('step', begin);
+        temp_input.setAttribute('step', step);
         temp_input.setAttribute('min', min);
+		temp_input.id = id;
+		let temp_right = document.createElement('DIV');
+		temp_right.className = 'half-right flex-container';
+		temp_right.appendChild(temp_input);
         temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(temp_input);
+        temp_panel_section.appendChild(temp_right);
         return temp_panel_section;
     }
-    renderFileField(id, displayName, extraClass='')
+    renderFileField(id, idx, displayName, extraClass='')
     {
     	let input_id = id + '-' + this.format + '-' + this.id;
         let temp_panel_section = document.createElement('DIV');
@@ -996,28 +1022,34 @@ export class ShapeStatic extends Shape {
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', input_id);
 		temp_label.setAttribute('flex', 'full');
-		temp_label.className = 'flex-item';
-        temp_label.innerText = 'upload';
+		temp_label.className = 'flex-item pseudo-upload';
+        temp_label.innerText = 'Choose file';
         let temp_input = document.createElement('INPUT');
         temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
         temp_input.id = input_id;
         temp_input.type = 'file';
+		temp_input.setAttribute('image-idx', idx);
+		let backgroundImageControls = this.renderImageControls('background-image');
 		let temp_right = document.createElement('DIV');
-		temp_right.className = 'input-section flex-container';
+		temp_right.className = 'half-right flex-container';
 		temp_right.appendChild(temp_input);
 		temp_right.appendChild(temp_label);
+		temp_right.appendChild(backgroundImageControls);
+
         temp_panel_section.appendChild(temp_pseudo_label);
         temp_panel_section.appendChild(temp_right);
+		temp_panel_section.id = id + '-panel-section';
+		this.fields.imgs[idx] = temp_input;
         return temp_panel_section;
     }
 
-	renderBackgroundImageControls(){
+	renderImageControls(id=''){
 		let container = document.createElement('DIV');
-		container.className = 'field-id-background-image-controls';
-		container.id = this.id + '-field-id-background-image-controls'
-		let scale = this.renderNumeralField('background-image-scale', 'Scale', 1.0, 0.1);
-		let x = this.renderNumeralField('background-image-shift-x', 'X', 0, 1);
-		let y = this.renderNumeralField('background-image-shift-y', 'Y', 0, 1);
+		container.className = 'field-id-image-controls float-container';
+		container.id = id ? id + '-field-id-image-controls' : '';
+		let scale = this.renderNumeralField(id + '-background-image-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
+		let x = this.renderNumeralField(id + '-background-image-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
+		let y = this.renderNumeralField(id + '-background-image-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
 		container.append(scale);
 		container.append(x);
 		container.append(y);
@@ -1027,10 +1059,18 @@ export class ShapeStatic extends Shape {
 
 	renderControl(){
 		super.renderControl();
-		let file = this.renderFileField('background-image', 'Image');
-		let backgroundImageControls = this.renderBackgroundImageControls();
+		this.options.colorOptions['upload'] = {
+			'name': 'upload'
+		};
+		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
+		let file = this.renderFileField('background-image', 'background-image', '');
+		// let backgroundImageControls = this.renderImageControls();
 		this.control.appendChild(file);
-		this.control.appendChild(backgroundImageControls);
+		// this.control.appendChild(backgroundImageControls);
+		if(!this.canvasObj.fields['record'])
+			this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
+		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
+		this.control.appendChild(this.renderFileField('image-1', 'img-0', 'Image 1'));
 		this.control.appendChild(super.renderAddWaterMark());
 	}
 
@@ -1084,31 +1124,71 @@ export class ShapeStatic extends Shape {
 
 	    // let sShape_color = this.fields['shape-color'];
 	    this.fields['shape-color'].onchange = function(e){
-	        this.updateColor(this.options.colorOptions[e.target.value].color);
+			let sec = e.target.parentNode.parentNode;
+			if(e.target.value === 'upload') {
+				sec.classList.add('viewing-background-upload');
+			}
+	        else {
+				sec.classList.remove('viewing-background-upload');
+				this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
+				this.updateColor(this.options.colorOptions[e.target.value].color);
+			}
 	    }.bind(this);
 
 	    
-	    let sBackground_image = this.control.querySelector('.field-id-background-image');
-	    sBackground_image.onclick = function (e) {
-	    	e.target.value = null;
-	    }.bind(this);
-	    sBackground_image.onchange = function(e){
-	    	this.readImage(e);
-	    }.bind(this);
-	    let sBackground_image_scale = this.control.querySelector('.field-id-background-image-scale');
-	    sBackground_image_scale.oninput = function(e){
-	        e.preventDefault();
-	        let background_image_scale = e.target.value >= 1 ? e.target.value : 1;
-	        this.updateImgScale(background_image_scale);
-	    }.bind(this);
-	    let sBackground_image_shift_x = this.control.querySelector('.field-id-background-image-shift-x');
-	    sBackground_image_shift_x.oninput = function(e){
-	        this.updateImgPositionX(e.target.value);
-	    }.bind(this);
-	    let sBackground_image_shift_y = this.control.querySelector('.field-id-background-image-shift-y');
-	    sBackground_image_shift_y.oninput = function(e){
-	        this.updateImgPositionY(e.target.value);
-	    }.bind(this);
+	    // this.fields.imgs['background-image'].onclick = function (e) {
+	    // 	e.target.value = null;
+	    // }.bind(this);
+	    // this.fields.imgs['background-image'].onchange = function(e){
+	    // 	this.readImage(e);
+	    // }.bind(this);
+
+	    // let sBackground_image_scale = this.control.querySelector('#background-image-background-image-scale');
+	    // sBackground_image_scale.oninput = function(e){
+	    //     e.preventDefault();
+	    //     let background_image_scale = e.target.value >= 1 ? e.target.value : 1;
+		// 	let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
+	    //     this.updateImgScale(background_image_scale, idx);
+	    // }.bind(this);
+	    // let sBackground_image_shift_x = this.control.querySelector('#background-image-background-image-shift-x');
+	    // sBackground_image_shift_x.oninput = function(e){
+		// 	let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
+	    //     this.updateImgPositionX(e.target.value, idx);
+	    // }.bind(this);
+	    // let sBackground_image_shift_y = this.control.querySelector('#background-image-background-image-shift-y');
+	    // sBackground_image_shift_y.oninput = function(e){
+		// 	let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
+	    //     this.updateImgPositionY(e.target.value, idx);
+	    // }.bind(this);
+		for(let idx in this.fields.imgs) {
+			let input = this.fields.imgs[idx];
+			input.onclick = function (e) {
+				e.target.value = null;
+			}.bind(this);
+			input.onchange = function(e){
+				this.readImage(e);
+			}.bind(this);
+			let scale_input = input.parentNode.querySelector('.img-control-scale');
+			if(scale_input) {
+				scale_input.oninput = function(e){
+				    e.preventDefault();
+				    let scale = e.target.value >= 1 ? e.target.value : 1;
+					// let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
+				    this.updateImgScale(scale, idx);
+				}.bind(this);
+			}	
+			let shift_x_input = input.parentNode.querySelector('.img-control-shift-x');
+			shift_x_input.oninput = function(e){
+				// let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
+				this.updateImgPositionX(e.target.value, idx);
+			}.bind(this);
+			let shift_y_input = input.parentNode.querySelector('.img-control-shift-y');
+			shift_y_input.oninput = function(e){
+				// let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
+				this.updateImgPositionX(e.target.value, idx);
+			}.bind(this);
+		}
+		
 
 	    window.addEventListener("keydown", (event) => {
 	        // if (event.keyCode === 37) {
@@ -1135,19 +1215,20 @@ export class ShapeStatic extends Shape {
 	    });
 	}
 	readImage(event) {
-		if (event.target.files && event.target.files[0]) {
+		let input = event.target;
+		let idx = input.getAttribute('image-idx');
+		if (input.files && input.files[0]) {
         	var FR = new FileReader();
             FR.onload = function (e) {
-                let background_image = new Image();
-                background_image.onload = function () {
-                    this.updateImg(background_image);
+                let image = new Image();
+                image.onload = function () {
+					// this.imgs[idx].img = background_image;
+					this.updateImg(image, idx);	
                 }.bind(this);
-                background_image.src = e.target.result;
+                image.src = e.target.result;
             }.bind(this);
-            FR.readAsDataURL(event.target.files[0]);
-            let imageUrl = URL.createObjectURL(event.target.files[0]);
-            // this.counterpart.updateImg(imageUrl);
-            this.control.classList.add('viewing-image-control');
+            FR.readAsDataURL(input.files[0]);
+            input.parentNode.parentNode.classList.add('viewing-image-control');
         }
     }
     
@@ -1216,5 +1297,12 @@ export class ShapeStatic extends Shape {
     	clearInterval(timer);
 		timer = null;
     }
+	drawImages(){
+		for(let idx in this.imgs) {
+			if(idx === 'background-image') continue;
+			console.log(this.imgs[idx]);
+			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
+		}
+	}
 }
 
