@@ -2,20 +2,9 @@ import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 
-// var canvas_static, canvas_animated;
-// var panel_static_wrapper, panel_animated_wrapper;
-// let shapeStaticCenter = {
-//     x: canvas_static.canvas.width / 2,
-//     y: canvas_static.canvas.height / 2
-// };
-// let shapeAnitmatedCenter = {
-//     x: 0,
-//     y: 0
-// };
 const main = document.getElementById('main');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 function init(data){
-    
     let format = main.getAttribute('format');
     // main.classList.remove('waiting-for-format');
     main.setAttribute('format', format);

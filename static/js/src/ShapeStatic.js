@@ -1,4 +1,5 @@
 import { Shape } from "./Shape.js";
+import { customGraphicStatic } from "./custom/customGraphicStatic.js";
 export class ShapeStatic extends Shape {
 	constructor(id = '', canvasObj, options, control_wrapper, format, frame){
 
@@ -37,7 +38,7 @@ export class ShapeStatic extends Shape {
 	    this.shapeMethod = 'draw';
 	    this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
-
+		this.customGraphic = typeof customGraphicStatic === 'undefined' ? null : new customGraphicStatic(this);
 
 	    this.renderControl();
 	    this.addListeners();
@@ -456,49 +457,85 @@ export class ShapeStatic extends Shape {
 		this.textColor = this.processStaticColorData(colorData);
         if(!silent) this.canvasObj.draw();
     }
-    write(str = '', align='center', color='default', fontSize = 'default', shift=null){
-		console.log(shift);
-    	if(color == 'default'){
+    write(str = '', align='center', color='default', fontSize = 'default', shift=null, rad=0){
+    	if(color == 'default')
     		this.context.fillStyle = this.textColor;
-    	}
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
         if(this.options.fontOptions[fontSize]['name'] == 'large' || this.options.fontOptions[fontSize]['name'] == 'medium')
             var fontStyle = fontSize + "px eurostile_extended_black";
         else
             var fontStyle = fontSize + "px new-century-schoolbook";
-
+		rad = rad ? rad : 0;
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
         	this.str = str;
         	this.context.font = fontStyle;
         	this.context.textBaseline = 'middle';
         	this.context.textAlign='center';
         	let lines = [];
-        	let str_metrics = this.context.measureText(this.str);
-        	if(this.textBoxWidth && str_metrics.width > this.textBoxWidth) {
-	        	lines = this.breakStrByWidth(this.str, this.textBoxWidth);
-	        } else {
-	        	lines = this.str.split('\n');
-	        }
-        	let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
+			let str_raw = this.str.replace(/\[(.*?)\]/g, "$1");
+			console.log(str_raw);
+        	let str_metrics = this.context.measureText(str_raw);
+			console.log(str_metrics);
+			lines = this.str.split('\n');
 			let x = shift && shift.x ? shift.x : 0, 
-			    y = shift && shift.y ? shift.y : 0;
-        	if(lines.length == 1) {
+				y = shift && shift.y ? shift.y : 0;
+			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
+			console.log(this.textBoxWidth);
+			console.log(this.padding);
+			console.log(this.innerPadding);
+			if(lines.length === 1) {
+				if(this.textBoxWidth && str_metrics.width > this.textBoxWidth) {					
+					lines = this.breakStrByWidth(this.str, this.textBoxWidth);
+				}
+				
+				
 				x += this.shapeCenter.x;
 				y += this.shapeCenter.y + text_dev_y;
-	            this.context.fillText(str, x, y);
-	            return;
-	        }
+				this.context.fillText(str, x, y);
+				return;
+			} 
+
+			let lines_temp = [];
+			let textWidth = 0;
+			let forceWhite = false;
+			for(var i = 0; i < lines.length; i++) {
+				let ln_raw = '';
+				if(lines[i].match(/\[(.*?)\]/g)){
+					forceWhite = true;
+					ln_raw = lines[i].replace(/\[(.*?)\]/g, "$1");
+				}
+				else {
+					forceWhite = false;
+					ln_raw = lines[i];
+				}
+				
+				let m = this.context.measureText(ln_raw);
+				if(this.textBoxWidth && m.width > this.textBoxWidth) {
+					let temp = this.breakStrByWidth(ln_raw, this.textBoxWidth);
+					for(let j = 0; j < temp.length; j++) {
+						if(this.context.measureText(temp[j]).width > textWidth)
+							textWidth = this.context.measureText(temp[j]).width;
+						let ln = forceWhite ? '[' + temp[j] +']' : temp[j];
+						lines_temp.push(ln);
+					}
+				}
+				else{
+					lines_temp.push(lines[i]);
+					if(this.context.measureText(lines[i]).width > textWidth)
+						textWidth = this.context.measureText(lines[i]).width;
+				}
+						
+				
+			}
+			lines = lines_temp;
 			y += this.shapeCenter.y;
 			let ln;
 	        // multiple lines - align-left
 	        if(align == 'align-left') {
         		this.context.textAlign='left';
-        		let textWidth = 0;
-	            for(var i = 0; i < lines.length; i++) {
-	                if(this.context.measureText(lines[i]).width > textWidth)
-	                    textWidth = this.context.measureText(lines[i]).width;
-	            }
+        		
+	            
 	            x += this.shapeCenter.x - textWidth / 2;
 				
 				if(lines.length % 2 == 0) {
@@ -507,7 +544,7 @@ export class ShapeStatic extends Shape {
 						ln = lines[lines.length/2 + i];
 						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 2);
+							ln = ln.substring(1, ln.length - 1);
 						}
 						else
 							this.context.fillStyle = this.textColor;
@@ -516,7 +553,7 @@ export class ShapeStatic extends Shape {
 						ln = lines[lines.length/2 - 1 - i];
 						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 2);
+							ln = ln.substring(1, ln.length - 1);
 						}
 						else
 							this.context.fillStyle = this.textColor;
@@ -524,23 +561,31 @@ export class ShapeStatic extends Shape {
                 	}
             	} else {
             		let middle_idx = parseInt(lines.length/2);
-            		this.context.fillText(lines[middle_idx], x, y + text_dev_y);
+					ln = lines[middle_idx];
+					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+						this.context.fillStyle = '#ffffff';
+						ln = ln.substring(1, ln.length - 1);
+					}
+					else
+						this.context.fillStyle = this.textColor;
+            		this.context.fillText(ln, x, y + text_dev_y);
             		for(i = 0; i < middle_idx; i++) {
 	                	let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
 						ln = lines[middle_idx + (i + 1)];
+						// console.log(ln);
 						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 2);
+							ln = ln.substring(1, ln.length - 1);
 						}
 						else
 							this.context.fillStyle = this.textColor;
-
+						
 	                    this.context.fillText(ln, x, y + dev + text_dev_y);
 
 						ln = lines[middle_idx - (i + 1)];
 						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 2);
+							ln = ln.substring(1, ln.length - 1);
 						}
 						else
 							this.context.fillStyle = this.textColor;
@@ -557,7 +602,7 @@ export class ShapeStatic extends Shape {
 					ln = lines[lines.length/2 + i];
 					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 2);
+						ln = ln.substring(1, ln.length - 1);
 					}
 					else
 						this.context.fillStyle = this.textColor;
@@ -566,7 +611,7 @@ export class ShapeStatic extends Shape {
 					ln = lines[lines.length/2 - 1 - i];
 					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 2);
+						ln = ln.substring(1, ln.length - 1);
 					}
 					else
 						this.context.fillStyle = this.textColor;
@@ -575,13 +620,20 @@ export class ShapeStatic extends Shape {
                 }
             } else {
                 let middle_idx = parseInt(lines.length/2);
-                this.context.fillText(lines[middle_idx], this.shapeCenter.x, this.shapeCenter.y + text_dev_y);
+				ln = lines[middle_idx];
+				if(ln[0] === '[' && ln[ln.length - 1] === ']') {
+					this.context.fillStyle = '#ffffff';
+					ln = ln.substring(1, ln.length - 1);
+				}
+				else
+					this.context.fillStyle = this.textColor;
+                this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y + text_dev_y);
                 for(i = 0; i < middle_idx; i++) {
                     let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
 					ln = lines[middle_idx + (i + 1)];
 					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 2);
+						ln = ln.substring(1, ln.length - 1);
 					}
 					else
 						this.context.fillStyle = this.textColor;
@@ -590,7 +642,7 @@ export class ShapeStatic extends Shape {
 					ln = lines[middle_idx - (i + 1)];
 					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
 						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 2);
+						ln = ln.substring(1, ln.length - 1);
 					}
 					else
 						this.context.fillStyle = this.textColor;
@@ -603,7 +655,7 @@ export class ShapeStatic extends Shape {
         /*
             write watermarks
         */
-
+		
         // force watermark left-middle to always render italic
 		if (align == 'middle-left')         
 			fontStyle = fontSize + "px standard-italic";
@@ -728,19 +780,21 @@ export class ShapeStatic extends Shape {
     	}
 		x += shift && shift.x ? parseInt(shift.x) : 0, 
 		y += shift && shift.y ? parseInt(shift.y) : 0;
-    	if(align.indexOf('middle') !== -1 && this.shape.base == 'rectangle'){
-    		this.context.save();
-    		this.context.translate(x, y);
-    		if(align.indexOf('left') !== -1)
-    			this.context.rotate(-Math.PI/2);
-    		else if(align.indexOf('right') !== -1)
-    			this.context.rotate(Math.PI/2);
-    		this.context.textAlign = 'center';
-            this.drawMultipleLinesFromTop(lines, 0, 0, this.options.fontOptions[fontSize]['lineHeight']);
-			this.context.restore();
+		this.context.save();
+    	if(align.indexOf('middle') !== -1 && this.shape.base == 'rectangle') {
+			this.context.textAlign = 'center';
+			if(align.indexOf('left') !== -1) 
+				rad -= Math.PI/2;
+			else if(align.indexOf('right') !== -1) 
+				rad += Math.PI/2;
 		}
    		else
-            this.drawMultipleLinesFromTop(lines, x, y, this.options.fontOptions[fontSize]['lineHeight']);
+		   this.context.textAlign = 'left';
+
+		this.context.translate(x, y);
+		this.context.rotate(rad);
+		this.drawMultipleLinesFromTop(lines, 0, 0, this.options.fontOptions[fontSize]['lineHeight']);
+		this.context.restore();
     }
 
     drawMultipleLinesFromTop(lines, x, y, lineHeight) {
@@ -778,10 +832,11 @@ export class ShapeStatic extends Shape {
     	
     	return output;
     }
-    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, silent = false){
+    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
     	// console.log(">>> updateWatermark()");
 		// console.log("silent = " + silent);
-    	super.updateWatermark(idx, str, position, color, fontSize, font, shift);
+		console.log('static shape updateWatermark: ' + rad);
+    	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
 
 		if(!silent) this.canvasObj.draw();
 	}
@@ -790,7 +845,7 @@ export class ShapeStatic extends Shape {
 		this.watermarks.forEach(function(el, i){
 			// console.log(el.fontSize);
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
-				this.write(el.str, el.position, el.color, el.fontSize, el.shift);
+				this.write(el.str, el.position, el.color, el.fontSize, el.shift, el.rotate);
 		}.bind(this));
 	}
 	checkWatermarkPosition(position, label){
@@ -804,7 +859,11 @@ export class ShapeStatic extends Shape {
         let paddingY = this.padding;
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
-        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
+		console.log('drawRect:' + this.color);
+		if(this.shape.base === 'rectangle')
+			this.textBoxWidth = this.textBoxWidth * 0.9;
+		// console.log(this.textBoxWidth);
         this.context.fillStyle = this.color;
         this.context.beginPath();
         this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
@@ -941,6 +1000,10 @@ export class ShapeStatic extends Shape {
         this.context.closePath();
         this.context.fill();
     }
+	drawCustomGraphic(){
+		if(!this.customGraphic || !this.customGraphic.added) return;
+		this.customGraphic.draw();
+	}
    
     record_canvas(){
     	super.record_canvas();
@@ -980,6 +1043,7 @@ export class ShapeStatic extends Shape {
 		this.write(this.str, this.textPosition, 'default', 'default', {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
+		this.drawCustomGraphic();
 	}
 	// clip(){
 	// 	this.context.save();
@@ -1072,6 +1136,9 @@ export class ShapeStatic extends Shape {
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		this.control.appendChild(this.renderFileField('image-1', 'img-0', 'Image 1'));
 		this.control.appendChild(super.renderAddWaterMark());
+		if(this.customGraphic) {
+			this.control.appendChild(this.customGraphic.renderAddCustomGraphicButton());
+		}
 	}
 
 	addListeners(){
@@ -1271,11 +1338,11 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftX(x, silent = false){
-        this.textShiftX = x;
+        this.textShiftX = x * this.canvasObj.scale;
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftY(y, silent = false){
-        this.textShiftY = y;
+        this.textShiftY = y * this.canvasObj.scale;
         if(!silent) this.canvasObj.draw();
     }
     animate(colorData = false, shape = false){

@@ -5,4 +5,6 @@ static/fonts/_threejs/*.json
 !static/fonts/_fonts.txt
 # static/fonts/_threejs/*.json
 # !static/fonts/_*
+static/js/src/custom/*
+!static/js/src/custom/*-sample.*
 webpack.config.js

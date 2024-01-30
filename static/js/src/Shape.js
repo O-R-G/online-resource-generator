@@ -46,8 +46,9 @@ export class Shape {
         this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
 	}
 	
-    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift = null){
+    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift = null, rad=0){
         position = position ? position : Object.values(this.options.watermarkPositionOptions)[0].name;
+        console.log('shape updateWatermark: ' + rad);
         if(this.watermarks[idx] == undefined)
     	{
     		this.watermarks[idx] = {
@@ -55,7 +56,8 @@ export class Shape {
     			'position': position,
     			'color': color,
     			'fontSize': fontSize,
-                'shift': shift
+                'shift': shift,
+                'rotate': rad
     		};
     		if (font) this.watermarks[idx].font = font;
     	}	
@@ -71,6 +73,7 @@ export class Shape {
 				this.watermarks[idx].fontSize = fontSize;
             if(shift !== null)
                 this.watermarks[idx].shift = shift;
+            this.watermarks[idx].rotate = rad;
     	} 		
 	}
     
@@ -128,8 +131,8 @@ export class Shape {
         temp_select_textColor.setAttribute('flex', 'one-third');
         temp_select_font.setAttribute('flex', 'one-third');
         
-        let temp_input_x = this.renderInput(id + '-shift-x', 0, {'flex': 'half'}, 'flex-item');
-        let temp_input_y = this.renderInput(id + '-shift-y', 0, {'flex': 'half'}, 'flex-item');
+        let temp_input_x = this.renderInput(id + '-shift-x', null, {'flex': 'half', 'placeholder' : 'X (0)'}, 'flex-item');
+        let temp_input_y = this.renderInput(id + '-shift-y', null, {'flex': 'half', 'placeholder' : 'Y (0)'}, 'flex-item');
         
         temp_right.appendChild(temp_textarea);
         temp_right.appendChild(temp_select_textPosition);
@@ -189,10 +192,7 @@ export class Shape {
         temp_label.innerText = displayName;
         let temp_right = document.createElement('DIV');
         temp_right.className = 'half-right flex-container typography-control';
-        // let temp_input = document.createElement('INPUT');
-        // temp_input.type = 'text';
         let temp_input = document.createElement('TEXTAREA');
-        // temp_input.type = 'text';
         temp_input.className = 'field-id-' +id + ' watermark flex-item ' + extraClass;
         temp_input.setAttribute('flex', 'full');
         temp_right.appendChild(temp_input);
@@ -209,8 +209,10 @@ export class Shape {
         temp_select_fontSize.setAttribute('flex', 'one-third');
         temp_right.appendChild(temp_select_fontSize);
 
-        let temp_input_x = this.renderInput('watermark-shift-x-' + idx, 0, {'flex': 'half'}, 'watermark-shift-x flex-item');
-        let temp_input_y = this.renderInput('watermark-shift-y-' + idx, 0, {'flex': 'half'}, 'watermark-shift-y flex-item');
+        let temp_input_rotate = this.renderInput('watermark-rotate-' + idx, null, {'flex': 'one-third', 'placeholder' : 'rotate (0)'}, 'watermark-rotate flex-item');
+        let temp_input_x = this.renderInput('watermark-shift-x-' + idx, null, {'flex': 'one-third', 'placeholder' : 'X (0)'}, 'watermark-shift-x flex-item');
+        let temp_input_y = this.renderInput('watermark-shift-y-' + idx, null, {'flex': 'one-third', 'placeholder' : 'X (0)'}, 'watermark-shift-y flex-item');
+        temp_right.appendChild(temp_input_rotate);
         temp_right.appendChild(temp_input_x);
         temp_right.appendChild(temp_input_y);
 
@@ -223,26 +225,32 @@ export class Shape {
             'shift': {
                 x: temp_input_x,
                 y: temp_input_y
-            }
+            },
+            'rotate': temp_input_rotate
         };
         temp_input.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_select_position.onchange = function(e){
             this.checkWatermarkPosition(e.target.value, temp_label);
-            this.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+            this.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_select_color.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_select_fontSize.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
+        }.bind(this);
+        temp_input_rotate.onchange = function(e){
+            console.log(temp_input_rotate.value);
+            console.log((2 * Math.PI) * temp_input_rotate.value / 360)
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_x.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_y.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value});
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         
         temp_panel_section.appendChild(temp_label);
@@ -252,7 +260,7 @@ export class Shape {
     renderInput(id, value='', attrs = null, extraClass = ''){
         let output = document.createElement('input');
         output.id = id;
-        output.value = value;
+        if(value !== null) output.value = value;
         if(attrs) {
             for(let attr in attrs) {
                 output.setAttribute(attr, attrs[attr]);
