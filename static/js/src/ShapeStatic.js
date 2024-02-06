@@ -1,9 +1,9 @@
 import { Shape } from "./Shape.js";
 import { customGraphicStatic } from "./custom/customGraphicStatic.js";
 export class ShapeStatic extends Shape {
-	constructor(id = '', canvasObj, options, control_wrapper, format, frame){
+	constructor(id = '', canvasObj, options, control_wrapper, format){
 
-		super(id, canvasObj, options, control_wrapper, format, frame);
+		super(id, canvasObj, options, control_wrapper, format);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
 		this.color = Object.values(this.options.colorOptions)[0].color.code;
@@ -676,7 +676,7 @@ export class ShapeStatic extends Shape {
 			let side_y = this.frame.h - this.padding * 2;
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
-    		
+			// console.log(align);
     		if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
     			x =  this.shapeCenter.x - side_x / 2 + inner_p_x;
@@ -786,8 +786,8 @@ export class ShapeStatic extends Shape {
 			else if(align.indexOf('right') !== -1) 
 				rad += Math.PI/2;
 		}
-   		else
-		   this.context.textAlign = 'left';
+   		// else
+		//    this.context.textAlign = 'left';
 
 		this.context.translate(x, y);
 		this.context.rotate(rad);
@@ -855,6 +855,7 @@ export class ShapeStatic extends Shape {
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
         let paddingY = this.padding;
+		console.log(this.frame);
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
 		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;

@@ -9,6 +9,6 @@ x add a dropdown for text block positions
 + moved the old upload to be an option of shape
 + added upload 
 + rotation
-- text alignment for watermark
-- fix watermark positioning (likely related to canvas.scale)
++ text alignment for watermark
++ fix watermark positioning (likely related to canvas.scale)
 - canvasAnimated

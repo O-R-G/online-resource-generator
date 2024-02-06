@@ -1,6 +1,6 @@
 export class customGraphicStatic{
     constructor(shape){
-        console.log('drawCustomGraphic')
+        // console.log('drawCustomGraphic')
         // this.shape = shape;
         this.shape = shape;
         this.canvasObj = shape.canvasObj;

@@ -22,8 +22,9 @@ function init(data){
         data[id]['canvas'] = cvs;
         cvs.addControl(control);        
         let shapeCenter = isThree ? {x: 0, y: 0} : {x: cvs['canvas'].width / 2, y: cvs['canvas'].height / 2};
-        let frame = generateFrame(shapeCenter.x, shapeCenter.y, cvs.canvas.width, cvs.canvas.height, 1, isThree);
-        let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format, frame) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format, frame);
+        // let frame = generateFrame(shapeCenter.x, shapeCenter.y, cvs.canvas.width, cvs.canvas.height, 1, isThree);
+        // let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format, frame) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format, frame);
+        let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format);
         cvs.shapes.push(shape);
     }
     for(let id in data) {
@@ -33,15 +34,15 @@ function init(data){
             data[id]['canvas'].addCounterpart(data[i]['canvas']);
         }
         if(typeof data[id]['counterpart'] === 'undefined' || !data[id]['counterpart'] || typeof data[data[id]['counterpart']] == 'undefined') continue;
-        console.log('11');
-        console.log(data[id]['canvas']['counterpart'])
+        // console.log('11');
+        // console.log(data[id]['canvas']['counterpart'])
         let c = data[data[id]['counterpart']];
         for(let i = 0; i < data[id]['canvas']['shapes'].length; i++) {
             data[id]['canvas']['shapes'][i].addCounterpart(c['canvas']['shapes'][i]);
         }
     }
     data[Object.keys(data)[0]]['canvas'].draw();
-    console.log()
+
     // const wrapper_static = document.getElementById('canvas-static-wrapper');
     // const wrapper_animated = document.getElementById('canvas-animated-wrapper');
     // canvas_static = new Canvas(wrapper_static, format, 'canvas-static', {'baseOptions': baseOptions});

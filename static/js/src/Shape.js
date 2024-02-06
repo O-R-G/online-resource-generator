@@ -1,6 +1,6 @@
 
 export class Shape {
-	constructor(id, canvasObj, options, control_wrapper, format, frame){
+	constructor(id, canvasObj, options, control_wrapper, format){
         this.id = id;
         this.options = options;
         this.canvasObj = canvasObj;
@@ -29,7 +29,9 @@ export class Shape {
             x: 0,
             y: 0
         };
-        this.frame = frame;
+        // this.frame = frame;
+        this.frame = this.generateFrame();
+        // this.updateFrame();
         this.fields = {};
         this.fields.watermarks = [];
 	}
@@ -48,7 +50,7 @@ export class Shape {
 	
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift = null, rad=0){
         position = position ? position : Object.values(this.options.watermarkPositionOptions)[0].name;
-        console.log('shape updateWatermark: ' + rad);
+        // console.log('shape updateWatermark: ' + rad);
         if(this.watermarks[idx] == undefined)
     	{
     		this.watermarks[idx] = {
@@ -242,8 +244,8 @@ export class Shape {
             this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_rotate.onchange = function(e){
-            console.log(temp_input_rotate.value);
-            console.log((2 * Math.PI) * temp_input_rotate.value / 360)
+            // console.log(temp_input_rotate.value);
+            // console.log((2 * Math.PI) * temp_input_rotate.value / 360)
             this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_x.onchange = function(e){
@@ -399,7 +401,9 @@ export class Shape {
         let shapeCenter = this.isThree ? {x: 0, y: 0} : {x: this.canvasObj.canvas.width / 2, y: this.canvasObj.canvas.height / 2};
         // assuming vertically stacking only
         let unit_w = this.canvasObj.canvas.width;
-        let unit_h = this.canvasObj.canvas.height / this.canvasObj.shapes.length;
+        let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
+        console.log(this.canvasObj.canvas.height);
+        console.log(this.canvasObj.shapes.length);
         if(this.shape.base == 'fill') {
             output.w = unit_w;
             output.h = unit_h;

@@ -5,8 +5,8 @@ import { Shape } from "./Shape.js";
 import {Text} from 'troika-three-text';
 
 export class ShapeAnimated extends Shape {
-	constructor(id = '', canvasObj, options = {}, control_wrapper, format, shapeCenter, frameSize){
-		super(id, canvasObj, options, control_wrapper, format, shapeCenter, frameSize);
+	constructor(id = '', canvasObj, options = {}, control_wrapper, format, shapeCenter){
+		super(id, canvasObj, options, control_wrapper, format, shapeCenter);
 
 		this.testTroika = true;
 
@@ -1254,6 +1254,7 @@ export class ShapeAnimated extends Shape {
     updateFrame(frame, silent = false)
     {
     	super.updateFrame(frame);
+		console.log(this.group);
 		this.group.remove(this.mesh_front);
     	this.group.remove(this.mesh_back);
     	this.scene.remove(this.group);
