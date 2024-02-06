@@ -474,22 +474,20 @@ export class ShapeStatic extends Shape {
         	this.context.textAlign='center';
         	let lines = [];
 			let str_raw = this.str.replace(/\[(.*?)\]/g, "$1");
-			console.log(str_raw);
+			// console.log(str_raw);
         	let str_metrics = this.context.measureText(str_raw);
-			console.log(str_metrics);
+			// console.log(str_metrics);
 			lines = this.str.split('\n');
 			let x = shift && shift.x ? shift.x : 0, 
 				y = shift && shift.y ? shift.y : 0;
 			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
-			console.log(this.textBoxWidth);
-			console.log(this.padding);
-			console.log(this.innerPadding);
+			// console.log(this.textBoxWidth);
+			// console.log(this.padding);
+			// console.log(this.innerPadding);
 			if(lines.length === 1) {
 				if(this.textBoxWidth && str_metrics.width > this.textBoxWidth) {					
 					lines = this.breakStrByWidth(this.str, this.textBoxWidth);
 				}
-				
-				
 				x += this.shapeCenter.x;
 				y += this.shapeCenter.y + text_dev_y;
 				this.context.fillText(str, x, y);
@@ -657,8 +655,8 @@ export class ShapeStatic extends Shape {
         */
 		
         // force watermark left-middle to always render italic
-		if (align == 'middle-left')         
-			fontStyle = fontSize + "px standard-italic";
+		// if (align == 'middle-left')         
+		// 	fontStyle = fontSize + "px standard-italic";
 		this.context.font = fontStyle;
 		this.context.textBaseline = 'alphabetic';
         // stack lines 
@@ -781,7 +779,7 @@ export class ShapeStatic extends Shape {
 		x += shift && shift.x ? parseInt(shift.x) : 0, 
 		y += shift && shift.y ? parseInt(shift.y) : 0;
 		this.context.save();
-    	if(align.indexOf('middle') !== -1 && this.shape.base == 'rectangle') {
+    	if(align.indexOf('middle') !== -1 && (this.shape.base == 'rectangle' || this.shape.base == 'fill')) {
 			this.context.textAlign = 'center';
 			if(align.indexOf('left') !== -1) 
 				rad -= Math.PI/2;
@@ -835,7 +833,7 @@ export class ShapeStatic extends Shape {
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
     	// console.log(">>> updateWatermark()");
 		// console.log("silent = " + silent);
-		console.log('static shape updateWatermark: ' + rad);
+		// console.log('static shape updateWatermark: ' + rad);
     	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
 
 		if(!silent) this.canvasObj.draw();
@@ -860,7 +858,7 @@ export class ShapeStatic extends Shape {
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
 		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
-		console.log('drawRect:' + this.color);
+		// console.log('drawRect:' + this.color);
 		if(this.shape.base === 'rectangle')
 			this.textBoxWidth = this.textBoxWidth * 0.9;
 		// console.log(this.textBoxWidth);
@@ -1367,7 +1365,7 @@ export class ShapeStatic extends Shape {
 	drawImages(){
 		for(let idx in this.imgs) {
 			if(idx === 'background-image') continue;
-			console.log(this.imgs[idx]);
+			// console.log(this.imgs[idx]);
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
 		}
 	}

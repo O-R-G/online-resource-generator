@@ -35,11 +35,7 @@ export class Canvas {
                 'height': this.formatOptions[this.format].h
             }, false
         );
-		// this.canvas.width = this.isThree ? this.formatOptions[this.format].w / 2 : this.formatOptions[this.format].w;
-        // this.canvas.style.width = this.formatOptions[this.format].w / 2 + 'px';
-        // let h = this.formatOptions[this.format].h === 'auto' ?  this.formatOptions[this.format].w : this.formatOptions[this.format].h;
-        // this.canvas.height = this.isThree ? this.formatOptions[this.format].h / 2 : this.formatOptions[this.format].h;
-        // this.canvas.style.height = this.formatOptions[this.format].h / 2 + 'px';
+		
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
         this.isRecording = false;
@@ -58,6 +54,8 @@ export class Canvas {
 		}
 
 		this.wrapper.appendChild(this.canvas);
+        let canvasStyle = window.getComputedStyle(this.canvas);
+        this.scale = this.canvas.width / parseFloat(canvasStyle.getPropertyValue('width'));
 
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{

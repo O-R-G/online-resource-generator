@@ -4,6 +4,11 @@
 x add a dropdown for text block positions
   > micro adjustment for text block positions should be enough
 + micro adjustment for text block positions
-- logo (maybe as an 'upload' of watermark fields?)
-- rotation
-- fix animated shapes 
++ logo (maybe as an 'upload' of watermark fields?)
+  > implement custom shape to static/js/src/custom/
++ moved the old upload to be an option of shape
++ added upload 
++ rotation
+- text alignment for watermark
+- fix watermark positioning (likely related to canvas.scale)
+- canvasAnimated
