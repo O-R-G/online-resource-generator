@@ -16,7 +16,7 @@ export class customGraphicStatic{
             y: 0.0
         }
     }
-    renderAddCustomGraphicButton() {
+    init() {
         // console.log('renderAddCustomGraphicButton');
         let container = document.createElement('DIV');
         container.className = 'panel-section float-container';

@@ -43,10 +43,12 @@ export class ShapeStatic extends Shape {
 	    this.renderControl();
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
+		this.preWrite();
 	}
 	addCounterpart(obj)
 	{
 		super.addCounterpart(obj);
+		this.fields['animation'].parentNode.parentNode.style.display = 'block';
 	}
 	updateShape(shape, silent = false){
 		if(shape['type'] == 'static') super.updateShape(shape);
@@ -457,9 +459,18 @@ export class ShapeStatic extends Shape {
 		this.textColor = this.processStaticColorData(colorData);
         if(!silent) this.canvasObj.draw();
     }
+	preWrite(){
+		for(let fontSize in this.options.fontOptions) {
+			this.write('Load', 'center', 'default', fontSize);
+		}
+		this.write('');
+	}
     write(str = '', align='center', color='default', fontSize = 'default', shift=null, rad=0){
-    	if(color == 'default')
-    		this.context.fillStyle = this.textColor;
+    	if(color == 'default') {
+			this.context.fillStyle = this.textColor;
+			this.context.strokeStyle = this.textColor;
+		}
+    		
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
         if(this.options.fontOptions[fontSize]['name'] == 'large' || this.options.fontOptions[fontSize]['name'] == 'medium')
@@ -469,6 +480,7 @@ export class ShapeStatic extends Shape {
 		rad = rad ? rad : 0;
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
         	this.str = str;
+			console.log(fontStyle);
         	this.context.font = fontStyle;
         	this.context.textBaseline = 'middle';
         	this.context.textAlign='center';
@@ -491,6 +503,8 @@ export class ShapeStatic extends Shape {
 				x += this.shapeCenter.x;
 				y += this.shapeCenter.y + text_dev_y;
 				this.context.fillText(str, x, y);
+				if(this.options.fontOptions[fontSize]['name'] !== 'large' && this.options.fontOptions[fontSize]['name'] !== 'medium')
+					this.context.strokeText(str, x, y);
 				return;
 			} 
 
@@ -1122,22 +1136,22 @@ export class ShapeStatic extends Shape {
 
 	renderControl(){
 		super.renderControl();
+		this.fields['animation'].parentNode.parentNode.style.display = 'none';
 		this.options.colorOptions['upload'] = {
 			'name': 'upload'
 		};
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
 		let file = this.renderFileField('background-image', 'background-image', '');
-		// let backgroundImageControls = this.renderImageControls();
 		this.control.appendChild(file);
-		// this.control.appendChild(backgroundImageControls);
-		if(!this.canvasObj.fields['record'])
-			this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
+		// if(!this.canvasObj.fields['record'])
+		// 	this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
-		this.control.appendChild(this.renderFileField('image-1', 'img-0', 'Image 1'));
-		this.control.appendChild(super.renderAddWaterMark());
+		// this.control.appendChild(this.renderFileField('image-1', 'img-0', 'Image 1'));
+		
 		if(this.customGraphic) {
-			this.control.appendChild(this.customGraphic.renderAddCustomGraphicButton());
+			this.control.appendChild(this.customGraphic.init());
 		}
+		this.control.appendChild(super.renderAddWaterMark());
 	}
 
 	addListeners(){

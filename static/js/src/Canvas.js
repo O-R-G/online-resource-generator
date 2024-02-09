@@ -471,6 +471,7 @@ export class Canvas {
         this.control_bottom.appendChild(this.renderAddShape('second-shape-button'));
         this.control_bottom.appendChild(this.renderDownloadImageButton());
         this.control_bottom.appendChild(this.renderDownloadVideoButton());
+        if(!this.isThree) this.downloadVideoButton.style.display = 'none';
         if(this.isThree) {
             
             // this.control_bottom.appendChild(this.renderAutoRecordingField());
@@ -549,6 +550,7 @@ export class Canvas {
     addCounterpart(obj)
     {
         this.counterpart = obj;
+        if(obj.isThree) this.downloadVideoButton.style.display = 'block';
     }
     changeFormat(event, currentFormat){
         const confirmChangeFormat = confirm('You are about to change the format. The current content will not be saved. Continue?');

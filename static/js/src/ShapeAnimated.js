@@ -7,9 +7,7 @@ import {Text} from 'troika-three-text';
 export class ShapeAnimated extends Shape {
 	constructor(id = '', canvasObj, options = {}, control_wrapper, format, shapeCenter){
 		super(id, canvasObj, options, control_wrapper, format, shapeCenter);
-
 		this.testTroika = true;
-
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;		
@@ -1114,7 +1112,7 @@ export class ShapeAnimated extends Shape {
 		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
 		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
 		this.fields['shape-back-color'].selectedIndex = 1;
-		if(!this.canvasObj.fields['record']) this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
+		// if(!this.canvasObj.fields['record']) this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
 		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		this.control.appendChild(super.renderAddWaterMark());

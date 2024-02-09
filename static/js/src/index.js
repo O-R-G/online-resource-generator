@@ -37,7 +37,9 @@ function init(data){
         // console.log('11');
         // console.log(data[id]['canvas']['counterpart'])
         let c = data[data[id]['counterpart']];
+        console.log(c);
         for(let i = 0; i < data[id]['canvas']['shapes'].length; i++) {
+            console.log(data[id]['canvas']['shapes'][i]);
             data[id]['canvas']['shapes'][i].addCounterpart(c['canvas']['shapes'][i]);
         }
     }
