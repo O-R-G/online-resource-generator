@@ -213,7 +213,7 @@ export class Shape {
 
         let temp_input_rotate = this.renderInput('watermark-rotate-' + idx, null, {'flex': 'one-third', 'placeholder' : 'rotate (0)'}, 'watermark-rotate flex-item');
         let temp_input_x = this.renderInput('watermark-shift-x-' + idx, null, {'flex': 'one-third', 'placeholder' : 'X (0)'}, 'watermark-shift-x flex-item');
-        let temp_input_y = this.renderInput('watermark-shift-y-' + idx, null, {'flex': 'one-third', 'placeholder' : 'X (0)'}, 'watermark-shift-y flex-item');
+        let temp_input_y = this.renderInput('watermark-shift-y-' + idx, null, {'flex': 'one-third', 'placeholder' : 'Y (0)'}, 'watermark-shift-y flex-item');
         temp_right.appendChild(temp_input_rotate);
         temp_right.appendChild(temp_input_x);
         temp_right.appendChild(temp_input_y);

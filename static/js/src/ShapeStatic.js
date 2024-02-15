@@ -365,7 +365,7 @@ export class ShapeStatic extends Shape {
         this.canvasObj.draw();
     }
     updateImg(img, idx, silent = false){
-		console.log(idx);
+		// console.log(idx);
 		if(!this.imgs[idx]) {
 			this.imgs[idx] = {
 				img: null,
@@ -435,8 +435,8 @@ export class ShapeStatic extends Shape {
     	this.updateImg(this.imgs[idx].img, idx, silent)
     };
     updateImgPositionX(imgShiftX, idx, silent = false){
-		console.log(this.imgs);
-		console.log(idx);
+		// console.log(this.imgs);
+		// console.log(idx);
     	this.imgs[idx].shiftX = parseFloat(imgShiftX);
     	this.updateImg(this.imgs[idx].img, idx, silent)
     };
@@ -480,7 +480,7 @@ export class ShapeStatic extends Shape {
 		rad = rad ? rad : 0;
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
         	this.str = str;
-			console.log(fontStyle);
+			// console.log(fontStyle);
         	this.context.font = fontStyle;
         	this.context.textBaseline = 'middle';
         	this.context.textAlign='center';
@@ -869,7 +869,7 @@ export class ShapeStatic extends Shape {
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
         let paddingY = this.padding;
-		console.log(this.frame);
+		// console.log(this.frame);
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
 		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
@@ -1137,12 +1137,10 @@ export class ShapeStatic extends Shape {
 	renderControl(){
 		super.renderControl();
 		this.fields['animation'].parentNode.parentNode.style.display = 'none';
-		this.options.colorOptions['upload'] = {
-			'name': 'upload'
-		};
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
-		let file = this.renderFileField('background-image', 'background-image', '');
-		this.control.appendChild(file);
+		if(this.options.colorOptions['upload']) 
+			this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
+		
 		// if(!this.canvasObj.fields['record'])
 		// 	this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));

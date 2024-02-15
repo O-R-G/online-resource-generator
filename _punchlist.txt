@@ -11,4 +11,6 @@ x add a dropdown for text block positions
 + rotation
 + text alignment for watermark
 + fix watermark positioning (likely related to canvas.scale)
+- add textbox position dropdown
+- arrow keys to adjust position value
 - canvasAnimated
