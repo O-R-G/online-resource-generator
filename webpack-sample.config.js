@@ -2,9 +2,9 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  entry: ['../../config/config.js', './src/index.js'],
+  entry: './static/js/src/index.js',
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'static/js/dist'),
     filename: 'main.js',
   },
 }

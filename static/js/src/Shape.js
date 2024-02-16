@@ -44,13 +44,12 @@ export class Shape {
 		this.shape = shape;
 		this.cornerRadius = shape.cornerRadius;
 		this.padding = shape.padding;
-        this.innerPadding.x = shape.innerPadding[0];
-        this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
+        this.innerPadding.x = shape.innerPadding[0] * this.canvasObj.scale;
+        this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] * this.canvasObj.scale : shape.innerPadding[0] * this.canvasObj.scale;
 	}
 	
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift = null, rad=0){
         position = position ? position : Object.values(this.options.watermarkPositionOptions)[0].name;
-        // console.log('shape updateWatermark: ' + rad);
         if(this.watermarks[idx] == undefined)
     	{
     		this.watermarks[idx] = {
@@ -207,7 +206,7 @@ export class Shape {
         temp_select_color.setAttribute('flex', 'one-third');
         temp_right.appendChild(temp_select_color);
 
-        let temp_select_fontSize = this.renderSelect('watermark-fontsize-' + idx, this.options.fontOptions, 'watermark-fontsize flex-item typography-flex-item');
+        let temp_select_fontSize = this.renderSelect('watermark-fontsize-' + idx, this.options.watermarkFontOptions, 'watermark-fontsize flex-item typography-flex-item');
         temp_select_fontSize.setAttribute('flex', 'one-third');
         temp_right.appendChild(temp_select_fontSize);
 
@@ -254,6 +253,14 @@ export class Shape {
         temp_input_y.onchange = function(e){
             this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
+        temp_input_x.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360));
+        temp_input_y.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360));
+        temp_input_x.onblur = () => {
+            this.unfocusInputs([temp_input_x, temp_input_y]);
+        }
+        temp_input_y.onblur = () => {
+            this.unfocusInputs([temp_input_x, temp_input_y]);
+        }
         
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
@@ -270,6 +277,33 @@ export class Shape {
         }
         if(extraClass) output.className = extraClass;
         return output;
+    }
+    updatePositionByKey(e, inputs, cb){
+        if(e.keyCode !== 37 && e.keyCode !== 38 && e.keyCode !== 39 && e.keyCode !== 40) return;
+        e.preventDefault();
+        let val = e.keyCode === 38 || e.keyCode === 37 ? -1.0 : 1.0;
+        // console.log('updatePositionByKey: ' + e.keyCode);
+        if(e.keyCode === 38 || e.keyCode === 40) {
+            if(!inputs.y.value) inputs.y.value = 0;
+            inputs.y.value = this.toFix(inputs.y.value) + val;
+        } else if(e.keyCode === 37 || e.keyCode === 39) {
+            if(!inputs.x.value) inputs.x.value = 0;
+            inputs.x.value = this.toFix(inputs.x.value) + val;
+        }
+        inputs.x.classList.add('pseudo-focused');
+        inputs.y.classList.add('pseudo-focused');
+        if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
+        // this.updateWatermark();
+    }
+    toFix(val, digits=2){
+        let output = parseFloat(val).toFixed(digits);
+        return parseFloat(output);
+    }
+    unfocusInputs(inputs){
+        for(let i = 0; i < inputs.length; i++){
+            if(!inputs[i]) continue;
+            inputs[i].classList.remove('pseudo-focused');
+        }
     }
     renderAddWaterMark(){
     	let container = document.createElement('DIV');
@@ -301,7 +335,7 @@ export class Shape {
             'str': str,
             'position': Object.keys(this.options.watermarkPositionOptions)[0],
             'color': Object.keys(this.options.watermarkColorOptions)[0],
-            'fontSize': Object.keys(this.options.fontOptions)[0]
+            'fontSize': Object.keys(this.options.watermarkFontOptions)[0]
         };
         this.watermarkidx++;
         
@@ -319,24 +353,16 @@ export class Shape {
                 el.selected = 'selected';                    
         });
     }
-    // renderAddButton(type, display){
-    //     let output = document.createElement('div');
-    //     output.className='btn-add btn-add-'+type;
-    //     output.innerText= 'Add a ' + display;
-    //     return output;
-    // }
-    // renderControlSection(type, id, sectionClass){
-    //     let output = document.createElement('div');
-    //     output.className = "panel-section float-container " + sectionClass;
-    //     if(type === 'shape') {
-    //         return 
-    //     }
-    // }
+
     renderControl(){
-        let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
-        shape.querySelector('select').classList.add('flex-item');
-        this.control.appendChild(shape);
-	    this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
+        if(this.options.shapeOptions && this.options.shapeOptions.length > 1) {
+            let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
+            shape.querySelector('select').classList.add('flex-item');
+            this.control.appendChild(shape);
+        }
+        if(this.options.animationOptions && this.options.animationOptions.length > 1) {
+	        this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
+        }
     }
     
     updateFrame(frame){
@@ -402,8 +428,6 @@ export class Shape {
         // assuming vertically stacking only
         let unit_w = this.canvasObj.canvas.width;
         let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
-        console.log(this.canvasObj.canvas.height);
-        console.log(this.canvasObj.shapes.length);
         if(this.shape.base == 'fill') {
             output.w = unit_w;
             output.h = unit_h;

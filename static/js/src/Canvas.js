@@ -463,8 +463,10 @@ export class Canvas {
         this.renderControlBottom();
     }
     renderControlTop(){
-        this.control_top.appendChild(this.renderFormatField());
-        this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions));
+        if(this.formatOptions && this.formatOptions.length > 1)
+            this.control_top.appendChild(this.renderFormatField());
+        if(this.baseOptions && this.baseOptions.length > 1)
+            this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions));
         this.addListenersTop();
     }
     renderControlBottom(){
@@ -481,10 +483,13 @@ export class Canvas {
     }
     addListenersTop(){
     	let sBase = this.control_top.querySelector('.field-id-base');
-	    sBase.onchange = function(e){
-	        this.updateBase(e.target.value);
-            this.counterpart.updateBase(e.target.value);
-	    }.bind(this);
+        if(sBase) {
+            sBase.onchange = function(e){
+                this.updateBase(e.target.value);
+                this.counterpart.updateBase(e.target.value);
+            }.bind(this);
+        }
+	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
             this.updateCanvasSize({width: parseInt(sCustomWidth.value)});
@@ -495,15 +500,8 @@ export class Canvas {
         };
     }
     addListenersBottom(){
-        this.downloadImageButton.onclick = function(){
-            this.saveCanvasAsImage();
-        }.bind(this);
-        // if(this.isThree){
-            this.downloadVideoButton.onclick = function(){
-                console.log('this.downloadVideoButton.onclick');
-                this.initRecording();
-            }.bind(this);
-        // } 
+        if(this.downloadImageButton) this.downloadImageButton.onclick = this.saveCanvasAsImage.bind(this);
+        if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
     }
     updateBase(base){
     	this.base = base;

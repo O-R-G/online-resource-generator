@@ -141,8 +141,6 @@ export class ShapeStatic extends Shape {
 		
 	}
 	fillColorByShape(colorData){
-		// console.log('fillColorByShape()');
-		// console.log(colorData);
 		if(colorData['colorName'].includes('blue-red') )
 		{
 			// this.shapeMethod = 'clip';
@@ -178,8 +176,6 @@ export class ShapeStatic extends Shape {
 	}
 
 	initColorAnimation(animationData){
-		// console.log('initColorAnimation');
-		// console.log(this.colorData);
 		this.animation_color_data = animationData;
 		this.animation_color_data.isForward = true;
 		this.animation_color_data.current = {};
@@ -213,7 +209,6 @@ export class ShapeStatic extends Shape {
     }
 
     updateColorAnimation(){
-    	// console.log(this.animation_color_data.isForward);
     	if(this.animation_color_data.isForward) {
             // forward
             this.animation_color_data.current.red += this.animation_color_data.interval.red;
@@ -323,9 +318,6 @@ export class ShapeStatic extends Shape {
 	    this.canvasObj.draw();
 	}
 	initCornerAnimation(animationData){
-		// console.log('initCornerAnimation()');
-		// console.log('animationData: ');
-		// console.log(animationData);
 		this.shape = animationData;
         this.animation_shape_data = animationData;
         this.animation_shape_data.isForward = true;
@@ -365,7 +357,6 @@ export class ShapeStatic extends Shape {
         this.canvasObj.draw();
     }
     updateImg(img, idx, silent = false){
-		// console.log(idx);
 		if(!this.imgs[idx]) {
 			this.imgs[idx] = {
 				img: null,
@@ -435,8 +426,7 @@ export class ShapeStatic extends Shape {
     	this.updateImg(this.imgs[idx].img, idx, silent)
     };
     updateImgPositionX(imgShiftX, idx, silent = false){
-		// console.log(this.imgs);
-		// console.log(idx);
+
     	this.imgs[idx].shiftX = parseFloat(imgShiftX);
     	this.updateImg(this.imgs[idx].img, idx, silent)
     };
@@ -460,237 +450,87 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	preWrite(){
-		for(let fontSize in this.options.fontOptions) {
+		for(let fontSize in this.options.fontOptions) 
 			this.write('Load', 'center', 'default', fontSize);
-		}
+		
 		this.write('');
 	}
     write(str = '', align='center', color='default', fontSize = 'default', shift=null, rad=0){
-    	if(color == 'default') {
-			this.context.fillStyle = this.textColor;
-			this.context.strokeStyle = this.textColor;
-		}
-    		
+    	this.context.fillStyle = color === 'default' ? this.textColor : color;
+		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
-        if(this.options.fontOptions[fontSize]['name'] == 'large' || this.options.fontOptions[fontSize]['name'] == 'medium')
-            var fontStyle = fontSize + "px eurostile_extended_black";
-        else
-            var fontStyle = fontSize + "px new-century-schoolbook";
+		let fontStyle = this.options.fontOptions[fontSize].size;
+		fontStyle += (fontSize == 'large' || fontSize == 'medium') ? "px eurostile_extended_black" : "px new-century-schoolbook";
+
+		let addStroke = (fontSize == 'small' || fontSize == 'medium-small');
 		rad = rad ? rad : 0;
+		this.context.font = fontStyle;
+
+		let text = this.getText(str);
+		/*
+			lines = {
+				'max-width': ...,
+				'lines': [
+					{
+						'width': ...,
+						'segs': [
+							{
+								'content': ...,
+								'color': ... 
+							},
+							,,,
+						]
+					},
+					...
+				]
+			}
+		*/
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
-        	this.str = str;
-			// console.log(fontStyle);
-        	this.context.font = fontStyle;
+			/*
+				write main text
+			*/
+			this.str = str;
         	this.context.textBaseline = 'middle';
-        	this.context.textAlign='center';
-        	let lines = [];
-			let str_raw = this.str.replace(/\[(.*?)\]/g, "$1");
-			// console.log(str_raw);
-        	let str_metrics = this.context.measureText(str_raw);
-			// console.log(str_metrics);
-			lines = this.str.split('\n');
+			this.context.textAlign='left';
+			
 			let x = shift && shift.x ? shift.x : 0, 
 				y = shift && shift.y ? shift.y : 0;
 			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
-			// console.log(this.textBoxWidth);
-			// console.log(this.padding);
-			// console.log(this.innerPadding);
-			if(lines.length === 1) {
-				if(this.textBoxWidth && str_metrics.width > this.textBoxWidth) {					
-					lines = this.breakStrByWidth(this.str, this.textBoxWidth);
-				}
-				x += this.shapeCenter.x;
-				y += this.shapeCenter.y + text_dev_y;
-				this.context.fillText(str, x, y);
-				if(this.options.fontOptions[fontSize]['name'] !== 'large' && this.options.fontOptions[fontSize]['name'] !== 'medium')
-					this.context.strokeText(str, x, y);
-				return;
-			} 
-
-			let lines_temp = [];
-			let textWidth = 0;
-			let forceWhite = false;
-			for(var i = 0; i < lines.length; i++) {
-				let ln_raw = '';
-				if(lines[i].match(/\[(.*?)\]/g)){
-					forceWhite = true;
-					ln_raw = lines[i].replace(/\[(.*?)\]/g, "$1");
-				}
-				else {
-					forceWhite = false;
-					ln_raw = lines[i];
-				}
-				
-				let m = this.context.measureText(ln_raw);
-				if(this.textBoxWidth && m.width > this.textBoxWidth) {
-					let temp = this.breakStrByWidth(ln_raw, this.textBoxWidth);
-					for(let j = 0; j < temp.length; j++) {
-						if(this.context.measureText(temp[j]).width > textWidth)
-							textWidth = this.context.measureText(temp[j]).width;
-						let ln = forceWhite ? '[' + temp[j] +']' : temp[j];
-						lines_temp.push(ln);
-					}
-				}
-				else{
-					lines_temp.push(lines[i]);
-					if(this.context.measureText(lines[i]).width > textWidth)
-						textWidth = this.context.measureText(lines[i]).width;
-				}
-						
-				
-			}
-			lines = lines_temp;
 			y += this.shapeCenter.y;
 			let ln;
-	        // multiple lines - align-left
-	        if(align == 'align-left') {
-        		this.context.textAlign='left';
-        		
-	            
-	            x += this.shapeCenter.x - textWidth / 2;
-				
-				if(lines.length % 2 == 0) {
-            		for(var i = 0; i < lines.length/2; i++) {
-                		let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 0.5);
-						ln = lines[lines.length/2 + i];
-						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 1);
-						}
-						else
-							this.context.fillStyle = this.textColor;
-                    	this.context.fillText(ln, x, y + dev + text_dev_y);
+	        
+			let lines = text.lines;
+	        x += align == 'align-left' ? this.innerPadding.x : this.shapeCenter.x;
+			let lineHeight = this.options.fontOptions[fontSize]['lineHeight'];
+			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
+			for(let i = 0; i < lines.length; i++) { 
+				ln = lines[i];
+				let seg_x = align == 'align-left' ? x : x - ln['width'] / 2;
+				let ln_y = y + i * lineHeight + text_dev_y;
+				this.writeLine(ln, seg_x, ln_y, addStroke);
+			}
 
-						ln = lines[lines.length/2 - 1 - i];
-						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 1);
-						}
-						else
-							this.context.fillStyle = this.textColor;
-                    	this.context.fillText(ln, x, y - dev + text_dev_y);
-                	}
-            	} else {
-            		let middle_idx = parseInt(lines.length/2);
-					ln = lines[middle_idx];
-					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 1);
-					}
-					else
-						this.context.fillStyle = this.textColor;
-            		this.context.fillText(ln, x, y + text_dev_y);
-            		for(i = 0; i < middle_idx; i++) {
-	                	let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
-						ln = lines[middle_idx + (i + 1)];
-						// console.log(ln);
-						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 1);
-						}
-						else
-							this.context.fillStyle = this.textColor;
-						
-	                    this.context.fillText(ln, x, y + dev + text_dev_y);
-
-						ln = lines[middle_idx - (i + 1)];
-						if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-							this.context.fillStyle = '#ffffff';
-							ln = ln.substring(1, ln.length - 1);
-						}
-						else
-							this.context.fillStyle = this.textColor;
-
-	                    this.context.fillText(ln, x, y - dev + text_dev_y);
-	                }
-            	}
-            	return;
-        	}
-        	// multiple lines - center
-            if(lines.length % 2 == 0) {
-                for(i = 0; i < lines.length/2; i++) {
-                    let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 0.5);
-					ln = lines[lines.length/2 + i];
-					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 1);
-					}
-					else
-						this.context.fillStyle = this.textColor;
-
-                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y + dev + text_dev_y);
-					ln = lines[lines.length/2 - 1 - i];
-					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 1);
-					}
-					else
-						this.context.fillStyle = this.textColor;
-
-                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y - dev + text_dev_y);
-                }
-            } else {
-                let middle_idx = parseInt(lines.length/2);
-				ln = lines[middle_idx];
-				if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-					this.context.fillStyle = '#ffffff';
-					ln = ln.substring(1, ln.length - 1);
-				}
-				else
-					this.context.fillStyle = this.textColor;
-                this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y + text_dev_y);
-                for(i = 0; i < middle_idx; i++) {
-                    let dev = this.options.fontOptions[fontSize]['lineHeight'] * (i + 1);
-					ln = lines[middle_idx + (i + 1)];
-					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 1);
-					}
-					else
-						this.context.fillStyle = this.textColor;
-                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y + dev + text_dev_y);
-
-					ln = lines[middle_idx - (i + 1)];
-					if(ln[0] === '[' && ln[ln.length - 1] === ']') {
-						this.context.fillStyle = '#ffffff';
-						ln = ln.substring(1, ln.length - 1);
-					}
-					else
-						this.context.fillStyle = this.textColor;
-                    this.context.fillText(ln, this.shapeCenter.x, this.shapeCenter.y - dev + text_dev_y);
-                }
-            }
-            return; // end of writing main text
+			return;
         }
 
         /*
             write watermarks
         */
-		
-        // force watermark left-middle to always render italic
-		// if (align == 'middle-left')         
-		// 	fontStyle = fontSize + "px standard-italic";
-		this.context.font = fontStyle;
+
 		this.context.textBaseline = 'alphabetic';
-        // stack lines 
-    	let lines = [];
+    	let lines = text.lines;
     	let metrics = this.context.measureText(str);
 		let actualAscent = metrics.actualBoundingBoxAscent;
-    	if(this.textBoxWidth && metrics.width > this.textBoxWidth) {
-        	lines = this.breakStrByWidth(str, this.textBoxWidth);
-        } else {
-        	lines = str.split('\n');
-        }
-        
+		
 		let x, y;
 		this.context.fillStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
+		this.context.strokeStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
     	if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
     		let side_x = this.frame.w - this.padding * 2;
 			let side_y = this.frame.h - this.padding * 2;
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
-			// console.log(align);
     		if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
     			x =  this.shapeCenter.x - side_x / 2 + inner_p_x;
@@ -805,57 +645,112 @@ export class ShapeStatic extends Shape {
 
 		this.context.translate(x, y);
 		this.context.rotate(rad);
-		this.drawMultipleLinesFromTop(lines, 0, 0, this.options.fontOptions[fontSize]['lineHeight']);
+		
+		this.drawMultipleLinesFromTop(lines, 0, 0, this.options.fontOptions[fontSize]['lineHeight'], addStroke);
 		this.context.restore();
     }
+	writeLine(line, initial_x, y, addStroke=false){
+		for(let seg of line.segs) {
+			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
+			this.context.fillText(seg.content, initial_x, y);
+			if(addStroke) this.context.strokeText(seg.content, initial_x, y);
+			
+			initial_x += this.context.measureText(seg.content).width;
+		}
+	}
 
-    drawMultipleLinesFromTop(lines, x, y, lineHeight) {
+    drawMultipleLinesFromTop(lines, x, y, lineHeight, addStroke = false) {
+		console.log(this.context.strokeStyle);
+		console.log(this.context.fillStyle);
         for (var i = 0, len = lines.length; i < len; i++) {
             let offset = lineHeight * (i);
-            this.context.fillText(lines[i], x, y + offset);
+			for(let j = 0; j < lines[i].segs.length; j++ ){
+				this.context.fillText(lines[i].segs[j].content, x, y + offset);
+				if(addStroke) this.context.strokeText(lines[i].segs[j].content, x, y + offset);
+			}
+            
         }
     }
+	getText(str){
+		let output = {
+			'lines': [],
+			'max-width': 0
+		};
+		let lines = this.getLines(str);
+		let p = /(\[.*?\])/g;
+		for(let i = 0; i < lines.length; i++) {
+			let line = {
+				'width': lines[i].width,
+				'segs': []
+			};
+			if(lines.width > output['max-width']) output['max-width'] = lines.width;
+			let segs = lines[i].content.split(p);
+			for(let seg of segs) {
 
-    breakStrByWidth(str, width) {
-    	let arr_by_linebreak = str.split("\n");
+				line.segs.push( {
+					content: seg.match(p) ? seg.substring(1, seg.length - 1) : seg,
+					color: seg.match(p) ?  '#ffffff' : 'default'
+				});
+			}
+			output['lines'].push(line);
+		}
+		return output;
+	}
+	getLines(str){
+		let output = [];
+		let temp = str.split('\n');
+		for(let i = 0; i < temp.length; i++) {
+			let lns = this.breakLineByWidth(temp[i], this.textBoxWidth);
+			for(let l of lns) output.push(l);
+		}
+		return output;
+	}
+    breakLineByWidth(str, width, filterBrackets = true) {
+    	// let arr_by_linebreak = str.split("\n");
     	
     	let line = '';
-    	let output = '';
-    	for(var i = 0; i < arr_by_linebreak.length; i++)
-    	{ 
-    		let arr_by_space = arr_by_linebreak[i].split(' ');
-
-    		for(var j = 0; j < arr_by_space.length; j++)
-    		{
-    			let temp = (i + j) !== 0 && line !== '' ? line + ' ' + arr_by_space[j] : arr_by_space[j];
-	    		let m = this.context.measureText(temp);
-	    		if( m.width <= width) { 
-	    			line = temp;
-	    			continue;
-	    		}
-	    		output += line + '\n';
-	    		line =  arr_by_space[j];
-	    		// output += line;
-    		}
-    		output += i != arr_by_linebreak.length - 1 ? line + '\n' : line;
-    		line = '';
-    	}
-    	output = output.split('\n');
+    	let output = [];
+    	let arr = str.split(' ');
+		let p = /\[(.*?)\]/g;
+		let unit = {
+			'content': '',
+			'width': 0
+		}
+		let temp;
+		for(let j = 0; j < arr.length; j++)
+		{
+			temp = line ? line + ' ' + arr[j] : arr[j];
+			temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
+			
+			let m = this.context.measureText(temp);
+			if( m.width <= width) { 
+				line = line ? line + ' ' + arr[j] : arr[j];
+				unit.width = m.width;
+				unit.content = line;
+				continue;
+			}
+			output.push(unit);
+			line = arr[j];
+			unit = {
+				'content': '',
+				'width': 0
+			}
+		}
+		temp = line;
+		temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
+		let m = this.context.measureText(temp);
+		unit.content = line;
+		unit.width = m.width;
+		output.push(unit);
     	
     	return output;
     }
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
-    	// console.log(">>> updateWatermark()");
-		// console.log("silent = " + silent);
-		// console.log('static shape updateWatermark: ' + rad);
     	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
-
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
-		// console.log( '>>> staticShape drawWatermarks()' );
 		this.watermarks.forEach(function(el, i){
-			// console.log(el.fontSize);
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				this.write(el.str, el.position, el.color, el.fontSize, el.shift, el.rotate);
 		}.bind(this));
@@ -869,14 +764,11 @@ export class ShapeStatic extends Shape {
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
         let paddingY = this.padding;
-		// console.log(this.frame);
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
 		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
-		// console.log('drawRect:' + this.color);
 		if(this.shape.base === 'rectangle')
 			this.textBoxWidth = this.textBoxWidth * 0.9;
-		// console.log(this.textBoxWidth);
         this.context.fillStyle = this.color;
         this.context.beginPath();
         this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
@@ -915,13 +807,10 @@ export class ShapeStatic extends Shape {
 	}
 	clipCircle(){
 		let r = (this.frame.w - (this.padding * 2)) / 2;
-		// console.log(r);
-		// this.context.save();
 	    this.context.beginPath();
 	    this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 	    this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
 	    this.context.clip();
-		// this.context.restore();
 	}
 	drawTriangle(){
         this.context.fillStyle = this.color;
@@ -1136,7 +1025,7 @@ export class ShapeStatic extends Shape {
 
 	renderControl(){
 		super.renderControl();
-		this.fields['animation'].parentNode.parentNode.style.display = 'none';
+		if(this.fields['animation']) this.fields['animation'].parentNode.parentNode.style.display = 'none';
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) 
 			this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
@@ -1153,91 +1042,90 @@ export class ShapeStatic extends Shape {
 	}
 
 	addListeners(){
-		this.fields['shape'].onchange = function(e){
-	        let shape = this.options.shapeOptions[e.target.value]['shape'];
-	        this.shape = shape;
-	        this.updateShape(this.shape);
-	        let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
-	        [].forEach.call(sWatermark_panels, function(el, i){
-	            let availables = shape.watermarkPositions;
-	            let position = el.querySelector('.watermark-position').value;
-	            let label = el.querySelector('label[for^="watermark"]');
-	            this.checkWatermarkPosition(position, label);
-	        }.bind(this));
-	    }.bind(this);
+		if(this.fields['shape']) {
+			this.fields['shape'].onchange = function(e){
+				let shape = this.options.shapeOptions[e.target.value]['shape'];
+				this.shape = shape;
+				this.updateShape(this.shape);
+				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
+				[].forEach.call(sWatermark_panels, function(el, i){
+					let availables = shape.watermarkPositions;
+					let position = el.querySelector('.watermark-position').value;
+					let label = el.querySelector('label[for^="watermark"]');
+					this.checkWatermarkPosition(position, label);
+				}.bind(this));
+			}.bind(this);
+		}
+		
+		if(this.fields['animation']) {
+			this.fields['animation'].onchange = function(e){
+				document.body.classList.add('viewing-three');
+				this.canvasObj.sync();
+			}.bind(this);
+		}
+		if(this.fields['text']) {
+			this.fields['text'].onchange = function(e){
+				let value = e.target.value;
+				this.updateText(value);
+			}.bind(this);
+		}
+		if(this.fields['text-font']) {
+			this.fields['text-font'].onchange = function(e){
+				this.updateFontSize(e.target.value);
+			}.bind(this);
+		}
+		if(this.fields['text-color']) {
+			this.fields['text-color'].onchange = function(e){
+				let color = this.options.textColorOptions[e.target.value]['color'];
+				this.updateTextColor(color);
+			}.bind(this);
+		}
+		if(this.fields['text-position']) {
+			this.fields['text-position'].onchange = function(e){
+				let position = e.target.value;
+				this.updateTextPosition(position);
+			}.bind(this);
+		}
+		if(this.fields['text-shift-x']) {	
+			this.fields['text-shift-x'].onchange = function(e){
+				this.updateTextShiftX(parseInt(e.target.value));
+			}.bind(this);
+			this.fields['text-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
+				this.updateTextShiftX(shift.x)
+				this.updateTextShiftY(shift.y)
+			});
+			this.fields['text-shift-x'].onblur = () => {
+				this.unfocusInputs([this.fields['text-shift-x'], this.fields['text-shift-y']]);
+			}
+		}
 
-	    this.fields['animation'].onchange = function(e){
-	    	document.body.classList.add('viewing-three');
-	    	this.canvasObj.sync();
-
-	    	// this.counterpart.draw();
-	    }.bind(this);
-
-		this.fields['text'].onchange = function(e){
-			let value = e.target.value;
-	        this.updateText(value);
-	    }.bind(this);
-
-	    this.fields['text-font'].onchange = function(e){
-	        this.updateFontSize(e.target.value);
-	    }.bind(this);
-
-	    this.fields['text-color'].onchange = function(e){
-	        let color = this.options.textColorOptions[e.target.value]['color'];
-	        this.updateTextColor(color);
-	    }.bind(this);
-
-	    this.fields['text-position'].onchange = function(e){
-	    	let position = e.target.value;
-	    	this.updateTextPosition(position);
-	    }.bind(this);
-
-		this.fields['text-shift-x'].onchange = function(e){
-			this.updateTextShiftX(parseInt(e.target.value));
-	    }.bind(this);
-
-		this.fields['text-shift-y'].onchange = function(e){
-			this.updateTextShiftY(parseInt(e.target.value));
-	    }.bind(this);
-
+		if(this.fields['text-shift-y']) {
+			this.fields['text-shift-y'].onchange = function(e){
+				this.updateTextShiftY(parseInt(e.target.value));
+			}.bind(this);
+			this.fields['text-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
+				this.updateTextShiftX(shift.x)
+				this.updateTextShiftY(shift.y)
+			});
+			this.fields['text-shift-y'].onblur = () => {
+				this.unfocusInputs([this.fields['text-shift-x'], this.fields['text-shift-y']]);
+			}
+		}
 	    // let sShape_color = this.fields['shape-color'];
-	    this.fields['shape-color'].onchange = function(e){
-			let sec = e.target.parentNode.parentNode;
-			if(e.target.value === 'upload') {
-				sec.classList.add('viewing-background-upload');
-			}
-	        else {
-				sec.classList.remove('viewing-background-upload');
-				this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
-				this.updateColor(this.options.colorOptions[e.target.value].color);
-			}
-	    }.bind(this);
+		if(this.fields['shape-color']) {
+			this.fields['shape-color'].onchange = function(e){
+				let sec = e.target.parentNode.parentNode;
+				if(e.target.value === 'upload') {
+					sec.classList.add('viewing-background-upload');
+				}
+				else {
+					sec.classList.remove('viewing-background-upload');
+					this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
+					this.updateColor(this.options.colorOptions[e.target.value].color);
+				}
+			}.bind(this);
+		}
 
-	    
-	    // this.fields.imgs['background-image'].onclick = function (e) {
-	    // 	e.target.value = null;
-	    // }.bind(this);
-	    // this.fields.imgs['background-image'].onchange = function(e){
-	    // 	this.readImage(e);
-	    // }.bind(this);
-
-	    // let sBackground_image_scale = this.control.querySelector('#background-image-background-image-scale');
-	    // sBackground_image_scale.oninput = function(e){
-	    //     e.preventDefault();
-	    //     let background_image_scale = e.target.value >= 1 ? e.target.value : 1;
-		// 	let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
-	    //     this.updateImgScale(background_image_scale, idx);
-	    // }.bind(this);
-	    // let sBackground_image_shift_x = this.control.querySelector('#background-image-background-image-shift-x');
-	    // sBackground_image_shift_x.oninput = function(e){
-		// 	let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
-	    //     this.updateImgPositionX(e.target.value, idx);
-	    // }.bind(this);
-	    // let sBackground_image_shift_y = this.control.querySelector('#background-image-background-image-shift-y');
-	    // sBackground_image_shift_y.oninput = function(e){
-		// 	let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
-	    //     this.updateImgPositionY(e.target.value, idx);
-	    // }.bind(this);
 		for(let idx in this.fields.imgs) {
 			let input = this.fields.imgs[idx];
 			input.onclick = function (e) {
@@ -1266,31 +1154,6 @@ export class ShapeStatic extends Shape {
 				this.updateImgPositionX(e.target.value, idx);
 			}.bind(this);
 		}
-		
-
-	    window.addEventListener("keydown", (event) => {
-	        // if (event.keyCode === 37) {
-	        //     sBackground_image_shift_x.value = parseInt(sBackground_image_shift_x.value) - 1;
-	        //     this.updateImgPositionX(sBackground_image_shift_x.value);
-	        // }
-	        // else if(event.keyCode === 38)
-	        // {
-	        //     event.preventDefault(); // prevent scrolling
-	        //     sBackground_image_shift_y.value = parseInt(sBackground_image_shift_y.value) - 1;
-	        //     this.updateImgPositionY(sBackground_image_shift_y.value);
-	        // }
-	        // else if(event.keyCode === 39)
-	        // {
-	        //     sBackground_image_shift_x.value = parseInt(sBackground_image_shift_x.value) + 1;
-	        //     this.updateImgPositionX(sBackground_image_shift_x.value);
-	        // }
-	        // else if(event.keyCode === 40)
-	        // {
-	        //     event.preventDefault(); // prevent scrolling
-	        //     sBackground_image_shift_y.value = parseInt(sBackground_image_shift_y.value) + 1;
-	        //     this.updateImgPositionY(sBackground_image_shift_y.value);
-	        // }
-	    });
 	}
 	readImage(event) {
 		let input = event.target;
@@ -1317,7 +1180,6 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
     sync(){
-    	// console.log('static sync()');
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
         this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
@@ -1359,7 +1221,6 @@ export class ShapeStatic extends Shape {
     animate(colorData = false, shape = false){
     	if(!colorData) colorData = this.colorData;
     	if(!shape) shape = this.shape;
-    	// console.log('staticShape animate()');
     	this.resetTimer(this.timer_shape);
     	this.resetTimer(this.timer_color);
     	this.resetTimer(this.timer_position);
@@ -1378,7 +1239,6 @@ export class ShapeStatic extends Shape {
 	drawImages(){
 		for(let idx in this.imgs) {
 			if(idx === 'background-image') continue;
-			// console.log(this.imgs[idx]);
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
 		}
 	}

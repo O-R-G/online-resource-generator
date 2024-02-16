@@ -31,6 +31,13 @@ canvas {
 canvas + canvas {
     margin-top: 60px;
 }
+*:focus,
+.pseudo-focused {
+    outline: 1px solid #fff;
+    outline-offset: -2px;
+    /* box-sizing: content-box; */
+    /* border: 1px solid #fff; */
+}
 /* option {
     position: relative;
 }
