@@ -660,8 +660,6 @@ export class ShapeStatic extends Shape {
 	}
 
     drawMultipleLinesFromTop(lines, x, y, lineHeight, addStroke = false) {
-		console.log(this.context.strokeStyle);
-		console.log(this.context.fillStyle);
         for (var i = 0, len = lines.length; i < len; i++) {
             let offset = lineHeight * (i);
 			for(let j = 0; j < lines[i].segs.length; j++ ){
