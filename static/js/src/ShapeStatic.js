@@ -745,6 +745,7 @@ export class ShapeStatic extends Shape {
     }
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
     	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
+		console.log(shift);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){

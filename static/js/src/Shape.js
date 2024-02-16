@@ -253,8 +253,8 @@ export class Shape {
         temp_input_y.onchange = function(e){
             this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
-        temp_input_x.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360));
-        temp_input_y.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360));
+        temp_input_x.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360));
+        temp_input_y.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360));
         temp_input_x.onblur = () => {
             this.unfocusInputs([temp_input_x, temp_input_y]);
         }
