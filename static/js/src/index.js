@@ -9,7 +9,7 @@ function init(data){
     // main.classList.remove('waiting-for-format');
     main.setAttribute('format', format);
     // renderElements(main, data);
-
+    console.log(main.offsetWidth);
     for(let id in data) {
         /* render canvas / shapes */
         let container = renderElements(id, data[id]);

@@ -1173,6 +1173,7 @@ export class ShapeStatic extends Shape {
     }
     
     updateFrame(frame, silent = false){
+		console.log('updateFrame');
     	super.updateFrame(frame);
     	this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;

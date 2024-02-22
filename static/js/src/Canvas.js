@@ -22,13 +22,14 @@ export class Canvas {
         this.isdebug = false;
 	}
 	init(){        
-		this.canvas = document.createElement('CANVAS');
+		this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('format', this.format);
 		if(!this.isThree)
 		  this.context = this.canvas.getContext('2d');
 		
 		this.canvas.id = this.id;
         this.canvas.className = "org-main-canvas";
+        this.wrapper.appendChild(this.canvas);
         this.updateCanvasSize(
             {
                 'width': this.formatOptions[this.format].w,
@@ -53,10 +54,10 @@ export class Canvas {
 			this.initThree();
 		}
 
-		this.wrapper.appendChild(this.canvas);
+		
         let canvasStyle = window.getComputedStyle(this.canvas);
         this.scale = this.canvas.width / parseFloat(canvasStyle.getPropertyValue('width'));
-
+        // console.log(canvasStyle.getPropertyValue('width'));
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
@@ -804,8 +805,8 @@ export class Canvas {
             for(let i = 0; i < this.shapes.length; i++)
             {
                 if(this.shapes[i].animationName !== 'none') {
-                    console.log('drawing after handling');
-                    console.log('startRecordingAfterFetching? ' + startRecordingAfterFetching);
+                    // console.log('drawing after handling');
+                    // console.log('startRecordingAfterFetching? ' + startRecordingAfterFetching);
                     if(startRecordingAfterFetching == 'recording') this.shapes[i].drawForRecording();
                     else if(startRecordingAfterFetching == 'savingImage')  this.shapes[i].drawForSavingImage();
                     else this.shapes[i].draw();
@@ -862,6 +863,7 @@ export class Canvas {
     }
     updateCanvasSize(size, draw=true){
         let updated = false;
+        
         if(size.width) {
             updated = true;
             this.canvas.width = size.width *  this.scale;
@@ -872,10 +874,26 @@ export class Canvas {
             this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
+        
+        
+        // console.log(size.width > this.wrapper.offsetWidth);
+        if(size.width > this.wrapper.offsetWidth) {
+            let style = window.getComputedStyle(this.canvas);
+            if(style.getPropertyValue('position') === 'absolute') {
+                console.log('rara');
+                let r = this.toFix(this.canvas.height / this.canvas.width * 100);
+                this.wrapper.style.paddingTop = r + '%';
+            }
+            let s = this.toFix(this.wrapper.offsetWidth / size.width);
+            this.canvas.style.transform = 'scale('+s+')';
+        }
         for(let i = 0; i < this.shapes.length; i++) {
             this.shapes[i].updateFrame();
         }
-        if(updated && draw) this.draw();
+        console.log(document.querySelector('#main').offsetWidth);
+        if(updated && draw) {
+            this.draw();
+        }
     }
     updateReadyState(){
         this.readyState++;
@@ -887,5 +905,9 @@ export class Canvas {
                 this.startRecording();
             }.bind(this), 1000);
         }
+    }
+    toFix(val, digits=2){
+        let output = parseFloat(val).toFixed(digits);
+        return parseFloat(output);
     }
 }

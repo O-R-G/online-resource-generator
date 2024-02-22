@@ -14,7 +14,7 @@ body {
 }
 main {
     padding: 20px;
-    
+    width: 100%;
 }
 textarea {
     resize: none;
@@ -529,7 +529,7 @@ input[value="fetch"]
     cursor: pointer;
     margin-top: 2px;
 }
-#common-control-bottom .btn
+#common-control-bottom .btn + .btn
 {
     margin-top: 10px;
 }
@@ -627,8 +627,9 @@ input[value="fetch"]
     .org-main-canvas
     {
         position: absolute;
-        width: 100% !important;
-        height: 100% !important;
+        transform-origin: left top;
+        /* width: 100% !important; */
+        /* height: 100% !important; */
         top: 0;
         left: 0;
         /*margin-top: 10px;*/
@@ -675,5 +676,9 @@ input[value="fetch"]
     {
         width: auto;
         padding-right: 0;
+    }
+    .control-panel {
+        position: static;
+        margin-bottom: 20px;
     }
 }
