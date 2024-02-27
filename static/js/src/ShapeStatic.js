@@ -32,8 +32,6 @@ export class ShapeStatic extends Shape {
 
 		this.fontSize = null;
         for(let prop in this.options.fontOptions) {
-			console.log(prop);
-			console.log(this.options.fontOptions[prop]['default']);
             if(this.options.fontOptions[prop]['default']) this.fontSize = prop;
         }
         if(!this.fontSize) this.fontSize = Object.keys(this.options.fontOptions)[0];
@@ -65,7 +63,7 @@ export class ShapeStatic extends Shape {
 	    this.shapeMethod = 'draw';
 	    this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
-		this.customGraphic = typeof customGraphicStatic === 'undefined' ? null : new customGraphicStatic(this);
+		this.customGraphic = [];
 
 	    this.renderControl();
 	    this.addListeners();
@@ -929,8 +927,8 @@ export class ShapeStatic extends Shape {
         this.context.fill();
     }
 	drawCustomGraphic(){
-		if(!this.customGraphic || !this.customGraphic.added) return;
-		this.customGraphic.draw();
+		if(!this.customGraphic.length) return;
+		for(let i = 0; i < this.customGraphic.length; i++) this.customGraphic[i].draw();
 	}
    
     record_canvas(){
@@ -1060,10 +1058,6 @@ export class ShapeStatic extends Shape {
 		// 	this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		// this.control.appendChild(this.renderFileField('image-1', 'img-0', 'Image 1'));
-		
-		if(this.customGraphic) {
-			this.control.appendChild(this.customGraphic.init());
-		}
 		this.control.appendChild(super.renderAddWaterMark());
 	}
 

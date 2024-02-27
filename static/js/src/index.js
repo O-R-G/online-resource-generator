@@ -3,11 +3,10 @@ import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 const main = document.getElementById('main');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
-function init(data){
+function init(data, cb){
+    console.log('main init()');
     let format = main.getAttribute('format');
-    // main.classList.remove('waiting-for-format');
     main.setAttribute('format', format);
-    // renderElements(main, data);
     for(let id in data) {
         /* render canvas / shapes */
         let container = renderElements(id, data[id]);
@@ -20,8 +19,6 @@ function init(data){
         data[id]['canvas'] = cvs;
         cvs.addControl(control);        
         let shapeCenter = isThree ? {x: 0, y: 0} : {x: cvs['canvas'].width / 2, y: cvs['canvas'].height / 2};
-        // let frame = generateFrame(shapeCenter.x, shapeCenter.y, cvs.canvas.width, cvs.canvas.height, 1, isThree);
-        // let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format, frame) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format, frame);
         let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format);
         cvs.shapes.push(shape);
     }
@@ -32,8 +29,6 @@ function init(data){
             data[id]['canvas'].addCounterpart(data[i]['canvas']);
         }
         if(typeof data[id]['counterpart'] === 'undefined' || !data[id]['counterpart'] || typeof data[data[id]['counterpart']] == 'undefined') continue;
-        // console.log('11');
-        // console.log(data[id]['canvas']['counterpart'])
         let c = data[data[id]['counterpart']];
         console.log(c);
         for(let i = 0; i < data[id]['canvas']['shapes'].length; i++) {
@@ -42,6 +37,7 @@ function init(data){
         }
     }
     data[Object.keys(data)[0]]['canvas'].draw();
+    if(typeof cb === 'function') cb();
 }
 
 function renderElements(id, d){
@@ -55,19 +51,61 @@ function renderElements(id, d){
     return container;
 }
 
-function generateFrame(centerX, centerY, canvasW, canvasH, shapeAmount, isThree = false)
-{
-    let output = {};
-    // assuming vertically stacking only
-    let unit_w = canvasW;
-    let unit_h = canvasH / shapeAmount;
-    let length = unit_w > unit_h ? unit_h : unit_w;
-    output.w = length;
-    output.h = length;
-    output.x = !isThree ? centerX - output.w / 2 : centerX;
-    output.y = !isThree ? centerY - output.h / 2 : centerY;
-    return output;
+let customScriptsByHook = {};
+if(customScripts) {
+    for(let item of customScripts) {
+        let h = item['hook'];
+        if(!customScriptsByHook[h])customScriptsByHook[h] = [];
+        customScriptsByHook[h].push(item);
+    }
+}
+function loadCustomScripts(scriptsObj, hook, cb){
+    if(!scriptsObj[hook]) return;
+    let firstScript = document.querySelector('script');
+    let count = 0;
+    for(let item of scriptsObj[hook]) {
+        let src = location.pathname + 'static/js/custom/' + item['name'] + '.js';
+        let s = document.createElement('script');
+        s.onload = ()=>{
+            count++;
+            if(count >= scriptsObj[hook].length && typeof cb === 'function') cb(); 
+        }
+        s.src = src;
+        firstScript.parentNode.insertBefore(s, firstScript);
+    }
+}
+console.log(customScriptsByHook);
+if(customScriptsByHook['beforeMainInit']) {
+    let count = 0;
+    let firstScript = document.querySelector('script');
+    loadCustomScripts(customScriptsByHook, 'beforeMainInit', function(){
+        init(resources_data, ()=>{
+            loadCustomScripts(customScriptsByHook, 'afterMainInit');
+        });
+    });
+    for(let item of customScriptsByHook['beforeMainInit']) {
+        let src = location.pathname + '/static/js/custom/' + item['name'] + '.js';
+        let s = document.createElement('script');
+        s.onload = ()=>{
+            count++;
+            if(count >= customScriptsByHook.length) init(resources_data, ()=>{
+                if(customScriptsByHook['afterMainInit']) {
+                    let firstScript = document.querySelector('script');
+                    for(let item of customScriptsByHook['afterMainInit']) {
+                        let src = location.pathname + 'static/js/custom/' + item['name'] + '.js';
+                        let s = document.createElement('script');
+                        s.src = src;
+                        firstScript.parentNode.insertBefore(s, firstScript);
+                    }
+                }
+            });
+        }
+        s.src = src;
+        firstScript.parentNode.insertBefore(s, firstScript);
+    }
+} else {
+    init(resources_data, ()=>{
+        loadCustomScripts(customScriptsByHook, 'afterMainInit');
+    });
 }
 
-
-init(resources_data);

@@ -8,5 +8,5 @@
     $format = isset($_GET['format']) ? $_GET['format'] : ''; 
 
 ?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?>></main>
-<script src="config/options.js"></script>
-<script type="module" src="static/js/dist/main.js"></script>
+<script id="script-options" src="config/options.js"></script>
+<script id="script-main" type="module" src="static/js/dist/main.js"></script>
