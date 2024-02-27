@@ -7,7 +7,11 @@ export class Shape {
 		this.canvas = this.canvasObj.canvas;
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
-		this.shape = Object.values(this.options.shapeOptions)[0].shape;
+        this.shape = null;
+        for(let prop in this.options.shapeOptions) {
+            if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
+        }
+        if(!this.shape) this.shape = Object.values(this.options.shapeOptions)[0].shape;
 		this.cornerRadius = this.shape.cornerRadius;
 		this.padding = this.shape.padding;
         this.innerPadding = {};
@@ -87,7 +91,9 @@ export class Shape {
                 let temp_option = document.createElement('OPTION');
                 temp_option.value = key;
                 temp_option.innerText = value['name'];
+                if(value['default']) temp_option.selected=true;
                 temp_select.appendChild(temp_option);
+                
             }
         }
 

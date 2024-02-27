@@ -15,7 +15,11 @@ export class Canvas {
         this.scale = isThree ? 1 : 2;
 		this.chunks = [];
 		this.shapes = [];
-		this.base = Object.values(this.baseOptions)[0].color.code;
+        this.base = null;
+        for(let prop in this.baseOptions) {
+            if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
+        }
+        if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
 	    this.isRecording = false;
         this.fields = {};
 		this.init();
@@ -464,9 +468,10 @@ export class Canvas {
         this.renderControlBottom();
     }
     renderControlTop(){
-        if(this.formatOptions && this.formatOptions.length > 1)
+        console.log(this.formatOptions);
+        if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
-        if(this.baseOptions && this.baseOptions.length > 1)
+        if(this.baseOptions && Object.keys(this.baseOptions).length > 1)
             this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions));
         this.addListenersTop();
     }

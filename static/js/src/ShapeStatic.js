@@ -1,16 +1,43 @@
 import { Shape } from "./Shape.js";
-import { customGraphicStatic } from "./custom/customGraphicStatic.js";
 export class ShapeStatic extends Shape {
 	constructor(id = '', canvasObj, options, control_wrapper, format){
 
 		super(id, canvasObj, options, control_wrapper, format);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
-		this.color = Object.values(this.options.colorOptions)[0].color.code;
-		this.colorData = Object.values(this.options.colorOptions)[0].color;
-		this.textColor = Object.values(this.options.textColorOptions)[0].color.code;
-		this.textPosition = Object.values(this.options.textPositionOptions)[0].value;
-		this.fontSize = Object.keys(this.options.fontOptions)[0];
+
+		this.color = null;
+        for(let prop in this.options.colorOptions) {
+            if(this.options.colorOptions[prop]['default']) this.color = this.options.colorOptions[prop].color.code;
+        }
+        if(!this.color) this.color = Object.values(this.options.colorOptions)[0].color.code;
+
+		this.colorData = null;
+        for(let prop in this.options.colorOptions) {
+            if(this.options.colorOptions[prop]['default']) this.colorData = this.options.colorOptions[prop].color;
+        }
+        if(!this.colorData) this.colorData = Object.values(this.options.colorOptions)[0].color;
+
+		this.textColor = null;
+        for(let prop in this.options.textColorOptions) {
+            if(this.options.textColorOptions[prop]['default']) this.textColor = this.options.textColorOptions[prop].color.code;
+        }
+        if(!this.textColor) this.textColor = Object.values(this.options.textColorOptions)[0].color.code;
+
+		this.textPosition = null;
+        for(let prop in this.options.textPositionOptions) {
+            if(this.options.textPositionOptions[prop]['default']) this.textPosition = this.options.textPositionOptions[prop].value;
+        }
+        if(!this.textPosition) this.textPosition = Object.values(this.options.textPositionOptions)[0].value;
+
+		this.fontSize = null;
+        for(let prop in this.options.fontOptions) {
+			console.log(prop);
+			console.log(this.options.fontOptions[prop]['default']);
+            if(this.options.fontOptions[prop]['default']) this.fontSize = prop;
+        }
+        if(!this.fontSize) this.fontSize = Object.keys(this.options.fontOptions)[0];
+
 		this.textShiftX = 0;
 		this.textShiftY = 0;
 

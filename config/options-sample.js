@@ -491,18 +491,18 @@ var shapeOptions = {
 			'watermarkPositions': 'all'
 		}
 	},
-	'square': {
-		'name': 'square',
+	'fill': {
+		'name': 'fill',
 		'shape': {
 			'type': 'static',
-			'base': 'rectangle',
+			'base': 'fill',
 			'padding': 0,
 			'cornerRadius': 0,
-			'innerPadding': [45],
+			'innerPadding': [13.32],
 			'watermarkPositions': 'all'
 		}
 
-	}
+	},
 };
 
 var fontOptions = {
