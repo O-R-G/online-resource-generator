@@ -672,3 +672,17 @@ var watermarkPositionOptions = {
 		name: 'bottom-right'
 	}
 };
+/* 
+	custom script example:
+
+	const customScripts = [
+		{
+			'name': 'customGraphicStatic',
+			'hook': 'afterMainInit'
+		}
+		...
+	]
+
+	customGraphicStatic.js should be located in online-resource-generator/static/js/custom/
+*/
+const customScripts = []
