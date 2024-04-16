@@ -2,7 +2,7 @@
 // open-records-generator
 require_once(__DIR__ . '/../../open-records-generator/config/config.php');
 require_once(__DIR__ . '/../../open-records-generator/config/url.php');
-
+require_once(__DIR__ . '/../config/config.php');
 // site
 // require_once('static/php/config.php');
 // require_once('static/php/functions.php');

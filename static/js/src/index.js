@@ -1,3 +1,4 @@
+import { Record } from "./Record.js";
 import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
@@ -7,6 +8,9 @@ function init(data, cb){
     console.log('main init()');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
+    let canvases = [];
+    
+
     for(let id in data) {
         /* render canvas / shapes */
         let container = renderElements(id, data[id]);
@@ -17,6 +21,7 @@ function init(data, cb){
         let control = container.querySelector('.control-panel');
         let cvs = new Canvas(wrapper, format, 'canvas-' + id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
         data[id]['canvas'] = cvs;
+        canvases.push(cvs);
         cvs.addControl(control);        
         let shapeCenter = isThree ? {x: 0, y: 0} : {x: cvs['canvas'].width / 2, y: cvs['canvas'].height / 2};
         let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format);
@@ -37,6 +42,9 @@ function init(data, cb){
         }
     }
     data[Object.keys(data)[0]]['canvas'].draw();
+    let params = new URL(document.location).searchParams;
+    let record_id = params.get('record');
+    let record = new Record(main, record_id, canvases);
     if(typeof cb === 'function') cb();
 }
 

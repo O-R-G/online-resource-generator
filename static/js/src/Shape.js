@@ -85,6 +85,7 @@ export class Shape {
     renderSelect(id, options, extraClass=''){
         let temp_select = document.createElement('SELECT');
         temp_select.className = 'field-id-' + id + ' ' + extraClass;
+        temp_select.id = this.id + '-field-id-' + id;
         if(typeof options === 'object' && options !== null)
         {
             for (const [key, value] of Object.entries(options)) {
@@ -128,6 +129,7 @@ export class Shape {
         // temp_right.setAttribute('flex-wrap', 'wrap');
         let temp_textarea = document.createElement('TEXTAREA');
         temp_textarea.className = 'flex-item field-id-' + id + ' ' + extraClass;
+        temp_textarea.id = this.id + '-field-id-' + id;
         temp_textarea.setAttribute('rows', 3);
         temp_textarea.setAttribute('flex', 'full');
 
@@ -201,6 +203,7 @@ export class Shape {
         temp_right.className = 'half-right flex-container typography-control';
         let temp_input = document.createElement('TEXTAREA');
         temp_input.className = 'field-id-' +id + ' watermark flex-item ' + extraClass;
+        temp_input.id = this.id + '-field-id-' +id;
         temp_input.setAttribute('flex', 'full');
         temp_right.appendChild(temp_input);
 

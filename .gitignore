@@ -10,3 +10,4 @@ static/js/src/custom/*
 static/js/custom/*
 !static/js/custom/*-sample.*
 webpack.config.js
+config.php

@@ -542,7 +542,18 @@ input[value="fetch"]
 [format="custom"] #custom-size-wrapper.flex-container {
     display: flex;
 }
-
+#record-form {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 480px;
+}
+.record-form-button {
+    flex-basis: 100%;
+}
+.record-form-button + .record-form-button {
+    margin-top: 3px;
+}
 @media screen and (max-width: 1080px)
 {
     #content
