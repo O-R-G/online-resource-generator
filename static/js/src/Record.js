@@ -120,29 +120,29 @@ export class Record {
     submit(event){
         event.preventDefault();
         let data = new FormData(this.elements.form);
-        if(this.form_action == 'save') {
-            let record_body = {};
-            let shape_controls = document.querySelectorAll('.shape-control');
-            // let watermark_classes = ['watermark', 'watermark-position', 'watermark-color', 'watermark-fontsize', 'watermark-rotate', 'watermark-shift-x', 'watermark-shift-y'];
-            for(let shape_control of shape_controls) {
-                record_body[shape_control['id']] = {
-                    'id': shape_control['id'],
-                    'fields': [],
-                    'watermarks_num': document.querySelectorAll('.watermark').length
-                }
-                let fields = shape_control.querySelectorAll('select, input, textarea');
-                for(let field of fields) {
-                    if(!field.value) continue;
-                    let this_field = {
-                        'id': field.id,
-                        'value': field.value
-                    }
-                    record_body[shape_control['id']]['fields'].push(this_field)
-                }
+        // if(this.form_action == 'save') {
+        let record_body = {};
+        let shape_controls = document.querySelectorAll('.shape-control');
+        // let watermark_classes = ['watermark', 'watermark-position', 'watermark-color', 'watermark-fontsize', 'watermark-rotate', 'watermark-shift-x', 'watermark-shift-y'];
+        for(let shape_control of shape_controls) {
+            record_body[shape_control['id']] = {
+                'id': shape_control['id'],
+                'fields': [],
+                'watermarks_num': document.querySelectorAll('.watermark').length
             }
-            record_body = JSON.stringify(record_body);
-            data.append('record_body', record_body);
+            let fields = shape_control.querySelectorAll('select, input, textarea');
+            for(let field of fields) {
+                if(!field.value) continue;
+                let this_field = {
+                    'id': field.id,
+                    'value': field.value
+                }
+                record_body[shape_control['id']]['fields'].push(this_field)
+            }
         }
+        record_body = JSON.stringify(record_body);
+        data.append('record_body', record_body);
+    // }
         fetch(this.url, {
             method: 'POST',
             body: data

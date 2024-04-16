@@ -22,7 +22,7 @@ $save_record_id = end($temp);
 $save_record = $oo->get($save_record_id);
 $action = $_POST['action'];
 if ($action == 'insert') :
-    $arr = array('name1' => 'new poster', 'url' => 'new-poster');
+    $arr = array('name1' => 'new poster', 'url' => 'new-poster', 'body' => addslashes($_POST['record_body']));
     $sql = "INSERT INTO objects (" . implode(',', array_keys($arr)) . ") VALUES ('" . implode("','", array_values($arr)) ."')";
     $db->query($sql);
     $id = $db->insert_id;

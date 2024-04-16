@@ -550,6 +550,7 @@ input[value="fetch"]
 }
 .record-form-button {
     flex-basis: 100%;
+    cursor: pointer;
 }
 .record-form-button + .record-form-button {
     margin-top: 3px;
