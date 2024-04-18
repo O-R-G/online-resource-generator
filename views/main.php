@@ -6,7 +6,7 @@
     // $mode = 'development';
     // $isTestShapeAnimated = isset($_GET['isTestShapeAnimated']);
     $format = isset($_GET['format']) ? $_GET['format'] : ''; 
-    $record = isset($_GET['record']) ? $_GET['record'] : ''; 
+    $record = isset($uri[2]) ? $uri[2] : ''; 
     
     $temp = $oo->urls_to_ids($save_record_urls);
     if(count($temp) == count($save_record_urls)){

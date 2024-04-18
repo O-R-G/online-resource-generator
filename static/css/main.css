@@ -119,6 +119,7 @@ option:after {
     /* flex: 0 0 300px; */
     width: 500px;
     padding-right: 20px;
+    padding-bottom: 60px;
     position: sticky;
     top: 20px;
 }
@@ -549,11 +550,13 @@ input[value="fetch"]
     width: 480px;
 }
 .record-form-button {
-    flex-basis: 100%;
+    /* flex-basis: 100%; */
+    float: left;
+    width: calc(50% - 1.5px);
     cursor: pointer;
 }
-.record-form-button + .record-form-button {
-    margin-top: 3px;
+.record-form-button.half-right {
+    margin-left: 3px;
 }
 @media screen and (max-width: 1080px)
 {

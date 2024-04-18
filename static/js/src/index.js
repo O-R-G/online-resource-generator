@@ -43,7 +43,9 @@ function init(data, cb){
     }
     data[Object.keys(data)[0]]['canvas'].draw();
     let params = new URL(document.location).searchParams;
-    let record_id = params.get('record');
+    let uri = location.pathname.split('/');
+
+    let record_id = uri.length > 2 ? uri[2] : '';
     let record = new Record(main, record_id, canvases);
     if(typeof cb === 'function') cb();
 }
@@ -72,7 +74,8 @@ function loadCustomScripts(scriptsObj, hook, cb){
     let firstScript = document.querySelector('script');
     let count = 0;
     for(let item of scriptsObj[hook]) {
-        let src = location.pathname + 'static/js/custom/' + item['name'] + '.js';
+        // console.log(localtion)
+        let src = '/online-resource-generator/static/js/custom/' + item['name'] + '.js';
         let s = document.createElement('script');
         s.onload = ()=>{
             count++;
