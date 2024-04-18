@@ -17,12 +17,18 @@ $css = array(
 	'static/css/main.css'
 );
 $fonts_root = __DIR__ . '/../static/fonts';
-$fonts = scandir($fonts_root);
-foreach($fonts as $font) {
-	if(substr($font, 0, 1) === '.' || substr($font, 0, 1) === '_') continue;
-	$files = scandir($fonts_root . '/' . $font);
+$fonts_dir = scandir($fonts_root);
+$fonts = array();
+foreach($fonts_dir as $font_dir) {
+	if(substr($font_dir, 0, 1) === '.' || substr($font_dir, 0, 1) === '_') continue;
+	$files = scandir($fonts_root . '/' . $font_dir);
 	foreach($files as $f) {
-		if(substr($f, -4) === '.css') $css[] = 'static/fonts/' . $font . '/' . $f;
+		if(substr($f, 0, 1) == '.') continue;
+		$ext = substr($f, strrpos($f, '.') + 1);
+		if($ext === 'css') $css[] = 'static/fonts/' . $font_dir . '/' . $f;
+		else {
+			$fonts[] = '<link rel="preload" href="static/fonts/' . $font_dir . '/' . $f.'" as="font" type="font/'.$ext.'" crossorigin>';
+		}
 	}
 }
 ?><!DOCTYPE html>
@@ -33,8 +39,13 @@ foreach($fonts as $font) {
 	<meta charset="utf-8">
 	<meta name="title" content="<?= $site_title; ?>"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-	<?php foreach($css as $link){
+	<?php 
+	foreach($css as $link){
 		echo '<link rel="stylesheet" href="'.$link.'">';
-	} ?>
+	} 
+	foreach($fonts as $font){
+		echo $font;
+	} 
+	?>
 </head>
 <body>
