@@ -13,3 +13,4 @@ webpack.config.js
 config.php
 .htaccess
 static/js/dist/main.js
+static/js/package-lock.json
