@@ -92,7 +92,7 @@ if ($action == 'insert') :
     $response['body'] = '/online-resource-generator/' . $url;
     exit(json_encode($response));
 elseif ($action == 'get'):
-    $sql = "SELECT objects.body FROM objects, wires WHERE objects.url = '" . $_POST['url'] . "' AND objects.id = wires.toid AND wires.fromid = $main_record_id LIMIT 1";
+    $sql = "SELECT objects.body FROM objects, wires WHERE objects.url = '" . $_POST['url'] . "' AND objects.id = wires.toid AND objects.active='1' AND wires.active='1' AND wires.fromid = $main_record_id LIMIT 1";
     $res = $db->query($sql);
     if($res->num_rows == 0) {
         $response['body'] = 'fail to find a record of this url';

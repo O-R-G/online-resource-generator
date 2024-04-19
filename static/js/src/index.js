@@ -42,9 +42,8 @@ function init(data, cb){
         }
     }
     data[Object.keys(data)[0]]['canvas'].draw();
-    let params = new URL(document.location).searchParams;
+    
     let uri = location.pathname.split('/');
-
     let record_id = uri.length > 2 ? uri[2] : '';
     let record = new Record(main, record_id, canvases);
     if(typeof cb === 'function') cb();
