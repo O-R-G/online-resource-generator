@@ -563,7 +563,7 @@ input[value="fetch"]
 }
 .record-form-button .inline-icon{
     /* flex-basis: 18px; */
-    width: 18px;
+    width: 16px;
     margin-left: 0.5em;
 }
 @media screen and (max-width: 1080px)
