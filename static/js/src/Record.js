@@ -32,27 +32,13 @@ export class Record {
         this.elements.button = document.createElement('div');
         this.elements.button.className = 'record-form-button button-like-label half-right';
         this.elements.button.id = 'save-record-button';
-        this.elements.button.innerText = 'Save';
+        this.elements.button.innerHTML = 'Save <img class="inline-icon" src="/online-resource-generator/media/svg/save-3-w.svg">';
 
         this.elements.share_button = document.createElement('div');
         this.elements.share_button.className = 'record-form-button button-like-label half-left';
         this.elements.share_button.id = 'fetch-record-button';
-        this.elements.share_button.innerText = 'Share';
+        this.elements.share_button.innerHTML = 'Share <img class="inline-icon" src="/online-resource-generator/media/svg/share-3-w.svg">';
         
-        // this.elements.form.appendChild(input_id);
-        // this.elements.form.appendChild(this.elements.button);
-
-        // this.elements.input_id = document.createElement('input');
-        // this.elements.input_id.name = 'record_id';
-        // this.elements.input_id.value = this.id;
-        // let temp_label = document.createElement('label');
-        // temp_label.innerText = 'Record ID';
-        // let temp_div = document.createElement('div');
-        // temp_div.className = 'half-right flex-container';
-        // temp_div.appendChild(this.elements.input_id);
-
-        // temp_div.appendChild(input_action);
-        // temp_float_container.appendChild(temp_label);
         temp_float_container.appendChild(this.elements.share_button);
         temp_float_container.appendChild(this.elements.button);
         this.elements.form.append(input_action);

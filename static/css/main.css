@@ -554,9 +554,17 @@ input[value="fetch"]
     float: left;
     width: calc(50% - 1.5px);
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .record-form-button.half-right {
     margin-left: 3px;
+}
+.record-form-button .inline-icon{
+    /* flex-basis: 18px; */
+    width: 18px;
+    margin-left: 0.5em;
 }
 @media screen and (max-width: 1080px)
 {
