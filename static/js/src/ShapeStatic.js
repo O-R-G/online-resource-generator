@@ -64,7 +64,8 @@ export class ShapeStatic extends Shape {
 	    this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
 		this.customGraphic = [];
-
+		this.control.classList.add('static-shape-control');
+		
 	    this.renderControl();
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
@@ -993,7 +994,7 @@ export class ShapeStatic extends Shape {
         temp_input.value = begin;
         temp_input.setAttribute('step', step);
         temp_input.setAttribute('min', min);
-		temp_input.id = id;
+		temp_input.id = this.id + '-field-id-' + id;
 		let temp_right = document.createElement('DIV');
 		temp_right.className = 'half-right flex-container';
 		temp_right.appendChild(temp_input);

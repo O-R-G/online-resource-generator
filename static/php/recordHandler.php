@@ -92,7 +92,7 @@ if ($action == 'insert') :
     $response['body'] = '/online-resource-generator/' . $url;
     exit(json_encode($response));
 elseif ($action == 'get'):
-    $sql = "SELECT objects.body FROM objects, wires WHERE objects.url = '" . $_POST['url'] . "' AND objects.id = wires.toid AND objects.active='1' AND wires.active='1' AND wires.fromid = $main_record_id LIMIT 1";
+    $sql = "SELECT objects.body FROM objects, wires WHERE objects.url = '" . $_POST['record_url'] . "' AND objects.id = wires.toid AND objects.active='1' AND wires.active='1' AND wires.fromid = $main_record_id LIMIT 1";
     $res = $db->query($sql);
     if($res->num_rows == 0) {
         $response['body'] = 'fail to find a record of this url';
@@ -107,8 +107,8 @@ elseif ($action == 'get'):
 
 elseif ($action == 'save'):
     $record_body = addslashes($_POST['record_body']);
-    $id = $_POST['record_id'];
-    $sql = "UPDATE objects SET body='$record_body' WHERE id=$id";
+    $record_url = $_POST['record_url'];
+    $sql = "UPDATE objects JOIN wires ON objects.id = wires.toid SET objects.body='$record_body' WHERE objects.active = '1' AND wires.active = '1' AND wires.fromid = $main_record_id AND objects.url = '$record_url'";
     $res = $db->query($sql);
     $response['status'] = 'success';
     $response['body'] = 'save success';

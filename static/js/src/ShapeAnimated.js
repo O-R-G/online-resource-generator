@@ -75,6 +75,7 @@ export class ShapeAnimated extends Shape {
 		this.group = new THREE.Group();
 		this.group.translateY(this.frame.y * this.scale.y);
 		this.frontIsGridColor = false;
+		this.control.classList.add('animated-shape-control');
 	    this.renderControl();
 	    this.addListeners();
 	    this.updateShape(this.shape, true);

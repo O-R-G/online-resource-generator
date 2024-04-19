@@ -1,17 +1,17 @@
 export class Record {
-    constructor(container, id='', canvasObjs=[]){
+    constructor(container, record_url='', canvasObjs=[]){
         this.container = container;
-        this.id = id;
+        this.record_url = record_url;
         this.canvasObjs = canvasObjs;
         this.record_body = '';
-        this.form_action = this.id ? 'save' : 'insert';
-        this.url = '/online-resource-generator/static/php/recordHandler.php';
+        this.form_action = this.record_url ? 'save' : 'insert';
+        this.request_url = '/online-resource-generator/static/php/recordHandler.php';
         this.elements = {
             'form': null,
             'button': null
         }
-        if (this.id)
-            this.fetchRecord(this.id, () => {
+        if (this.record_url)
+            this.fetchRecord(this.record_url, () => {
                 setTimeout(()=>this.applySavedRecord(), 0);
             });
         this.renderElements();
@@ -50,7 +50,7 @@ export class Record {
             this.submit(event);
         })
         this.elements.share_button.addEventListener('click', (event)=>{
-            if(!this.id) alert('You have to save the draft before you can share it.')
+            if(!this.record_url) alert('You have to save the draft before you can share it.')
             else {
 
                 let url = location.href;
@@ -95,22 +95,22 @@ export class Record {
         })
         // this.elements.fetch_button.addEventListener('click', (event) =>{
         //     event.preventDefault();
-        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.id) return;
+        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.record_url) return;
         //     this.fetchRecord(this.elements.input_id.value, ()=>{
         //         window.location.href='?record=' + this.elements.input_id.value;
         //     });
         // })
     }
-    fetchRecord(id='', callback=null){
+    fetchRecord(record_url='', callback=null){
         let data = new FormData();
-        if (!id) id = this.id
+        if (!record_url) record_url = this.record_url
         let data_json = {
             'action': 'get',
-            'url': id
+            'record_url': record_url
         }
         for(let prop in data_json)
             data.append(prop, data_json[prop]);
-        fetch(this.url, {
+        fetch(this.request_url, {
             method: 'POST',
             body: data
         }).then((response) => response.json()
@@ -126,7 +126,13 @@ export class Record {
         })
     }
     applySavedRecord(){
+        let static_fields = [], animated_fields = [];
+        let active_canvas = 'static';
+        
         for(let shape_control_id in this.record_body) {
+            let shape_control = document.getElementById(shape_control_id);
+            if (!shape_control) continue;
+            let isThree = shape_control.classList.contains('animated-shape-control');
             for(let i = 0 ; i < this.record_body[shape_control_id]['watermarks_num']; i++) {
                 for (let j = 0; j < this.canvasObjs.length; j++) {
                     for (let k = 0; k < this.canvasObjs[j].shapes.length; k++) {
@@ -136,13 +142,30 @@ export class Record {
             }
             let fields = this.record_body[shape_control_id]['fields'];
             for (let field of fields) {
-                let field_element = document.querySelector('#' + shape_control_id + ' #' + field['id']);
+                if(!field['id']) {
+                    continue;
+                }
+                let field_element = shape_control.querySelector('#' + field['id']);
+                if(!field_element) continue;
+        
                 field_element.value = field['value'];
+
+                if (field_element.classList.contains('field-id-animation')) 
+                    active_canvas = field['value'] == 'none' ? 'static' : 'animated'; 
+                
                 if (field_element.tagName.toLowerCase() == 'textarea') 
                     field_element.innerText = field['value'];
-                field_element.dispatchEvent(new Event('change'));
+                if (isThree) animated_fields.push(field_element);
+                else static_fields.push(field_element);
             }
         }
+        console.log(active_canvas)
+        if (active_canvas == 'static') 
+            for(let field_element of static_fields) 
+                field_element.dispatchEvent(new Event('change'));
+        else
+            for(let field_element of animated_fields) 
+                field_element.dispatchEvent(new Event('change'));
     }
     submit(event){
         event.preventDefault();
@@ -151,12 +174,19 @@ export class Record {
         let record_body = {};
         let record_name = 'new poster';
         let shape_controls = document.querySelectorAll('.shape-control');
+        console.log(shape_controls)
         // let watermark_classes = ['watermark', 'watermark-position', 'watermark-color', 'watermark-fontsize', 'watermark-rotate', 'watermark-shift-x', 'watermark-shift-y'];
         for(let shape_control of shape_controls) {
+            let watermarks = shape_control.querySelectorAll('.watermark');
+            let watermarks_num = 0;
+            for (let watermark of watermarks) {
+                if (!watermark.value) continue;
+                watermarks_num++;
+            }
             record_body[shape_control['id']] = {
                 'id': shape_control['id'],
                 'fields': [],
-                'watermarks_num': document.querySelectorAll('.watermark').length
+                'watermarks_num': watermarks_num
             }
             let fields = shape_control.querySelectorAll('select, input, textarea');
             for(let field of fields) {
@@ -173,8 +203,9 @@ export class Record {
         record_body = JSON.stringify(record_body);
         data.append('record_body', record_body);
         data.append('record_name', record_name);
+        data.append('record_url', this.record_url);
     // }
-        fetch(this.url, {
+        fetch(this.request_url, {
             method: 'POST',
             body: data
         }).then((response) => response.json()
