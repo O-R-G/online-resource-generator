@@ -12,3 +12,4 @@ static/js/custom/*
 webpack.config.js
 config.php
 .htaccess
+static/js/dist/main.js
