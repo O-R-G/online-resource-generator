@@ -6,7 +6,7 @@ html {
     font-size: 14px;
 }
 body {
-    font-family: sans-serif;
+    font-family: Helvetica, sans-serif;
     background-color: #000;
     color: #fff;
     font-size: 1rem;
@@ -186,6 +186,8 @@ textarea
 }
 label
 {
+    cursor: pointer;
+    font-size: 1.21rem;
     vertical-align: top;
 }
 textarea + select
@@ -272,7 +274,7 @@ textarea + select
 .panel-section,
 .watermarks-container
 {
-    margin-bottom: 8px;
+    margin-bottom: 6.5px;
 }    
 .field-id-image-controls
 {
@@ -418,6 +420,9 @@ body.recording .download-video-button
     background-color: #666060;
     font-size: 14px;
 }
+.btn-add-watermark {
+    margin: 0 1.5px;
+}
 .button-like-label
 {
     display: block;
@@ -438,11 +443,6 @@ body.recording .download-video-button
 input#restart-animation
 {
     cursor:pointer;
-}
-label
-{
-    cursor: pointer;
-    font-size: 1rem;
 }
 label[for^='watermark']
 {
@@ -484,7 +484,7 @@ label:not(.pseudo-upload), .pseudo-label {
     padding-bottom: 6px;
     cursor: pointer;
     flex: 1;
-    margin-bottom: 8px;
+    margin-bottom: 6.5px;
     margin-left: 3px;
 }
 .waiting-for-format #btn-change-format,
@@ -539,7 +539,7 @@ input[value="fetch"]
     margin-top: 2px;
 }
 #common-control-bottom {
-    margin-top: 10px;
+    margin-top: 20px;
 }
 #common-control-bottom .btn + .btn
 {
@@ -640,7 +640,7 @@ input[value="fetch"]
     {
         font-size: 16px;
         float: left;
-        margin-top: 8px;
+        margin-top: 6.5px;
         width: 100%;
         border: none;
         background-color: #666060;
