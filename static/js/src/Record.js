@@ -30,17 +30,17 @@ export class Record {
         temp_float_container.className = 'float-container';
 
         this.elements.button = document.createElement('div');
-        this.elements.button.className = 'record-form-button button-like-label half-right';
+        this.elements.button.className = 'record-form-button button-like-label half-left';
         this.elements.button.id = 'save-record-button';
         this.elements.button.innerHTML = 'Save <img class="inline-icon" src="/online-resource-generator/media/svg/save-3-w.svg">';
 
         this.elements.share_button = document.createElement('div');
-        this.elements.share_button.className = 'record-form-button button-like-label half-left';
+        this.elements.share_button.className = 'record-form-button button-like-label half-right';
         this.elements.share_button.id = 'fetch-record-button';
         this.elements.share_button.innerHTML = 'Share <img class="inline-icon" src="/online-resource-generator/media/svg/share-3-w.svg">';
         
-        temp_float_container.appendChild(this.elements.share_button);
         temp_float_container.appendChild(this.elements.button);
+        temp_float_container.appendChild(this.elements.share_button);
         this.elements.form.append(input_action);
         this.elements.form.appendChild(temp_float_container);
         this.container.appendChild(this.elements.form);
