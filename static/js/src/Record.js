@@ -47,7 +47,9 @@ export class Record {
     }
     addListeners(){
         this.elements.button.addEventListener('click', (event)=>{
-            this.submit(event);
+            this.submit(event, ()=>{
+                alert('Saved!');
+            });
         })
         this.elements.share_button.addEventListener('click', (event)=>{
             if(!this.record_url) alert('You have to save the draft before you can share it.')
@@ -167,7 +169,7 @@ export class Record {
             for(let field_element of animated_fields) 
                 field_element.dispatchEvent(new Event('change'));
     }
-    submit(event){
+    submit(event, cb){
         event.preventDefault();
         let data = new FormData(this.elements.form);
         // if(this.form_action == 'save') {
@@ -211,11 +213,16 @@ export class Record {
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
-                if (this.form_action == 'insert')
+                if (this.form_action == 'insert') {
+                    alert('Saved!');
                     window.location.href = json['body'];
+                }
                 else if(this.form_action == 'save')
                     console.log(json['body']);
             }
+        }).then((json)=>{
+            if (typeof cb === 'function')
+                cb(json);
         })
     }
 }
