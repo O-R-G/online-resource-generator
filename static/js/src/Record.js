@@ -216,7 +216,7 @@ export class Record {
         ).then((json) => {
             if(json['status'] == 'success') {
                 if (this.form_action == 'insert') {
-                    alert('Saved!');
+                    // alert('Saved!');
                     window.location.href = json['body'];
                 }
                 else if(this.form_action == 'save')

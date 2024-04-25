@@ -224,10 +224,9 @@ textarea + select
 }
 #main{
     padding: 20px;
-    /* text-align: center; */
-    /* text-align: left; */
-    /* max-width: none; */
-    display: inline-block;
+    padding-bottom: 80px;
+    display: flex;
+    justify-content: center;
 }
 #background-image-panel-section {
     display: none;
@@ -606,6 +605,13 @@ input[value="fetch"]
     .control-panel {
         position: static;
         margin-bottom: 20px;
+        width: 540px;
+    }
+    .generator-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* justify-content: center; */
     }
 }
 @media screen and (max-width: 823px)
