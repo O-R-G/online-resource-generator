@@ -573,9 +573,6 @@ input[value="fetch"]
 }
 .record-form-button,
 .record-form-button[flex] {
-    /* flex-basis: 100%; */
-    /* float: left; */
-    /* width: calc(50% - 1.5px); */
     cursor: pointer;
     display: flex;
     justify-content: center;
