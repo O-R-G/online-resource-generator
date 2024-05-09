@@ -15,3 +15,4 @@ config.php
 static/js/dist/main.js
 static/js/package-lock.json
 static/js/node_modules
+*.js.LICENSE.txt
