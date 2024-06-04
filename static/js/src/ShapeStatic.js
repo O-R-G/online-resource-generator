@@ -3,8 +3,8 @@ export class ShapeStatic extends Shape {
 	constructor(id = '', canvasObj, options, control_wrapper, format){
 
 		super(id, canvasObj, options, control_wrapper, format);
-		this.canvas = canvasObj.canvas;
-		this.context = this.canvas.getContext("2d");
+		
+		
 
 		this.color = null;
         for(let prop in this.options.colorOptions) {
@@ -61,15 +61,32 @@ export class ShapeStatic extends Shape {
 		// this.imgShiftX = 0;
 		// this.imgShiftY = 0;
 	    this.shapeMethod = 'draw';
-	    this.shapeCenter.x = this.frame.x + this.frame.w / 2;
-	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
+	    
 		this.customGraphic = [];
-		this.control.classList.add('static-shape-control');
 		
-	    this.renderControl();
+		
+	    
+	}
+	init(canvasObj){
+		console.log('static init()');
+		super.init(canvasObj);
+		// this.initialized = true;
+		this.canvas = canvasObj.canvas;
+		
+		this.context = this.canvas.getContext("2d");
+		// console.log(this.context);
+		this.updateCanvasSize();
+		this.shapeCenter.x = this.frame.x + this.frame.w / 2;
+	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
+		this.control.classList.add('static-shape-control');
+		this.renderControl();
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
+	}
+	updateCanvasSize(){
+		this.canvasW = this.canvas.width;
+		this.canvasH = this.canvas.height;
 	}
 	addCounterpart(obj)
 	{

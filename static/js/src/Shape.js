@@ -1,12 +1,12 @@
 
 export class Shape {
 	constructor(id, canvasObj, options, control_wrapper, format){
+        this.initialized = false;
         this.id = id;
         this.options = options;
         this.canvasObj = canvasObj;
-		this.canvas = this.canvasObj.canvas;
-		this.canvasW = this.canvas.width;
-		this.canvasH = this.canvas.height;
+
+		
         this.shape = null;
         for(let prop in this.options.shapeOptions) {
             if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
@@ -19,27 +19,36 @@ export class Shape {
 		this.watermarks = [];
 		this.watermarkidx = 0;
 		
-	    this.control_wrapper = this.canvasObj.control_shape;
-        this.control = document.createElement('DIV');
-        this.control.className = 'shape-control';
-        this.control.id = this.id + '-shape-control';
-        if(this.control_wrapper.lastElementChild && this.control_wrapper.lastElementChild.classList.contains('shape-general-control')){
-            this.control_wrapper.insertBefore(this.control, this.control_wrapper.lastElementChild);
-        }
-        else
-            this.control_wrapper.appendChild(this.control);
+	    
 	    this.format = format;
         this.shapeCenter = {
             x: 0,
             y: 0
         };
         // this.frame = frame;
-        this.frame = this.generateFrame();
+        
         // this.updateFrame();
         this.fields = {};
         this.fields.watermarks = [];
 	}
-
+    init(canvasObj){
+        console.log('shape init()');
+        this.initialized = true;
+        if(!canvasObj) canvasObj = this.canvasObj;
+        else this.canvasObj = canvasObj;
+        this.control_wrapper = this.canvasObj.control_shape;
+        this.control = document.createElement('DIV');
+        this.control.className = 'shape-control';
+        this.control.id = this.id + '-shape-control';
+        console.log(this.canvasObj);
+        console.log(this.canvasObj.control_shape);
+        if(this.control_wrapper.lastElementChild && this.control_wrapper.lastElementChild.classList.contains('shape-general-control')){
+            this.control_wrapper.insertBefore(this.control, this.control_wrapper.lastElementChild);
+        }
+        else
+            this.control_wrapper.appendChild(this.control);
+        this.frame = this.generateFrame();
+    }
 	addCounterpart(obj)
 	{
 		this.counterpart = obj;
@@ -364,12 +373,12 @@ export class Shape {
     }
 
     renderControl(){
-        if(this.options.shapeOptions && this.options.shapeOptions.length > 1) {
+        if(this.options.shapeOptions && Object.keys(this.options.shapeOptions).length > 1) {
             let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
             shape.querySelector('select').classList.add('flex-item');
             this.control.appendChild(shape);
         }
-        if(this.options.animationOptions && this.options.animationOptions.length > 1) {
+        if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
 	        this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
         }
     }

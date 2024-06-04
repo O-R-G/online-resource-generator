@@ -1,4 +1,11 @@
-var colorOptions = {
+let formatOptions = {
+	'poster': {
+		'name': 'poster',
+		'w': 540,
+		'h': 835
+	},
+}
+let colorOptions = {
 	'blue': {
 		'name': 'blue',
 		'color':  {
@@ -212,7 +219,7 @@ var colorOptions = {
 		}
 	}
 };
-var threeColorOptions = {
+let threeColorOptions = {
 	'blue': {
 		'name': 'blue',
 		'color':  {
@@ -304,7 +311,7 @@ var threeColorOptions = {
 	// 	}
 	// },
 };
-var textColorOptions = {	
+let textColorOptions = {	
 	'white': {
 		'name': 'white',
 		'color':  {
@@ -391,7 +398,7 @@ var textColorOptions = {
 		}
 	}
 };
-var textPositionOptions = {
+let textPositionOptions = {
 	'align-left': {
 		'name': 'align left',
 		'value': 'align-left'
@@ -402,7 +409,7 @@ var textPositionOptions = {
 	}
 }
 
-var shapeOptions = {
+let shapeOptions = {
 	'rounded-less': {
 		'name': 'rounded-less',
 		'shape': {
@@ -505,7 +512,7 @@ var shapeOptions = {
 	},
 };
 
-var fontOptions = {
+let fontOptions = {
 	'34': {
 		name: 'small',
         lineHeight: '44',
@@ -528,7 +535,7 @@ var fontOptions = {
     }
 };
 
-var baseOptions = {
+let baseOptions = {
 	'#000000': {
     	name: 'black',
     	color: {
@@ -566,7 +573,7 @@ var baseOptions = {
     }
 };
 
-var animationOptions = {
+let animationOptions = {
 	'none': {
 		name: 'none'
 	},
@@ -592,8 +599,34 @@ var animationOptions = {
 		name: 'rest (back, spin)'
 	}
 };
-
-var watermarkColorOptions = {
+let watermarkFontOptions = {
+	'small': {
+		name: 'small',
+		size: 34,
+        lineHeight: '44',
+        letterSpacing: '0'
+    },
+	'medium-small': {
+    	name: 'medium-small',
+		size: 54,
+        lineHeight: '60',
+        letterSpacing: '-1'
+    },
+    'medium': {
+    	name: 'medium',
+		size: 80,
+        lineHeight: '80',
+        letterSpacing: '-1'
+    },
+	'large': {
+    	name: 'large',
+		size: 105,
+        lineHeight: '100',
+        letterSpacing: '-4',
+		default: true
+    },
+};
+let watermarkColorOptions = {
 	'white': {
 		'name': 'white',
 		'color':  {
@@ -646,7 +679,7 @@ var watermarkColorOptions = {
 	}
 };
 
-var watermarkPositionOptions = {
+let watermarkPositionOptions = {
 	'top-left': {
 		name: 'top-left'
 	},
@@ -671,6 +704,25 @@ var watermarkPositionOptions = {
 	'bottom-right': {
 		name: 'bottom-right'
 	}
+};
+const resources_data = {
+	'static-1': {
+		// id: 'static-1',
+		options: {
+			'formatOptions': formatOptions,
+			'shapeOptions': shapeOptions,
+			'colorOptions': colorOptions,
+			'fontOptions': fontOptions,
+			'textColorOptions': textColorOptions,
+			'watermarkColorOptions': textColorOptions,
+			'animationOptions': animationOptions,
+			'textPositionOptions': textPositionOptions,
+			'watermarkPositionOptions': watermarkPositionOptions,
+			'watermarkFontOptions': watermarkFontOptions
+		},
+		isThree: false,
+		counterpart: 'animated-1'
+	},
 };
 /* 
 	custom script example:

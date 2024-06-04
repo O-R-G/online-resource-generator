@@ -8,12 +8,10 @@ export class ShapeAnimated extends Shape {
 	constructor(id = '', canvasObj, options = {}, control_wrapper, format, shapeCenter){
 		super(id, canvasObj, options, control_wrapper, format, shapeCenter);
 		this.testTroika = true;
-		this.renderer = this.canvasObj.renderer;
-		this.scene = this.canvasObj.scene;
-		this.camera = this.canvasObj.camera;		
+			
 		this.geometry_front = '';
 		this.geometry_back = '';
-		this.drawShape();
+		
 		// this.loader_text = new THREE.FontLoader();
 		this.loader_text = new FontLoader();
         this.loader_text.load( 'static/fonts/_threejs/Standard_Regular.json', function ( font ) {
@@ -65,20 +63,48 @@ export class ShapeAnimated extends Shape {
 		this.backFontSize = 34;
 		this.timer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
-		let scale = 540 / 960;
-		this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
+		
 		this.devicePixelRatio = window.devicePixelRatio;
 		this.frontTextPosition = Object.values(this.options.textPositionOptions)[0].value;
 		this.backTextPosition = Object.values(this.options.textPositionOptions)[0].value;
 		// this.fields = {};
 
-		this.group = new THREE.Group();
-		this.group.translateY(this.frame.y * this.scale.y);
+		
 		this.frontIsGridColor = false;
+		
+	    
+	    
+	}
+	init(canvasObj){
+		super.init(canvasObj);
+		this.canvas = canvasObj.canvas;
+		this.context = this.canvas.getContext("2d");
+		this.updateCanvasSize();
+
 		this.control.classList.add('animated-shape-control');
-	    this.renderControl();
+		this.renderer = this.canvasObj.renderer;
+		this.scene = this.canvasObj.scene;
+		this.camera = this.canvasObj.camera;	
+		let scale = 540 / 960;
+		console.log('this.canvasObj.shapes.length = ');
+		console.log(this.canvasObj.shapes.length)
+		this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
+		this.group = new THREE.Group();
+		console.log(this.frame);
+		this.group.translateY(this.frame.y * this.scale.y);
+		
+		
+		this.drawShape();
+		this.renderControl();
 	    this.addListeners();
-	    this.updateShape(this.shape, true);
+		this.updateShape(this.shape, true);
+		
+	}
+	updateCanvasSize(){
+		console.log('animated updateCanvasSize()');
+		console.log(this.canvas.width);
+		this.canvasW = this.canvas.width;
+		this.canvasH = this.canvas.height;
 	}
 	addCounterpart(obj)
 	{
@@ -1122,32 +1148,38 @@ export class ShapeAnimated extends Shape {
 		// this.control.appendChild(super.renderAnimateShape());
 	}
     addListeners(){
-		let sShape = this.control.querySelector('.field-id-shape');
-		sShape.onchange = function(e){
-	        let shape_name = e.target.value;
-	        if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
-	            // this.counterpart.updateShape(shapeOptions[shape_name]['shape']);
-	            this.updateShape(shapeOptions[shape_name]['shape']);
-	        }
-	        else if(this.options.shapeOptions[shape_name]['shape']['type'] == 'animation')
-	        {
-	            // if(this.options.shapeOptions[shape_name]['shape']['animation-type'] == 'corner')
-	            //     this.initCornerAnimation(this.options.shapeOptions[shape_name]['shape']);
-	            console.log('threejs doesnt support this option');
-	        }
-	        let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
-	        [].forEach.call(sWatermark_panels, function(el, i){
-	            let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
-	            let position = el.querySelector('.watermark-position').value;
-	            let label = el.querySelector('label[for^="watermark"]');
-	            this.checkWatermarkPosition(position, label);
-	        }.bind(this));
-	    }.bind(this);
-
-	    this.fields['text-front'].onchange = function(e){
-	        this.updateFrontText(e.target.value);
-	  
-	    }.bind(this);
+		// let sShape = this.control.querySelector('.field-id-shape');
+		console.log(this.fields);
+		if(this.fields['shape']) {
+			this.fields['shape'].onchange = function(e){
+				let shape_name = e.target.value;
+				if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
+					// this.counterpart.updateShape(shapeOptions[shape_name]['shape']);
+					this.updateShape(shapeOptions[shape_name]['shape']);
+				}
+				else if(this.options.shapeOptions[shape_name]['shape']['type'] == 'animation')
+				{
+					// if(this.options.shapeOptions[shape_name]['shape']['animation-type'] == 'corner')
+					//     this.initCornerAnimation(this.options.shapeOptions[shape_name]['shape']);
+					console.log('threejs doesnt support this option');
+				}
+				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
+				[].forEach.call(sWatermark_panels, function(el, i){
+					let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
+					let position = el.querySelector('.watermark-position').value;
+					let label = el.querySelector('label[for^="watermark"]');
+					this.checkWatermarkPosition(position, label);
+				}.bind(this));
+			}.bind(this);
+		}
+		
+		if(this.fields['text-front']) {
+			this.fields['text-front'].onchange = function(e){
+				this.updateFrontText(e.target.value);
+		  
+			}.bind(this);
+		}
+	    
 
 	    let sText_front_font = this.control.querySelector('.field-id-text-front-font');
 	    sText_front_font.onchange = function(e){

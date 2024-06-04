@@ -4,6 +4,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 
 export class Canvas {
 	constructor(wrapper, format, id="canvas", options, isThree = false){
+        this.initialized = false;
         // console.log(options);
 		for(const property in options){
 			this[property] = options[property];
@@ -12,7 +13,7 @@ export class Canvas {
 		this.format = format;
 		this.isThree = isThree;
 		this.id = id;
-        this.scale = isThree ? 1 : 2;
+        
 		this.chunks = [];
 		this.shapes = [];
         this.base = null;
@@ -22,10 +23,13 @@ export class Canvas {
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
 	    this.isRecording = false;
         this.fields = {};
-		this.init();
+		// this.init();
         this.isdebug = false;
 	}
 	init(){        
+        // if(this.initialized) return;
+        console.log('canvas init: ' + this.id);
+        this.initialized = true;
 		this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('format', this.format);
 		if(!this.isThree)
@@ -34,12 +38,7 @@ export class Canvas {
 		this.canvas.id = this.id;
         this.canvas.className = "org-main-canvas";
         this.wrapper.appendChild(this.canvas);
-        this.updateCanvasSize(
-            {
-                'width': this.formatOptions[this.format].w,
-                'height': this.formatOptions[this.format].h
-            }, false
-        );
+        
 		
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
@@ -60,8 +59,10 @@ export class Canvas {
 
 		
         let canvasStyle = window.getComputedStyle(this.canvas);
-        this.scale = this.canvas.width / parseFloat(canvasStyle.getPropertyValue('width'));
-        // console.log(canvasStyle.getPropertyValue('width'));
+        console.log(this.canvas.width);
+        console.log(parseFloat(canvasStyle.getPropertyValue('width')));
+        this.scale = this.isThree ? 1 : 2;
+        // this.scale = this.canvas.width / parseFloat(canvasStyle.getPropertyValue('width'));
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
@@ -73,6 +74,18 @@ export class Canvas {
 	    	this.media_recorder = null;
 	    	alert('This page works on safari only.');
 	    }
+        // console.log('hi?');
+        // console.log(this.shapes);
+        for(let shape of this.shapes) {
+            // console.log(shape);
+            if(!shape.initialized) shape.init(this);
+        }
+        this.updateCanvasSize(
+            {
+                'width': this.formatOptions[this.format].w,
+                'height': this.formatOptions[this.format].h
+            }, false
+        );
 	}
     
 	initThree(){
@@ -468,7 +481,7 @@ export class Canvas {
         this.renderControlBottom();
     }
     renderControlTop(){
-        console.log(this.formatOptions);
+        // console.log(this.formatOptions);
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
         if(this.baseOptions && Object.keys(this.baseOptions).length > 1)
@@ -860,6 +873,8 @@ export class Canvas {
     }
 
     sync(){
+        if(!this.counterpart.initialized)
+            this.counterpart.init();
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         this.shapes.forEach(function(el){
@@ -868,7 +883,8 @@ export class Canvas {
     }
     updateCanvasSize(size, draw=true){
         let updated = false;
-        
+        console.log('updateCanvasSize');
+        console.log(this.scale);
         if(size.width) {
             updated = true;
             this.canvas.width = size.width *  this.scale;
@@ -879,13 +895,14 @@ export class Canvas {
             this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
-        
+        console.log(this.canvas.width);
+        console.log(this.canvas.height);
+        if(!this.wrapper.offsetHeight) return;
         
         // console.log(size.width > this.wrapper.offsetWidth);
         if(size.width > this.wrapper.offsetWidth) {
             let style = window.getComputedStyle(this.canvas);
             if(style.getPropertyValue('position') === 'absolute') {
-                console.log('rara');
                 let r = this.toFix(this.canvas.height / this.canvas.width * 100);
                 this.wrapper.style.paddingTop = r + '%';
             }
@@ -893,9 +910,10 @@ export class Canvas {
             this.canvas.style.transform = 'scale('+s+')';
         }
         for(let i = 0; i < this.shapes.length; i++) {
+            // this.shapes[i].updateCanvasSize();
             this.shapes[i].updateFrame();
         }
-        console.log(document.querySelector('#main').offsetWidth);
+        // console.log(document.querySelector('#main').offsetWidth);
         if(updated && draw) {
             this.draw();
         }
