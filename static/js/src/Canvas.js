@@ -101,11 +101,9 @@ export class Canvas {
         
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
-		let z = 3090 * window.devicePixelRatio;
-		// this.fov = 20;
-		// let z = 1680;
-		this.near = z - 270 * window.devicePixelRatio;
-		this.far = z + 270 * window.devicePixelRatio;
+		let z = this.formatOptions[this.format].w * 5.72 * window.devicePixelRatio;
+		this.near = z - this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
+		this.far = z + this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
 		this.camera.position.set(0, 0, z);
 

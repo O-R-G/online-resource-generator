@@ -802,14 +802,12 @@ export class ShapeStatic extends Shape {
     }
 
 	drawRectangle(){
-		// console.log(this.frame);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
         let paddingY = this.padding;
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
-		// console.log(side_x);
 		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
 		if(this.shape.base === 'rectangle')
 			this.textBoxWidth = this.textBoxWidth * 0.9;

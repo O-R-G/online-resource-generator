@@ -181,14 +181,8 @@ export class ShapeAnimated extends Shape {
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		console.log('drawRectangle');
-		console.log(this.frame);
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
-		// console.log(this.frame.w);
 		var a = this.frame.w / 2 - this_r - this_p;
-		// console.log((a + this_r) * 2);
-		// console.log(this.canvasObj.scale);
-		// console.log(this.shapeCenter);
 		path_front.lineTo(this.shapeCenter.x - a, a + this_r);
 		path_front.lineTo(this.shapeCenter.x + a, a + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
@@ -254,13 +248,10 @@ export class ShapeAnimated extends Shape {
 		return input * (this.devicePixelRatio / 2);
 	}
 	write(str = '', size=false, material, align = 'center', animationName = false, isBack = false, sync = false){
-		// console.log('write: ' + str);
-		// console.log('sync? ' + sync);
 		if(str == '') return false;
 		if(!size)
 			size = this.frontFontSize;
 		let fontData = this.processFontData(size, isBack);
-		console.log(fontData);
 		this.fontSetting = {
 			font: fontData.font,
 			size: fontData.fontSize,
@@ -296,7 +287,6 @@ export class ShapeAnimated extends Shape {
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
 		
-		console.log(output);
 		let lines = str.split('\n');
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
@@ -493,15 +483,12 @@ export class ShapeAnimated extends Shape {
     	let output = new THREE.Mesh();
     	let text_height = 0;
 
-    	// output.add(m_temp);
-
     	for(var i = 0; i < arr_by_linebreak.length; i++)
     	{
 
     		let arr_by_space = arr_by_linebreak[i].split(' ');
     		for(var j = 0; j < arr_by_space.length; j++)
     		{
-    			// current_text += arr_by_space[j] + ' ';
     			let temp = (i + j) !== 0 && line !== '' ? line + ' ' + arr_by_space[j] : arr_by_space[j];
     			let geometry_text = new TextGeometry( temp, this.fontSetting );
     			geometry_text.computeBoundingBox();
@@ -512,13 +499,11 @@ export class ShapeAnimated extends Shape {
     				geometry_temp = geometry_text;
     				text_width_temp = text_width;
     			}
-    			// if(geometry_text.boundingBox.min.y < -this.frame.w || geometry_text.boundingBox.min.y > this.frame.w) continue;
     			if(text_height === 0) text_height = (geometry_text.boundingBox.max.y - geometry_text.boundingBox.min.y);
 	    		if( text_width <= boxWidth) { 
 	    			line = temp;
 	    			geometry_temp = geometry_text;
 	    			text_width_temp = text_width;
-	    			
 	    			continue;
 	    		}
 	    		let m = new THREE.Mesh(geometry_temp, material);
@@ -537,8 +522,6 @@ export class ShapeAnimated extends Shape {
     		let text_h = geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y;
 
     		let m = new THREE.Mesh(geometry_temp, material);
-    		// let y = current_y;
-    		output.add(m);
     		let x = align == 'center' ? -text_width / 2 : 0;
     		geometry_temp.translate( x, -current_y, 0);
     		current_y += lineHeight;
@@ -878,36 +861,14 @@ export class ShapeAnimated extends Shape {
 		// let num = (this.canvas.width) / size;
 		let num = 8;
 		let g = new THREE.PlaneGeometry( 540, 540, 8, 8 );
-		// console.log(colors);
-		// m.push(new THREE.MeshBasicMaterial({color: this.processStaticColorData({'code': colors[0]})}));
-		// m.push(new THREE.MeshBasicMaterial({color: this.processStaticColorData({'code': colors[1]})}));
 		m.push(new THREE.MeshBasicMaterial({color: 'rgb(0,0,255)'}));
 		m.push(new THREE.MeshBasicMaterial({color: 'rgb(255,0,0)'}));
-		// console.log(g.faces);
-		// let geo = new THREE.BoxGeometry(size, size, 0.1);
 		for(let i = 0; i < num; i++ ) {
-			// let cube;
-			// for(let y = 0; y < num; y++ ) {
-			// 	if(y % 2 == 0) 
-			// 		cube = new THREE.Mesh(geo, x % 2 == 0 ? m1 : m2);
-			// 	else 
-			// 		cube = new THREE.Mesh(geo, x % 2 == 0 ? m2 : m1);
-			// 	cube.position.set(x * size - this.canvas.width / 2, y * size - this.canvas.height / 2, 0);
-			// 	output.add(cube);
-			// }
-			// let j = i * 2;
-			// console.log(g[j]);
 			for(let j = 0; j < num; j++){
 				let mIdx = i % 2 == 0 ? (j % 2 == 0 ? m[0] : m[1]) : (j % 2 == 0 ? m[1] : m[0]);
 				g.addGroup(i, 1, mIdx)
 			}
-			
-			// g.faces[ j ].materialIndex = ((i + Math.floor(i/8)) % 2); // The code here is changed, replacing all 'i's with 'j's. KEEP THE 8
-    		// g.faces[ j + 1 ].materialIndex = ((i + Math.floor(i/8)) % 2); // Add this line in, the material index should stay the same, we're just doing the other half of the same face
-
 		}
-		// console.log(g);
-		// console.log(m);
 		let output = new THREE.Mesh( g, m);
 		return output;
 	}
