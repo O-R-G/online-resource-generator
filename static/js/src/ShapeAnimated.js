@@ -8,11 +8,8 @@ export class ShapeAnimated extends Shape {
 	constructor(id = '', canvasObj, options = {}, control_wrapper, format, shapeCenter){
 		super(id, canvasObj, options, control_wrapper, format, shapeCenter);
 		this.testTroika = true;
-			
 		this.geometry_front = '';
 		this.geometry_back = '';
-		
-		// this.loader_text = new THREE.FontLoader();
 		this.loader_text = new FontLoader();
         this.loader_text.load( 'static/fonts/_threejs/Standard_Regular.json', function ( font ) {
 			this.font_regular = font;
@@ -59,8 +56,8 @@ export class ShapeAnimated extends Shape {
 		}
 		this.frontTextMaterial = this.processColor(Object.values(this.options.textColorOptions)[0].color);
 		this.clearMaterial = this.material_black;
-		this.frontFontSize = 34;
-		this.backFontSize = 34;
+		this.frontFontSize = this.options.fontOptions[Object.keys(this.options.fontOptions)[0]].name;
+		this.backFontSize = this.options.fontOptions[Object.keys(this.options.fontOptions)[0]].name;
 		this.timer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
@@ -68,6 +65,7 @@ export class ShapeAnimated extends Shape {
 		this.frontTextPosition = Object.values(this.options.textPositionOptions)[0].value;
 		this.backTextPosition = Object.values(this.options.textPositionOptions)[0].value;
 		// this.fields = {};
+		
 
 		
 		this.frontIsGridColor = false;
@@ -76,33 +74,32 @@ export class ShapeAnimated extends Shape {
 	    
 	}
 	init(canvasObj){
+		console.log(this.id + ' init()');
+		// console.log(this.frame);
+		// console.log(canvasObj.id)
+		// console.log(canvasObj.canvas.width);
 		super.init(canvasObj);
+		// console.log(this.frame);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();
-
+		// console.log(this.frame);
+		
 		this.control.classList.add('animated-shape-control');
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
 		let scale = 540 / 960;
-		console.log('this.canvasObj.shapes.length = ');
-		console.log(this.canvasObj.shapes.length)
 		this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
 		this.group = new THREE.Group();
-		console.log(this.frame);
 		this.group.translateY(this.frame.y * this.scale.y);
-		
 		
 		this.drawShape();
 		this.renderControl();
 	    this.addListeners();
 		this.updateShape(this.shape, true);
-		
 	}
 	updateCanvasSize(){
-		console.log('animated updateCanvasSize()');
-		console.log(this.canvas.width);
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
 	}
@@ -184,8 +181,14 @@ export class ShapeAnimated extends Shape {
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
+		console.log('drawRectangle');
+		console.log(this.frame);
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
+		// console.log(this.frame.w);
 		var a = this.frame.w / 2 - this_r - this_p;
+		// console.log((a + this_r) * 2);
+		// console.log(this.canvasObj.scale);
+		// console.log(this.shapeCenter);
 		path_front.lineTo(this.shapeCenter.x - a, a + this_r);
 		path_front.lineTo(this.shapeCenter.x + a, a + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
@@ -257,6 +260,7 @@ export class ShapeAnimated extends Shape {
 		if(!size)
 			size = this.frontFontSize;
 		let fontData = this.processFontData(size, isBack);
+		console.log(fontData);
 		this.fontSetting = {
 			font: fontData.font,
 			size: fontData.fontSize,
@@ -292,7 +296,7 @@ export class ShapeAnimated extends Shape {
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
 		
-
+		console.log(output);
 		let lines = str.split('\n');
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
@@ -475,7 +479,6 @@ export class ShapeAnimated extends Shape {
     		line = '';
     	}
     	output = output.split('\n');
-    	
     	return output;
     }
 
@@ -545,24 +548,21 @@ export class ShapeAnimated extends Shape {
  
     	return output;
     }
-    // addStringToMesh(mesh, string){
-    // 	let geometry = 
-    // }
-
-	processFontData(originalFontSize, isBack){
+    
+	processFontData(fontSize, isBack){
 		let output = {};
-        if (isBack) 
-			output.font = '/static/fonts/standard/standard-book-italic-webfont-additional-diacritics.ttf';
-		else if(originalFontSize == '34')
-			output.font = '/static/fonts/standard/standard-book-webfont-additional-diacritics.ttf';
-		else if(originalFontSize == '80' || originalFontSize == '160')
-			output.font = '/static/fonts/standard/standard-bold-webfont.ttf';
-		// output.fontSize = parseInt(originalFontSize * 3.58) / 9.9;
-		// output.fontSize = parseInt(originalFontSize * 4.85) / 9.8;
-		// console.log('output.fontSize = ' + output.fontSize);
+		let fontOption = this.options.fontOptions[fontSize];
+		let originalFontSize = fontOption['size'];
+        // if (isBack) 
+		// 	output.font = '/static/fonts/standard/standard-book-italic-webfont-additional-diacritics.ttf';
+		// else if(originalFontSize == '34')
+		// 	output.font = '/static/fonts/standard/standard-book-webfont-additional-diacritics.ttf';
+		// else if(originalFontSize == '80' || originalFontSize == '160')
+		// 	output.font = '/static/fonts/standard/standard-bold-webfont.ttf';
+		output.font = fontOption['font']['animated'];
 		output.fontSize = this.getValueByPixelRatio(originalFontSize);
-		output.lineHeight = this.options.fontOptions[originalFontSize]['lineHeight'] / originalFontSize;
-		output.letterSpacing = this.options.fontOptions[originalFontSize]['letterSpacing'] / originalFontSize;
+		output.lineHeight = fontOption['lineHeight'] / originalFontSize;
+		output.letterSpacing = fontOption['letterSpacing'] / originalFontSize;
 		return output;
 	}
 	updateFrontFontSize(fontSize, silent = false){
@@ -574,7 +574,8 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontText(str, silent = false){
-		// console.log('updateFrontText()');
+		console.log('updateFrontText()');
+		console.log(str);
 		this.frontText = str;
 		this.fields['text-front'].value = this.frontText;
 		this.scene.remove( this.mesh_frontText );
@@ -708,19 +709,16 @@ export class ShapeAnimated extends Shape {
 		this.mesh_backText = this.write( this.backText, this.backFontSize, this.backTextMaterial, this.backTextPosition, this.animationName, true, sync );
 		// this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
 		if(this.frontIsGridColor){
-			// console.log('hehe')
 			this.mesh_front = this.frontMaterial;
-			// console.log(this.frontMaterial);
 		}
 		else 
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
 		this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
-		if(this.mesh_frontText) {
+		if(this.mesh_frontText) 
 			this.mesh_front.add(this.mesh_frontText);
-		}
+		
 		if(this.mesh_backText) this.mesh_back.add(this.mesh_backText);
-		console.log('adding mesh_front to group');
-		console.log(this.mesh_front);
+		
 		this.group.add(this.mesh_front);
 		if( this.shape.watermarkPositions !== undefined)
 		{
@@ -739,7 +737,7 @@ export class ShapeAnimated extends Shape {
 
 		this.mesh_front.scale.multiply(this.scale);
 		this.mesh_back.scale.multiply(this.scale);
-		console.log('actualDraw()--post write');
+		// console.log('actualDraw()--post write');
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
 		this.animate(animationName);
@@ -874,13 +872,13 @@ export class ShapeAnimated extends Shape {
 			return this.generateThreeColorsGradient(uniforms, angle);
 	}
 	generateGridPattern(colors, size){
-		console.log('generateGridPattern');
+		// console.log('generateGridPattern');
 		// let output = new THREE.Group();
 		let m = [];
 		// let num = (this.canvas.width) / size;
 		let num = 8;
 		let g = new THREE.PlaneGeometry( 540, 540, 8, 8 );
-		console.log(colors);
+		// console.log(colors);
 		// m.push(new THREE.MeshBasicMaterial({color: this.processStaticColorData({'code': colors[0]})}));
 		// m.push(new THREE.MeshBasicMaterial({color: this.processStaticColorData({'code': colors[1]})}));
 		m.push(new THREE.MeshBasicMaterial({color: 'rgb(0,0,255)'}));
@@ -908,8 +906,8 @@ export class ShapeAnimated extends Shape {
     		// g.faces[ j + 1 ].materialIndex = ((i + Math.floor(i/8)) % 2); // Add this line in, the material index should stay the same, we're just doing the other half of the same face
 
 		}
-		console.log(g);
-		console.log(m);
+		// console.log(g);
+		// console.log(m);
 		let output = new THREE.Mesh( g, m);
 		return output;
 	}
@@ -976,8 +974,6 @@ export class ShapeAnimated extends Shape {
 		}
 		else if(animationName.indexOf('rest') !== -1)
 		{
-
-
 			if(animationName == 'rest-back-spin'){
 				this.isForward = false;
 				this.mesh_back.scale.multiply(new THREE.Vector3(-1, 1, 1));
@@ -994,16 +990,21 @@ export class ShapeAnimated extends Shape {
 	  			this.group.add( this.mesh_back );
 			}
 			else {
-				// console.log(animationName);
-				// console.log(this.mesh_frontText);
+				console.log(animationName);
+				console.log(this.group)
+				console.log(this.mesh_frontText);
+				console.log(this.mesh_front);
 				// if(this.mesh_frontText) this.mesh_frontText.position.z = 5;
 				// this.mesh_front.rotation.y += this.angleInterval;
+				// this.group.add( this.mesh_front );
+	  			// this.group.remove( this.mesh_back );
+				  this.group.add(this.mesh_frontText);
 				this.isForward = true;
-				this.mesh_front.rotation.y += this.spinAngleInterval
+				this.mesh_front.rotation.y += this.spinAngleInterval;
 			}
-			console.log('=== rest ===');
-			console.log(this.mesh_frontText);
-			if(this.mesh_frontText) this.mesh_front.add(this.mesh_frontText);
+			
+			// if(this.mesh_frontText) this.mesh_front.add(this.mesh_frontText);
+			
 			this.renderer.render( this.scene, this.camera );
 		}
 		else
@@ -1149,7 +1150,7 @@ export class ShapeAnimated extends Shape {
 	}
     addListeners(){
 		// let sShape = this.control.querySelector('.field-id-shape');
-		console.log(this.fields);
+		// console.log(this.fields);
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
 				let shape_name = e.target.value;
@@ -1176,7 +1177,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-front']) {
 			this.fields['text-front'].onchange = function(e){
 				this.updateFrontText(e.target.value);
-		  
 			}.bind(this);
 		}
 	    
@@ -1221,7 +1221,7 @@ export class ShapeAnimated extends Shape {
 	            this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
 				this.options.colorOptions[shape_color]['color']['type'] == 'special')
 	        {
-				console.log('sShape_front_color.onchange');
+				// console.log('sShape_front_color.onchange');
 	            this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
 	            this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
 	            this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
@@ -1284,13 +1284,17 @@ export class ShapeAnimated extends Shape {
     }
     updateFrame(frame, silent = false)
     {
+		console.log('updateFrame()');
     	super.updateFrame(frame);
-		console.log(this.group);
-		this.group.remove(this.mesh_front);
-    	this.group.remove(this.mesh_back);
-    	this.scene.remove(this.group);
-    	this.group = new THREE.Group();
-    	this.group.translateY(this.frame.y * 540 / 960);
+		console.log(this.frame);
+		if(this.group) {
+			this.group.remove(this.mesh_front);
+			this.group.remove(this.mesh_back);
+			this.scene.remove(this.group);
+			this.group = new THREE.Group();
+			this.group.translateY(this.frame.y * 540 / 960);
+		}
+		
     	if(!silent) this.canvasObj.draw();
 
     }

@@ -5,7 +5,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 const main = document.getElementById('main');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 function init(data, cb){
-    console.log('main init()');
+    // console.log('main init()');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = [];

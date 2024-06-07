@@ -68,7 +68,7 @@ export class ShapeStatic extends Shape {
 	    
 	}
 	init(canvasObj){
-		console.log('static init()');
+		// console.log('static init()');
 		super.init(canvasObj);
 		// this.initialized = true;
 		this.canvas = canvasObj.canvas;
@@ -503,10 +503,10 @@ export class ShapeStatic extends Shape {
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
-		let fontStyle = this.options.fontOptions[fontSize].size;
-		fontStyle += (fontSize == 'large' || fontSize == 'medium') ? "px eurostile_extended_black" : "px new-century-schoolbook";
-
+		// console.log(this.canvasObj.scale);
+		let fontStyle = this.options.fontOptions[fontSize].size + 'px ' + this.options.fontOptions[fontSize]['font']['static'];
 		let addStroke = (fontSize == 'small' || fontSize == 'medium-small');
+		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = fontStyle;
 
@@ -788,7 +788,7 @@ export class ShapeStatic extends Shape {
     }
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
     	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
-		console.log(shift);
+		// console.log(shift);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
@@ -802,12 +802,14 @@ export class ShapeStatic extends Shape {
     }
 
 	drawRectangle(){
+		// console.log(this.frame);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
         let paddingY = this.padding;
         let side_x = this.frame.w - this.padding * 2;
 		let side_y = this.frame.h - this.padding * 2;
+		// console.log(side_x);
 		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
 		if(this.shape.base === 'rectangle')
 			this.textBoxWidth = this.textBoxWidth * 0.9;
@@ -1212,7 +1214,7 @@ export class ShapeStatic extends Shape {
     }
     
     updateFrame(frame, silent = false){
-		console.log('updateFrame');
+		// console.log('updateFrame');
     	super.updateFrame(frame);
     	this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;

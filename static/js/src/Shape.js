@@ -4,9 +4,7 @@ export class Shape {
         this.initialized = false;
         this.id = id;
         this.options = options;
-        this.canvasObj = canvasObj;
-
-		
+        this.canvasObj = canvasObj;		
         this.shape = null;
         for(let prop in this.options.shapeOptions) {
             if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
@@ -32,7 +30,7 @@ export class Shape {
         this.fields.watermarks = [];
 	}
     init(canvasObj){
-        console.log('shape init()');
+        // console.log('shape init()');
         this.initialized = true;
         if(!canvasObj) canvasObj = this.canvasObj;
         else this.canvasObj = canvasObj;
@@ -40,8 +38,6 @@ export class Shape {
         this.control = document.createElement('DIV');
         this.control.className = 'shape-control';
         this.control.id = this.id + '-shape-control';
-        console.log(this.canvasObj);
-        console.log(this.canvasObj.control_shape);
         if(this.control_wrapper.lastElementChild && this.control_wrapper.lastElementChild.classList.contains('shape-general-control')){
             this.control_wrapper.insertBefore(this.control, this.control_wrapper.lastElementChild);
         }
@@ -441,6 +437,8 @@ export class Shape {
     }
     generateFrame()
     {
+        // console.log('generateFrame()');
+        // console.log(this.canvasObj.canvas.width);
         let output = {};
         let shapeCenter = this.isThree ? {x: 0, y: 0} : {x: this.canvasObj.canvas.width / 2, y: this.canvasObj.canvas.height / 2};
         // assuming vertically stacking only

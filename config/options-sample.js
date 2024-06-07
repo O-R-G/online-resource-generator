@@ -1,9 +1,16 @@
 let formatOptions = {
-	'poster': {
-		'name': 'poster',
-		'w': 540,
-		'h': 835
+	'post': {
+		'name': 'post',
+		'w': 480,
+		'h': 480,
+		'shape_capacity': 1
 	},
+	'story': {
+		'name': 'story',
+		'w': 480,
+		'h': 960,
+		'shape_capacity': 2
+	}
 }
 let colorOptions = {
 	'blue': {
@@ -511,28 +518,49 @@ let shapeOptions = {
 
 	},
 };
-
 let fontOptions = {
-	'34': {
-		name: 'small',
-        lineHeight: '44',
-        letterSpacing: '0'
-    },
-	'54': {
-    	name: 'medium-small',
-        lineHeight: '60',
-        letterSpacing: '-1'
-    },
-    '80': {
-    	name: 'medium',
-        lineHeight: '80',
-        letterSpacing: '-1'
-    },
-    '160': {
+	'large': {
     	name: 'large',
-        lineHeight: '160',
-        letterSpacing: '-4'
-    }
+		size: 100,
+        lineHeight: '100',
+        letterSpacing: '-4',
+		default: true,
+		font: {
+			'static': '',
+			'animated': ''
+		}
+    },
+	'small': {
+		name: 'small',
+		size: 34,
+        lineHeight: '44',
+        letterSpacing: '0',
+		font: {
+			'static': '',
+			'animated': ''
+		}
+    },
+	'medium-small': {
+    	name: 'medium-small',
+		size: 54,
+        lineHeight: '60',
+        letterSpacing: '-1',
+		font: {
+			'static': '',
+			'animated': ''
+		}
+    },
+    'medium': {
+    	name: 'medium',
+		size: 80,
+        lineHeight: '80',
+        letterSpacing: '-1',
+		font: {
+			'static': '',
+			'animated': ''
+		}
+    },
+    
 };
 
 let baseOptions = {

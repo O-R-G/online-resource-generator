@@ -5,7 +5,6 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 export class Canvas {
 	constructor(wrapper, format, id="canvas", options, isThree = false){
         this.initialized = false;
-        // console.log(options);
 		for(const property in options){
 			this[property] = options[property];
 		}
@@ -23,12 +22,11 @@ export class Canvas {
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
 	    this.isRecording = false;
         this.fields = {};
-		// this.init();
         this.isdebug = false;
+        this.scale = this.isThree ? 1 : 2;
+        
 	}
 	init(){        
-        // if(this.initialized) return;
-        console.log('canvas init: ' + this.id);
         this.initialized = true;
 		this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('format', this.format);
@@ -38,7 +36,20 @@ export class Canvas {
 		this.canvas.id = this.id;
         this.canvas.className = "org-main-canvas";
         this.wrapper.appendChild(this.canvas);
-        
+        // console.log(this.formatOptions[this.format]);
+        let canvasSizeUpdated = this.setCanvasSize(
+            {
+                'width': this.formatOptions[this.format].w,
+                'height': this.formatOptions[this.format].h
+            }, 
+            false, 
+            ()=>{
+                for(let i = 0; i < this.shapes.length; i++) {
+                    this.shapes[i].updateFrame(false, true);
+                }
+            }
+        );
+        // console.log(this.canvas.width);
 		
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
@@ -46,22 +57,14 @@ export class Canvas {
         this.isAutoRecording = false;
         this.readyState = 0;
         this.textAmount = 0;
-
-		if(!this.isThree)
-		{
-			// this.canvas.height = this.formatOptions[this.format].h === 'auto' ? this.formatOptions[this.format].w / 2 : this.formatOptions[this.format].h / 2;
-		}
-		else
-		{
-			// this.canvas.height = this.formatOptions[this.format].h === 'auto' ? this.formatOptions[this.format].w : this.formatOptions[this.format].h;
-			this.initThree();
-		}
-
-		
-        let canvasStyle = window.getComputedStyle(this.canvas);
         console.log(this.canvas.width);
-        console.log(parseFloat(canvasStyle.getPropertyValue('width')));
-        this.scale = this.isThree ? 1 : 2;
+		if(this.isThree) this.initThree();
+
+		console.log(this.canvas.width);
+        // let canvasStyle = window.getComputedStyle(this.canvas);
+        // console.log(this.canvas.width);
+        // console.log(parseFloat(canvasStyle.getPropertyValue('width')));
+        
         // this.scale = this.canvas.width / parseFloat(canvasStyle.getPropertyValue('width'));
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
@@ -74,30 +77,26 @@ export class Canvas {
 	    	this.media_recorder = null;
 	    	alert('This page works on safari only.');
 	    }
-        // console.log('hi?');
-        // console.log(this.shapes);
         for(let shape of this.shapes) {
-            // console.log(shape);
+            // console.log(this.canvas.width);
             if(!shape.initialized) shape.init(this);
         }
-        this.updateCanvasSize(
-            {
-                'width': this.formatOptions[this.format].w,
-                'height': this.formatOptions[this.format].h
-            }, false
-        );
+        this.draw();
 	}
     
 	initThree(){
+        // console.log(this.canvas.width);
 		this.renderer = new THREE.WebGLRenderer({
 			'canvas': this.canvas, 
 			'antialias': true,
             'preserveDrawingBuffer': true 
 		});
+        // console.log(this.canvas.width);
         this.renderer.setPixelRatio( window.devicePixelRatio );
-
+        console.log(window.devicePixelRatio)
+        console.log(this.canvas.width)
 		this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
-        
+        console.log(this.canvas.width);
 		this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
@@ -122,7 +121,7 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
-        console.log('initRecording()');
+        // console.log('initRecording()');
         /* =====================================
         
         workflow of recording for animated canvas
@@ -511,11 +510,11 @@ export class Canvas {
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
-            this.updateCanvasSize({width: parseInt(sCustomWidth.value)});
+            this.setCanvasSize({width: parseInt(sCustomWidth.value)});
         };
         let sCustomHeight = this.control_top.querySelector('#custom-height-input');
         if(sCustomHeight) sCustomHeight.onchange = () => {
-            this.updateCanvasSize({height: parseInt(sCustomHeight.value)});
+            this.setCanvasSize({height: parseInt(sCustomHeight.value)});
         };
     }
     addListenersBottom(){
@@ -556,7 +555,7 @@ export class Canvas {
         }
     }
     animate(){
-        console.log('Canvas animate();')
+        // console.log('Canvas animate();')
         for(let i = 0; i < this.shapes.length; i++)
         {
             let el = this.shapes[i];
@@ -719,7 +718,6 @@ export class Canvas {
         request.onload = function () {
             if (request.status >= 200 && request.status < 300) {
                 let result = JSON.parse(request.responseText);
-                console.log();
                 if(result.status == 'success')
                 {
                     let r = this.handleResponse(result.body, postFetchingAction);
@@ -751,7 +749,6 @@ export class Canvas {
         request.onload = function () {
             if (request.status >= 200 && request.status < 300) {
                 let result = JSON.parse(request.responseText);
-                console.log();
                 if(result.status == 'success')
                 {
                     let r = this.handleResponse(result.body, postFetchingAction);
@@ -771,7 +768,7 @@ export class Canvas {
     }
     handleResponse(response, startRecordingAfterFetching){
         
-            console.log('handleResponse');
+            // console.log('handleResponse');
             let response_clean = this.divToNl(this.stringToNode(response));
             let search = /\[(front\-text\-1|front\-text\-2|back\-text\-1|back\-text\-2|watermark\-1|watermark\-2)\]\(((?:.|\n|\r)*?\)*)\)/ig;
             let found = [...response_clean.matchAll(search)];
@@ -881,10 +878,10 @@ export class Canvas {
             el.sync();
         });
     }
-    updateCanvasSize(size, draw=true){
+    setCanvasSize(size, rescale=false, callback){
         let updated = false;
-        console.log('updateCanvasSize');
-        console.log(this.scale);
+        // console.log(size);
+        // console.log(this.scale);
         if(size.width) {
             updated = true;
             this.canvas.width = size.width *  this.scale;
@@ -895,8 +892,7 @@ export class Canvas {
             this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
-        console.log(this.canvas.width);
-        console.log(this.canvas.height);
+        // console.log(this.canvas.width);
         if(!this.wrapper.offsetHeight) return;
         
         // console.log(size.width > this.wrapper.offsetWidth);
@@ -909,11 +905,13 @@ export class Canvas {
             let s = this.toFix(this.wrapper.offsetWidth / size.width);
             this.canvas.style.transform = 'scale('+s+')';
         }
-        for(let i = 0; i < this.shapes.length; i++) {
-            // this.shapes[i].updateCanvasSize();
-            this.shapes[i].updateFrame();
+        if(typeof callback === 'function') {
+            callback(size);
         }
-        // console.log(document.querySelector('#main').offsetWidth);
+        // for(let i = 0; i < this.shapes.length; i++) {
+        //     this.shapes[i].updateFrame();
+        // }
+        return updated;
         if(updated && draw) {
             this.draw();
         }
@@ -921,7 +919,7 @@ export class Canvas {
     updateReadyState(){
         this.readyState++;
         // console.log('updateReadyState');
-        console.log(this.readyState +' / '+this.textAmount);
+        // console.log(this.readyState +' / '+this.textAmount);
         if(this.readyState == this.textAmount || this.textAmount == 0){
             // console.log('media_recorder.start()');
             setTimeout(function(){
