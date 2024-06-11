@@ -1218,6 +1218,27 @@ export class ShapeStatic extends Shape {
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
         if(!silent) this.canvasObj.draw();
     }
+	generateFrame(isThree)
+    {
+        let output = {};
+        let shapeCenter = {x: this.canvasObj.canvas.width / 2, y: this.canvasObj.canvas.height / 2};
+        let unit_w = this.canvasObj.canvas.width;
+        let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
+        if(this.shape.base == 'fill') {
+            output.w = unit_w;
+            output.h = unit_h;
+        }
+        else {
+            let length = unit_w > unit_h ? unit_h : unit_w;
+            output.w = length;
+            output.h = length;
+        }
+        
+        output.x = shapeCenter.x - output.w / 2;
+        output.y = shapeCenter.y - output.h / 2;
+
+		return output;
+    }
     sync(){
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);

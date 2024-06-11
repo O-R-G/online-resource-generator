@@ -43,6 +43,7 @@ export class Canvas {
             }, 
             false, 
             ()=>{
+                if(this.isThree) console.log('isThree');
                 for(let i = 0; i < this.shapes.length; i++) {
                     this.shapes[i].updateFrame(false, true);
                 }
@@ -568,7 +569,7 @@ export class Canvas {
                 x: this.isThree ? 0 : this.canvas.width / 2,
                 y: this.isThree ? this.canvas.height / 4 : this.canvas.height / 4
             };
-            let shapeFrame = this.generateFrame(shapeCenter.x, shapeCenter.y, this.canvas.width, this.canvas.height, this.shapes.length + 1, this.isThree);            
+            let shapeFrame = this.generateFrame(shapeCenter.x, shapeCenter.y, this.canvas.width, this.canvas.height, this.shapes.length + 1, this.isThree);  
             this.shapes[0].updateFrame(shapeFrame);
             if(this.shapes[0].img)
                 this.shapes[0].updateImg(this.shapes[0].img);

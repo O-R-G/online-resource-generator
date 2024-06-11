@@ -100,10 +100,11 @@ export class ShapeAnimated extends Shape {
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
 		let scale = 540 / 960;
+		console.log(this.canvasObj.shapes.length);
 		this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
 		this.group = new THREE.Group();
 		this.group.translateY(this.frame.y * this.scale.y);
-		
+		console.log(this.group.translateY);
 		this.drawShape();
 		this.renderControl();
 	    this.addListeners();
@@ -193,17 +194,18 @@ export class ShapeAnimated extends Shape {
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
 		var a = this.frame.w / 2 - this_r - this_p;
-		path_front.lineTo(this.shapeCenter.x - a, a + this_r);
-		path_front.lineTo(this.shapeCenter.x + a, a + this_r);
+		console.log(a);
+		path_front.lineTo(this.shapeCenter.x - a, this.shapeCenter.y + a + this_r);
+		path_front.lineTo(this.shapeCenter.x + a, this.shapeCenter.y + a + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		path_front.lineTo( this.shapeCenter.x + a + this_r,   a);
-		path_front.lineTo( this.shapeCenter.x + a + this_r, - a);
+		path_front.lineTo( this.shapeCenter.x + a + this_r, this.shapeCenter.y + a);
+		path_front.lineTo( this.shapeCenter.x + a + this_r, this.shapeCenter.y - a);
 		path_front.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		path_front.lineTo(this.shapeCenter.x + a, - (a + this_r));
-		path_front.lineTo(this.shapeCenter.x - a, - (a + this_r));
+		path_front.lineTo(this.shapeCenter.x + a, this.shapeCenter.y - (a + this_r));
+		path_front.lineTo(this.shapeCenter.x - a, this.shapeCenter.y - (a + this_r));
 		path_front.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		path_front.lineTo(this.shapeCenter.x -(a + this_r), - a);
-		path_front.lineTo(this.shapeCenter.x -(a + this_r),   a);
+		path_front.lineTo(this.shapeCenter.x -(a + this_r), this.shapeCenter.y - a);
+		path_front.lineTo(this.shapeCenter.x -(a + this_r), this.shapeCenter.y + a);
 		path_front.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
 		path_front.closePath();
 
@@ -747,7 +749,7 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this));
 		}
-
+		console.log(this.scale);
 		this.mesh_front.scale.multiply(this.scale);
 		this.mesh_back.scale.multiply(this.scale);
 		// console.log('actualDraw()--post write');
@@ -1300,6 +1302,7 @@ export class ShapeAnimated extends Shape {
     updateFrame(frame, silent = false)
     {
 		console.log('updateFrame()');
+		console.log(frame);
     	super.updateFrame(frame);
 		console.log(this.frame);
 		if(this.group) {
@@ -1313,6 +1316,27 @@ export class ShapeAnimated extends Shape {
     	if(!silent) this.canvasObj.draw();
 
     }
+	generateFrame(){
+		// super.generateFrame();
+		console.log('animatedShape gFrame');
+		let output = {};
+        let unit_w = this.canvasObj.canvas.width;
+        let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
+        if(this.shape.base == 'fill') {
+            output.w = unit_w;
+            output.h = unit_h;
+        }
+        else {
+            let length = unit_w > unit_h ? unit_h : unit_w;
+            output.w = length;
+            output.h = length;
+        }
+        
+        output.x = this.shapeCenter.x;
+        output.y = this.shapeCenter.y;
+
+		return output;
+	}
     sync(){
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);

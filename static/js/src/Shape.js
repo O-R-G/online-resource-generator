@@ -437,29 +437,7 @@ export class Shape {
         this.watermarks = this.watermarks.slice(0, idx+1);
         this.fields.watermarks = this.fields.watermarks.slice(0, idx+1);
     }
-    generateFrame()
-    {
-        // console.log('generateFrame()');
-        // console.log(this.canvasObj.canvas.width);
-        let output = {};
-        let shapeCenter = this.isThree ? {x: 0, y: 0} : {x: this.canvasObj.canvas.width / 2, y: this.canvasObj.canvas.height / 2};
-        // assuming vertically stacking only
-        let unit_w = this.canvasObj.canvas.width;
-        let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
-        if(this.shape.base == 'fill') {
-            output.w = unit_w;
-            output.h = unit_h;
-        }
-        else {
-            let length = unit_w > unit_h ? unit_h : unit_w;
-            output.w = length;
-            output.h = length;
-        }
-        
-        output.x = !this.isThree ? shapeCenter.x - output.w / 2 : shapeCenter.x;
-        output.y = !this.isThree ? shapeCenter.y - output.h / 2 : shapeCenter.y;
-        return output;
-    }
+    
 
 }
 
