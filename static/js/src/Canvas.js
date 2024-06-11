@@ -36,7 +36,6 @@ export class Canvas {
 		this.canvas.id = this.id;
         this.canvas.className = "org-main-canvas";
         this.wrapper.appendChild(this.canvas);
-        // console.log(this.formatOptions[this.format]);
         let canvasSizeUpdated = this.setCanvasSize(
             {
                 'width': this.formatOptions[this.format].w,
@@ -49,7 +48,6 @@ export class Canvas {
                 }
             }
         );
-        // console.log(this.canvas.width);
 		
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
@@ -57,15 +55,7 @@ export class Canvas {
         this.isAutoRecording = false;
         this.readyState = 0;
         this.textAmount = 0;
-        console.log(this.canvas.width);
 		if(this.isThree) this.initThree();
-
-		console.log(this.canvas.width);
-        // let canvasStyle = window.getComputedStyle(this.canvas);
-        // console.log(this.canvas.width);
-        // console.log(parseFloat(canvasStyle.getPropertyValue('width')));
-        
-        // this.scale = this.canvas.width / parseFloat(canvasStyle.getPropertyValue('width'));
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
@@ -78,25 +68,19 @@ export class Canvas {
 	    	alert('This page works on safari only.');
 	    }
         for(let shape of this.shapes) {
-            // console.log(this.canvas.width);
             if(!shape.initialized) shape.init(this);
         }
         this.draw();
 	}
     
 	initThree(){
-        // console.log(this.canvas.width);
 		this.renderer = new THREE.WebGLRenderer({
 			'canvas': this.canvas, 
 			'antialias': true,
             'preserveDrawingBuffer': true 
 		});
-        // console.log(this.canvas.width);
         this.renderer.setPixelRatio( window.devicePixelRatio );
-        console.log(window.devicePixelRatio)
-        console.log(this.canvas.width)
-		this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
-        console.log(this.canvas.width);
+        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
 		this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
@@ -478,7 +462,6 @@ export class Canvas {
         this.renderControlBottom();
     }
     renderControlTop(){
-        // console.log(this.formatOptions);
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
         if(this.baseOptions && Object.keys(this.baseOptions).length > 1)
@@ -544,7 +527,6 @@ export class Canvas {
     //     }
     // }
     draw(){
-        // console.log('canvas draw()');
         this.drawBase();
         for(let i = 0; i < this.shapes.length; i++)
         {
@@ -668,42 +650,8 @@ export class Canvas {
         output.y = !isThree ? centerY - output.h / 2 : centerY;
         return output;
     }
-    // async requestRecordByName(event, startRecordingAfterFetching = false){
-    //     // console.log(event);
-    //     if(event) event.preventDefault();
-    //     let data = new FormData(this.fields['record']);
-    //     let recordName = this.autoRecordingQueue[this.autoRecordingQueueIdx];
-    //     data.set('recordName', recordName);
-    //     return new Promise(function (resolve, reject) {            
-    //         let url = '/static/php/recordNameHandler.php';
-    //         let request = new XMLHttpRequest();
-    //         request.open('POST', url, true);
-    //         request.onload = function () {
-    //             if (request.status >= 200 && request.status < 300) {
-    //                 let result = JSON.parse(request.responseText);
-    //                 if(result.status == 'success')
-    //                 {
-    //                     let r = this.handleResponse(result.body, startRecordingAfterFetching);
-    //                     resolve("requestRecordByName() success");
-    //                 }
-    //                 else if(result.status == 'error')
-    //                 {
-    //                     console.log('request fail');
-    //                     this.stopRecording(false);
-    //                 }
-                    
-    //             } else {
-    //                 reject({
-    //                     status: request.status,
-    //                     statusText: request.statusText
-    //                 });
-    //             }
-    //         }.bind(this);
-    //         request.send(data);
-    //     }.bind(this));
-    // }
+    
     requestRecordByName(event, recordName = '', postFetchingAction = false){
-        // console.log(event);
         if(event) event.preventDefault();
         let data = new FormData(this.fields['record']);
         if(this.autoRecordingQueue.length == 0) return;
@@ -738,7 +686,6 @@ export class Canvas {
         let data = new FormData(this.fields['record']);
         // for now, commented 
         // if(this.autoRecordingQueue.length == 0) return;
-        console.log('requestRecordByURL:' + _url);
         data.set('url', _url);
         
         let url = '/static/php/recordURLHandler.php';
@@ -764,9 +711,7 @@ export class Canvas {
         }.bind(this);
         request.send(data);
     }
-    handleResponse(response, startRecordingAfterFetching){
-        
-            // console.log('handleResponse');
+    handleResponse(response, startRecordingAfterFetching){        
             let response_clean = this.divToNl(this.stringToNode(response));
             let search = /\[(front\-text\-1|front\-text\-2|back\-text\-1|back\-text\-2|watermark\-1|watermark\-2)\]\(((?:.|\n|\r)*?\)*)\)/ig;
             let found = [...response_clean.matchAll(search)];
@@ -878,8 +823,6 @@ export class Canvas {
     }
     setCanvasSize(size, rescale=false, callback){
         let updated = false;
-        // console.log(size);
-        // console.log(this.scale);
         if(size.width) {
             updated = true;
             this.canvas.width = size.width *  this.scale;
@@ -890,10 +833,7 @@ export class Canvas {
             this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
-        // console.log(this.canvas.width);
         if(!this.wrapper.offsetHeight) return;
-        
-        // console.log(size.width > this.wrapper.offsetWidth);
         if(size.width > this.wrapper.offsetWidth) {
             let style = window.getComputedStyle(this.canvas);
             if(style.getPropertyValue('position') === 'absolute') {
@@ -916,10 +856,7 @@ export class Canvas {
     }
     updateReadyState(){
         this.readyState++;
-        // console.log('updateReadyState');
-        // console.log(this.readyState +' / '+this.textAmount);
         if(this.readyState == this.textAmount || this.textAmount == 0){
-            // console.log('media_recorder.start()');
             setTimeout(function(){
                 this.startRecording();
             }.bind(this), 1000);

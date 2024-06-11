@@ -64,8 +64,25 @@ export class ShapeAnimated extends Shape {
 		this.devicePixelRatio = window.devicePixelRatio;
 		this.frontTextPosition = Object.values(this.options.textPositionOptions)[0].value;
 		this.backTextPosition = Object.values(this.options.textPositionOptions)[0].value;
-		// this.fields = {};
 		
+		this.frontTextShiftX = 0;
+		this.frontTextShiftY = 0;
+		this.backTextShiftX = 0;
+		this.backTextShiftY = 0;
+		this.text = {
+			front: {
+				str: false,
+				size: this.options.fontOptions[Object.keys(this.options.fontOptions)[0]].name,
+				position: Object.values(this.options.textPositionOptions)[0].value,
+				material: this.processColor(Object.values(this.options.textColorOptions)[0].color),
+				shift: {
+					x: 0,
+					y: 0
+				},
+				rotate: 0,
+				isBack: false
+			},
+		}
 
 		
 		this.frontIsGridColor = false;
@@ -74,17 +91,10 @@ export class ShapeAnimated extends Shape {
 	    
 	}
 	init(canvasObj){
-		console.log(this.id + ' init()');
-		// console.log(this.frame);
-		// console.log(canvasObj.id)
-		// console.log(canvasObj.canvas.width);
 		super.init(canvasObj);
-		// console.log(this.frame);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
-		this.updateCanvasSize();
-		// console.log(this.frame);
-		
+		this.updateCanvasSize();		
 		this.control.classList.add('animated-shape-control');
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
@@ -247,11 +257,19 @@ export class ShapeAnimated extends Shape {
 	getValueByPixelRatio(input){
 		return input * (this.devicePixelRatio / 2);
 	}
-	write(str = '', size=false, material, align = 'center', animationName = false, isBack = false, sync = false){
+	write(str = '', size=false, material, align = 'center', animationName = false, isBack = false, shift=null, rad=0, sync = false){
+		// console.log('write');
+		// console.log(str);
+		// console.log(this.shape.base);
 		if(str == '') return false;
 		if(!size)
 			size = this.frontFontSize;
 		let fontData = this.processFontData(size, isBack);
+		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
+		shift.x = shift.x ? shift.x : 0;
+		shift.y = shift.y ? -shift.y : 0;
+		rad = rad ? rad : 0;
+
 		this.fontSetting = {
 			font: fontData.font,
 			size: fontData.fontSize,
@@ -290,11 +308,14 @@ export class ShapeAnimated extends Shape {
 		let lines = str.split('\n');
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
+			output.position.x += shift.x;
+			output.position.y += shift.y;
 			output.sync();
 			return output;
 		}
 		output.lineHeight = 1;
 		if(this.shape.base == 'rectangle'){
+			console.log('rect');
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			
@@ -331,8 +352,11 @@ export class ShapeAnimated extends Shape {
 				output.anchorY = 'bottom-baseline';
 				y = - side / 2 + inner_p_y;
 			}
-			output.position.x = x;
-			output.position.y = y;
+			console.log(output.rotation.z);
+			output.rotation.z += rad;
+			console.log(output.rotation.z);
+			output.position.x = x + shift.x;
+			output.position.y = y + shift.y;
 		}
 		else if(this.shape.base == 'hexagon')
 		{
@@ -371,8 +395,8 @@ export class ShapeAnimated extends Shape {
 				y = -1.732 * a / 2 + inner_p_y;
 			}
 
-			output.position.x = x;
-			output.position.y = y;
+			output.position.x = x + shift.x;
+			output.position.y = y + shift.y;
 		}
 		else if(this.shape.base == 'triangle')
 		{
@@ -405,8 +429,8 @@ export class ShapeAnimated extends Shape {
     			output.anchorY = 'bottom-baseline';
     			y = y_dev - side * 1.732 / 2 / 3 + inner_p_y;
     		}
-    		output.position.x = x;
-    		output.position.y = y;
+    		output.position.x = x + shift.x;
+    		output.position.y = y + shift.y;
 		}
 		else if(this.shape.base == 'circle')
 		{
@@ -431,8 +455,8 @@ export class ShapeAnimated extends Shape {
     		output.anchorY = 'middle';
 			if(align.indexOf('middle') !== -1)
 				y = 0;
-			output.position.x = x;
-			output.position.y = y;
+			output.position.x = x + shift.x;
+			output.position.y = y + shift.y;
 		}
 		if(animationName)
 			output.position.z = 0.1;
@@ -557,8 +581,6 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontText(str, silent = false){
-		console.log('updateFrontText()');
-		console.log(str);
 		this.frontText = str;
 		this.fields['text-front'].value = this.frontText;
 		this.scene.remove( this.mesh_frontText );
@@ -578,6 +600,14 @@ export class ShapeAnimated extends Shape {
     }
     updateBackTextPosition(position, silent = false){
         this.backTextPosition = position;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateFrontTextShiftX(x, silent = false){
+        this.frontTextShiftX = x * this.canvasObj.scale;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateFrontTextShiftY(y, silent = false){
+        this.frontTextShiftY = y * this.canvasObj.scale;
         if(!silent) this.canvasObj.draw();
     }
 	processColor(color)
@@ -622,8 +652,8 @@ export class ShapeAnimated extends Shape {
 		this.backTextMaterial = this.processColor(color);
 		if(!silent) this.canvasObj.draw();
 	}
-	updateWatermark(idx, str = false, position = false, color = false, fontSize=false, silent = false){
-    	super.updateWatermark(idx, str, position, color, fontSize);
+	updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
+    	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
     	if(this.watermarks[idx].mesh_front != undefined)
  			this.mesh_front.remove( this.watermarks[idx].mesh_front );
  		if(this.watermarks[idx].mesh_back != undefined)
@@ -688,8 +718,8 @@ export class ShapeAnimated extends Shape {
 		let sync = !animate;
 		this.scene.add( this.group );
 		this.drawShape();
-		this.mesh_frontText = this.write( this.frontText, this.frontFontSize, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, sync );
-		this.mesh_backText = this.write( this.backText, this.backFontSize, this.backTextMaterial, this.backTextPosition, this.animationName, true, sync );
+		this.mesh_frontText = this.write( this.frontText, this.frontFontSize, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, 0, sync );
+		this.mesh_backText = this.write( this.backText, this.backFontSize, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, 0, sync );
 		// this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
 		if(this.frontIsGridColor){
 			this.mesh_front = this.frontMaterial;
@@ -710,9 +740,9 @@ export class ShapeAnimated extends Shape {
 				var thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
-					el.mesh_front = this.write(el.str, el.fontSize, thisMaterial, el.position, this.animationName, false, sync);
+					el.mesh_front = this.write(el.str, el.fontSize, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
 					this.mesh_front.add(el.mesh_front);
-					el.mesh_back = this.write(el.str, el.fontSize, thisMaterial, el.position, this.animationName, false, sync);
+					el.mesh_back = this.write(el.str, el.fontSize, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
 					this.mesh_back.add(el.mesh_back);
 				}
 			}.bind(this));
@@ -1158,6 +1188,30 @@ export class ShapeAnimated extends Shape {
 	        // this.updateCounterpartSelectField('text-color', e.target.selectedIndex);
 	    }.bind(this);
 
+		if(this.fields['text-front-shift-x']) {	
+			this.fields['text-front-shift-x'].onchange = function(e){
+				this.updateFrontTextShiftX(parseInt(e.target.value));
+			}.bind(this);
+			this.fields['text-front-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
+				this.updateFrontTextShiftX(shift.x)
+				this.updateFrontTextShiftY(shift.y)
+			});
+			this.fields['text-front-shift-x'].onblur = () => {
+				this.unfocusInputs([this.fields['text-front-shift-x'], this.fields['text-shift-y']]);
+			}
+		}
+		if(this.fields['text-front-shift-y']) {	
+			this.fields['text-front-shift-y'].onchange = function(e){
+				this.updateFrontTextShiftY(parseInt(e.target.value));
+			}.bind(this);
+			this.fields['text-front-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
+				this.updateFrontTextShiftX(shift.x);
+				this.updateFrontTextShiftY(-shift.y);
+			});
+			this.fields['text-front-shift-y'].onblur = () => {
+				this.unfocusInputs([this.fields['text-front-shift-x'], this.fields['text-front-shift-y']]);
+			}
+		}
 	    let sText_back = this.control.querySelector('.field-id-text-back');
 	    this.fields['text-back'] = sText_back;
 	    sText_back.onchange = function(e){

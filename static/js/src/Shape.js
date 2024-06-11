@@ -244,31 +244,33 @@ export class Shape {
             'rotate': temp_input_rotate
         };
         temp_input.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_select_position.onchange = function(e){
             this.checkWatermarkPosition(e.target.value, temp_label);
-            this.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            this.updateWatermark(idx, temp_input.value, e.target.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_select_color.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, e.target.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_select_fontSize.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_rotate.onchange = function(e){
             // console.log(temp_input_rotate.value);
             // console.log((2 * Math.PI) * temp_input_rotate.value / 360)
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_x.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            console.log(this.canvasObj.scale);
+            console.log(temp_input_y.value);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value), y: parseFloat(temp_input_y.value)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
         temp_input_y.onchange = function(e){
-            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value, y: temp_input_y.value}, (2 * Math.PI) * temp_input_rotate.value / 360);
+            this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value), y: parseFloat(temp_input_y.value)}, (2 * Math.PI) * temp_input_rotate.value / 360);
         }.bind(this);
-        temp_input_x.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360));
-        temp_input_y.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: temp_input_x.value * this.canvasObj.scale, y: temp_input_y.value * this.canvasObj.scale}, (2 * Math.PI) * temp_input_rotate.value / 360));
+        temp_input_x.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360));
+        temp_input_y.onkeydown = e => this.updatePositionByKey(e, {x: temp_input_x, y:temp_input_y}, ()=>this.updateWatermark(idx, temp_input.value, temp_select_position.value, temp_select_color.value, temp_select_fontSize.value, false, {x: parseFloat(temp_input_x.value * this.canvasObj.scale), y: parseFloat(temp_input_y.value * this.canvasObj.scale)}, (2 * Math.PI) * temp_input_rotate.value / 360));
         temp_input_x.onblur = () => {
             this.unfocusInputs([temp_input_x, temp_input_y]);
         }
