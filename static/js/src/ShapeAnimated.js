@@ -5,8 +5,9 @@ import { Shape } from "./Shape.js";
 import {Text} from 'troika-three-text';
 
 export class ShapeAnimated extends Shape {
-	constructor(id = '', canvasObj, options = {}, control_wrapper, format, shapeCenter){
-		super(id, canvasObj, options, control_wrapper, format, shapeCenter);
+	constructor(prefix = '', canvasObj, options = {}, format, shape_index=0){
+		super(prefix, canvasObj, options, format, shape_index);
+		console.log()
 		this.testTroika = true;
 		this.geometry_front = '';
 		this.geometry_back = '';
@@ -92,6 +93,7 @@ export class ShapeAnimated extends Shape {
 	}
 	init(canvasObj){
 		super.init(canvasObj);
+		// console.log(canvasObj);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();		
@@ -99,12 +101,13 @@ export class ShapeAnimated extends Shape {
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
-		let scale = 540 / 960;
-		console.log(this.canvasObj.shapes.length);
-		this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, 1, 1) : new THREE.Vector3(1, scale, 1);
+		// let scale = 540 / 960;
+		// this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1) : new THREE.Vector3(1, scale, 1);
+		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
+		// this.scale = new THREE.Vector3(1, 1, 1);
 		this.group = new THREE.Group();
-		this.group.translateY(this.frame.y * this.scale.y);
-		console.log(this.group.translateY);
+		this.updateGroupTranslateY();
+		
 		this.drawShape();
 		this.renderControl();
 	    this.addListeners();
@@ -194,33 +197,32 @@ export class ShapeAnimated extends Shape {
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
 		var a = this.frame.w / 2 - this_r - this_p;
-		console.log(a);
-		path_front.lineTo(this.shapeCenter.x - a, this.shapeCenter.y + a + this_r);
-		path_front.lineTo(this.shapeCenter.x + a, this.shapeCenter.y + a + this_r);
+		path_front.moveTo(this.shapeCenter.x - a, 0 + a + this_r);
+		path_front.lineTo(this.shapeCenter.x + a, 0 + a + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		path_front.lineTo( this.shapeCenter.x + a + this_r, this.shapeCenter.y + a);
-		path_front.lineTo( this.shapeCenter.x + a + this_r, this.shapeCenter.y - a);
+		path_front.lineTo( this.shapeCenter.x + a + this_r, 0 + a);
+		path_front.lineTo( this.shapeCenter.x + a + this_r, 0 - a);
 		path_front.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		path_front.lineTo(this.shapeCenter.x + a, this.shapeCenter.y - (a + this_r));
-		path_front.lineTo(this.shapeCenter.x - a, this.shapeCenter.y - (a + this_r));
+		path_front.lineTo(this.shapeCenter.x + a, 0 - (a + this_r));
+		path_front.lineTo(this.shapeCenter.x - a, 0 - (a + this_r));
 		path_front.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		path_front.lineTo(this.shapeCenter.x -(a + this_r), this.shapeCenter.y - a);
-		path_front.lineTo(this.shapeCenter.x -(a + this_r), this.shapeCenter.y + a);
+		path_front.lineTo(this.shapeCenter.x -(a + this_r), 0 - a);
+		path_front.lineTo(this.shapeCenter.x -(a + this_r), 0 + a);
 		path_front.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
 		path_front.closePath();
 
 		var path_back = new THREE.Shape();
-		path_back.lineTo(this.shapeCenter.x - a, a + this_r);
-		path_back.lineTo(this.shapeCenter.x + a, a + this_r);
+		path_back.moveTo(this.shapeCenter.x - a, 0 + a + this_r);
+		path_back.lineTo(this.shapeCenter.x + a, 0 + a + this_r);
 		path_back.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		path_back.lineTo(this.shapeCenter.x + a + this_r,  a);
-		path_back.lineTo(this.shapeCenter.x + a + this_r, -a);
+		path_back.lineTo(this.shapeCenter.x + a + this_r, 0 + a);
+		path_back.lineTo(this.shapeCenter.x + a + this_r, 0 - a);
 		path_back.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		path_back.lineTo(this.shapeCenter.x + a, -(a + this_r));
-		path_back.lineTo(this.shapeCenter.x - a, -(a + this_r));
+		path_back.lineTo(this.shapeCenter.x + a, 0 - (a + this_r));
+		path_back.lineTo(this.shapeCenter.x - a, 0 - (a + this_r));
 		path_back.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		path_back.lineTo(this.shapeCenter.x - (a + this_r), - a);
-		path_back.lineTo(this.shapeCenter.x - (a + this_r), a);
+		path_back.lineTo(this.shapeCenter.x - (a + this_r), 0 - a);
+		path_back.lineTo(this.shapeCenter.x - (a + this_r), 0 + a);
 		path_back.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
 		path_back.closePath();
 
@@ -317,7 +319,6 @@ export class ShapeAnimated extends Shape {
 		}
 		output.lineHeight = 1;
 		if(this.shape.base == 'rectangle'){
-			console.log('rect');
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			
@@ -354,9 +355,7 @@ export class ShapeAnimated extends Shape {
 				output.anchorY = 'bottom-baseline';
 				y = - side / 2 + inner_p_y;
 			}
-			console.log(output.rotation.z);
 			output.rotation.z += rad;
-			console.log(output.rotation.z);
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
 		}
@@ -749,10 +748,8 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this));
 		}
-		console.log(this.scale);
 		this.mesh_front.scale.multiply(this.scale);
 		this.mesh_back.scale.multiply(this.scale);
-		// console.log('actualDraw()--post write');
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
 		this.animate(animationName);
@@ -905,6 +902,8 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	resetAnimation(){
+		// console.log('resetAnimation');
+		// console.log(this.group);
 		if(this.isForward)
             this.group.remove( this.mesh_front );
         else
@@ -914,10 +913,10 @@ export class ShapeAnimated extends Shape {
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
 
-        if(this.mesh_front) {
-        	this.mesh_front.setRotationFromEuler(0, this.shapeCenter.y * 540 / 960, 0, 'XYZ');
-        }
-        if(this.mesh_back) this.mesh_back.setRotationFromEuler(0, this.shapeCenter.y * 540 / 960, 0, 'XYZ');
+        // if(this.mesh_front) {
+        // 	this.mesh_front.setRotationFromEuler(0, this.shapeCenter.y * 540 / 960, 0, 'XYZ');
+        // }
+        // if(this.mesh_back) this.mesh_back.setRotationFromEuler(0, this.shapeCenter.y * 540 / 960, 0, 'XYZ');
 	}
 
 	updateAnimation(animationData, syncing = false, silent = false){
@@ -933,9 +932,17 @@ export class ShapeAnimated extends Shape {
 				isAllNone = false;
 			}
 		});
+		console.log('syncing?');
+		console.log(isAllNone);
+		console.log(syncing);
 		if(isAllNone && !syncing) {
-			document.body.classList.remove('viewing-three');
-			this.canvasObj.sync();
+			if(!syncing) {
+				document.body.classList.remove('viewing-three');
+				this.canvasObj.sync();
+			} else {
+				document.body.classList.add('viewing-three');
+			}
+			
 		}
 	}
 	animate(animationName){
@@ -983,15 +990,7 @@ export class ShapeAnimated extends Shape {
 	  			this.group.add( this.mesh_back );
 			}
 			else {
-				console.log(animationName);
-				console.log(this.group)
-				console.log(this.mesh_frontText);
-				console.log(this.mesh_front);
-				// if(this.mesh_frontText) this.mesh_frontText.position.z = 5;
-				// this.mesh_front.rotation.y += this.angleInterval;
-				// this.group.add( this.mesh_front );
-	  			// this.group.remove( this.mesh_back );
-				  this.group.add(this.mesh_frontText);
+				this.group.add(this.mesh_frontText);
 				this.isForward = true;
 				this.mesh_front.rotation.y += this.spinAngleInterval;
 			}
@@ -1290,35 +1289,57 @@ export class ShapeAnimated extends Shape {
 	    	this.updateBackTextPosition(position);
 	    }.bind(this);
 	}
-	updateShapeCenter(shapeCenter){
-    	super.updateShapeCenter(shapeCenter);
-    	this.group.remove(this.mesh_front);
-    	this.group.remove(this.mesh_back);
-    	this.scene.remove(this.group);
-    	this.group = new THREE.Group();
-    	this.group.translateY(this.frame.y * 540 / 960);
-    	this.canvasObj.draw();
-    }
-    updateFrame(frame, silent = false)
+	// updateShapeCenter(shapeCenter){
+    // 	super.updateShapeCenter(shapeCenter);
+    // 	this.group.remove(this.mesh_front);
+    // 	this.group.remove(this.mesh_back);
+    // 	this.scene.remove(this.group);
+    // 	this.group = new THREE.Group();
+    // 	this.group.translateY(this.frame.y * this.scale.y);
+    // 	this.canvasObj.draw();
+    // }
+    updateFrame(frame=null, silent = false)
     {
-		console.log('updateFrame()');
-		console.log(frame);
+		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
-		console.log(this.frame);
+		// console.log(this.frame);
 		if(this.group) {
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
 			this.scene.remove(this.group);
 			this.group = new THREE.Group();
-			this.group.translateY(this.frame.y * 540 / 960);
+			this.updateGroupTranslateY();
 		}
 		
     	if(!silent) this.canvasObj.draw();
-
     }
+	updateGroupTranslateY(){
+		if(this.canvasObj.shapes.length === 1) {
+			this.group.translateY(0);
+		} else {
+			this.group.translateY(this.frame.y * this.scale.y);
+		}
+	}
+	generateShapeCenter(){
+		let output = {x: 0, y: 0};
+		let shape_num = this.canvasObj.shapes.length;
+		
+		if(shape_num === 1) {
+			return output;
+		} else if(shape_num === 2) {
+			console.log(this.shape_index);
+			let canvas_h = this.canvasObj.canvas.height;
+			output.x = 0;
+			output.y = this.shape_index == 0 ? canvas_h / 4 : - canvas_h / 4;
+			console.log(output);
+		}
+		
+		// if(this.id === 'staticShape-2') console.log(output);
+		return output;
+	}
 	generateFrame(){
 		// super.generateFrame();
-		console.log('animatedShape gFrame');
+		// console.log('animatedShape gFrame');
 		let output = {};
         let unit_w = this.canvasObj.canvas.width;
         let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
@@ -1331,10 +1352,10 @@ export class ShapeAnimated extends Shape {
             output.w = length;
             output.h = length;
         }
-        
+        this.shapeCenter = this.generateShapeCenter();
         output.x = this.shapeCenter.x;
         output.y = this.shapeCenter.y;
-
+		// console.log(output);
 		return output;
 	}
     sync(){

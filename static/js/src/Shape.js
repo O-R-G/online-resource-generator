@@ -1,10 +1,12 @@
 
 export class Shape {
-	constructor(id, canvasObj, options, control_wrapper, format){
+	constructor(prefix, canvasObj, options, format, shape_index = 0){
         this.initialized = false;
-        this.id = id;
+        this.id = prefix + '-shape-' + shape_index;
+        this.canvasObj = canvasObj;	
         this.options = options;
-        this.canvasObj = canvasObj;		
+        this.format = format;
+        this.shape_index = shape_index;
         this.shape = null;
         for(let prop in this.options.shapeOptions) {
             if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
@@ -18,7 +20,7 @@ export class Shape {
 		this.watermarkidx = 0;
 		
 	    
-	    this.format = format;
+	    
         this.shapeCenter = {
             x: 0,
             y: 0
@@ -44,6 +46,19 @@ export class Shape {
         else
             this.control_wrapper.appendChild(this.control);
         this.frame = this.generateFrame();
+    }
+    getShapeIndex(){
+        console.log('getShapeIndex');
+        console.log(this.canvasObj.shapes);
+        for(const index of this.canvasObj.shapes.keys()) {
+            console.log(shape);
+            console.log(index);
+            if(this.canvasObj.shapes[index] === this) {
+                this.shape_index = index;
+                console.log('find index--');
+            }
+                
+        }
     }
 	addCounterpart(obj)
 	{

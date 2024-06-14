@@ -3,15 +3,18 @@ import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 
 export class Canvas {
-	constructor(wrapper, format, id="canvas", options, isThree = false){
+	constructor(wrapper, format, prefix, options, isThree = false){
         this.initialized = false;
+        // console.log('cc: ' + isThree + ' ' + prefix);
+        // console.log('cc: ' + isThree);
 		for(const property in options){
 			this[property] = options[property];
 		}
 		this.wrapper = wrapper;
 		this.format = format;
 		this.isThree = isThree;
-		this.id = id;
+		this.prefix = prefix;
+        this.id = prefix + '-canvas';
         
 		this.chunks = [];
 		this.shapes = [];
@@ -24,9 +27,11 @@ export class Canvas {
         this.fields = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2;
-        
+        // this.init();
 	}
-	init(){        
+	init(){
+        // console.log()
+        if(this.initialized) return;
         this.initialized = true;
 		this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('format', this.format);
@@ -34,6 +39,7 @@ export class Canvas {
 		  this.context = this.canvas.getContext('2d');
 		
 		this.canvas.id = this.id;
+        
         this.canvas.className = "org-main-canvas";
         this.wrapper.appendChild(this.canvas);
         let canvasSizeUpdated = this.setCanvasSize(
@@ -43,13 +49,11 @@ export class Canvas {
             }, 
             false, 
             ()=>{
-                if(this.isThree) console.log('isThree');
                 for(let i = 0; i < this.shapes.length; i++) {
                     this.shapes[i].updateFrame(false, true);
                 }
             }
         );
-		
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
         this.isRecording = false;
@@ -82,6 +86,8 @@ export class Canvas {
 		});
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
+        // console.log(this.canvas.width);
+        // console.log(this.canvas.height);
 		this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
@@ -95,12 +101,8 @@ export class Canvas {
 	}
     updateAutoRecordingQueue()
     {
-        // console.log('updateAutoRecordingQueue()');
-        // console.log(this.fields['recordName'].value);
         let pattern = /\[(.*?)\]/g;
-        // console.log(this.fields['recordName']);
         let match = this.fields['recordName'].value.split(pattern).filter(word => word != '');
-        // console.log(match);
         this.autoRecordingQueue = match;
     }
     initRecording(){
@@ -170,9 +172,10 @@ export class Canvas {
         this.prepareNextSaving();
     }
     prepareNextRecording(){
-        console.log('prepareNextRecording . . . ');
+
         this.readyState = 0;
         this.textAmount = 0;
+        // if( this.autoRecordingQueueIdx == 0 || !this.isThree){
         if( this.autoRecordingQueueIdx == 0 || !this.isThree){
             console.log('this.autoRecordingQueueIdx == 0');
             this.startRecording(); // record the first item in the queue directly
@@ -215,7 +218,6 @@ export class Canvas {
         //         let temp = await this.shapes[i].drawForRecording();
         //     }
         // }
-        console.log('media_recorder.start()');
         this.animate();
         // console.log('post-await, recording starting. . .');
         setTimeout(function(){
@@ -225,7 +227,7 @@ export class Canvas {
             //         this.saveCanvasAsVideo();
             //     }.bind(this), 5000);
             // }
-        }.bind(this));
+        }.bind(this), 0);
         
     }
     
@@ -259,8 +261,6 @@ export class Canvas {
         this.media_recorder.stop();
         setTimeout(function(){
             if(this.autoRecordingQueueIdx >= this.autoRecordingQueue.length) {
-                console.log(this.isRecording)
-                console.log('saveCanvasAsVideo end');
                 this.stopRecording();
             }
             else this.prepareNextRecording();
@@ -308,6 +308,7 @@ export class Canvas {
     
     renderSelect(id, options, extraClass=''){
         let temp_select = document.createElement('SELECT');
+        temp_select.id = id;
         temp_select.className = 'field-id-' + id + ' ' + extraClass;
 
         if(typeof options === 'object' && options !== null)
@@ -322,8 +323,9 @@ export class Canvas {
 
         return temp_select;
     }
-    renderSelectField(id, displayName, options, extraClass='')
+    renderSelectField(name, displayName, options, extraClass='', elementExtraClass='')
     {
+        let id = this.id + '-field-id-' + name;
         let temp_panel_section = document.createElement('DIV');
         temp_panel_section.className  = "panel-section float-container " + extraClass;
         let temp_label = document.createElement('LABEL');
@@ -331,16 +333,16 @@ export class Canvas {
         temp_label.innerText = displayName;
         let temp_right = document.createElement('div');
         temp_right.className = 'half-right flex-container';
-        let temp_select = this.renderSelect(id, options, 'flex-item');
+        let temp_select = this.renderSelect(id, options, 'flex-item ' + elementExtraClass);
         temp_right.appendChild(temp_select);
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
-        this.fields[id] = temp_select;
+        this.fields[name] = temp_select;
         return temp_panel_section;
     }
     renderFormatField(){
         
-        let formatField = this.renderSelectField('format', 'Format', this.formatOptions);
+        let formatField = this.renderSelectField('format', 'Format', this.formatOptions, '', 'field-id-format');
         formatField.querySelector('select').setAttribute('flex', 'full');
         if(this.format == 'custom') {
             
@@ -403,7 +405,7 @@ export class Canvas {
         return temp_panel_section;
     }
     renderAddShape(extraClass=""){
-        let id = 'addSecondShape';
+        let id = this.id + '-add-second-shape';
         let text = 'Add a shape';
         let element = this.renderButtonLikeCheckbox(id, text, extraClass);
         element.id = 'panel-second-shape';
@@ -449,11 +451,13 @@ export class Canvas {
     {
     	this.control_wrapper = control_wrapper;
         this.control_top = document.createElement('DIV');
-        this.control_top.className = 'common-control';
-        this.control_top.id = 'common-control-top';
+        this.control_top.className = 'common-control common-control-top';
+        this.control_top.classList.add(this.isThree ? 'animated-common-control' : 'static-common-control');
+        this.control_top.id = this.id + '-common-control-top';
         this.control_bottom = document.createElement('DIV');
-        this.control_bottom.className = 'common-control';
-        this.control_bottom.id = 'common-control-bottom';
+        this.control_bottom.className = 'common-control common-control-bottom';
+        this.control_bottom.classList.add(this.isThree ? 'animated-common-control' : 'static-common-control');
+        this.control_bottom.id = this.id + '-common-control-bottom';
         this.control_shape = document.createElement('DIV');
         this.control_shape.className = 'shape-control-wrapper';
         this.control_wrapper.appendChild(this.control_top);
@@ -466,7 +470,7 @@ export class Canvas {
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
         if(this.baseOptions && Object.keys(this.baseOptions).length > 1)
-            this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions));
+            this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions, '', 'field-id-base'));
         this.addListenersTop();
     }
     renderControlBottom(){
@@ -504,6 +508,9 @@ export class Canvas {
         if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
     }
     updateBase(base){
+        // console.log(this.id);
+        // console.log('updateBase');
+        // console.log(base);
     	this.base = base;
 		this.draw();
 	}
@@ -511,6 +518,11 @@ export class Canvas {
 		if(!this.isThree)
     	{
     		this.context.fillStyle = this.base;
+            // console.log(this.id);
+            // console.log('=== drawBase ===');
+            // console.log(this.base);
+            // console.log(this.canvas.width);
+            // console.log(this.canvas.height);
     		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     	}
     	else
@@ -518,21 +530,12 @@ export class Canvas {
     		this.renderer.setClearColor( new THREE.Color(this.base));
     	}
 	}
-    // async draw(){
-    //     console.log('canvas draw()');
-    // 	this.drawBase();
-    //     for(let i = 0; i < this.shapes.length; i++)
-    //     {
-    //         let el = this.shapes[i];
-    //         await el.draw();
-    //     }
-    // }
     draw(){
         this.drawBase();
         for(let i = 0; i < this.shapes.length; i++)
         {
             let el = this.shapes[i];
-            el.draw();
+           el.draw();
         }
     }
     animate(){
@@ -563,24 +566,11 @@ export class Canvas {
     toggleSecondShape(event, isSync = false){        
         if( (isSync || event.target.checked)&& this.shapes.length < 2)
         {
-            
-            let format = this.format;
-            let shapeCenter = {
-                x: this.isThree ? 0 : this.canvas.width / 2,
-                y: this.isThree ? this.canvas.height / 4 : this.canvas.height / 4
-            };
-            let shapeFrame = this.generateFrame(shapeCenter.x, shapeCenter.y, this.canvas.width, this.canvas.height, this.shapes.length + 1, this.isThree);  
-            this.shapes[0].updateFrame(shapeFrame);
-            if(this.shapes[0].img)
-                this.shapes[0].updateImg(this.shapes[0].img);
-            let newShapeCenter = {
-                x: this.isThree ? 0 : this.canvas.width / 2,
-                y: this.isThree ? -this.canvas.height / 4 : this.canvas.height - this.canvas.height / 4
-            };
-            let newShapeFrame = this.generateFrame(newShapeCenter.x, newShapeCenter.y, this.canvas.width, this.canvas.height, this.shapes.length + 1, this.isThree);
-            let shapeId = this.isThree ? 'animatedShape-' + (this.shapes.length + 1) : 'staticShape-' + (this.shapes.length + 1);
-            if(this.isThree) this.shapes.push( new ShapeAnimated(shapeId, this, this.shapes[0].options, this.shapes[0].control_wrapper, format, newShapeFrame) );
-            else this.shapes.push(new ShapeStatic(shapeId, this, this.shapes[0].options, this.shapes[0].control_wrapper, format, newShapeFrame));
+            let format = this.format;            
+            let shapeIndex = this.shapes.length;
+            // let shapeId = this.prefix + '-shape-' + shapeIndex;
+            let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, this.shapes[0].options, format, shapeIndex) : new ShapeStatic(this.prefix, this, this.shapes[0].options, format, shapeIndex);
+            this.shapes.push( newShape );
             this.counterpart.toggleSecondShape(event, true);
             if(!isSync) {
                 setTimeout(function(){
@@ -589,7 +579,10 @@ export class Canvas {
             }
             else
                 this.shapes[this.shapes.length - 1].addCounterpart(this.counterpart.shapes[this.counterpart.shapes.length - 1]);
-
+            newShape.init(this);
+            this.shapes[0].updateFrame();
+            if(this.shapes[0].img)
+                this.shapes[0].updateImg(this.shapes[0].img);
             this.draw();
         }
     }
@@ -814,8 +807,14 @@ export class Canvas {
     }
 
     sync(){
-        if(!this.counterpart.initialized)
-            this.counterpart.init();
+        // if(!this.counterpart.initialized)
+            // this.counterpart.init();
+        console.log(this.counterpart.fields);
+        // for(let field of this.fields) {
+        //     if(field.tagName.toLowerCase() === 'select') {
+
+        //     }
+        // }
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         this.shapes.forEach(function(el){

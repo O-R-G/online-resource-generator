@@ -16,4 +16,4 @@
 
 ?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?>></main>
 <script id="script-options" src="config/options.js"></script>
-<script id="script-main" type="module" src="static/js/dist/main.js"></script>
+<script id="script-main" type="module" src="static/js/dist/main.js?<?php echo rand(0, 10000); ?>"></script>

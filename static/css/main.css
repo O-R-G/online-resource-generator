@@ -248,10 +248,9 @@ textarea + select
 
 .org-main-canvas
 {
-/*        width: 100%;*/
     display: block;
 }
-#main[format="post"] [data-is-three="false"] canvas,
+/* #main[format="post"] [data-is-three="false"] canvas,
 #main[format="post"] [data-is-three="true"] canvas
 {
     height: 540px;
@@ -260,8 +259,11 @@ textarea + select
 #main[format="story"] [data-is-three="true"] canvas
 {
     height: 960px;
+} */
+#main[data-canvas-status="initializing"] .org-main-canvas {
+    position: absolute;
+    display: block;
 }
-
 [data-is-three='true']
 {
     display: none;

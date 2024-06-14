@@ -3,13 +3,14 @@ import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 const main = document.getElementById('main');
+main.setAttribute('canvas-status', 'initializing');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
+
 function init(data, cb){
     // console.log('main init()');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = [];
-    
 
     for(let id in data) {
         /* render canvas / shapes */
@@ -19,16 +20,14 @@ function init(data, cb){
         main.appendChild( container );
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
-        let cvs = new Canvas(wrapper, format, 'canvas-' + id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
-        // let shapeCenter = isThree ? {x: 0, y: 0} : {x: cvs['canvas'].width / 2, y: cvs['canvas'].height / 2};
-        let shape = isThree ? new ShapeAnimated('shape-' + id, cvs, data[id]['options'], control, format) : new ShapeStatic('shape-' + id, cvs, data[id]['options'], control, format);
+        let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
+        let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
         cvs.shapes.push(shape);
         cvs.addControl(control);
-        if( (isThree && document.body.classList.contains('viewing-three')) || (!isThree && !document.body.classList.contains('viewing-three'))) cvs.init();
+        // if( (isThree && document.body.classList.contains('viewing-three')) || (!isThree && !document.body.classList.contains('viewing-three'))) cvs.init();
         data[id]['canvas'] = cvs;
         canvases.push(cvs);
-                
-       
+        cvs.init();
     }
     for(let id in data) {
         /* any counterparts? */
@@ -38,7 +37,6 @@ function init(data, cb){
         }
         if(typeof data[id]['counterpart'] === 'undefined' || !data[id]['counterpart'] || typeof data[data[id]['counterpart']] == 'undefined') continue;
         let c = data[data[id]['counterpart']];
-        // console.log(c);
         for(let i = 0; i < data[id]['canvas']['shapes'].length; i++) {
             // console.log(data[id]['canvas']['shapes'][i]);
             data[id]['canvas']['shapes'][i].addCounterpart(c['canvas']['shapes'][i]);
@@ -49,6 +47,7 @@ function init(data, cb){
     let uri = location.pathname.split('/');
     let record_id = uri.length > 2 ? uri[2] : '';
     let record = new Record(main, record_id, canvases);
+    main.setAttribute('canvas-status', 'initialized');
     if(typeof cb === 'function') cb();
 }
 

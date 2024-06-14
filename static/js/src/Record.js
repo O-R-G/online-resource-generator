@@ -108,6 +108,7 @@ export class Record {
     fetchRecord(record_url='', callback=null){
         let data = new FormData();
         if (!record_url) record_url = this.record_url
+        console.log(record_url);
         let data_json = {
             'action': 'get',
             'record_url': record_url
@@ -121,11 +122,12 @@ export class Record {
         ).then((json) => {
             if(json['status'] == 'success') {
                 this.record_body = JSON.parse(json['body']);
+                console.log(this.record_body);
                 if (typeof callback == 'function') {
                     callback();
                 }
             } else {
-                alert('Fail to find any record with id: ' + id);
+                alert('Fail to find any record');
             }
         })
     }
@@ -133,18 +135,19 @@ export class Record {
         let static_fields = [], animated_fields = [];
         let active_canvas = 'static';
         
-        for(let shape_control_id in this.record_body) {
+        for(let shape_control_id in this.record_body['shape-controls']) {
+            let data = this.record_body['shape-controls'][shape_control_id];
             let shape_control = document.getElementById(shape_control_id);
             if (!shape_control) continue;
-            let isThree = shape_control.classList.contains('animated-shape-control');
-            for(let i = 0 ; i < this.record_body[shape_control_id]['watermarks_num']; i++) {
+            let isThree = data['isThree'];
+            for(let i = 0 ; i < data['watermarks_num']; i++) {
                 for (let j = 0; j < this.canvasObjs.length; j++) {
                     for (let k = 0; k < this.canvasObjs[j].shapes.length; k++) {
                         this.canvasObjs[j].shapes[k].addWatermark();
                     }
                 }
             }
-            let fields = this.record_body[shape_control_id]['fields'];
+            let fields = data['fields'];
             for (let field of fields) {
                 if(!field['id']) {
                     continue;
@@ -163,23 +166,60 @@ export class Record {
                 else static_fields.push(field_element);
             }
         }
-        console.log(active_canvas)
-        if (active_canvas == 'static') 
-            for(let field_element of static_fields) 
+        for(let common_control_id in this.record_body['common-controls']) {
+            let data = this.record_body['common-controls'][common_control_id];
+            let common_control = document.getElementById(common_control_id);
+            if (!common_control) continue;
+            let isThree = data['isThree'];
+            let fields = data['fields'];
+            for (let field of fields) {
+                if(!field['id']) {
+                    continue;
+                }
+                let field_element = common_control.querySelector('#' + field['id']);
+                if(!field_element) continue;
+                field_element.value = field['value'];
+
+                if (field_element.classList.contains('field-id-animation')) 
+                    active_canvas = field['value'] == 'none' ? 'static' : 'animated'; 
+                
+                if (field_element.tagName.toLowerCase() == 'textarea') 
+                    field_element.innerText = field['value'];
+                if (isThree) animated_fields.push(field_element);
+                else static_fields.push(field_element);
+            }
+        }
+
+        if (active_canvas == 'static') {
+            for(let field_element of static_fields) {
+                if(field_element.classList.contains('field-id-format') && field_element.value == this.container.getAttribute('format'))
+                    continue;
                 field_element.dispatchEvent(new Event('change'));
-        else
-            for(let field_element of animated_fields) 
+            }
+                
+        }
+            
+        else {
+            this.container.classList.add('viewing-three');
+            for(let field_element of animated_fields) {
+                if(field_element.classList.contains('field-id-format') && field_element.value == this.container.getAttribute('format'))
+                    continue;
                 field_element.dispatchEvent(new Event('change'));
+            }
+                
+        }
+            
     }
     submit(event, cb){
         event.preventDefault();
         let data = new FormData(this.elements.form);
-        // if(this.form_action == 'save') {
-        let record_body = {};
+        let record_body = {
+            'shape-controls': {},
+            'common-controls': {}
+        };
         let record_name = 'new poster';
         let shape_controls = document.querySelectorAll('.shape-control');
-        console.log(shape_controls)
-        // let watermark_classes = ['watermark', 'watermark-position', 'watermark-color', 'watermark-fontsize', 'watermark-rotate', 'watermark-shift-x', 'watermark-shift-y'];
+        
         for(let shape_control of shape_controls) {
             let watermarks = shape_control.querySelectorAll('.watermark');
             let watermarks_num = 0;
@@ -187,10 +227,12 @@ export class Record {
                 if (!watermark.value) continue;
                 watermarks_num++;
             }
-            record_body[shape_control['id']] = {
-                'id': shape_control['id'],
+            let data = {
+                'id': shape_control.id,
+                'type': 'shape_control',
                 'fields': [],
-                'watermarks_num': watermarks_num
+                'watermarks_num': watermarks_num,
+                'isThree': shape_control.classList.contains('animated-shape-control')
             }
             let fields = shape_control.querySelectorAll('select, input, textarea');
             for(let field of fields) {
@@ -199,10 +241,30 @@ export class Record {
                     'id': field.id,
                     'value': field.value
                 }
-                record_body[shape_control['id']]['fields'].push(this_field);
+                data['fields'].push(this_field);
                 if (field.classList.contains('field-id-text'))
                     record_name = field.value;
             }
+            record_body['shape-controls'][shape_control['id']] = data;
+        }
+        let common_controls = document.querySelectorAll('.common-control');
+        for(let common_control of common_controls) {
+            let data = {
+                'id': common_control['id'],
+                'type': 'common_control',
+                'fields': [],
+                'isThree': common_control.classList.contains('animated-common-control')
+            }
+            let fields = common_control.querySelectorAll('select, input, textarea');
+            for(let field of fields) {
+                if(!field.value) continue;
+                let this_field = {
+                    'id': field.id,
+                    'value': field.value
+                }
+                data['fields'].push(this_field);
+            }
+            record_body['common-controls'][common_control['id']] = data;
         }
         record_body = JSON.stringify(record_body);
         data.append('record_body', record_body);

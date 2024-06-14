@@ -1,11 +1,7 @@
 import { Shape } from "./Shape.js";
 export class ShapeStatic extends Shape {
-	constructor(id = '', canvasObj, options, control_wrapper, format){
-
-		super(id, canvasObj, options, control_wrapper, format);
-		
-		
-
+	constructor(prefix = '', canvasObj, options, format, shape_index=0){
+		super(prefix, canvasObj, options, format, shape_index);
 		this.color = null;
         for(let prop in this.options.colorOptions) {
             if(this.options.colorOptions[prop]['default']) this.color = this.options.colorOptions[prop].color.code;
@@ -55,11 +51,6 @@ export class ShapeStatic extends Shape {
 		};
 
 		this.fields.imgs = {};
-		// this.imgX = 0;
-		// this.imgY = 0;
-		// this.imgScale = 1;
-		// this.imgShiftX = 0;
-		// this.imgShiftY = 0;
 	    this.shapeMethod = 'draw';
 	    
 		this.customGraphic = [];
@@ -68,13 +59,9 @@ export class ShapeStatic extends Shape {
 	    
 	}
 	init(canvasObj){
-		// console.log('static init()');
 		super.init(canvasObj);
-		// this.initialized = true;
 		this.canvas = canvasObj.canvas;
-		
 		this.context = this.canvas.getContext("2d");
-		// console.log(this.context);
 		this.updateCanvasSize();
 		this.shapeCenter.x = this.frame.x + this.frame.w / 2;
 	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
@@ -503,7 +490,6 @@ export class ShapeStatic extends Shape {
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(fontSize == 'default')
     		fontSize = this.fontSize;
-		// console.log(this.canvasObj.scale);
 		let fontStyle = this.options.fontOptions[fontSize].size + 'px ' + this.options.fontOptions[fontSize]['font']['static'];
 		let addStroke = (fontSize == 'small' || fontSize == 'medium-small');
 		addStroke = false;
@@ -788,7 +774,6 @@ export class ShapeStatic extends Shape {
     }
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
     	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
-		// console.log(shift);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
@@ -819,7 +804,6 @@ export class ShapeStatic extends Shape {
         this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side_y + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
         this.context.closePath();
         this.context.fill();
-
 	}
 	clipRectangle(){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
@@ -1097,7 +1081,10 @@ export class ShapeStatic extends Shape {
 		
 		if(this.fields['animation']) {
 			this.fields['animation'].onchange = function(e){
-				document.body.classList.add('viewing-three');
+				console.log('nimation updated');
+				console.log(e.target.value);
+				if(e.target.value !== 'none')
+					document.body.classList.add('viewing-three');
 				this.canvasObj.sync();
 			}.bind(this);
 		}
@@ -1158,7 +1145,8 @@ export class ShapeStatic extends Shape {
 				}
 				else {
 					sec.classList.remove('viewing-background-upload');
-					this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
+					if(this.fields.imgs['background-image'])
+						this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
 					this.updateColor(this.options.colorOptions[e.target.value].color);
 				}
 			}.bind(this);
@@ -1211,32 +1199,55 @@ export class ShapeStatic extends Shape {
         }
     }
     
-    updateFrame(frame, silent = false){
-		// console.log('updateFrame');
+    updateFrame(frame = null, silent = false){
+		frame = frame ? frame : this.generateFrame();
+		// console.log(frame);
     	super.updateFrame(frame);
-    	this.shapeCenter.x = this.frame.x + this.frame.w / 2;
-	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
         if(!silent) this.canvasObj.draw();
     }
-	generateFrame(isThree)
+	generateShapeCenter(){
+		let output = {x: 0, y: 0};
+		let shape_num = this.canvasObj.shapes.length;
+		let canvas_w = this.canvasObj.canvas.width;
+		let canvas_h = this.canvasObj.canvas.height;
+		if(shape_num === 1) {
+			output.x = canvas_w / 2;
+			output.y = canvas_h / 2;
+		} else if(shape_num === 2) {
+			output.x = canvas_w / 2;
+			output.y = this.shape_index == 0 ? canvas_h / 4 : 3 * canvas_h / 4;
+		}		
+		return output;
+	}
+	generateFrame()
     {
-        let output = {};
-        let shapeCenter = {x: this.canvasObj.canvas.width / 2, y: this.canvasObj.canvas.height / 2};
-        let unit_w = this.canvasObj.canvas.width;
-        let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
-        if(this.shape.base == 'fill') {
-            output.w = unit_w;
-            output.h = unit_h;
-        }
-        else {
-            let length = unit_w > unit_h ? unit_h : unit_w;
-            output.w = length;
-            output.h = length;
-        }
-        
-        output.x = shapeCenter.x - output.w / 2;
-        output.y = shapeCenter.y - output.h / 2;
+        let output = {w: 0, h: 0};
+		this.shapeCenter = this.generateShapeCenter();
+		let canvas_w = this.canvasObj.canvas.width;
+		let canvas_h = this.canvasObj.canvas.height;
+		let shape_num = this.canvasObj.shapes.length;
+		let side = 0;
+		if(shape_num === 1) {
+			side = canvas_w < canvas_h ? canvas_w : canvas_h; // assuming frames are always square
+		}else if (shape_num === 2){
+			side = canvas_w > canvas_h / 2 ? canvas_h / 2 : canvas_w;
+		}
+			output.w = side;
+			output.h = side;   
 
+        // if(this.shape.base == 'fill') {
+		// 	let side = canvas_w < canvas_h / 2 ? canvas_w : canvas_h / 2; // assuming frames are always square
+		// 	output.w = side;
+		// 	output.h = side;            
+        // }
+        // else {
+        //     let side = canvas_w < canvas_h / 2 ? canvas_w : canvas_h / 2; // assuming frames are always square
+		// 	output.w = side;
+		// 	output.h = side; 
+        // }
+        
+        output.x = this.shapeCenter.x - output.w / 2;
+        output.y = this.shapeCenter.y - output.h / 2;
 		return output;
     }
     sync(){

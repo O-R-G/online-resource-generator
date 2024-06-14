@@ -1,4 +1,4 @@
-.DS_Store
+*.DS_Store
 options.js
 static/fonts/*
 static/fonts/_threejs/*.json
