@@ -1327,7 +1327,7 @@ export class ShapeAnimated extends Shape {
 		if(shape_num === 1) {
 			return output;
 		} else if(shape_num === 2) {
-			console.log(this.shape_index);
+			// console.log(this.shape_index);
 			let canvas_h = this.canvasObj.canvas.height;
 			output.x = 0;
 			output.y = this.shape_index == 0 ? canvas_h / 4 : - canvas_h / 4;
@@ -1359,6 +1359,7 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
     sync(){
+		if(!this.counterpart) return;
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
         this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);

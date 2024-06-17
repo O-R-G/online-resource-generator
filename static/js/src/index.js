@@ -57,6 +57,7 @@ function renderElements(id, d){
     container.className = 'generator-container';
     let isThree = !(typeof d.isThree === 'undefined' || !d.isThree);
     container.setAttribute('data-is-three', isThree);
+    container.setAttribute('data-canvas-id', id);
     container.innerHTML = '<div class="control-panel"></div><div class="canvas-container"><div class="canvas-wrapper"></div></div>';
 
     return container;

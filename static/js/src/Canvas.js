@@ -385,7 +385,7 @@ export class Canvas {
     }
     renderButtonLikeCheckbox(id, text, extraClass=""){
         let temp_panel_section = document.createElement('DIV');
-        temp_panel_section.className  = "panel-section float-container " + extraClass;
+        temp_panel_section.className  = "panel-section float-container";
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = text;
@@ -393,6 +393,7 @@ export class Canvas {
         let temp_input = document.createElement('INPUT');
         temp_input.type = 'checkbox';
         temp_input.id = id;
+        temp_input.className = extraClass;
         let temp_right = document.createElement('div');
         temp_right.className = 'half-right flex-container';
         temp_right.appendChild(temp_input);

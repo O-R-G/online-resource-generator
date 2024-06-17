@@ -403,16 +403,18 @@ export class Shape {
 
     updateCounterpartSelectField(field, index)
     {
-        if(typeof field === 'string')
+        if(!this.counterpart || !field) return;
+        if(typeof field === 'string' && this.counterpart.fields[field])
             this.counterpart.fields[field].selectedIndex = index;
-        else
+        else if (typeof field === 'object')
             field.selectedIndex = index;
     }
     updateCounterpartTextField(field, value)
     {
-        if(typeof field === 'string')
+        if(!this.counterpart || !field) return;
+        if(typeof field === 'string' && this.counterpart.fields[field])
             this.counterpart.fields[field].value = value;
-        else
+        else if (typeof field === 'object')
             field.value = value;
     }
 

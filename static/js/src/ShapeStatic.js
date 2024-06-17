@@ -78,7 +78,7 @@ export class ShapeStatic extends Shape {
 	addCounterpart(obj)
 	{
 		super.addCounterpart(obj);
-		this.fields['animation'].parentNode.parentNode.style.display = 'block';
+		// this.fields['animation'].parentNode.parentNode.style.display = 'block';
 	}
 	updateShape(shape, silent = false){
 		if(shape['type'] == 'static') super.updateShape(shape);
@@ -1051,7 +1051,7 @@ export class ShapeStatic extends Shape {
 
 	renderControl(){
 		super.renderControl();
-		if(this.fields['animation']) this.fields['animation'].parentNode.parentNode.style.display = 'none';
+		// if(this.fields['animation']) this.fields['animation'].parentNode.parentNode.style.display = 'none';
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) 
 			this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
@@ -1081,8 +1081,8 @@ export class ShapeStatic extends Shape {
 		
 		if(this.fields['animation']) {
 			this.fields['animation'].onchange = function(e){
-				console.log('nimation updated');
-				console.log(e.target.value);
+				// console.log('nimation updated');
+				// console.log(e.target.value);
 				if(e.target.value !== 'none')
 					document.body.classList.add('viewing-three');
 				this.canvasObj.sync();
@@ -1251,6 +1251,7 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
+		if(!this.counterpart) return;
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
         this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
