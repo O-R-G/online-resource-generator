@@ -545,7 +545,7 @@ export class Canvas {
     	}
 	}
     draw(){
-        console.log('canvas draw()');
+        // console.log('canvas draw()');
         this.drawBase();
         for(let shape_id in this.shapes) {
             this.shapes[shape_id].draw();
@@ -565,6 +565,7 @@ export class Canvas {
     }
     addCounterpart(obj)
     {
+        console.log('addCounterpart');
         this.counterpart = obj;
         if(obj.isThree) this.downloadVideoButton.style.display = 'block';
     }

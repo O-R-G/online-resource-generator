@@ -32,14 +32,16 @@ function init(data, cb){
     for(let id in data) {
         /* any counterparts? */
         for(let i in data) {
-            if(i === id) continue;
-            data[id]['canvas'].addCounterpart(data[i]['canvas']);
+            if(i === data[id]['counterpart']) {
+                data[id]['canvas'].addCounterpart(data[i]['canvas']);
+                break;
+            }
         }
         if(typeof data[id]['counterpart'] === 'undefined' || !data[id]['counterpart'] || typeof data[data[id]['counterpart']] == 'undefined') continue;
         let c = data[data[id]['counterpart']];
-        for(let i = 0; i < data[id]['canvas']['shapes'].length; i++) {
+        for(let i = 0; i < Object.keys(data[id]['canvas']['shapes']).length; i++) {
             // console.log(data[id]['canvas']['shapes'][i]);
-            data[id]['canvas']['shapes'][i].addCounterpart(c['canvas']['shapes'][i]);
+            data[id]['canvas']['shapes'][Object.keys(data[id]['canvas']['shapes'])[i]].addCounterpart(c['canvas']['shapes'][Object.keys(c['canvas']['shapes'])[i]]);
         }
     }
     data[Object.keys(data)[0]]['canvas'].draw();
