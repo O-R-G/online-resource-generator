@@ -102,7 +102,7 @@ export class ShapeAnimated extends Shape {
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
 		// let scale = 540 / 960;
-		// this.scale = this.canvasObj.shapes.length === 1 ? new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1) : new THREE.Vector3(1, scale, 1);
+		// this.scale = Object.keys(this.canvasObj.shapes).length === 1 ? new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1) : new THREE.Vector3(1, scale, 1);
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
 		// this.scale = new THREE.Vector3(1, 1, 1);
 		this.group = new THREE.Group();
@@ -927,14 +927,15 @@ export class ShapeAnimated extends Shape {
 			return;
 		}
 		let isAllNone = true;
-		[].forEach.call(this.canvasObj.shapes, function(el){
-			if(el.animationName !== 'none'){
+		for(let shape_id in this.canvasObj.shapes) {
+			let shape = this.canvasObj.shapes[shape_id];
+			if(shape.animationName !== 'none'){
 				isAllNone = false;
 			}
-		});
-		console.log('syncing?');
-		console.log(isAllNone);
-		console.log(syncing);
+		}
+		// console.log('syncing?');
+		// console.log(isAllNone);
+		// console.log(syncing);
 		if(isAllNone && !syncing) {
 			if(!syncing) {
 				document.body.classList.remove('viewing-three');
@@ -1314,7 +1315,7 @@ export class ShapeAnimated extends Shape {
     	if(!silent) this.canvasObj.draw();
     }
 	updateGroupTranslateY(){
-		if(this.canvasObj.shapes.length === 1) {
+		if(Object.keys(this.canvasObj.shapes).length === 1) {
 			this.group.translateY(0);
 		} else {
 			this.group.translateY(this.frame.y * this.scale.y);
@@ -1322,7 +1323,7 @@ export class ShapeAnimated extends Shape {
 	}
 	generateShapeCenter(){
 		let output = {x: 0, y: 0};
-		let shape_num = this.canvasObj.shapes.length;
+		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		
 		if(shape_num === 1) {
 			return output;
@@ -1331,7 +1332,7 @@ export class ShapeAnimated extends Shape {
 			let canvas_h = this.canvasObj.canvas.height;
 			output.x = 0;
 			output.y = this.shape_index == 0 ? canvas_h / 4 : - canvas_h / 4;
-			console.log(output);
+			// console.log(output);
 		}
 		
 		// if(this.id === 'staticShape-2') console.log(output);
@@ -1342,7 +1343,7 @@ export class ShapeAnimated extends Shape {
 		// console.log('animatedShape gFrame');
 		let output = {};
         let unit_w = this.canvasObj.canvas.width;
-        let unit_h = this.canvasObj.canvas.height / (this.canvasObj.shapes.length || 1);
+        let unit_h = this.canvasObj.canvas.height / (Object.keys(this.canvasObj.shapes).length || 1);
         if(this.shape.base == 'fill') {
             output.w = unit_w;
             output.h = unit_h;

@@ -10,7 +10,7 @@ function init(data, cb){
     // console.log('main init()');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
-    let canvases = [];
+    let canvases = {};
 
     for(let id in data) {
         /* render canvas / shapes */
@@ -22,11 +22,11 @@ function init(data, cb){
         let control = container.querySelector('.control-panel');
         let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
         let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
-        cvs.shapes.push(shape);
+        cvs.addShape(shape);
         cvs.addControl(control);
         // if( (isThree && document.body.classList.contains('viewing-three')) || (!isThree && !document.body.classList.contains('viewing-three'))) cvs.init();
         data[id]['canvas'] = cvs;
-        canvases.push(cvs);
+        canvases[id] = cvs;
         cvs.init();
     }
     for(let id in data) {

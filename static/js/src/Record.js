@@ -1,5 +1,5 @@
 export class Record {
-    constructor(container, record_url='', canvasObjs=[]){
+    constructor(container, record_url='', canvasObjs={}){
         this.container = container;
         this.record_url = record_url;
         this.canvasObjs = canvasObjs;
@@ -122,7 +122,7 @@ export class Record {
         ).then((json) => {
             if(json['status'] == 'success') {
                 this.record_body = JSON.parse(json['body']);
-                // console.log(this.record_body);
+                console.log(this.record_body);
                 if (typeof callback == 'function') {
                     callback();
                 }
@@ -138,7 +138,7 @@ export class Record {
         let params = new URL(document.location).searchParams;
         let format = params.get("format");
         let hasSecondShape = false;
-        console.log(this.record_body)
+        // console.log(this.record_body)
         for(let canvas_id in this.record_body) {
             let canvas_data = this.record_body[canvas_id];
             let isThree = canvas_data['isThree'];
@@ -189,18 +189,12 @@ export class Record {
             }
             for(let shape_control_id in canvas_data['shape-controls']) {
                 let data = canvas_data['shape-controls'][shape_control_id];
-                console.log(shape_control_id);
                 let shape_control = document.getElementById(shape_control_id);
+                let shape_id = data['shape_id'];
                 if (!shape_control) continue;
-                console.log('yaya');
-                // console.log(shape_control);
-                // let isThree = data['isThree'];
+                console.log(shape_id);
                 for(let i = 0 ; i < data['watermarks_num']; i++) {
-                    for (let j = 0; j < this.canvasObjs.length; j++) {
-                        for (let k = 0; k < this.canvasObjs[j].shapes.length; k++) {
-                            this.canvasObjs[j].shapes[k].addWatermark();
-                        }
-                    }
+                    this.canvasObjs[canvas_id].shapes[shape_id].addWatermark();
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
@@ -210,8 +204,8 @@ export class Record {
                     
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
-                    if(shape_control_id === 'animated-shape-1-shape-control')
-                        console.log(active);
+                    // if(shape_control_id === 'animated-shape-1-shape-control')
+                    //     console.log(active);
                     field_element.value = field['value'];
                     if (field_element.tagName.toLowerCase() == 'textarea') 
                         field_element.innerText = field['value'];
@@ -264,8 +258,11 @@ export class Record {
                     if (!watermark.value) continue;
                     watermarks_num++;
                 }
+                let shape_id = shape_control.getAttribute('data-shape-id');
+                // console.log(watermarks_num);
                 let data = {
                     'id': shape_control.id,
+                    'shape_id': shape_id,
                     'type': 'shape_control',
                     'fields': [],
                     'watermarks_num': watermarks_num,
@@ -296,8 +293,8 @@ export class Record {
                 let fields = common_control.querySelectorAll('select, input, textarea');
                 for(let field of fields) {
                     if(field.classList.contains('second-shape-button')) {
-                        console.log('yaya');
-                        console.log(field.classList);
+                        // console.log('yaya');
+                        // console.log(field.classList);
                         record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
                         continue;
                     }
@@ -316,62 +313,11 @@ export class Record {
                 record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
-
-        
-        
-        // for(let shape_control of shape_controls) {
-        //     let watermarks = shape_control.querySelectorAll('.watermark');
-        //     let watermarks_num = 0;
-        //     for (let watermark of watermarks) {
-        //         if (!watermark.value) continue;
-        //         watermarks_num++;
-        //     }
-        //     let data = {
-        //         'id': shape_control.id,
-        //         'type': 'shape_control',
-        //         'fields': [],
-        //         'watermarks_num': watermarks_num,
-        //         'isThree': shape_control.classList.contains('animated-shape-control')
-        //     }
-        //     let fields = shape_control.querySelectorAll('select, input, textarea');
-        //     for(let field of fields) {
-        //         if(!field.value) continue;
-        //         let this_field = {
-        //             'id': field.id,
-        //             'value': field.value
-        //         }
-        //         data['fields'].push(this_field);
-        //         if (field.classList.contains('field-id-text'))
-        //             record_name = field.value;
-        //     }
-        //     record_body['shape-controls'][shape_control['id']] = data;
-        // }
-        // let common_controls = document.querySelectorAll('.common-control');
-        // for(let common_control of common_controls) {
-        //     let data = {
-        //         'id': common_control['id'],
-        //         'type': 'common_control',
-        //         'fields': [],
-        //         'isThree': common_control.classList.contains('animated-common-control')
-        //     }
-        //     let fields = common_control.querySelectorAll('select, input, textarea');
-        //     for(let field of fields) {
-        //         if(!field.value) continue;
-        //         let this_field = {
-        //             'id': field.id,
-        //             'value': field.value
-        //         }
-        //         data['fields'].push(this_field);
-        //     }
-        //     record_body['common-controls'][common_control['id']] = data;
-        // }
-        console.log(record_body);
         record_body = JSON.stringify(record_body);
         
         data.append('record_body', record_body);
         data.append('record_name', record_name);
         data.append('record_url', this.record_url);
-    // }
         fetch(this.request_url, {
             method: 'POST',
             body: data

@@ -32,7 +32,7 @@ export class Shape {
         this.fields.watermarks = [];
 	}
     init(canvasObj){
-        // console.log('shape init()');
+        console.log('shape init()');
         this.initialized = true;
         if(!canvasObj) canvasObj = this.canvasObj;
         else this.canvasObj = canvasObj;
@@ -40,6 +40,7 @@ export class Shape {
         this.control = document.createElement('DIV');
         this.control.className = 'shape-control';
         this.control.id = this.id + '-shape-control';
+        this.control.setAttribute('data-shape-id', this.id);
         if(this.control_wrapper.lastElementChild && this.control_wrapper.lastElementChild.classList.contains('shape-general-control')){
             this.control_wrapper.insertBefore(this.control, this.control_wrapper.lastElementChild);
         }
@@ -48,14 +49,12 @@ export class Shape {
         this.frame = this.generateFrame();
     }
     getShapeIndex(){
-        console.log('getShapeIndex');
         console.log(this.canvasObj.shapes);
-        for(const index of this.canvasObj.shapes.keys()) {
+        for(const index of Object.keys(this.canvasObj.shapes)) {
             console.log(shape);
             console.log(index);
             if(this.canvasObj.shapes[index] === this) {
                 this.shape_index = index;
-                console.log('find index--');
             }
                 
         }

@@ -1064,6 +1064,7 @@ export class ShapeStatic extends Shape {
 	}
 
 	addListeners(){
+		console.log('yaya');
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
 				let shape = this.options.shapeOptions[e.target.value]['shape'];
@@ -1207,7 +1208,7 @@ export class ShapeStatic extends Shape {
     }
 	generateShapeCenter(){
 		let output = {x: 0, y: 0};
-		let shape_num = this.canvasObj.shapes.length;
+		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
 		if(shape_num === 1) {
@@ -1225,7 +1226,7 @@ export class ShapeStatic extends Shape {
 		this.shapeCenter = this.generateShapeCenter();
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
-		let shape_num = this.canvasObj.shapes.length;
+		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		let side = 0;
 		if(shape_num === 1) {
 			side = canvas_w < canvas_h ? canvas_w : canvas_h; // assuming frames are always square
@@ -1251,6 +1252,7 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
+		console.log(this.counterpart);
 		if(!this.counterpart) return;
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);

@@ -17,7 +17,7 @@ export class Canvas {
         this.id = prefix + '-canvas';
         
 		this.chunks = [];
-		this.shapes = [];
+		this.shapes = {};
         this.base = null;
         for(let prop in this.baseOptions) {
             if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
@@ -30,7 +30,7 @@ export class Canvas {
         // this.init();
 	}
 	init(){
-        // console.log()
+        console.log('canvas init()');
         if(this.initialized) return;
         this.initialized = true;
 		this.canvas = document.createElement('canvas');
@@ -49,9 +49,12 @@ export class Canvas {
             }, 
             false, 
             ()=>{
-                for(let i = 0; i < this.shapes.length; i++) {
-                    this.shapes[i].updateFrame(false, true);
+                for(let shape_id in this.shapes) {
+                    this.shapes[shape_id].updateFrame(false, true);
                 }
+                // for(let i = 0; i < this.shapes.length; i++) {
+                //     this.shapes[i].updateFrame(false, true);
+                // }
             }
         );
         this.autoRecordingQueue = [];
@@ -72,8 +75,10 @@ export class Canvas {
 	    	this.media_recorder = null;
 	    	alert('This page works on safari only.');
 	    }
-        for(let shape of this.shapes) {
-            if(!shape.initialized) shape.init(this);
+        // console.log(this.shapes);
+        for(let shape_id in this.shapes) {
+            // console.log(this.shapes[shape_id]);
+            if(!this.shapes[shape_id].initialized) this.shapes[shape_id].init(this);
         }
         this.draw();
 	}
@@ -384,13 +389,13 @@ export class Canvas {
         return formatField;
     }
     renderButtonLikeCheckbox(id, text, extraClass=""){
-        let temp_panel_section = document.createElement('DIV');
+        let temp_panel_section = document.createElement('div');
         temp_panel_section.className  = "panel-section float-container";
-        let temp_label = document.createElement('LABEL');
+        let temp_label = document.createElement('label');
         temp_label.setAttribute('for', id);
         temp_label.innerText = text;
         temp_label.className = 'button-like-label';
-        let temp_input = document.createElement('INPUT');
+        let temp_input = document.createElement('input');
         temp_input.type = 'checkbox';
         temp_input.id = id;
         temp_input.className = extraClass;
@@ -398,10 +403,8 @@ export class Canvas {
         temp_right.className = 'half-right flex-container';
         temp_right.appendChild(temp_input);
         temp_right.appendChild(temp_label);
-        // temp_panel_section.appendChild(temp_input);
-        // temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
-        temp_input.onchange = function(event){ this.toggleSecondShape(event) }.bind(this);
+        // temp_input.onchange = function(event){ this.toggleSecondShape(event) }.bind(this);
         
         return temp_panel_section;
     }
@@ -410,6 +413,7 @@ export class Canvas {
         let text = 'Add a shape';
         let element = this.renderButtonLikeCheckbox(id, text, extraClass);
         element.id = 'panel-second-shape';
+        element.querySelector('input').addEventListener('click', (event)=>{this.toggleSecondShape(event)});
         return element;
     }
     renderDownloadImageButton(){
@@ -425,6 +429,15 @@ export class Canvas {
         button.innerText = 'Record';
         this.downloadVideoButton = button;
         return button;
+    }
+    addShape(shapeObj){
+        if(!shapeObj.id) {
+            console.log('addShape(): missing shapeObj id');
+        } else if (this.shapes[shapeObj.id]){
+            console.log('addShape(): shapeObj id ('+shapeObj.id+') is already taken');
+        }
+
+        this.shapes[shapeObj.id] = shapeObj;
     }
     // renderAutoRecordingField(){
     //     let id = 'auto-recording-records';
@@ -532,21 +545,23 @@ export class Canvas {
     	}
 	}
     draw(){
+        console.log('canvas draw()');
         this.drawBase();
-        for(let i = 0; i < this.shapes.length; i++)
-        {
-            let el = this.shapes[i];
-           el.draw();
+        for(let shape_id in this.shapes) {
+            this.shapes[shape_id].draw();
         }
     }
     animate(){
         // console.log('Canvas animate();')
-        for(let i = 0; i < this.shapes.length; i++)
-        {
-            let el = this.shapes[i];
+        for(let shape_id in this.shapes) {
+            let el = this.shapes[shape_id];
             if(this.isThree) el.updateAnimation(el.animationName);
             else el.animate(el.colorData);
         }
+        // for(let i = 0; i < this.shapes.length; i++)
+        // {
+            
+        // }
     }
     addCounterpart(obj)
     {
@@ -564,28 +579,39 @@ export class Canvas {
             return false;
         }
     }
-    toggleSecondShape(event, isSync = false){        
-        if( (isSync || event.target.checked)&& this.shapes.length < 2)
+    toggleSecondShape(event, isSync = false){
+        console.log('toggleSecondShape()')    
+        // return;
+        // console.log('ysysys');    
+        let shapes_length = Object.keys(this.shapes).length;
+        if( (isSync || event.target.checked) && shapes_length < 2)
         {
             let format = this.format;            
-            let shapeIndex = this.shapes.length;
+            let shapeIndex = shapes_length;
             // let shapeId = this.prefix + '-shape-' + shapeIndex;
-            let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, this.shapes[0].options, format, shapeIndex) : new ShapeStatic(this.prefix, this, this.shapes[0].options, format, shapeIndex);
-            this.shapes.push( newShape );
-            this.counterpart.toggleSecondShape(event, true);
+            let firstShape = this.shapes[Object.keys(this.shapes)[0]];
+            let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, firstShape.options, format, shapeIndex) : new ShapeStatic(this.prefix, this, firstShape.options, format, shapeIndex);
+            // console.log('sad')
+            this.addShape(newShape);
+            // this.shapes.push( newShape );
+            
             if(!isSync) {
-                setTimeout(function(){
-                    this.shapes[this.shapes.length - 1].addCounterpart(this.counterpart.shapes[this.counterpart.shapes.length - 1]);
-                }.bind(this), 0);
+                let counterNewShape = this.counterpart.toggleSecondShape(event, true);
+                // setTimeout(function(){
+                //     newShape.addCounterpart(counterNewShape);
+                // }.bind(this), 0);
+                newShape.addCounterpart(counterNewShape);
             }
-            else
-                this.shapes[this.shapes.length - 1].addCounterpart(this.counterpart.shapes[this.counterpart.shapes.length - 1]);
+            // else
+            //     newShape.addCounterpart(this.counterpart.shapes[this.counterpart.shapes.length - 1]);
             newShape.init(this);
-            this.shapes[0].updateFrame();
-            if(this.shapes[0].img)
-                this.shapes[0].updateImg(this.shapes[0].img);
+            firstShape.updateFrame();
+            if(firstShape.img)
+                firstShape.updateImg(firstShape.img);
             this.draw();
+            return newShape;
         }
+        return false;
     }
     renderRecordFetchingForm(){
         let container = document.createElement('DIV');
@@ -755,14 +781,14 @@ export class Canvas {
                 this.shapes[1].trimWatermark(shape1_watermark_counter);
             }
             
-            for(let i = 0; i < this.shapes.length; i++)
+            for(let shape_id in this.shapes)
             {
                 if(this.shapes[i].animationName !== 'none') {
                     // console.log('drawing after handling');
                     // console.log('startRecordingAfterFetching? ' + startRecordingAfterFetching);
-                    if(startRecordingAfterFetching == 'recording') this.shapes[i].drawForRecording();
-                    else if(startRecordingAfterFetching == 'savingImage')  this.shapes[i].drawForSavingImage();
-                    else this.shapes[i].draw();
+                    if(startRecordingAfterFetching == 'recording') this.shapes[shape_id].drawForRecording();
+                    else if(startRecordingAfterFetching == 'savingImage')  this.shapes[shape_id].drawForSavingImage();
+                    else this.shapes[shape_id].draw();
                     // let temp = await 
                     // console.log(temp);
                 }
@@ -808,19 +834,12 @@ export class Canvas {
     }
 
     sync(){
-        // if(!this.counterpart.initialized)
-            // this.counterpart.init();
-        console.log(this.counterpart.fields);
-        // for(let field of this.fields) {
-        //     if(field.tagName.toLowerCase() === 'select') {
-
-        //     }
-        // }
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
-        this.shapes.forEach(function(el){
-            el.sync();
-        });
+        for(let shape_id in this.shapes) {
+            let shape = this.shapes[shape_id];
+            shape.sync();
+        }
     }
     setCanvasSize(size, rescale=false, callback){
         let updated = false;
