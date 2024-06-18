@@ -5,6 +5,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 export class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
         this.initialized = false;
+        console.log(format);
         // console.log('cc: ' + isThree + ' ' + prefix);
         // console.log('cc: ' + isThree);
 		for(const property in options){
