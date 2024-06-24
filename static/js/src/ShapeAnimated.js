@@ -959,6 +959,12 @@ export class ShapeAnimated extends Shape {
 			if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
 			this.flip();
 		}
+		else if(animationName == 'rotate'){
+			this.mesh_back.rotation.z = Math.PI;
+			this.mesh_back.scale.multiply(new THREE.Vector3(1, 1, -1));
+			if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
+			this.rotate();
+		}
 		else if(animationName == 'spin-ease')
 		{
 			this.mesh_back.rotation.y = Math.PI;
@@ -1121,10 +1127,33 @@ export class ShapeAnimated extends Shape {
 	  	}
 	    this.renderer.render( this.scene, this.camera );
 	}
-	// record_canvas(){
-    // 	super.record_canvas();
-    // }
+	rotate(){
+		this.timer = requestAnimationFrame( this.rotate.bind(this) );
+	    this.mesh_front.rotation.z += this.spinAngleInterval;
+	    this.mesh_back.rotation.z  += this.spinAngleInterval;
+	    // if(this.mesh_front.rotation.z % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.z % (Math.PI * 2) < 3 * Math.PI / 2)
+	  	// {
+	  	// 	if(this.isForward)
+	  	// 	{
+	  	// 		this.isForward = false;
+	  	// 		this.group.remove( this.mesh_front );
+	  	// 		this.group.add( this.mesh_back );
+	  	// 	}
+	  	// }
+	    // else
+	  	// {
+	  	// 	if(!this.isForward)
+	  	// 	{
+	  	// 		this.isForward = true;
+	  	// 		this.group.add( this.mesh_front );
+	  	// 		this.group.remove( this.mesh_back );
+	  	// 	}
+	  	// }
+	  	// if( this.canvasObj.isRecording && this.mesh_front.rotation.z >= this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
+	  	if( this.canvasObj.isRecording && this.mesh_front.rotation.z > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
 
+	    this.renderer.render( this.scene, this.camera );
+	}
     checkWatermarkPosition(position, label){
     	super.checkWatermarkPosition(position, label);
     }

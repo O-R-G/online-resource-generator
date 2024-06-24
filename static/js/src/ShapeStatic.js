@@ -787,6 +787,7 @@ export class ShapeStatic extends Shape {
     }
 
 	drawRectangle(){
+		console.log(this.padding);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;

@@ -4,6 +4,7 @@ import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
+console.log(main.getAttribute('format'));
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 
 function init(data, cb){
@@ -40,7 +41,6 @@ function init(data, cb){
         if(typeof data[id]['counterpart'] === 'undefined' || !data[id]['counterpart'] || typeof data[data[id]['counterpart']] == 'undefined') continue;
         let c = data[data[id]['counterpart']];
         for(let i = 0; i < Object.keys(data[id]['canvas']['shapes']).length; i++) {
-            // console.log(data[id]['canvas']['shapes'][i]);
             data[id]['canvas']['shapes'][Object.keys(data[id]['canvas']['shapes'])[i]].addCounterpart(c['canvas']['shapes'][Object.keys(c['canvas']['shapes'])[i]]);
         }
     }
