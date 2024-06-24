@@ -67,8 +67,10 @@ export class Shape {
 		this.shape = shape;
 		this.cornerRadius = shape.cornerRadius;
 		this.padding = shape.padding;
-        this.innerPadding.x = shape.innerPadding[0] * this.canvasObj.scale;
-        this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] * this.canvasObj.scale : shape.innerPadding[0] * this.canvasObj.scale;
+        // this.innerPadding.x = shape.innerPadding[0] * this.canvasObj.scale;
+        // this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] * this.canvasObj.scale : shape.innerPadding[0] * this.canvasObj.scale;
+        this.innerPadding.x = shape.innerPadding[0];
+        this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
 	}
 	
     updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift = null, rad=0){

@@ -560,6 +560,7 @@ export class ShapeStatic extends Shape {
 			let side_y = this.frame.h - this.padding * 2;
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
+			console.log(inner_p_x,inner_p_y );
     		if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
     			x =  this.shapeCenter.x - side_x / 2 + inner_p_x;

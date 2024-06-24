@@ -272,7 +272,7 @@ export class ShapeAnimated extends Shape {
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
-		rad = rad ? rad : 0;
+		rad = rad ? -rad : 0;
 
 		this.fontSetting = {
 			font: fontData.font,
@@ -395,7 +395,7 @@ export class ShapeAnimated extends Shape {
 				output.anchorY = 'bottom-baseline';
 				y = -1.732 * a / 2 + inner_p_y;
 			}
-
+			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
 		}
@@ -430,6 +430,7 @@ export class ShapeAnimated extends Shape {
     			output.anchorY = 'bottom-baseline';
     			y = y_dev - side * 1.732 / 2 / 3 + inner_p_y;
     		}
+			output.rotation.z += rad;
     		output.position.x = x + shift.x;
     		output.position.y = y + shift.y;
 		}
@@ -456,6 +457,7 @@ export class ShapeAnimated extends Shape {
     		output.anchorY = 'middle';
 			if(align.indexOf('middle') !== -1)
 				y = 0;
+			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
 		}
@@ -965,6 +967,12 @@ export class ShapeAnimated extends Shape {
 			if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
 			this.rotate();
 		}
+		else if(animationName == 'rotate-counter'){
+			this.mesh_back.rotation.z = Math.PI;
+			this.mesh_back.scale.multiply(new THREE.Vector3(1, 1, -1));
+			if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
+			this.rotate(true);
+		}
 		else if(animationName == 'spin-ease')
 		{
 			this.mesh_back.rotation.y = Math.PI;
@@ -1127,10 +1135,16 @@ export class ShapeAnimated extends Shape {
 	  	}
 	    this.renderer.render( this.scene, this.camera );
 	}
-	rotate(){
-		this.timer = requestAnimationFrame( this.rotate.bind(this) );
-	    this.mesh_front.rotation.z += this.spinAngleInterval;
-	    this.mesh_back.rotation.z  += this.spinAngleInterval;
+	rotate(backward=false){
+		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
+		if(!backward) {
+			this.mesh_front.rotation.z -= this.spinAngleInterval;
+	    	this.mesh_back.rotation.z  -= this.spinAngleInterval;
+		} else {
+			this.mesh_front.rotation.z += this.spinAngleInterval;
+	    	this.mesh_back.rotation.z  += this.spinAngleInterval;
+		}
+	    
 	    // if(this.mesh_front.rotation.z % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.z % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	// {
 	  	// 	if(this.isForward)
@@ -1162,13 +1176,10 @@ export class ShapeAnimated extends Shape {
 		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
 		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
 		this.fields['shape-back-color'].selectedIndex = 1;
-		// if(!this.canvasObj.fields['record']) this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
 		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control_wrapper.appendChild(this.control);
-		// this.control.appendChild(super.renderAddShape());
-		// this.control.appendChild(super.renderAnimateShape());
 	}
     addListeners(){
 		// let sShape = this.control.querySelector('.field-id-shape');
