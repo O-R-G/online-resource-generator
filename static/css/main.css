@@ -551,10 +551,10 @@ input[value="fetch"]
     cursor: pointer;
     margin-top: 2px;
 }
-#common-control-bottom {
+.common-control-bottom {
     margin-top: 20px;
 }
-#common-control-bottom .btn + .btn
+.common-control-bottom .btn + .btn
 {
     margin-top: 10px;
 }

@@ -7,7 +7,7 @@ import {Text} from 'troika-three-text';
 export class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		console.log()
+		// console.log()
 		this.testTroika = true;
 		this.geometry_front = '';
 		this.geometry_back = '';
@@ -262,9 +262,8 @@ export class ShapeAnimated extends Shape {
 		return input * (this.devicePixelRatio / 2);
 	}
 	write(str = '', size=false, material, align = 'center', animationName = false, isBack = false, shift=null, rad=0, sync = false){
-		// console.log('write');
+		// console.log('write: ');
 		// console.log(str);
-		// console.log(this.shape.base);
 		if(str == '') return false;
 		if(!size)
 			size = this.frontFontSize;
@@ -318,7 +317,7 @@ export class ShapeAnimated extends Shape {
 			return output;
 		}
 		output.lineHeight = 1;
-		if(this.shape.base == 'rectangle'){
+		if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			
@@ -707,7 +706,7 @@ export class ShapeAnimated extends Shape {
 	}
 	drawShape()
 	{
-		if(this.shape.base == 'rectangle')
+		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
 			this.drawCircle();
@@ -730,6 +729,8 @@ export class ShapeAnimated extends Shape {
 		else 
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
 		this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
+		// console.log('mesh_frontText in actualdraw');
+		// console.log(this.mesh_frontText);
 		if(this.mesh_frontText) 
 			this.mesh_front.add(this.mesh_frontText);
 		
@@ -910,6 +911,7 @@ export class ShapeAnimated extends Shape {
             this.group.remove( this.mesh_front );
         else
             this.group.remove( this.mesh_back );
+		// console.log('resetAnimation';)
         cancelAnimationFrame(this.timer);
         this.timer = null;
         this.easeAngleInterval = this.easeAngleInitial;
@@ -1005,7 +1007,10 @@ export class ShapeAnimated extends Shape {
 	  			this.group.add( this.mesh_back );
 			}
 			else {
-				this.group.add(this.mesh_frontText);
+				
+				this.group.add(this.mesh_front);
+				// console.log(this.mesh_front);
+				// console.log(this.group);
 				this.isForward = true;
 				this.mesh_front.rotation.y += this.spinAngleInterval;
 			}

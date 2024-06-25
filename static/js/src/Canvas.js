@@ -5,9 +5,6 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 export class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
         this.initialized = false;
-        console.log(format);
-        // console.log('cc: ' + isThree + ' ' + prefix);
-        // console.log('cc: ' + isThree);
 		for(const property in options){
 			this[property] = options[property];
 		}
@@ -31,7 +28,6 @@ export class Canvas {
         // this.init();
 	}
 	init(){
-        console.log('canvas init()');
         if(this.initialized) return;
         this.initialized = true;
 		this.canvas = document.createElement('canvas');
@@ -183,12 +179,12 @@ export class Canvas {
         this.textAmount = 0;
         // if( this.autoRecordingQueueIdx == 0 || !this.isThree){
         if( this.autoRecordingQueueIdx == 0 || !this.isThree){
-            console.log('this.autoRecordingQueueIdx == 0');
+            // console.log('this.autoRecordingQueueIdx == 0');
             this.startRecording(); // record the first item in the queue directly
         }
         else {
-            console.log('this.autoRecordingQueueIdx != 0');
-            this.requestRecordByName(false, '', 'recording');
+            // console.log('this.autoRecordingQueueIdx != 0');
+            // this.requestRecordByName(false, '', 'recording');
         }
     }
     prepareNextSaving(){
@@ -196,8 +192,8 @@ export class Canvas {
         this.textAmount = 0;
         if( this.autoRecordingQueueIdx == 0 )
             this.startRecording(); // save the first item in the queue directly
-        else
-            this.requestRecordByName(false, '', 'savingImage');
+        // else
+        //     this.requestRecordByName(false, '', 'savingImage');
         
     }
 	startRecording(){
@@ -263,7 +259,7 @@ export class Canvas {
         this.downloadA.delete;
         URL.revokeObjectURL(this.recording_url);
         this.autoRecordingQueueIdx++;
-        console.log('RecordingQueue: ' + this.autoRecordingQueueIdx +  ' / ' + this.autoRecordingQueue.length);
+        // console.log('RecordingQueue: ' + this.autoRecordingQueueIdx +  ' / ' + this.autoRecordingQueue.length);
         this.media_recorder.stop();
         setTimeout(function(){
             if(this.autoRecordingQueueIdx >= this.autoRecordingQueue.length) {
@@ -282,8 +278,8 @@ export class Canvas {
         link.delete;
         this.autoRecordingQueueIdx++;
         if(this.autoRecordingQueueIdx >= this.autoRecordingQueue.length) {
-            console.log(this.isRecording)
-            console.log('saveCanvasAsVideo end');
+            // console.log(this.isRecording)
+            // console.log('saveCanvasAsVideo end');
             this.stopSaving();
         }
         else {
@@ -300,7 +296,7 @@ export class Canvas {
         this.readyState = 0;
 
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
-        console.log('stop recording');        
+        // console.log('stop recording');        
         document.body.classList.remove('recording');
         this.downloadVideoButton.innerText = 'Record video';
 
@@ -385,6 +381,7 @@ export class Canvas {
         }.bind(this));
         let select = formatField.querySelector('select');
         select.addEventListener('change', function(event){
+            // console.log('format onchange');
             this.changeFormat(event, this.format);
         }.bind(this));
         return formatField;
@@ -432,11 +429,11 @@ export class Canvas {
         return button;
     }
     addShape(shapeObj){
-        if(!shapeObj.id) {
-            console.log('addShape(): missing shapeObj id');
-        } else if (this.shapes[shapeObj.id]){
-            console.log('addShape(): shapeObj id ('+shapeObj.id+') is already taken');
-        }
+        // if(!shapeObj.id) {
+        //     console.log('addShape(): missing shapeObj id');
+        // } else if (this.shapes[shapeObj.id]){
+        //     console.log('addShape(): shapeObj id ('+shapeObj.id+') is already taken');
+        // }
 
         this.shapes[shapeObj.id] = shapeObj;
     }
@@ -566,23 +563,26 @@ export class Canvas {
     }
     addCounterpart(obj)
     {
-        console.log('addCounterpart');
+        // console.log('addCounterpart');
         this.counterpart = obj;
         if(obj.isThree) this.downloadVideoButton.style.display = 'block';
     }
-    changeFormat(event, currentFormat){
-        const confirmChangeFormat = confirm('You are about to change the format. The current content will not be saved. Continue?');
-        if(confirmChangeFormat)
-        {
-            window.location.href = '?format=' + event.target.value;
-        }
-        else {
-            event.target.value = currentFormat;
-            return false;
-        }
+    changeFormat(event, currentFormat, toConfirm=true){
+        let el = event ? event.target : this.control_wrapper.querySelector('.field-id-format');
+        currentFormat = currentFormat ? currentFormat : el.value;
+        if(toConfirm) {
+            const confirmChangeFormat = confirm('You are about to change the format. The current content will not be saved. Continue?');
+            if(confirmChangeFormat)
+            {
+                window.location.href = '?format=' + el.value;
+                return;
+            }
+        } else window.location.href = '?format=' + el.value;
+        el.value = currentFormat;
+        return false;
     }
     toggleSecondShape(event, isSync = false){
-        console.log('toggleSecondShape()')    
+        // console.log('toggleSecondShape()')    
         // return;
         // console.log('ysysys');    
         let shapes_length = Object.keys(this.shapes).length;
@@ -615,51 +615,51 @@ export class Canvas {
         }
         return false;
     }
-    renderRecordFetchingForm(){
-        let container = document.createElement('DIV');
-        // container.className = 'panel-section float-container';
-        container.className = 'panel-section float-container hide';
-        let form = document.createElement('form');
-        form.setAttribute('method', 'POST');
-        form.setAttribute('flex', 'full');
-        form.className = 'flex-item';
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', 'recordName');
-        label.innerText = 'Record';
-        let input = document.createElement('INPUT');
-        input.id = 'recordName';
-        input.name = 'recordName';
-        input.type = 'text';
-        input.setAttribute('placeholder', '[record 1][record 2] . . .');
-        input.setAttribute('required', true);
-        let input_action = document.createElement('INPUT');
-        input_action.value = 'fetchRecordByName';
-        input_action.name = 'action';
-        input_action.type = 'hidden';
-        let button = document.createElement('INPUT');
-        button.type = 'submit';
-        button.value = 'fetch';
-        // form.appendChild(label);
-        form.appendChild(input);
-        form.appendChild(input_action);
-        form.appendChild(button);
-        let temp_right = document.createElement('div');
-        temp_right.className = 'half-right flex-container';
-        temp_right.append(form);
-        container.appendChild(label);
-        container.appendChild(temp_right);
-        this.fields['recordName'] = input;
-        this.fields['record'] = form;
-        this.fields['fetch'] = button;
-        this.fields['fetch'].addEventListener('click', function(event){
-            event.preventDefault();
-            this.updateAutoRecordingQueue();
-            let name = this.fields['recordName'].value;
-            this.requestRecordByName(event);
-        }.bind(this));
-        this.fields['recordName'] = input;
-        return container;
-    }
+    // renderRecordFetchingForm(){
+    //     let container = document.createElement('DIV');
+    //     // container.className = 'panel-section float-container';
+    //     container.className = 'panel-section float-container hide';
+    //     let form = document.createElement('form');
+    //     form.setAttribute('method', 'POST');
+    //     form.setAttribute('flex', 'full');
+    //     form.className = 'flex-item';
+    //     let label = document.createElement('LABEL');
+    //     label.setAttribute('for', 'recordName');
+    //     label.innerText = 'Record';
+    //     let input = document.createElement('INPUT');
+    //     input.id = 'recordName';
+    //     input.name = 'recordName';
+    //     input.type = 'text';
+    //     input.setAttribute('placeholder', '[record 1][record 2] . . .');
+    //     input.setAttribute('required', true);
+    //     let input_action = document.createElement('INPUT');
+    //     input_action.value = 'fetchRecordByName';
+    //     input_action.name = 'action';
+    //     input_action.type = 'hidden';
+    //     let button = document.createElement('INPUT');
+    //     button.type = 'submit';
+    //     button.value = 'fetch';
+    //     // form.appendChild(label);
+    //     form.appendChild(input);
+    //     form.appendChild(input_action);
+    //     form.appendChild(button);
+    //     let temp_right = document.createElement('div');
+    //     temp_right.className = 'half-right flex-container';
+    //     temp_right.append(form);
+    //     container.appendChild(label);
+    //     container.appendChild(temp_right);
+    //     this.fields['recordName'] = input;
+    //     this.fields['record'] = form;
+    //     this.fields['fetch'] = button;
+    //     this.fields['fetch'].addEventListener('click', function(event){
+    //         event.preventDefault();
+    //         this.updateAutoRecordingQueue();
+    //         let name = this.fields['recordName'].value;
+    //         // this.requestRecordByName(event);
+    //     }.bind(this));
+    //     this.fields['recordName'] = input;
+    //     return container;
+    // }
     generateFrame(centerX, centerY, canvasW, canvasH, shapeAmount, isThree = false)
     {
         let output = {};
@@ -674,130 +674,130 @@ export class Canvas {
         return output;
     }
     
-    requestRecordByName(event, recordName = '', postFetchingAction = false){
-        if(event) event.preventDefault();
-        let data = new FormData(this.fields['record']);
-        if(this.autoRecordingQueue.length == 0) return;
-        recordName = recordName == '' ? this.autoRecordingQueue[this.autoRecordingQueueIdx] : recordName;
-        data.set('recordName', recordName);
+    // requestRecordByName(event, recordName = '', postFetchingAction = false){
+    //     if(event) event.preventDefault();
+    //     let data = new FormData(this.fields['record']);
+    //     if(this.autoRecordingQueue.length == 0) return;
+    //     recordName = recordName == '' ? this.autoRecordingQueue[this.autoRecordingQueueIdx] : recordName;
+    //     data.set('recordName', recordName);
         
-        let url = '/static/php/recordNameHandler.php';
-        let request = new XMLHttpRequest();
-        request.open('POST', url, true);
-        request.onload = function () {
-            if (request.status >= 200 && request.status < 300) {
-                let result = JSON.parse(request.responseText);
-                if(result.status == 'success')
-                {
-                    let r = this.handleResponse(result.body, postFetchingAction);
-                    // resolve("requestRecordByName() success");
-                }
-                else if(result.status == 'error')
-                {
-                    console.log('error:' + recordName);
-                    console.log(result);
-                    // console.log('request fail');
-                    if(postFetchingAction == 'recording') this.stopRecording();
-                }
+    //     let url = '/static/php/recordNameHandler.php';
+    //     let request = new XMLHttpRequest();
+    //     request.open('POST', url, true);
+    //     request.onload = function () {
+    //         if (request.status >= 200 && request.status < 300) {
+    //             let result = JSON.parse(request.responseText);
+    //             if(result.status == 'success')
+    //             {
+    //                 let r = this.handleResponse(result.body, postFetchingAction);
+    //                 // resolve("requestRecordByName() success");
+    //             }
+    //             else if(result.status == 'error')
+    //             {
+    //                 console.log('error:' + recordName);
+    //                 console.log(result);
+    //                 // console.log('request fail');
+    //                 if(postFetchingAction == 'recording') this.stopRecording();
+    //             }
                 
-            } 
-        }.bind(this);
-        request.send(data);
-    }
-    requestRecordByURL(event, _url = '', postFetchingAction = false){
-        if(event) event.preventDefault();
-        let data = new FormData(this.fields['record']);
-        // for now, commented 
-        // if(this.autoRecordingQueue.length == 0) return;
-        data.set('url', _url);
+    //         } 
+    //     }.bind(this);
+    //     request.send(data);
+    // }
+    // requestRecordByURL(event, _url = '', postFetchingAction = false){
+    //     if(event) event.preventDefault();
+    //     let data = new FormData(this.fields['record']);
+    //     // for now, commented 
+    //     // if(this.autoRecordingQueue.length == 0) return;
+    //     data.set('url', _url);
         
-        let url = '/static/php/recordURLHandler.php';
-        let request = new XMLHttpRequest();
-        request.open('POST', url, true);
-        request.onload = function () {
-            if (request.status >= 200 && request.status < 300) {
-                let result = JSON.parse(request.responseText);
-                if(result.status == 'success')
-                {
-                    let r = this.handleResponse(result.body, postFetchingAction);
-                    // resolve("requestRecordByName() success");
-                }
-                else if(result.status == 'error')
-                {
-                    console.log('error:' + recordName);
-                    console.log(result);
-                    // console.log('request fail');
-                    if(postFetchingAction == 'recording') this.stopRecording();
-                }
+    //     let url = '/static/php/recordURLHandler.php';
+    //     let request = new XMLHttpRequest();
+    //     request.open('POST', url, true);
+    //     request.onload = function () {
+    //         if (request.status >= 200 && request.status < 300) {
+    //             let result = JSON.parse(request.responseText);
+    //             if(result.status == 'success')
+    //             {
+    //                 let r = this.handleResponse(result.body, postFetchingAction);
+    //                 // resolve("requestRecordByName() success");
+    //             }
+    //             else if(result.status == 'error')
+    //             {
+    //                 console.log('error:' + recordName);
+    //                 console.log(result);
+    //                 // console.log('request fail');
+    //                 if(postFetchingAction == 'recording') this.stopRecording();
+    //             }
                 
-            } 
-        }.bind(this);
-        request.send(data);
-    }
-    handleResponse(response, startRecordingAfterFetching){        
-            let response_clean = this.divToNl(this.stringToNode(response));
-            let search = /\[(front\-text\-1|front\-text\-2|back\-text\-1|back\-text\-2|watermark\-1|watermark\-2)\]\(((?:.|\n|\r)*?\)*)\)/ig;
-            let found = [...response_clean.matchAll(search)];
-            let shape0_watermark_counter = 0;
-            let shape1_watermark_counter = 0;
-            for(let i = 0; i < found.length; i++){
-                let el = found[i];
-                let position = el[1];
-                let text = el[2];
-                if(!this.isThree)
-                {
-                    if(     position == 'front-text-1' && this.shapes[0]) this.shapes[0].updateText(text, true);
-                    else if(position == 'front-text-2' && this.shapes[1]) this.shapes[1].updateText(text, true);
-                    else if(position == 'watermark-1' && this.shapes[0]) {
-                        this.shapes[0].overrideWatermark(shape0_watermark_counter, text);
-                        shape0_watermark_counter++;
-                    }
-                    else if(position == 'watermark-2' && this.shapes[1]) {
-                        this.shapes[1].overrideWatermark(shape1_watermark_counter, text);
-                        shape1_watermark_counter++;
-                    }
-                }
-                else
-                {
-                    if(     position == 'front-text-1' && this.shapes[0]) this.shapes[0].updateFrontText(text, true);
-                    else if(position == 'front-text-2' && this.shapes[1]) this.shapes[1].updateFrontText(text, true);
-                    else if(position == 'back-text-1'  && this.shapes[0]) this.shapes[0].updateBackText(text, true);
-                    else if(position == 'back-text-2'  && this.shapes[1]) this.shapes[1].updateBackText(text, true);
-                    else if(position == 'watermark-1' && this.shapes[0]) {
-                        this.shapes[0].overrideWatermark(shape0_watermark_counter, text);
-                        shape0_watermark_counter++;
-                    }
-                    else if(position == 'watermark-2' && this.shapes[1]) {
-                        this.shapes[1].overrideWatermark(shape1_watermark_counter, text);
-                        shape1_watermark_counter++;
-                    }
+    //         } 
+    //     }.bind(this);
+    //     request.send(data);
+    // }
+    // handleResponse(response, startRecordingAfterFetching){        
+    //         let response_clean = this.divToNl(this.stringToNode(response));
+    //         let search = /\[(front\-text\-1|front\-text\-2|back\-text\-1|back\-text\-2|watermark\-1|watermark\-2)\]\(((?:.|\n|\r)*?\)*)\)/ig;
+    //         let found = [...response_clean.matchAll(search)];
+    //         let shape0_watermark_counter = 0;
+    //         let shape1_watermark_counter = 0;
+    //         for(let i = 0; i < found.length; i++){
+    //             let el = found[i];
+    //             let position = el[1];
+    //             let text = el[2];
+    //             if(!this.isThree)
+    //             {
+    //                 if(     position == 'front-text-1' && this.shapes[0]) this.shapes[0].updateText(text, true);
+    //                 else if(position == 'front-text-2' && this.shapes[1]) this.shapes[1].updateText(text, true);
+    //                 else if(position == 'watermark-1' && this.shapes[0]) {
+    //                     this.shapes[0].overrideWatermark(shape0_watermark_counter, text);
+    //                     shape0_watermark_counter++;
+    //                 }
+    //                 else if(position == 'watermark-2' && this.shapes[1]) {
+    //                     this.shapes[1].overrideWatermark(shape1_watermark_counter, text);
+    //                     shape1_watermark_counter++;
+    //                 }
+    //             }
+    //             else
+    //             {
+    //                 if(     position == 'front-text-1' && this.shapes[0]) this.shapes[0].updateFrontText(text, true);
+    //                 else if(position == 'front-text-2' && this.shapes[1]) this.shapes[1].updateFrontText(text, true);
+    //                 else if(position == 'back-text-1'  && this.shapes[0]) this.shapes[0].updateBackText(text, true);
+    //                 else if(position == 'back-text-2'  && this.shapes[1]) this.shapes[1].updateBackText(text, true);
+    //                 else if(position == 'watermark-1' && this.shapes[0]) {
+    //                     this.shapes[0].overrideWatermark(shape0_watermark_counter, text);
+    //                     shape0_watermark_counter++;
+    //                 }
+    //                 else if(position == 'watermark-2' && this.shapes[1]) {
+    //                     this.shapes[1].overrideWatermark(shape1_watermark_counter, text);
+    //                     shape1_watermark_counter++;
+    //                 }
                     
-                }
-                this.textAmount += position.indexOf('watermark') !== -1 ? 1 : 2;
-            }
-            if(this.shapes[0]){
-                this.shapes[0].trimWatermark(shape0_watermark_counter);
+    //             }
+    //             this.textAmount += position.indexOf('watermark') !== -1 ? 1 : 2;
+    //         }
+    //         if(this.shapes[0]){
+    //             this.shapes[0].trimWatermark(shape0_watermark_counter);
                 
-            }
-            if(this.shapes[1]) {
-                this.shapes[1].trimWatermark(shape1_watermark_counter);
-            }
+    //         }
+    //         if(this.shapes[1]) {
+    //             this.shapes[1].trimWatermark(shape1_watermark_counter);
+    //         }
             
-            for(let shape_id in this.shapes)
-            {
-                if(this.shapes[i].animationName !== 'none') {
-                    // console.log('drawing after handling');
-                    // console.log('startRecordingAfterFetching? ' + startRecordingAfterFetching);
-                    if(startRecordingAfterFetching == 'recording') this.shapes[shape_id].drawForRecording();
-                    else if(startRecordingAfterFetching == 'savingImage')  this.shapes[shape_id].drawForSavingImage();
-                    else this.shapes[shape_id].draw();
-                    // let temp = await 
-                    // console.log(temp);
-                }
-            }
+    //         for(let shape_id in this.shapes)
+    //         {
+    //             if(this.shapes[i].animationName !== 'none') {
+    //                 // console.log('drawing after handling');
+    //                 // console.log('startRecordingAfterFetching? ' + startRecordingAfterFetching);
+    //                 if(startRecordingAfterFetching == 'recording') this.shapes[shape_id].drawForRecording();
+    //                 else if(startRecordingAfterFetching == 'savingImage')  this.shapes[shape_id].drawForSavingImage();
+    //                 else this.shapes[shape_id].draw();
+    //                 // let temp = await 
+    //                 // console.log(temp);
+    //             }
+    //         }
             
-            console.log('handleResponse drawing done');
-    }
+    //         // console.log('handleResponse drawing done');
+    // }
     checkWatermarksAndWrite(shape, idx, text){
         
     }

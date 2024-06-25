@@ -122,7 +122,7 @@ export class Record {
         ).then((json) => {
             if(json['status'] == 'success') {
                 this.record_body = JSON.parse(json['body']);
-                console.log(this.record_body);
+                // console.log(this.record_body);
                 if (typeof callback == 'function') {
                     callback();
                 }
@@ -138,12 +138,14 @@ export class Record {
         let params = new URL(document.location).searchParams;
         let format = params.get("format");
         let hasSecondShape = false;
+        let avtive_canvas = null;
         // console.log(this.record_body)
         for(let canvas_id in this.record_body) {
             let canvas_data = this.record_body[canvas_id];
             let isThree = canvas_data['isThree'];
             let active = canvas_data['active'];
             if(isThree && active) document.body.classList.add('viewing-three');
+            if(active) avtive_canvas = this.canvasObjs[canvas_id];
             // console.log(Object.keys(canvas_data['shape-controls']).length > 1);
             if(Object.keys(canvas_data['shape-controls']).length > 1 && !hasSecondShape) {
                 hasSecondShape = true;
@@ -192,7 +194,7 @@ export class Record {
                 let shape_control = document.getElementById(shape_control_id);
                 let shape_id = data['shape_id'];
                 if (!shape_control) continue;
-                console.log(shape_id);
+                // console.log(shape_id);
                 for(let i = 0 ; i < data['watermarks_num']; i++) {
                     this.canvasObjs[canvas_id].shapes[shape_id].addWatermark();
                 }
@@ -223,7 +225,15 @@ export class Record {
             }
         }
         for(let field_element of active_canvas_fields) {
-            if(field_element.classList.contains('field-id-format') && format) continue;
+            // console.log('cc');
+            if(field_element.classList.contains('field-id-format')) {
+                if(format) continue;
+                else {
+                    // console.log('sss');
+                    avtive_canvas.changeFormat(null, null, false);
+                    continue;
+                }
+            }
             field_element.dispatchEvent(new Event('change'));
         }
             
@@ -326,6 +336,7 @@ export class Record {
             if(json['status'] == 'success') {
                 if (this.form_action == 'insert') {
                     // alert('Saved!');
+                    // console.log(json['body']);
                     window.location.href = json['body'];
                 }
                 else if(this.form_action == 'save')

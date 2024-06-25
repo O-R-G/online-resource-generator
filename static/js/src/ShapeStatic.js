@@ -560,7 +560,6 @@ export class ShapeStatic extends Shape {
 			let side_y = this.frame.h - this.padding * 2;
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
-			console.log(inner_p_x,inner_p_y );
     		if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
     			x =  this.shapeCenter.x - side_x / 2 + inner_p_x;
@@ -788,7 +787,6 @@ export class ShapeStatic extends Shape {
     }
 
 	drawRectangle(){
-		console.log(this.padding);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -1066,7 +1064,6 @@ export class ShapeStatic extends Shape {
 	}
 
 	addListeners(){
-		console.log('yaya');
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
 				let shape = this.options.shapeOptions[e.target.value]['shape'];
@@ -1254,7 +1251,6 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		console.log(this.counterpart);
 		if(!this.counterpart) return;
     	let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
