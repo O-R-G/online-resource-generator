@@ -402,7 +402,6 @@ export class Canvas {
         temp_right.appendChild(temp_input);
         temp_right.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
-        // temp_input.onchange = function(event){ this.toggleSecondShape(event) }.bind(this);
         
         return temp_panel_section;
     }
@@ -582,9 +581,6 @@ export class Canvas {
         return false;
     }
     toggleSecondShape(event, isSync = false){
-        // console.log('toggleSecondShape()')    
-        // return;
-        // console.log('ysysys');    
         let shapes_length = Object.keys(this.shapes).length;
         if( (isSync || event.target.checked) && shapes_length < 2)
         {
@@ -592,7 +588,7 @@ export class Canvas {
             let shapeIndex = shapes_length;
             // let shapeId = this.prefix + '-shape-' + shapeIndex;
             let firstShape = this.shapes[Object.keys(this.shapes)[0]];
-            let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, firstShape.options, format, shapeIndex) : new ShapeStatic(this.prefix, this, firstShape.options, format, shapeIndex);
+            let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, firstShape.options, format, firstShape.fonts, shapeIndex) : new ShapeStatic(this.prefix, this, firstShape.options, format, shapeIndex);
             // console.log('sad')
             this.addShape(newShape);
             // this.shapes.push( newShape );
@@ -673,136 +669,6 @@ export class Canvas {
         output.y = !isThree ? centerY - output.h / 2 : centerY;
         return output;
     }
-    
-    // requestRecordByName(event, recordName = '', postFetchingAction = false){
-    //     if(event) event.preventDefault();
-    //     let data = new FormData(this.fields['record']);
-    //     if(this.autoRecordingQueue.length == 0) return;
-    //     recordName = recordName == '' ? this.autoRecordingQueue[this.autoRecordingQueueIdx] : recordName;
-    //     data.set('recordName', recordName);
-        
-    //     let url = '/static/php/recordNameHandler.php';
-    //     let request = new XMLHttpRequest();
-    //     request.open('POST', url, true);
-    //     request.onload = function () {
-    //         if (request.status >= 200 && request.status < 300) {
-    //             let result = JSON.parse(request.responseText);
-    //             if(result.status == 'success')
-    //             {
-    //                 let r = this.handleResponse(result.body, postFetchingAction);
-    //                 // resolve("requestRecordByName() success");
-    //             }
-    //             else if(result.status == 'error')
-    //             {
-    //                 console.log('error:' + recordName);
-    //                 console.log(result);
-    //                 // console.log('request fail');
-    //                 if(postFetchingAction == 'recording') this.stopRecording();
-    //             }
-                
-    //         } 
-    //     }.bind(this);
-    //     request.send(data);
-    // }
-    // requestRecordByURL(event, _url = '', postFetchingAction = false){
-    //     if(event) event.preventDefault();
-    //     let data = new FormData(this.fields['record']);
-    //     // for now, commented 
-    //     // if(this.autoRecordingQueue.length == 0) return;
-    //     data.set('url', _url);
-        
-    //     let url = '/static/php/recordURLHandler.php';
-    //     let request = new XMLHttpRequest();
-    //     request.open('POST', url, true);
-    //     request.onload = function () {
-    //         if (request.status >= 200 && request.status < 300) {
-    //             let result = JSON.parse(request.responseText);
-    //             if(result.status == 'success')
-    //             {
-    //                 let r = this.handleResponse(result.body, postFetchingAction);
-    //                 // resolve("requestRecordByName() success");
-    //             }
-    //             else if(result.status == 'error')
-    //             {
-    //                 console.log('error:' + recordName);
-    //                 console.log(result);
-    //                 // console.log('request fail');
-    //                 if(postFetchingAction == 'recording') this.stopRecording();
-    //             }
-                
-    //         } 
-    //     }.bind(this);
-    //     request.send(data);
-    // }
-    // handleResponse(response, startRecordingAfterFetching){        
-    //         let response_clean = this.divToNl(this.stringToNode(response));
-    //         let search = /\[(front\-text\-1|front\-text\-2|back\-text\-1|back\-text\-2|watermark\-1|watermark\-2)\]\(((?:.|\n|\r)*?\)*)\)/ig;
-    //         let found = [...response_clean.matchAll(search)];
-    //         let shape0_watermark_counter = 0;
-    //         let shape1_watermark_counter = 0;
-    //         for(let i = 0; i < found.length; i++){
-    //             let el = found[i];
-    //             let position = el[1];
-    //             let text = el[2];
-    //             if(!this.isThree)
-    //             {
-    //                 if(     position == 'front-text-1' && this.shapes[0]) this.shapes[0].updateText(text, true);
-    //                 else if(position == 'front-text-2' && this.shapes[1]) this.shapes[1].updateText(text, true);
-    //                 else if(position == 'watermark-1' && this.shapes[0]) {
-    //                     this.shapes[0].overrideWatermark(shape0_watermark_counter, text);
-    //                     shape0_watermark_counter++;
-    //                 }
-    //                 else if(position == 'watermark-2' && this.shapes[1]) {
-    //                     this.shapes[1].overrideWatermark(shape1_watermark_counter, text);
-    //                     shape1_watermark_counter++;
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 if(     position == 'front-text-1' && this.shapes[0]) this.shapes[0].updateFrontText(text, true);
-    //                 else if(position == 'front-text-2' && this.shapes[1]) this.shapes[1].updateFrontText(text, true);
-    //                 else if(position == 'back-text-1'  && this.shapes[0]) this.shapes[0].updateBackText(text, true);
-    //                 else if(position == 'back-text-2'  && this.shapes[1]) this.shapes[1].updateBackText(text, true);
-    //                 else if(position == 'watermark-1' && this.shapes[0]) {
-    //                     this.shapes[0].overrideWatermark(shape0_watermark_counter, text);
-    //                     shape0_watermark_counter++;
-    //                 }
-    //                 else if(position == 'watermark-2' && this.shapes[1]) {
-    //                     this.shapes[1].overrideWatermark(shape1_watermark_counter, text);
-    //                     shape1_watermark_counter++;
-    //                 }
-                    
-    //             }
-    //             this.textAmount += position.indexOf('watermark') !== -1 ? 1 : 2;
-    //         }
-    //         if(this.shapes[0]){
-    //             this.shapes[0].trimWatermark(shape0_watermark_counter);
-                
-    //         }
-    //         if(this.shapes[1]) {
-    //             this.shapes[1].trimWatermark(shape1_watermark_counter);
-    //         }
-            
-    //         for(let shape_id in this.shapes)
-    //         {
-    //             if(this.shapes[i].animationName !== 'none') {
-    //                 // console.log('drawing after handling');
-    //                 // console.log('startRecordingAfterFetching? ' + startRecordingAfterFetching);
-    //                 if(startRecordingAfterFetching == 'recording') this.shapes[shape_id].drawForRecording();
-    //                 else if(startRecordingAfterFetching == 'savingImage')  this.shapes[shape_id].drawForSavingImage();
-    //                 else this.shapes[shape_id].draw();
-    //                 // let temp = await 
-    //                 // console.log(temp);
-    //             }
-    //         }
-            
-    //         // console.log('handleResponse drawing done');
-    // }
-    checkWatermarksAndWrite(shape, idx, text){
-        
-    }
-
-    
     stringToNode(string){
         let div = document.createElement('DIV');
         div.innerHTML = string;

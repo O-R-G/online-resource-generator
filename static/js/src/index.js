@@ -2,16 +2,29 @@ import { Record } from "./Record.js";
 import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
+import fontLoader from "./FontLoader.js";
+
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
 console.log(main.getAttribute('format'));
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
-
+``
 function init(data, cb){
     // console.log('main init()');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = {};
+    let shapes = {
+        'animated': [],
+        'static': []
+    };
+    // fontLoader.loadThreeFonts();
+    
+    // fontLoader.onThreeLoaded = function(fonts){
+    //     for(let s of shapes['animated']) {
+    //         s.
+    //     }
+    // }
 
     for(let id in data) {
         /* render canvas / shapes */
@@ -22,7 +35,10 @@ function init(data, cb){
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
         let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
+        // console.log(data[id]['options']);
         let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
+        if (isThree) shapes['animated'].push(shape);
+        else shapes['static'].push(shape);
         cvs.addShape(shape);
         cvs.addControl(control);
         // if( (isThree && document.body.classList.contains('viewing-three')) || (!isThree && !document.body.classList.contains('viewing-three'))) cvs.init();

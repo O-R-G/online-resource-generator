@@ -13,6 +13,7 @@
     "paper": "^0.12.15",
     "path": "^0.12.7",
     "pdfmake": "^0.2.2",
+    "three": "^0.165.0",
     "troika-three-text": "^0.47.1"
   },
   "devDependencies": {

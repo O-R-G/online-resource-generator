@@ -1,5 +1,6 @@
 *.DS_Store
 options.js
+fonts.js
 static/fonts/*
 static/fonts/_threejs/*.json
 !static/fonts/_fonts.txt

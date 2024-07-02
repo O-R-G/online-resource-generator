@@ -163,7 +163,8 @@ export class Record {
                 // let isThree = data['isThree'];
                 let fields = data['fields'];
                 for (let field of fields) {
-                    if(!field['id']) {
+                    
+                    if(!field['id'] || field['id'].indexOf('background') !== -1) {
                         continue;
                     }
                     let field_element = common_control.querySelector('#' + field['id']);
@@ -200,7 +201,8 @@ export class Record {
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
-                    if(!field['id']) {
+                    // console.log(field['id'])
+                    if(!field['id'] || field['id'].indexOf('background') !== -1) {
                         continue;
                     }
                     

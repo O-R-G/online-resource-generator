@@ -228,10 +228,11 @@ textarea + select
     display: flex;
     justify-content: center;
 }
-#background-image-panel-section {
+.background-image-panel-section {
     display: none;
+    margin-bottom: 0;
 }
-.viewing-background-upload + #background-image-panel-section {
+.viewing-background-upload + .background-image-panel-section {
     display: block;
 }
 /* #content

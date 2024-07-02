@@ -19,17 +19,25 @@ export class Shape {
 		this.watermarks = [];
 		this.watermarkidx = 0;
 		
-	    
-	    
         this.shapeCenter = {
             x: 0,
             y: 0
         };
-        // this.frame = frame;
-        
-        // this.updateFrame();
+        this.imgs = {
+			'background-image': {
+				img: null,
+				x: 0,
+				y: 0,
+				shiftY: 0,
+				shiftX: 0,
+				scale: 1
+			}
+		};
         this.fields = {};
+        this.fields.imgs = {};
         this.fields.watermarks = [];
+
+        this.shapeMethod = 'draw';
 	}
     init(canvasObj){
         console.log('shape init()');
@@ -49,7 +57,6 @@ export class Shape {
         this.frame = this.generateFrame();
     }
     getShapeIndex(){
-        console.log(this.canvasObj.shapes);
         for(const index of Object.keys(this.canvasObj.shapes)) {
             console.log(shape);
             console.log(index);
@@ -73,20 +80,20 @@ export class Shape {
         this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
 	}
 	
-    updateWatermark(idx, values_raw = {str: false, position : false, color : false, fontSize:false, font:false, shift : false, rad:false}){
+    updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}){
         let values = values_raw;
-        values['position'] = values['position'] ? values['position'] : ( this.watermarks[idx]['position'] ? this.watermarks[idx]['position'] : Object.values(this.options.watermarkPositionOptions)[0].name);
+        values['position'] = values['position'] ? values['position'] : this.getDefaultOption(this.options.watermarkPositionOptions, true);
         if(this.watermarks[idx] == undefined)
     	{
     		this.watermarks[idx] = {
     			'str': values['str'],
     			'position': values['position'],
     			'color': values['color'],
-    			'fontSize': values['fontSize'],
+    			'typography': values['typography'],
                 'shift': values['shift'],
                 'rotate': values['rad']
     		};
-    		if (values['font']) this.watermarks[idx].values['font'] = values['font'];
+    		// if (values['typography']) this.watermarks[idx].values['typography'] = values['typography'];
     	}	
     	else
     	{
@@ -136,7 +143,7 @@ export class Shape {
         this.fields[id] = temp_select;
         return temp_panel_section;
     }
-    renderTextField(id, displayName, textPositionOptions, textColorOptions, fontOptions, extraClass='')
+    renderTextField(id, displayName, textPositionOptions, textColorOptions, typographyOptions, extraClass='')
     {
 
         let temp_panel_section = document.createElement('DIV');
@@ -171,10 +178,10 @@ export class Shape {
                 'class': ''
             },
             { 
-                'name': 'font',
-                'id': id + '-font',
+                'name': 'typography',
+                'id': id + '-typography',
                 'input-type': 'select',
-                'options': this.options['fontOptions'],
+                'options': this.options['typographyOptions'],
                 'attr': {'flex': 'one-third'},
                 'class': ''
             },
@@ -196,7 +203,7 @@ export class Shape {
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
         this.fields[id] = temp_textarea;
-        
+        ``
         return temp_panel_section;
     }
     renderTextControls(id, container, items=[], cb){
@@ -259,31 +266,12 @@ export class Shape {
         temp_input.setAttribute('flex', 'full');
         temp_right.appendChild(temp_input);
 
-        // let temp_select_position = this.renderSelect('watermark-position-' + idx, this.options.watermarkPositionOptions, 'watermark-position flex-item typography-flex-item');
-        // temp_select_position.setAttribute('flex', 'one-third');
-        // temp_right.appendChild(temp_select_position);
-
-        // let temp_select_color = this.renderSelect('watermark-color-' + idx, this.options.textColorOptions, 'watermark-color flex-item typography-flex-item');
-        // temp_select_color.setAttribute('flex', 'one-third');
-        // temp_right.appendChild(temp_select_color);
-
-        // let temp_select_fontSize = this.renderSelect('watermark-fontsize-' + idx, this.options.watermarkFontOptions, 'watermark-fontsize flex-item typography-flex-item');
-        // temp_select_fontSize.setAttribute('flex', 'one-third');
-        // temp_right.appendChild(temp_select_fontSize);
-
-        // let temp_input_rotate = this.renderInput('watermark-rotate-' + idx, null, {'flex': 'one-third', 'placeholder' : 'rotate (0)'}, 'watermark-rotate flex-item');
-        // let temp_input_x = this.renderInput('watermark-shift-x-' + idx, null, {'flex': 'one-third', 'placeholder' : 'X (0)'}, 'watermark-shift-x flex-item');
-        // let temp_input_y = this.renderInput('watermark-shift-y-' + idx, null, {'flex': 'one-third', 'placeholder' : 'Y (0)'}, 'watermark-shift-y flex-item');
-        // temp_right.appendChild(temp_input_rotate);
-        // temp_right.appendChild(temp_input_x);
-        // temp_right.appendChild(temp_input_y);
-
         this.fields['watermarks'][idx] = 
         {
             'text': temp_input,
             'position': null,
             'color': null,
-            'font': null,
+            'typography': null,
             'shift': {
             },
             'rotate': null
@@ -308,12 +296,12 @@ export class Shape {
                 'attr': {'flex': 'one-third'},
                 'class': 'watermark-color'
             },{ 
-                'name': 'font',
-                'id': 'watermark-fontsize-' + idx,
+                'name': 'typography',
+                'id': 'watermark-typography-' + idx,
                 'input-type': 'select',
-                'options': this.options['fontOptions'],
+                'options': this.options['typographyOptions'],
                 'attr': {'flex': 'one-third'},
-                'class': 'watermark-fontsize'
+                'class': 'watermark-typography'
             },{ 
                 'name': 'rotate',
                 'id': 'watermark-rotate-' + idx,
@@ -458,7 +446,7 @@ export class Shape {
             'str': str,
             'position': Object.keys(this.options.watermarkPositionOptions)[0],
             'color': Object.keys(this.options.watermarkColorOptions)[0],
-            'fontSize': Object.keys(this.options.watermarkFontOptions)[0]
+            'typography': this.getDefaultOption(this.options.watermarkTypographyOptions)
         };
         this.watermarkidx++;
         
@@ -487,7 +475,120 @@ export class Shape {
 	        this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
         }
     }
-    
+    renderFileField(id, idx, displayName, extraClass='')
+    {
+    	let input_id = id + '-' + this.format + '-' + this.id;
+        let temp_panel_section = document.createElement('DIV');
+        temp_panel_section.className  = "panel-section float-container " + extraClass;
+        let temp_pseudo_label = document.createElement('DIV');
+        temp_pseudo_label.className = 'pseudo-label';
+        temp_pseudo_label.innerText = displayName;
+        let temp_label = document.createElement('label');
+        temp_label.setAttribute('for', input_id);
+		temp_label.className = 'panel-section pseudo-upload';
+        temp_label.innerText = 'Choose file';
+        let temp_input = document.createElement('input');
+        temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
+        temp_input.id = input_id;
+        temp_input.type = 'file';
+		temp_input.setAttribute('image-idx', idx);
+		let backgroundImageControls = this.renderImageControls('background-image');
+		let temp_right = document.createElement('div');
+		temp_right.className = 'half-right flex-container';
+		temp_right.appendChild(temp_input);
+		temp_right.appendChild(temp_label);
+		temp_right.appendChild(backgroundImageControls);
+
+        temp_panel_section.appendChild(temp_pseudo_label);
+        temp_panel_section.appendChild(temp_right);
+		temp_panel_section.id = id + '-panel-section';
+
+		this.fields.imgs[idx] = temp_input;
+        return temp_panel_section;
+    }
+    renderImageControls(id=''){
+		let container = document.createElement('DIV');
+		container.className = 'field-id-image-controls float-container flex-item';
+		container.id = id ? id + '-field-id-image-controls' : '';
+		container.setAttribute('flex', 'full');
+
+		let scale = this.renderNumeralField(id + '-background-image-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
+		let x = this.renderNumeralField(id + '-background-image-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
+		let y = this.renderNumeralField(id + '-background-image-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
+		container.append(scale);
+		container.append(x);
+		container.append(y);
+
+		return container;
+	}
+    renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
+    {
+        let temp_panel_section = document.createElement('DIV');
+        temp_panel_section.className  = "panel-section float-container " + extraWrapperClass;
+        let temp_label = document.createElement('LABEL');
+        temp_label.setAttribute('for', id);
+        temp_label.innerText = displayName;
+        let temp_input = document.createElement('INPUT');
+        temp_input.className = 'field-id-' + id + ' ' + extraClass;
+        temp_input.type = 'number';
+        temp_input.value = begin;
+        temp_input.setAttribute('step', step);
+        temp_input.setAttribute('min', min);
+		temp_input.id = this.id + '-field-id-' + id;
+		let temp_right = document.createElement('DIV');
+		temp_right.className = 'half-right flex-container';
+		temp_right.appendChild(temp_input);
+        temp_panel_section.appendChild(temp_label);
+        temp_panel_section.appendChild(temp_right);
+        return temp_panel_section;
+    }
+    readImage(event, cb) {
+		let input = event.target;
+		let idx = input.getAttribute('image-idx');
+		if (input.files && input.files[0]) {
+        	var FR = new FileReader();
+            FR.onload = function (e) {
+                let image = new Image();
+                // image.onload = function (e) {
+                //     console.log('loaded--');
+                //     // if(typeof cb === 'function')
+                //     //     cb(idx, {'event': e, 'img': image});	
+                // }.bind(this);
+                if(typeof cb === 'function')
+                    cb(idx, {'event': e, 'img': image});	
+                image.src = e.target.result;
+            }.bind(this);
+            FR.readAsDataURL(input.files[0]);
+            input.parentNode.parentNode.classList.add('viewing-image-control');
+        }
+    }
+    updateImgScale(imgScale, idx, silent = false){
+    	this.imgs[idx].scale = imgScale;
+    	this.updateImg(idx, {img: this.imgs[idx].img}, silent)
+    };
+    updateImgPositionX(imgShiftX, idx, silent = false){
+    	this.imgs[idx].shiftX = parseFloat(imgShiftX);
+    	this.updateImg(idx, {img: this.imgs[idx].img}, silent)
+    };
+    updateImgPositionY(imgShiftY, idx, silent = false){
+    	this.imgs[idx].shiftY = parseFloat(imgShiftY);
+    	this.updateImg(idx, {img: this.imgs[idx].img}, silent)
+    };
+    updateImg(idx, params, silent = false){
+        let img = params['img'] ? params['img'] : (this.imgs[idx] ? this.imgs[idx]  : null);
+        if(!img) return false;
+		if(!this.imgs[idx]) {
+			this.imgs[idx] = {
+				img: null,
+				x: 0,
+				y: 0,				
+				shiftY: 0,
+				shiftX: 0,
+				scale: 1
+			}
+		}
+		this.imgs[idx].img = img;
+	}
     updateFrame(frame){
         frame = frame ? frame : this.generateFrame();
         this.frame = frame;
@@ -518,8 +619,8 @@ export class Shape {
             this.updateCounterpartTextField(that_watermark['text'], this.watermarks[i].str);
             this.updateCounterpartSelectField(that_watermark['position'], el['position'].selectedIndex);
             this.updateCounterpartSelectField(that_watermark['color'], el['color'].selectedIndex);
-            this.updateCounterpartSelectField(that_watermark['font'], el['font'].selectedIndex);
-            this.counterpart.updateWatermark(i, this.watermarks[i].str, this.watermarks[i].position, this.watermarks[i].color, this.watermarks[i].fontSize, silent);
+            this.updateCounterpartSelectField(that_watermark['typography'], el['typography'].selectedIndex);
+            this.counterpart.updateWatermark(i, { str: this.watermarks[i].str, position: this.watermarks[i].position, color: this.watermarks[i].color, typography: this.watermarks[i].typography}, silent);
         }.bind(this));
     }
 
@@ -547,6 +648,14 @@ export class Shape {
         this.fields.watermarks = this.fields.watermarks.slice(0, idx+1);
     }
     
-
+    getDefaultOption(options, returnKey = false){
+        // if(target !== null && typeof options[target] !== 'undefined') return options[target];
+        for(let key in options) {
+            if(options[key]['default']) {
+                return returnKey ? key : options[key];
+            }
+        }
+        return returnKey ? Object.keys(options)[0] : options[Object.keys(options)[0]];
+    }
 }
 

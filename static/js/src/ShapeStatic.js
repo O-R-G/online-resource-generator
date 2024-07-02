@@ -2,17 +2,21 @@ import { Shape } from "./Shape.js";
 export class ShapeStatic extends Shape {
 	constructor(prefix = '', canvasObj, options, format, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		this.color = null;
-        for(let prop in this.options.colorOptions) {
-            if(this.options.colorOptions[prop]['default']) this.color = this.options.colorOptions[prop].color.code;
-        }
-        if(!this.color) this.color = Object.values(this.options.colorOptions)[0].color.code;
 
-		this.colorData = null;
-        for(let prop in this.options.colorOptions) {
-            if(this.options.colorOptions[prop]['default']) this.colorData = this.options.colorOptions[prop].color;
-        }
-        if(!this.colorData) this.colorData = Object.values(this.options.colorOptions)[0].color;
+		this.colorData = this.getDefaultOption(this.options.colorOptions);
+		this.colorData = this.colorData.color;
+		this.color = this.colorData.code;
+		// this.color = null;
+        // for(let prop in this.options.colorOptions) {
+        //     if(this.options.colorOptions[prop]['default']) this.color = this.options.colorOptions[prop].color.code;
+        // }
+        // if(!this.color) this.color = Object.values(this.options.colorOptions)[0].color.code;
+
+		// this.colorData = null;
+        // for(let prop in this.options.colorOptions) {
+        //     if(this.options.colorOptions[prop]['default']) this.colorData = this.options.colorOptions[prop].color;
+        // }
+        // if(!this.colorData) this.colorData = Object.values(this.options.colorOptions)[0].color;
 
 		this.textColor = null;
         for(let prop in this.options.textColorOptions) {
@@ -26,37 +30,18 @@ export class ShapeStatic extends Shape {
         }
         if(!this.textPosition) this.textPosition = Object.values(this.options.textPositionOptions)[0].value;
 
-		this.fontSize = null;
-        for(let prop in this.options.fontOptions) {
-            if(this.options.fontOptions[prop]['default']) this.fontSize = prop;
-        }
-        if(!this.fontSize) this.fontSize = Object.keys(this.options.fontOptions)[0];
+		this.typography = this.getDefaultOption(this.options.typographyOptions);
 
 		this.textShiftX = 0;
 		this.textShiftY = 0;
 
 		this.timer_color = null;
+
 		this.timer_position = null;
 		this.timer_shape = null;
 
-		this.imgs = {
-			'background-image': {
-				img: null,
-				x: 0,
-				y: 0,
-				shiftY: 0,
-				shiftX: 0,
-				scale: 1
-			}
-		};
-
-		this.fields.imgs = {};
-	    this.shapeMethod = 'draw';
-	    
+	    // this.shapeMethod = 'draw';
 		this.customGraphic = [];
-		
-		
-	    
 	}
 	init(canvasObj){
 		super.init(canvasObj);
@@ -386,93 +371,19 @@ export class ShapeStatic extends Shape {
         this.cornerRadius = this.animation_shape_data.current.r;
         this.canvasObj.draw();
     }
-    updateImg(img, idx, silent = false){
-		if(!this.imgs[idx]) {
-			this.imgs[idx] = {
-				img: null,
-				x: 0,
-				y: 0,				
-				shiftY: 0,
-				shiftX: 0,
-				scale: 1
-			}
-		}
-		this.imgs[idx].img = img;
-		
-		if(idx === 'background-image') {
-			let temp = document.createElement('canvas');
-			let temp_ctx = temp.getContext('2d');
-			if(this.timer_color != null)
-			{
-				clearInterval(this.timer_color);
-				this.timer_color = null;
-			}
-			temp.width = this.canvasW;
-			temp.height = this.canvasH;
-			
-			let length = this.frame.w - this.padding * 2;
-				
-			let temp_scale = 1;
-			let temp_scaledW = this.imgs[idx].img.width * temp_scale;
-			let temp_scaledH = this.imgs[idx].img.height * temp_scale;
-			
-			if(this.imgs[idx].img.width > this.imgs[idx].img.height)
-			{
-				temp_scale = length / this.imgs[idx].img.height * this.imgs[idx].scale;
-				temp_scaledW = this.imgs[idx].img.width * temp_scale;
-				temp_scaledH = this.imgs[idx].img.height * temp_scale;
-			}
-			else
-			{
-				temp_scale = length / this.imgs[idx].img.width * this.imgs[idx].scale;
-				temp_scaledW = this.imgs[idx].img.width * temp_scale;
-				temp_scaledH = this.imgs[idx].img.height * temp_scale;
-			}
 
-			this.imgs[idx].x = temp.width / 2 - temp_scaledW / 2 + this.imgs[idx].shiftX;
-			this.imgs[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.imgs[idx].shiftY + this.frame.y;
-			if(this.timer_color != null)
-			{
-				clearInterval(this.timer_color);
-				this.timer_color = null;
-			}
-			if(this.timer_position != null)
-			{
-				clearInterval(this.timer_position);
-				this.timer_position = null;
-			}
-			temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
-
-			this.color = this.context.createPattern(temp, "no-repeat");
-			
-		} 
-		if(!silent) this.canvasObj.draw();
-	}
     updateBackgroundImg(img, silent = false){
     	
     }
-    updateImgScale(imgScale, idx, silent = false){
-    	this.imgs[idx].scale = imgScale;
-    	this.updateImg(this.imgs[idx].img, idx, silent)
-    };
-    updateImgPositionX(imgShiftX, idx, silent = false){
-
-    	this.imgs[idx].shiftX = parseFloat(imgShiftX);
-    	this.updateImg(this.imgs[idx].img, idx, silent)
-    };
-    updateImgPositionY(imgShiftY, idx, silent = false){
-    	this.imgs[idx].shiftY = parseFloat(imgShiftY);
-    	this.updateImg(this.imgs[idx].img, idx, silent)
-    };
 	
-	updateFontSize(fontSize, silent = false){
-		this.fontSize = fontSize;
+	updatetypography(typographyKey, silent = false){
+		this.typography = this.options.typographyOptions[typographyKey];
 		if(!silent) this.canvasObj.draw();
 	}
 	updateText(str, silent = false){
 		this.str = str;
 		if(str) this.fields.text.value = this.str;
-        this.canvas.style.letterSpacing = this.options.fontOptions[this.fontSize]['letterSpacing'] + 'px';
+        this.canvas.style.letterSpacing = this.typography['letterSpacing'] + 'px';
         if(!silent) this.canvasObj.draw();
     }
     updateTextColor(colorData, silent = false){
@@ -480,18 +391,21 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	preWrite(){
-		for(let fontSize in this.options.fontOptions) 
-			this.write('Load', 'center', 'default', fontSize);
+		for(let prop in this.options.typographyOptions) 
+			this.write('Load', 'center', 'default', this.options.typographyOptions[prop]);
 		
 		this.write('');
 	}
-    write(str = '', align='center', color='default', fontSize = 'default', shift=null, rad=0){
+    write(str = '', align='center', color='default', typography = false, shift=null, rad=0){
     	this.context.fillStyle = color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
-    	if(fontSize == 'default')
-    		fontSize = this.fontSize;
-		let fontStyle = this.options.fontOptions[fontSize].size + 'px ' + this.options.fontOptions[fontSize]['font']['static'];
-		let addStroke = (fontSize == 'small' || fontSize == 'medium-small');
+    	if(typography === false)
+    		typography = this.typography;
+		// console.log(typography);
+		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];
+		if(typography['font']['static']['weight']) fontStyle = typography['font']['static']['weight'] + ' ' + fontStyle;
+		// console.log(fontStyle);
+		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = fontStyle;
@@ -531,7 +445,7 @@ export class ShapeStatic extends Shape {
 	        
 			let lines = text.lines;
 	        x += align == 'align-left' ? this.innerPadding.x : this.shapeCenter.x;
-			let lineHeight = this.options.fontOptions[fontSize]['lineHeight'];
+			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			for(let i = 0; i < lines.length; i++) { 
 				ln = lines[i];
@@ -675,7 +589,7 @@ export class ShapeStatic extends Shape {
 		this.context.translate(x, y);
 		this.context.rotate(rad);
 		
-		this.drawMultipleLinesFromTop(lines, 0, 0, this.options.fontOptions[fontSize]['lineHeight'], addStroke);
+		this.drawMultipleLinesFromTop(lines, 0, 0, typography['lineHeight'], addStroke);
 		this.context.restore();
     }
 	writeLine(line, initial_x, y, addStroke=false){
@@ -772,14 +686,14 @@ export class ShapeStatic extends Shape {
     	
     	return output;
     }
-    updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
-    	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
+    updateWatermark(idx, str = false, position = false, color = false, typography=false, font=false, shift=null, rad=0, silent = false){
+    	super.updateWatermark(idx, str, position, color, typography, font, shift, rad);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
-				this.write(el.str, el.position, el.color, el.fontSize, el.shift, el.rotate);
+				this.write(el.str, el.position, el.color, this.options.watermarkTypographyOptions[el.typography], el.shift, el.rotate);
 		}.bind(this));
 	}
 	checkWatermarkPosition(position, label){
@@ -805,7 +719,8 @@ export class ShapeStatic extends Shape {
         this.context.closePath();
         this.context.fill();
 	}
-	clipRectangle(){
+	clipRectangle(ctx = null){
+		ctx = ctx ? ctx : this.context;
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -813,13 +728,13 @@ export class ShapeStatic extends Shape {
         let side = this.frame.w - this.padding * 2;
         this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
 		// this.context.save();
-        this.context.beginPath();
-        this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-        this.context.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-        this.context.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-        this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
-        this.context.closePath();
-        this.context.clip();
+        ctx.beginPath();
+        ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
+        ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
+        ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
+        ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
+        ctx.closePath();
+        ctx.clip();
 		// this.context.restore();
 	}
 	drawCircle(){
@@ -877,6 +792,31 @@ export class ShapeStatic extends Shape {
         this.context.closePath();
         this.context.clip();
     }
+	drawHeart() {
+		this.context.fillStyle = this.color;
+		let arcs = [
+			{
+				x: -96,
+				y: -71.78,
+				r: 140,
+				from: 3 * Math.PI / 4,
+				to: 7 * Math.PI / 4
+			},
+			{
+				x: 96,
+				y: -71.78,
+				r: 140,
+				from: 5 * Math.PI / 4,
+				to: Math.PI / 4
+			}
+		];
+		this.context.beginPath();
+		this.context.arc(this.shapeCenter.x + arcs[0].x * this.canvasObj.scale, this.shapeCenter.y + arcs[0].y * this.canvasObj.scale, arcs[0].r * this.canvasObj.scale, arcs[0].from,arcs[0].to);
+		this.context.arc(this.shapeCenter.x + arcs[1].x * this.canvasObj.scale, this.shapeCenter.y + arcs[1].y * this.canvasObj.scale, arcs[1].r * this.canvasObj.scale, arcs[1].from,arcs[1].to);
+		this.context.lineTo(this.shapeCenter.x, this.shapeCenter.y + 206 * this.canvasObj.scale);
+		this.context.closePath();
+        this.context.fill();
+	}
     drawHexagon(){
         this.context.fillStyle = this.color;
         this.padding = this.padding;
@@ -952,6 +892,8 @@ export class ShapeStatic extends Shape {
 				this.drawTriangle();
 			else if(this.shape.base == 'hexagon')
 				this.drawHexagon();
+			else if(this.shape.base == 'heart')
+				this.drawHeart();
 		}
 		else if(this.shapeMethod == 'clip')
 		{
@@ -968,7 +910,7 @@ export class ShapeStatic extends Shape {
 			this.context.restore();
 		}
 		this.drawImages();
-		this.write(this.str, this.textPosition, 'default', 'default', {x: this.textShiftX, y: this.textShiftY});
+		this.write(this.str, this.textPosition, 'default', this.typography, {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
 		this.drawCustomGraphic();
@@ -982,72 +924,7 @@ export class ShapeStatic extends Shape {
 	// 	else if(this.shape.base == 'circle')
 	// 		this.clipCircle();
 	// }
-	renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
-    {
-        let temp_panel_section = document.createElement('DIV');
-        temp_panel_section.className  = "panel-section float-container " + extraWrapperClass;
-        let temp_label = document.createElement('LABEL');
-        temp_label.setAttribute('for', id);
-        temp_label.innerText = displayName;
-        let temp_input = document.createElement('INPUT');
-        temp_input.className = 'field-id-' + id + ' ' + extraClass;
-        temp_input.type = 'number';
-        temp_input.value = begin;
-        temp_input.setAttribute('step', step);
-        temp_input.setAttribute('min', min);
-		temp_input.id = this.id + '-field-id-' + id;
-		let temp_right = document.createElement('DIV');
-		temp_right.className = 'half-right flex-container';
-		temp_right.appendChild(temp_input);
-        temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(temp_right);
-        return temp_panel_section;
-    }
-    renderFileField(id, idx, displayName, extraClass='')
-    {
-    	let input_id = id + '-' + this.format + '-' + this.id;
-        let temp_panel_section = document.createElement('DIV');
-        temp_panel_section.className  = "panel-section float-container " + extraClass;
-        let temp_pseudo_label = document.createElement('DIV');
-        temp_pseudo_label.className = 'pseudo-label';
-        temp_pseudo_label.innerText = displayName;
-        let temp_label = document.createElement('LABEL');
-        temp_label.setAttribute('for', input_id);
-		temp_label.setAttribute('flex', 'full');
-		temp_label.className = 'flex-item pseudo-upload';
-        temp_label.innerText = 'Choose file';
-        let temp_input = document.createElement('INPUT');
-        temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
-        temp_input.id = input_id;
-        temp_input.type = 'file';
-		temp_input.setAttribute('image-idx', idx);
-		let backgroundImageControls = this.renderImageControls('background-image');
-		let temp_right = document.createElement('DIV');
-		temp_right.className = 'half-right flex-container';
-		temp_right.appendChild(temp_input);
-		temp_right.appendChild(temp_label);
-		temp_right.appendChild(backgroundImageControls);
-
-        temp_panel_section.appendChild(temp_pseudo_label);
-        temp_panel_section.appendChild(temp_right);
-		temp_panel_section.id = id + '-panel-section';
-		this.fields.imgs[idx] = temp_input;
-        return temp_panel_section;
-    }
-
-	renderImageControls(id=''){
-		let container = document.createElement('DIV');
-		container.className = 'field-id-image-controls float-container';
-		container.id = id ? id + '-field-id-image-controls' : '';
-		let scale = this.renderNumeralField(id + '-background-image-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
-		let x = this.renderNumeralField(id + '-background-image-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
-		let y = this.renderNumeralField(id + '-background-image-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
-		container.append(scale);
-		container.append(x);
-		container.append(y);
-
-		return container;
-	}
+    
 
 	renderControl(){
 		super.renderControl();
@@ -1056,10 +933,7 @@ export class ShapeStatic extends Shape {
 		if(this.options.colorOptions['upload']) 
 			this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
 		
-		// if(!this.canvasObj.fields['record'])
-		// 	this.control.appendChild(this.canvasObj.renderRecordFetchingForm());
-		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
-		// this.control.appendChild(this.renderFileField('image-1', 'img-0', 'Image 1'));
+		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
 	}
 
@@ -1094,9 +968,9 @@ export class ShapeStatic extends Shape {
 				this.updateText(value);
 			}.bind(this);
 		}
-		if(this.fields['text-font']) {
-			this.fields['text-font'].onchange = function(e){
-				this.updateFontSize(e.target.value);
+		if(this.fields['text-typography']) {
+			this.fields['text-typography'].onchange = function(e){
+				this.updatetypography(e.target.value);
 			}.bind(this);
 		}
 		if(this.fields['text-color']) {
@@ -1142,8 +1016,7 @@ export class ShapeStatic extends Shape {
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					sec.classList.add('viewing-background-upload');
-				}
-				else {
+				} else {
 					sec.classList.remove('viewing-background-upload');
 					if(this.fields.imgs['background-image'])
 						this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
@@ -1158,47 +1031,96 @@ export class ShapeStatic extends Shape {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
-				this.readImage(e);
+				this.readImage(e, this.updateImg.bind(this));
 			}.bind(this);
 			let scale_input = input.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
-					// let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
 				    this.updateImgScale(scale, idx);
 				}.bind(this);
 			}	
 			let shift_x_input = input.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
-				// let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
 				this.updateImgPositionX(e.target.value, idx);
 			}.bind(this);
 			let shift_y_input = input.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
-				// let idx = e.target.parentNode.parentNode.parentNode.parentNode.querySelector('input[image-idx]').getAttribute('image-idx');
-				this.updateImgPositionX(e.target.value, idx);
+				this.updateImgPositionY(e.target.value, idx);
 			}.bind(this);
 		}
 	}
-	readImage(event) {
-		let input = event.target;
-		let idx = input.getAttribute('image-idx');
-		if (input.files && input.files[0]) {
-        	var FR = new FileReader();
-            FR.onload = function (e) {
-                let image = new Image();
-                image.onload = function () {
-					// this.imgs[idx].img = background_image;
-					this.updateImg(image, idx);	
-                }.bind(this);
-                image.src = e.target.result;
-            }.bind(this);
-            FR.readAsDataURL(input.files[0]);
-            input.parentNode.parentNode.classList.add('viewing-image-control');
-        }
-    }
-    
+	// readImage(event) {
+	// 	let input = event.target;
+	// 	let idx = input.getAttribute('image-idx');
+	// 	if (input.files && input.files[0]) {
+    //     	var FR = new FileReader();
+    //         FR.onload = function (e) {
+    //             let image = new Image();
+    //             image.onload = function () {
+	// 				// this.imgs[idx].img = background_image;
+	// 				this.updateImg(image, idx);	
+    //             }.bind(this);
+    //             image.src = e.target.result;
+    //         }.bind(this);
+    //         FR.readAsDataURL(input.files[0]);
+    //         input.parentNode.parentNode.classList.add('viewing-image-control');
+    //     }
+    // }
+    updateImg(idx, params, silent = false){
+		super.updateImg(idx, params, silent);
+        if(idx === 'background-image') {
+			let temp = document.createElement('canvas');
+			let temp_ctx = temp.getContext('2d');
+			if(this.timer_color != null)
+			{
+				clearInterval(this.timer_color);
+				this.timer_color = null;
+			}
+			temp.width = this.canvasW;
+			temp.height = this.canvasH;
+			
+			let length = this.frame.w - this.padding * 2;
+				
+			let temp_scale = 1;
+			let temp_scaledW = this.imgs[idx].img.width * temp_scale;
+			let temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			
+			if(this.imgs[idx].img.width > this.imgs[idx].img.height)
+			{
+				temp_scale = length / this.imgs[idx].img.height * this.imgs[idx].scale;
+				temp_scaledW = this.imgs[idx].img.width * temp_scale;
+				temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			}
+			else
+			{
+				temp_scale = length / this.imgs[idx].img.width * this.imgs[idx].scale;
+				temp_scaledW = this.imgs[idx].img.width * temp_scale;
+				temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			}
+
+			this.imgs[idx].x = temp.width / 2 - temp_scaledW / 2 + this.imgs[idx].shiftX;
+			this.imgs[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.imgs[idx].shiftY + this.frame.y;
+			if(this.timer_color != null)
+			{
+				clearInterval(this.timer_color);
+				this.timer_color = null;
+			}
+			if(this.timer_position != null)
+			{
+				clearInterval(this.timer_position);
+				this.timer_position = null;
+			}
+			
+
+			temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
+			console.log(temp);
+			this.color = this.context.createPattern(temp, "no-repeat");
+			
+		} 
+		if(!silent) this.canvasObj.draw();
+	}
     updateFrame(frame = null, silent = false){
 		frame = frame ? frame : this.generateFrame();
 		// console.log(frame);
@@ -1262,18 +1184,23 @@ export class ShapeStatic extends Shape {
     	super.updateCounterpartTextField('text-front', this.fields['text'].value);
     	this.counterpart.updateFrontText(this.fields['text'].value, true);
         
-        this.updateCounterpartSelectField('text-front-font', this.fields['text-font'].selectedIndex);
-        this.counterpart.updateFrontFontSize(this.fields['text-font'].value, isSilent);
+        this.updateCounterpartSelectField('text-front-font', this.fields['text-typography'].selectedIndex);
+        this.counterpart.updateFrontTypography(this.fields['text-typography'].value, isSilent);
 
         this.updateCounterpartSelectField('text-front-color', this.fields['text-color'].selectedIndex);
         this.counterpart.updateFrontTextColor(this.options.textColorOptions[this.fields['text-color'].value]['color'], isSilent);
         
-
-        if( this.options.colorOptions[this.fields['shape-color'].value]['color']['type'] == 'solid' || 
-            this.options.colorOptions[this.fields['shape-color'].value]['color']['type'] == 'gradient')
-        {
+		if(!this.options.colorOptions[this.fields['shape-color'].value]['color'] || 
+			this.options.colorOptions[this.fields['shape-color'].value]['color']['type'] == 'solid' || 
+            this.options.colorOptions[this.fields['shape-color'].value]['color']['type'] == 'gradient'
+		){
         	this.updateCounterpartSelectField('shape-front-color', this.fields['shape-color'].selectedIndex);
-            this.counterpart.updateFrontColor(this.options.colorOptions[this.fields['shape-color'].value]['color'], isSilent);
+			if(!this.options.colorOptions[this.fields['shape-color'].value]['color']) {
+				// TBA ...
+			}else {
+				this.counterpart.updateFrontColor(this.options.colorOptions[this.fields['shape-color'].value]['color'], isSilent);
+			}
+            
         }
         super.updateCounterpartWatermarks(isSilent);
         this.canvasObj.counterpart.draw();

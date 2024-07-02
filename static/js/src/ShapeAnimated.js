@@ -1,32 +1,25 @@
 import * as THREE from "three";
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+// import fontLoader from './FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Shape } from "./Shape.js";
 import {Text} from 'troika-three-text';
 
 export class ShapeAnimated extends Shape {
-	constructor(prefix = '', canvasObj, options = {}, format, shape_index=0){
+	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		// console.log()
-		this.testTroika = true;
-		this.geometry_front = '';
-		this.geometry_back = '';
-		this.loader_text = new FontLoader();
-        this.loader_text.load( 'static/fonts/_threejs/Standard_Regular.json', function ( font ) {
-			this.font_regular = font;
-			this.frontFont = font;
-			this.backFont = font;
-		}.bind(this));
-		this.loader_text.load( 'static/fonts/_threejs/Standard_Bold.json', function ( font ) {
-			this.font_bold = font;
-		}.bind(this));
-		this.loader_image = new THREE.TextureLoader();
-		this.material_black = new THREE.MeshBasicMaterial( { color: new THREE.Color("rgb(0, 0, 0)") } );
-		this.material_white = new THREE.MeshBasicMaterial( { color: new THREE.Color("rgb(255, 255, 255)") } );
-		this.mesh_front = false;
-		this.mesh_frontText = false;
-		this.mesh_front = false;
-		this.mesh_backText = false;
+		
+		this.geometry_front = null;
+		this.geometry_back = null;
+		this.fonts = {};
+
+		// this.loader_image = new THREE.TextureLoader();
+		// this.clearMaterial = this.material_black;
+		// this.material_black = new THREE.MeshBasicMaterial( { color: new THREE.Color("rgb(0, 0, 0)") } );
+		// this.material_white = new THREE.MeshBasicMaterial( { color: new THREE.Color("rgb(255, 255, 255)") } );
+		this.mesh_front = null;
+		this.mesh_frontText = null;
+		this.mesh_front = null;
+		this.mesh_backText = null;
 		this.isForward = true;
 		this.flipAngleInterval = 0.020;     // aka, speed
         this.spinAngleInterval = 0.020;
@@ -56,9 +49,9 @@ export class ShapeAnimated extends Shape {
 			this.backMaterial = this.generateGradient(this.geometry_back, defaultBackColor['code'], defaultBackColor['angle']);
 		}
 		this.frontTextMaterial = this.processColor(Object.values(this.options.textColorOptions)[0].color);
-		this.clearMaterial = this.material_black;
-		this.frontFontSize = this.options.fontOptions[Object.keys(this.options.fontOptions)[0]].name;
-		this.backFontSize = this.options.fontOptions[Object.keys(this.options.fontOptions)[0]].name;
+		
+		this.frontTypography = this.getDefaultOption(this.options.typographyOptions);
+		this.backTypography = this.getDefaultOption(this.options.typographyOptions);
 		this.timer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
@@ -73,7 +66,7 @@ export class ShapeAnimated extends Shape {
 		this.text = {
 			front: {
 				str: false,
-				size: this.options.fontOptions[Object.keys(this.options.fontOptions)[0]].name,
+				size: this.options.typographyOptions[Object.keys(this.options.typographyOptions)[0]].name,
 				position: Object.values(this.options.textPositionOptions)[0].value,
 				material: this.processColor(Object.values(this.options.textColorOptions)[0].color),
 				shift: {
@@ -93,7 +86,6 @@ export class ShapeAnimated extends Shape {
 	}
 	init(canvasObj){
 		super.init(canvasObj);
-		// console.log(canvasObj);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();		
@@ -113,6 +105,18 @@ export class ShapeAnimated extends Shape {
 	    this.addListeners();
 		this.updateShape(this.shape, true);
 	}
+	// async initFonts(){
+	// 	try {
+    //         const data = await fontLoader.loadThreeFonts();
+	// 		for (let font_data of data) {
+	// 			this.fonts[font_data['name']] = { 'font': font_data['font'], 'path': font_data['path']};
+	// 		}
+	// 		// console.log(this.fonts);
+    //     } catch (error) {
+	// 		console.log('no?');
+    //         console.error('Error loading data:', error);
+    //     }
+	// }
 	updateCanvasSize(){
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
@@ -129,7 +133,41 @@ export class ShapeAnimated extends Shape {
 		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
 		if(!silent) this.canvasObj.draw();
 	}
+	drawHeart() {
+		var path_front = new THREE.Shape();
+		var path_back = new THREE.Shape();
+		let arcs = [
+			{
+				x: -96,
+				y: 71.78,
+				r: 140,
+				from: 5 * Math.PI / 4,
+				to: Math.PI / 4
+			},
+			{
+				x: 96,
+				y: 71.78,
+				r: 140,
+				from: 3 * Math.PI / 4,
+				to: 7 * Math.PI / 4
+			}
+		];
+	
+		path_front.arc(this.shapeCenter.x + arcs[0].x * this.canvasObj.scale, this.shapeCenter.y + arcs[0].y * this.canvasObj.scale, arcs[0].r * this.canvasObj.scale, arcs[0].from,arcs[0].to, true);
+		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
+		path_front.arc(this.shapeCenter.x + arcs[1].x * this.canvasObj.scale, this.shapeCenter.y + arcs[1].y * this.canvasObj.scale, arcs[1].r * this.canvasObj.scale, arcs[1].from,arcs[1].to, true);
+		path_front.lineTo(this.shapeCenter.x, this.shapeCenter.y - 206 * this.canvasObj.scale);
+		path_front.closePath();
 
+		path_back.arc(this.shapeCenter.x + arcs[0].x * this.canvasObj.scale, this.shapeCenter.y + arcs[0].y * this.canvasObj.scale, arcs[0].r * this.canvasObj.scale, arcs[0].from,arcs[0].to, true);
+		path_back.moveTo(this.shapeCenter.x, this.shapeCenter.y);
+		path_back.arc(this.shapeCenter.x + arcs[1].x * this.canvasObj.scale, this.shapeCenter.y + arcs[1].y * this.canvasObj.scale, arcs[1].r * this.canvasObj.scale, arcs[1].from,arcs[1].to, true);
+		path_back.lineTo(this.shapeCenter.x, this.shapeCenter.y - 206 * this.canvasObj.scale);
+		path_back.closePath();
+
+		this.geometry_front = new THREE.ShapeGeometry(path_front);
+		this.geometry_back = new THREE.ShapeGeometry(path_back);
+	}
 	drawHexagon(){
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
@@ -229,6 +267,24 @@ export class ShapeAnimated extends Shape {
 		this.geometry_front = new THREE.ShapeGeometry(path_front);
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 	}
+	clipRectangle(ctx = null){
+		ctx = ctx ? ctx : this.context;
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+        let paddingX = this.padding;
+        let paddingY = this.padding;
+        let side = this.frame.w - this.padding * 2;
+        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+		// this.context.save();
+        ctx.beginPath();
+        ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
+        ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
+        ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
+        ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
+        ctx.closePath();
+        ctx.clip();
+		// this.context.restore();
+	}
 	drawTriangle(){
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius / 2;
@@ -261,21 +317,18 @@ export class ShapeAnimated extends Shape {
 	getValueByPixelRatio(input){
 		return input * (this.devicePixelRatio / 2);
 	}
-	write(str = '', size=false, material, align = 'center', animationName = false, isBack = false, shift=null, rad=0, sync = false){
-		// console.log('write: ');
-		// console.log(str);
+	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, rad=0, sync = false){
 		if(str == '') return false;
-		if(!size)
-			size = this.frontFontSize;
-		let fontData = this.processFontData(size, isBack);
+		if(typography === false)
+			typography = this.frontTypography;
+		let fontData = this.processFontData(typography, isBack);
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
 		rad = rad ? -rad : 0;
-
 		this.fontSetting = {
 			font: fontData.font,
-			size: fontData.fontSize,
+			size: fontData.size,
 			height: 0.5,
 			curveSegments: 2,
 			bevelEnabled: false,
@@ -284,31 +337,27 @@ export class ShapeAnimated extends Shape {
 			bevelOffset: 0,
 			bevelSegments: 0
 		};
-
 		let output = new Text();
 		if(sync)
 		{
 			output.sync(function(){
-				// console.log('output.sync(): ' + str);
 				this.canvasObj.updateReadyState();
 			}.bind(this));
 		}
-		
 		output.text = str;
-		output.fontSize = fontData.fontSize;
+		output.fontSize = fontData.size;
 		output.material = material;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = 'center';
 		output.anchorY = '50%';
-		output.font = fontData.font;
+		output.font = fontData.path;
 		output.lineHeight = fontData.lineHeight;
 		output.letterSpacing = fontData.letterSpacing;
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
-		
-		let lines = str.split('\n');
+		// let lines = str.split('\n');
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
 			output.position.x += shift.x;
@@ -466,120 +515,116 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 
-	breakStrByWidth(str, width)
-    {
-    	let arr_by_linebreak = str.split("\n");
+	// breakStrByWidth(str, width)
+    // {
+    // 	let arr_by_linebreak = str.split("\n");
     	
-    	let line = '';
-    	let output = '';
-    	for(var i = 0; i < arr_by_linebreak.length; i++)
-    	{ 
-    		let arr_by_space = arr_by_linebreak[i].split(' ');
+    // 	let line = '';
+    // 	let output = '';
+    // 	for(var i = 0; i < arr_by_linebreak.length; i++)
+    // 	{ 
+    // 		let arr_by_space = arr_by_linebreak[i].split(' ');
 
-    		for(var j = 0; j < arr_by_space.length; j++)
-    		{
-    			let temp = (i + j) !== 0 ? line + ' ' + arr_by_space[j] : arr_by_space[j];
-	    		// let m = this.context.measureText(temp);
-	    		let g = new TextGeometry( temp, this.fontSetting );
-	    		g.computeBoundingBox();
-	    		let w = g.boundingBox.max.x - g.boundingBox.min.x;
-	    		if( w <= width) { 
-	    			line = temp;
-	    			continue;
-	    		}
-	    		output += line + '\n';
-	    		line =  arr_by_space[j];
-	    		// output += line;
-    		}
-    		output += i != arr_by_linebreak.length - 1 ? line + '\n' : line;
-    		line = '';
-    	}
-    	output = output.split('\n');
-    	return output;
-    }
+    // 		for(var j = 0; j < arr_by_space.length; j++)
+    // 		{
+    // 			let temp = (i + j) !== 0 ? line + ' ' + arr_by_space[j] : arr_by_space[j];
+	//     		// let m = this.context.measureText(temp);
+	// 			// console.log('??');
+	//     		let g = new TextGeometry( temp, this.fontSetting );
+	//     		g.computeBoundingBox();
+	//     		let w = g.boundingBox.max.x - g.boundingBox.min.x;
+	//     		if( w <= width) { 
+	//     			line = temp;
+	//     			continue;
+	//     		}
+	//     		output += line + '\n';
+	//     		line =  arr_by_space[j];
+	//     		// output += line;
+    // 		}
+    // 		output += i != arr_by_linebreak.length - 1 ? line + '\n' : line;
+    // 		line = '';
+    // 	}
+    // 	output = output.split('\n');
+    // 	return output;
+    // }
 
-	breakStrByWidthAndWrite(str, boxWidth, material, lineHeight, align)
-    {
-    	let current_y = 0;
-    	let arr_by_linebreak = str.split("\n");
-    	let line = '';
-    	let geometry_arr = [];
-    	let geometry_temp = false;
-    	let text_width_temp = 0;
-    	let output = new THREE.Mesh();
-    	let text_height = 0;
+	// breakStrByWidthAndWrite(str, boxWidth, material, lineHeight, align)
+    // {
+    // 	let current_y = 0;
+    // 	let arr_by_linebreak = str.split("\n");
+    // 	let line = '';
+    // 	let geometry_arr = [];
+    // 	let geometry_temp = false;
+    // 	let text_width_temp = 0;
+    // 	let output = new THREE.Mesh();
+    // 	let text_height = 0;
 
-    	for(var i = 0; i < arr_by_linebreak.length; i++)
-    	{
+    // 	for(var i = 0; i < arr_by_linebreak.length; i++)
+    // 	{
 
-    		let arr_by_space = arr_by_linebreak[i].split(' ');
-    		for(var j = 0; j < arr_by_space.length; j++)
-    		{
-    			let temp = (i + j) !== 0 && line !== '' ? line + ' ' + arr_by_space[j] : arr_by_space[j];
-    			let geometry_text = new TextGeometry( temp, this.fontSetting );
-    			geometry_text.computeBoundingBox();
-    			geometry_temp = geometry_temp === '' ? geometry_text : geometry_temp;
-    			let text_width = geometry_text.boundingBox.max.x - geometry_text.boundingBox.min.x;
-    			if(geometry_temp === '')
-    			{
-    				geometry_temp = geometry_text;
-    				text_width_temp = text_width;
-    			}
-    			if(text_height === 0) text_height = (geometry_text.boundingBox.max.y - geometry_text.boundingBox.min.y);
-	    		if( text_width <= boxWidth) { 
-	    			line = temp;
-	    			geometry_temp = geometry_text;
-	    			text_width_temp = text_width;
-	    			continue;
-	    		}
-	    		let m = new THREE.Mesh(geometry_temp, material);
-	    		output.add(m);
-	    		let x = align == 'center' ? -text_width_temp / 2 : 0;
-	    		geometry_temp.translate(x, text_height / 2 - (Object.keys(output.children).length * line_height), 0);
+    // 		let arr_by_space = arr_by_linebreak[i].split(' ');
+    // 		for(var j = 0; j < arr_by_space.length; j++)
+    // 		{
+    // 			let temp = (i + j) !== 0 && line !== '' ? line + ' ' + arr_by_space[j] : arr_by_space[j];
+    // 			let geometry_text = new TextGeometry( temp, this.fontSetting );
+    // 			geometry_text.computeBoundingBox();
+    // 			geometry_temp = geometry_temp === '' ? geometry_text : geometry_temp;
+    // 			let text_width = geometry_text.boundingBox.max.x - geometry_text.boundingBox.min.x;
+    // 			if(geometry_temp === '')
+    // 			{
+    // 				geometry_temp = geometry_text;
+    // 				text_width_temp = text_width;
+    // 			}
+    // 			if(text_height === 0) text_height = (geometry_text.boundingBox.max.y - geometry_text.boundingBox.min.y);
+	//     		if( text_width <= boxWidth) { 
+	//     			line = temp;
+	//     			geometry_temp = geometry_text;
+	//     			text_width_temp = text_width;
+	//     			continue;
+	//     		}
+	//     		let m = new THREE.Mesh(geometry_temp, material);
+	//     		output.add(m);
+	//     		let x = align == 'center' ? -text_width_temp / 2 : 0;
+	//     		geometry_temp.translate(x, text_height / 2 - (Object.keys(output.children).length * line_height), 0);
 	    		
-	    		line = arr_by_space[j];
-	    		geometry_temp = j === arr_by_space.length - 1 && j !== 0 ? new TextGeometry( line, this.fontSetting ) : '';
-    		}
-    		if(geometry_temp == '') continue;
+	//     		line = arr_by_space[j];
+	//     		geometry_temp = j === arr_by_space.length - 1 && j !== 0 ? new TextGeometry( line, this.fontSetting ) : '';
+    // 		}
+    // 		if(geometry_temp == '') continue;
 
-    		geometry_temp.computeBoundingBox();
-    		if(text_height === 0) text_height = (geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y);
-    		let text_width = geometry_temp.boundingBox.max.x - geometry_temp.boundingBox.min.x;
-    		let text_h = geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y;
+    // 		geometry_temp.computeBoundingBox();
+    // 		if(text_height === 0) text_height = (geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y);
+    // 		let text_width = geometry_temp.boundingBox.max.x - geometry_temp.boundingBox.min.x;
+    // 		let text_h = geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y;
 
-    		let m = new THREE.Mesh(geometry_temp, material);
-    		let x = align == 'center' ? -text_width / 2 : 0;
-    		geometry_temp.translate( x, -current_y, 0);
-    		current_y += lineHeight;
-    		line = '';
-    		geometry_temp = '';
-    	}
+    // 		let m = new THREE.Mesh(geometry_temp, material);
+    // 		let x = align == 'center' ? -text_width / 2 : 0;
+    // 		geometry_temp.translate( x, -current_y, 0);
+    // 		current_y += lineHeight;
+    // 		line = '';
+    // 		geometry_temp = '';
+    // 	}
  
-    	return output;
-    }
+    // 	return output;
+    // }
     
-	processFontData(fontSize, isBack){
+	processFontData(typography, isBack){
 		let output = {};
-		let fontOption = this.options.fontOptions[fontSize];
-		let originalFontSize = fontOption['size'];
-        // if (isBack) 
-		// 	output.font = '/static/fonts/standard/standard-book-italic-webfont-additional-diacritics.ttf';
-		// else if(originalFontSize == '34')
-		// 	output.font = '/static/fonts/standard/standard-book-webfont-additional-diacritics.ttf';
-		// else if(originalFontSize == '80' || originalFontSize == '160')
-		// 	output.font = '/static/fonts/standard/standard-bold-webfont.ttf';
-		output.font = fontOption['font']['animated'];
-		output.fontSize = this.getValueByPixelRatio(originalFontSize);
-		output.lineHeight = fontOption['lineHeight'] / originalFontSize;
-		output.letterSpacing = fontOption['letterSpacing'] / originalFontSize;
+		let size = typography['size'];
+		let fontData = this.fonts[typography['font']['animated']['name']] ? this.fonts[typography['font']['animated']['name']] : '';
+		output.font = fontData['font'];
+		output.path = typography['font']['animated']['path'];
+		output.size = this.getValueByPixelRatio(size);
+		output.lineHeight = typography['lineHeight'] / size;
+		output.letterSpacing = typography['letterSpacing'] / size;
 		return output;
 	}
-	updateFrontFontSize(fontSize, silent = false){
-		this.frontFontSize = fontSize;
+	updateFrontTypography(key, silent = false){
+		this.frontTypography = this.options.typographyOptions[key];
 		if(!silent) this.canvasObj.draw();
 	}
-	updateBackFontSize(fontSize, silent = false){
-		this.backFontSize = fontSize;
+	updateBackTypography(key, silent = false){
+		this.backTypography = this.options.typographyOptions[key];
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontText(str, silent = false){
@@ -637,10 +682,18 @@ export class ShapeAnimated extends Shape {
 	}
 	updateFrontColor(color, silent = false){
 		// if(color['type'] == )
-		this.frontIsGridColor = color['type'] == 'special';
-		this.frontMaterial = this.processColor(color);
-		// console.log(this.frontMaterial);
-		if(!silent) this.canvasObj.draw();
+		console.log('update front color');
+		console.log(color);
+		if(color === 'upload') {
+			this.shapeMethod = 'clip';
+		} else  {
+			console.log('draw');
+			this.shapeMethod = 'draw';
+			this.frontIsGridColor = color['type'] == 'special';
+			if(this.frontMaterial) this.frontMaterial.dispose();
+			this.frontMaterial = this.processColor(color);
+			if(!silent) this.canvasObj.draw();
+		}
 	}
 	updateBackColor(color, silent = false){
 		this.backMaterial = this.processColor(color);
@@ -654,13 +707,12 @@ export class ShapeAnimated extends Shape {
 		this.backTextMaterial = this.processColor(color);
 		if(!silent) this.canvasObj.draw();
 	}
-	updateWatermark(idx, str = false, position = false, color = false, fontSize=false, font=false, shift=null, rad=0, silent = false){
-    	super.updateWatermark(idx, str, position, color, fontSize, font, shift, rad);
+	updateWatermark(idx, str = false, position = false, color = false, typography=false, font=false, shift=null, rad=0, silent = false){
+    	super.updateWatermark(idx, str, position, color, typography, font, shift, rad);
     	if(this.watermarks[idx].mesh_front != undefined)
  			this.mesh_front.remove( this.watermarks[idx].mesh_front );
  		if(this.watermarks[idx].mesh_back != undefined)
  			this.mesh_back.remove( this.watermarks[idx].mesh_back );
-
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontSpecialColor(color, silent = false){
@@ -672,19 +724,79 @@ export class ShapeAnimated extends Shape {
 		}.bind(this), undefined, function(err){console.log(err);});
 		
 	}
-	updateImg(url){
-		this.loader_image.load('media/00001.jpg', function ( texture ) {
-				// in this example we create the material when the texture is loaded
-				this.frontMaterial = new THREE.MeshBasicMaterial( {
-					map: texture
-				 } );
-				this.canvasObj.draw();
-			}.bind(this), undefined, function ( err ) {
-				console.error( 'An error happened.' );
-			}
-		);
+
+	updateImg(idx, params, silent = false){
+		super.updateImg(idx, params, silent);
+        // let imageUrl = evnt.target.result;
+
+		let temp = document.createElement('canvas');
+		let temp_ctx = temp.getContext('2d');
+		// if(this.timer_color != null)
+		// {
+		// 	clearInterval(this.timer_color);
+		// 	this.timer_color = null;
+		// }
+		// temp.width = this.canvasW;
+		// temp.height = this.canvasH;
+		
+		// let length = this.frame.w - this.padding * 2;
+			
+		// let temp_scale = 1;
+		// let temp_scaledW = this.imgs[idx].img.width * temp_scale;
+		// let temp_scaledH = this.imgs[idx].img.height * temp_scale;
+		
+		// if(this.imgs[idx].img.width > this.imgs[idx].img.height)
+		// {
+		// 	temp_scale = length / this.imgs[idx].img.height * this.imgs[idx].scale;
+		// 	temp_scaledW = this.imgs[idx].img.width * temp_scale;
+		// 	temp_scaledH = this.imgs[idx].img.height * temp_scale;
+		// }
+		// else
+		// {
+		// 	temp_scale = length / this.imgs[idx].img.width * this.imgs[idx].scale;
+		// 	temp_scaledW = this.imgs[idx].img.width * temp_scale;
+		// 	temp_scaledH = this.imgs[idx].img.height * temp_scale;
+		// }
+
+		// this.imgs[idx].x = temp.width / 2 - temp_scaledW / 2 + this.imgs[idx].shiftX;
+		// this.imgs[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.imgs[idx].shiftY + this.frame.y;
+		// temp_ctx.clearRect(0, 0, temp.width, temp.height)
+		// this.clipRectangle(temp_ctx);
+		// temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
+		// console.log(this.imgs[idx].img.width);
+		// temp_ctx.drawImage(this.imgs[idx].img, 0, 0, this.imgs[idx].img.width, this.imgs[idx].img.height, 0, 0, this.imgs[idx].img.width, this.imgs[idx].img.height);
+		// console.log(this.imgs[idx].img.width, this.imgs[idx].img.height)
+		// console.log(this.canvasW, this.canvasH)
+		// temp_ctx.drawImage(this.imgs[idx].img, 0, 0, this.canvasW, this.canvasH);
+
+		// this.color = this.context.createPattern(temp, "no-repeat");
+		// console.log(temp_ctx)
+		// let texture = new THREE.Texture(temp);
+		// let texture = new THREE.Texture({image: this.imgs[idx].img});
+		const textureLoader = new THREE.TextureLoader();
+		// console.log(params['event'].target);
+		textureLoader.load(params['event'].target.result, (texture) => {
+			console.log(texture);
+			this.frontMaterial.map = texture;
+			this.frontMaterial.needsUpdate = true;
+			// this.frontMaterial.needsUpdate = true;
+			if(!silent) this.canvasObj.draw();
+		});
+		console.log(this.frontMaterial);
+		// this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+		
+		
+		// let texture = new THREE.Texture(this.imgs[idx].img);
+		// console.log(texture)
+		// texture.needsUpdate = true;
+		// this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+		// this.frontMaterial.map = texture;
+		// this.frontMaterial.map = texture;
+		
+		
 	}
 	processStaticColorData(colorData){
+		console.log('processStaticColorData');
 		var output = {}; // params of material
 		let color = '';
 		if(colorData['code'].length == 4 && colorData['code'].indexOf('#') !== -1)
@@ -702,10 +814,13 @@ export class ShapeAnimated extends Shape {
 			output['opacity'] = colorData.opacity;
 
 		}
+		console.log(output);
 		return output;
 	}
 	drawShape()
 	{
+		if(this.geometry_front) this.geometry_front.dispose();
+		if(this.geometry_back) this.geometry_back.dispose();
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
@@ -714,29 +829,45 @@ export class ShapeAnimated extends Shape {
 			this.drawTriangle();
 		else if(this.shape.base == 'hexagon')
 			this.drawHexagon();
+		else if(this.shape.base == 'heart')
+			this.drawHeart();
+		this.geometry_front.needsUpdate = true;
+		this.geometry_back.needsUpdate = true;
 	}
 	actualDraw(animate = true){
 		// console.log('actualDraw()');
 		let sync = !animate;
 		this.scene.add( this.group );
 		this.drawShape();
-		this.mesh_frontText = this.write( this.frontText, this.frontFontSize, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, 0, sync );
-		this.mesh_backText = this.write( this.backText, this.backFontSize, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, 0, sync );
-		// this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
+		if(this.mesh_frontText)
+			this.mesh_frontText.dispose();
+		this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, 0, sync );
+		if(this.mesh_backText)
+			this.mesh_backText.dispose();
+		this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, 0, sync );
+	
 		if(this.frontIsGridColor){
 			this.mesh_front = this.frontMaterial;
 		}
-		else 
+		else if(!this.mesh_front){
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
+			// console.log('creating new mesh_front');
+			// console.log(this.geometry_front)
+			// console.log(this.frontMaterial)
+		} else {
+			this.mesh_front.geometry = this.geometry_front;
+			this.mesh_front.material = this.frontMaterial;
+		}
+		console.log(this.geometry_front.needsUpdate);
+		
 		this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
-		// console.log('mesh_frontText in actualdraw');
-		// console.log(this.mesh_frontText);
-		if(this.mesh_frontText) 
+
+		if(this.mesh_frontText && this.mesh_frontText.parent !== this.mesh_front) 
 			this.mesh_front.add(this.mesh_frontText);
-		
-		if(this.mesh_backText) this.mesh_back.add(this.mesh_backText);
-		
-		this.group.add(this.mesh_front);
+		if(this.mesh_backText && this.mesh_backText.parent !== this.mesh_back) 
+			this.mesh_back.add(this.mesh_backText);
+		if(this.mesh_front.parent !== this.group) 
+			this.group.add(this.mesh_front);
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
@@ -744,10 +875,15 @@ export class ShapeAnimated extends Shape {
 				var thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
-					el.mesh_front = this.write(el.str, el.fontSize, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-					this.mesh_front.add(el.mesh_front);
-					el.mesh_back = this.write(el.str, el.fontSize, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-					this.mesh_back.add(el.mesh_back);
+					let typography = this.options.watermarkTypographyOptions[el.typography];
+					if(this.mesh_front) {
+						el.mesh_front = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+						this.mesh_front.add(el.mesh_front);
+					}
+					if(this.mesh_back) {
+						el.mesh_back = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+						this.mesh_front.add(el.mesh_front);
+					}
 				}
 			}.bind(this));
 		}
@@ -763,7 +899,6 @@ export class ShapeAnimated extends Shape {
 		this.resetAnimation();
 		this.isForward = true;
 		this.actualDraw(animate);
-		
 	}
 	
 	drawForRecording(){
@@ -905,22 +1040,24 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	resetAnimation(){
-		// console.log('resetAnimation');
-		// console.log(this.group);
 		if(this.isForward)
             this.group.remove( this.mesh_front );
         else
             this.group.remove( this.mesh_back );
-		// console.log('resetAnimation';)
+		if(this.mesh_front) {
+			this.mesh_front.rotation.x = 0;
+			this.mesh_front.rotation.y = 0;
+			this.mesh_front.rotation.z = 0;
+		}
+		if(this.mesh_back) {
+			this.mesh_back.rotation.x = 0;
+			this.mesh_back.rotation.y = 0;
+			this.mesh_back.rotation.z = 0;
+		}
         cancelAnimationFrame(this.timer);
         this.timer = null;
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
-
-        // if(this.mesh_front) {
-        // 	this.mesh_front.setRotationFromEuler(0, this.shapeCenter.y * 540 / 960, 0, 'XYZ');
-        // }
-        // if(this.mesh_back) this.mesh_back.setRotationFromEuler(0, this.shapeCenter.y * 540 / 960, 0, 'XYZ');
 	}
 
 	updateAnimation(animationData, syncing = false, silent = false){
@@ -1007,21 +1144,33 @@ export class ShapeAnimated extends Shape {
 	  			this.group.add( this.mesh_back );
 			}
 			else {
-				
-				this.group.add(this.mesh_front);
-				// console.log(this.mesh_front);
+				// console.log('rest');
 				// console.log(this.group);
+				if(this.mesh_front.parent !== this.group) {
+					console.log('add--');
+					this.group.add(this.mesh_front);
+				}
+				
 				this.isForward = true;
 				this.mesh_front.rotation.y += this.spinAngleInterval;
+				// console.log(this.frontMaterial);
+				// console.log(this.mesh_front);
+				this.rest();
 			}
-			
-			// if(this.mesh_frontText) this.mesh_front.add(this.mesh_frontText);
-			
+						
 			this.renderer.render( this.scene, this.camera );
 		}
 		else
 			this.resetAnimation();
 
+	}
+	rest(move=true){
+		if(move)
+			this.timer = requestAnimationFrame( ()=>{ this.rest() } );
+		else 
+			this.timer = null
+		// this.mesh_front.rotation.y += this.spinAngleInterval;
+		this.renderer.render( this.scene, this.camera );
 	}
 	spin(){
 		this.timer = requestAnimationFrame( this.spin.bind(this) );
@@ -1083,6 +1232,7 @@ export class ShapeAnimated extends Shape {
 	    this.renderer.render( this.scene, this.camera );
 	}
 	flip(){
+		// console.log(this.mesh_frontText);
 		this.timer = requestAnimationFrame( this.flip.bind(this) );
 	    this.mesh_front.rotation.x += this.flipAngleInterval;
 	    this.mesh_back.rotation.x  += this.flipAngleInterval;
@@ -1179,10 +1329,14 @@ export class ShapeAnimated extends Shape {
     renderControl(){
 		super.renderControl();
 		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
+		if(this.options.colorOptions['upload']) 
+			this.control.appendChild(this.renderFileField('background-image-front', 'background-image background-image-front', ''));
 		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
+		if(this.options.colorOptions['upload']) 
+			this.control.appendChild(this.renderFileField('background-image-back', 'background-image background-image-back', ''));
 		this.fields['shape-back-color'].selectedIndex = 1;
-		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
-		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.fontOptions));
+		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
+		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control_wrapper.appendChild(this.control);
 	}
@@ -1219,12 +1373,9 @@ export class ShapeAnimated extends Shape {
 		}
 	    
 
-	    let sText_front_font = this.control.querySelector('.field-id-text-front-font');
-	    sText_front_font.onchange = function(e){
-	        // updateCounterpartSelect(sText_font, e.target.value);
-	        this.updateFrontFontSize(e.target.value);
-	        // this.counterpart.updateFontSize(e.target.value);
-	        // this.updateCounterpartSelectField('text-font', e.target.selectedIndex);
+	    let sText_front_typography = this.control.querySelector('.field-id-text-front-typography');
+	    sText_front_typography.onchange = function(e){
+	        this.updateFrontTypography(e.target.value);
 	    }.bind(this);
 
 	    let sText_front_color = this.control.querySelector('.field-id-text-front-color');
@@ -1265,9 +1416,9 @@ export class ShapeAnimated extends Shape {
 	        this.updateBackText(e.target.value);
 	    }.bind(this);
 
-	    let sText_back_font = this.control.querySelector('.field-id-text-back-font');
-	    sText_back_font.onchange = function(e){
-	        this.updateBackFontSize(e.target.value);
+	    let sText_back_typography = this.control.querySelector('.field-id-text-back-typography');
+	    sText_back_typography.onchange = function(e){
+	        this.updateBackTypography(e.target.value);
 	    }.bind(this);
 
 	    let sText_back_color = this.control.querySelector('.field-id-text-back-color');
@@ -1278,24 +1429,31 @@ export class ShapeAnimated extends Shape {
 
 	    let sShape_front_color = this.control.querySelector('.field-id-shape-front-color');
 	    sShape_front_color.onchange = function(e){
+			let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
-	        if( this.options.colorOptions[shape_color]['color']['type'] == 'solid' || 
-	            this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
-				this.options.colorOptions[shape_color]['color']['type'] == 'special')
-	        {
-				// console.log('sShape_front_color.onchange');
-	            this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
-	            this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-	            this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
-	            if(this.options.colorOptions[shape_color] !== undefined){
-	                // this.updateCounterpartSelect(sShape_color, shape_color);
-	                // this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-	            }
-	        }
-	        else if(this.options.colorOptions[shape_color]['color']['type'] == 'special')
-	        {
-	            // this.updateFrontSpecialColor(this.options.colorOptions[shape_color]);
-	        }
+			if(shape_color === 'upload') {
+				sec.classList.add('viewing-background-upload');
+				this.updateFrontColor('upload');
+			}
+	        else {
+				sec.classList.remove('viewing-background-upload');
+				if( this.options.colorOptions[shape_color]['color']['type'] == 'solid' || 
+					this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
+					this.options.colorOptions[shape_color]['color']['type'] == 'special')
+				{
+					this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
+					this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
+					this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
+					if(this.options.colorOptions[shape_color] !== undefined){
+						// this.updateCounterpartSelect(sShape_color, shape_color);
+						// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
+					}
+				}
+				else if(this.options.colorOptions[shape_color]['color']['type'] == 'special')
+				{
+					// this.updateFrontSpecialColor(this.options.colorOptions[shape_color]);
+				}
+			}
 	            
 	        // document.getElementById("background-image-controls").style.display="none";
 	    }.bind(this);
@@ -1334,6 +1492,33 @@ export class ShapeAnimated extends Shape {
 	    	let position = e.target.value;
 	    	this.updateBackTextPosition(position);
 	    }.bind(this);
+
+		for(let idx in this.fields.imgs) {
+			let input = this.fields.imgs[idx];
+			input.onclick = function (e) {
+				e.target.value = null;
+			}.bind(this);
+			input.onchange = function(e){
+				this.readImage(e, this.updateImg.bind(this));
+			}.bind(this);
+			// let scale_input = input.parentNode.querySelector('.img-control-scale');
+			// if(scale_input) {
+			// 	scale_input.oninput = function(e){
+			// 	    e.preventDefault();
+			// 	    let scale = e.target.value >= 1 ? e.target.value : 1;
+			// 	    this.updateImgScale(scale, idx);
+			// 	}.bind(this);
+			// }	
+			// let shift_x_input = input.parentNode.querySelector('.img-control-shift-x');
+			// shift_x_input.oninput = function(e){
+			// 	this.updateImgPositionX(e.target.value, idx);
+			// }.bind(this);
+			// let shift_y_input = input.parentNode.querySelector('.img-control-shift-y');
+			// shift_y_input.oninput = function(e){
+			// 	this.updateImgPositionY(e.target.value, idx);
+			// }.bind(this);
+		}
+
 	}
 	// updateShapeCenter(shapeCenter){
     // 	super.updateShapeCenter(shapeCenter);
@@ -1373,14 +1558,11 @@ export class ShapeAnimated extends Shape {
 		if(shape_num === 1) {
 			return output;
 		} else if(shape_num === 2) {
-			// console.log(this.shape_index);
 			let canvas_h = this.canvasObj.canvas.height;
 			output.x = 0;
 			output.y = this.shape_index == 0 ? canvas_h / 4 : - canvas_h / 4;
-			// console.log(output);
 		}
 		
-		// if(this.id === 'staticShape-2') console.log(output);
 		return output;
 	}
 	generateFrame(){
@@ -1415,8 +1597,8 @@ export class ShapeAnimated extends Shape {
     	super.updateCounterpartTextField('text', this.fields['text-front'].value);
     	this.counterpart.updateText(this.fields['text-front'].value, isSilent);
         
-        this.updateCounterpartSelectField('text-font', this.fields['text-front-font'].selectedIndex);
-        this.counterpart.updateFontSize(this.fields['text-front-font'].value, isSilent);
+        this.updateCounterpartSelectField('text-typography', this.fields['text-front-typography'].selectedIndex);
+        this.counterpart.updatetypography(this.fields['text-front-typography'].value, isSilent);
 
         this.updateCounterpartSelectField('text-color', this.fields['text-front-color'].selectedIndex);
         this.counterpart.updateTextColor(this.options.textColorOptions[this.fields['text-front-color'].value]['color'], isSilent);
