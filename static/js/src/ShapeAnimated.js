@@ -777,9 +777,11 @@ export class ShapeAnimated extends Shape {
 		// console.log(params['event'].target);
 		textureLoader.load(params['event'].target.result, (texture) => {
 			console.log(texture);
+			// this.frontMaterial.color = new THREE.Color('#ffffff');
+			this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+			// this.frontMaterial.blendColor = new THREE.Color('#ffffff');
 			this.frontMaterial.map = texture;
 			this.frontMaterial.needsUpdate = true;
-			// this.frontMaterial.needsUpdate = true;
 			if(!silent) this.canvasObj.draw();
 		});
 		console.log(this.frontMaterial);
@@ -853,12 +855,15 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
 			// console.log('creating new mesh_front');
 			// console.log(this.geometry_front)
-			// console.log(this.frontMaterial)
-		} else {
+			console.log(this.frontMaterial)
+		} 
+		else {
 			this.mesh_front.geometry = this.geometry_front;
 			this.mesh_front.material = this.frontMaterial;
+			this.mesh_front.needsUpdate = true;
+			console.log(this.frontMaterial);
 		}
-		console.log(this.geometry_front.needsUpdate);
+		// console.log(this.geometry_front.needsUpdate);
 		
 		this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
 
@@ -866,8 +871,7 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front.add(this.mesh_frontText);
 		if(this.mesh_backText && this.mesh_backText.parent !== this.mesh_back) 
 			this.mesh_back.add(this.mesh_backText);
-		if(this.mesh_front.parent !== this.group) 
-			this.group.add(this.mesh_front);
+		
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
@@ -887,6 +891,8 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this));
 		}
+		if(this.mesh_front.parent !== this.group) 
+			this.group.add(this.mesh_front);
 		this.mesh_front.scale.multiply(this.scale);
 		this.mesh_back.scale.multiply(this.scale);
 		if(this.animationName == 'none') return;
@@ -1144,8 +1150,6 @@ export class ShapeAnimated extends Shape {
 	  			this.group.add( this.mesh_back );
 			}
 			else {
-				// console.log('rest');
-				// console.log(this.group);
 				if(this.mesh_front.parent !== this.group) {
 					console.log('add--');
 					this.group.add(this.mesh_front);
@@ -1153,8 +1157,6 @@ export class ShapeAnimated extends Shape {
 				
 				this.isForward = true;
 				this.mesh_front.rotation.y += this.spinAngleInterval;
-				// console.log(this.frontMaterial);
-				// console.log(this.mesh_front);
 				this.rest();
 			}
 						
