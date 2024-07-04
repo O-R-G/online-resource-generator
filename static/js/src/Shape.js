@@ -45,7 +45,7 @@ export class Shape {
         if(!canvasObj) canvasObj = this.canvasObj;
         else this.canvasObj = canvasObj;
         this.control_wrapper = this.canvasObj.control_shape;
-        this.control = document.createElement('DIV');
+        this.control = document.createElement('div');
         this.control.className = 'shape-control';
         this.control.id = this.id + '-shape-control';
         this.control.setAttribute('data-shape-id', this.id);
@@ -104,7 +104,27 @@ export class Shape {
             }   
     	} 		
 	}
-    
+    renderSection(id='', displayName, children=[], extraClass=''){
+        let output = document.createElement('div');
+        output.className = 'panel-section float-container ' + extraClass;
+        if(id) output.id = id;
+        let label = document.createElement('label');
+        label.innerText = displayName;
+        let right = document.createElement('div');
+        right.className = 'half-right flex-container';
+        if(typeof children === 'object') {
+            if(Array.isArray(children)) {
+                for(let i = 0; i < children.length; i++) 
+                    right.appendChild(children[i]);
+                    
+            }else {
+                right.appendChild(children);
+            }
+        }
+        output.appendChild(label);
+        output.appendChild(right);
+        return output;
+    }
     renderSelect(id, options, extraClass='', attrs=null){
         let output = document.createElement('select');
         output.className = 'field-id-' + id + ' ' + extraClass;
@@ -129,7 +149,7 @@ export class Shape {
     }
     renderSelectField(id, displayName, options, extraClass='')
     {
-        let temp_panel_section = document.createElement('DIV');
+        let temp_panel_section = document.createElement('div');
         temp_panel_section.className  = "panel-section float-container " + extraClass;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
@@ -146,7 +166,7 @@ export class Shape {
     renderTextField(id, displayName, textPositionOptions, textColorOptions, typographyOptions, extraClass='')
     {
 
-        let temp_panel_section = document.createElement('DIV');
+        let temp_panel_section = document.createElement('div');
         temp_panel_section.className  = "panel-section float-container " + extraClass;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
@@ -253,12 +273,12 @@ export class Shape {
     {
         let id = 'watermark-' + idx;
         let displayName = 'Watermark';
-        let temp_panel_section = document.createElement('DIV');
+        let temp_panel_section = document.createElement('div');
         temp_panel_section.className  = "panel-section float-container " + extraClass;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
-        let temp_right = document.createElement('DIV');
+        let temp_right = document.createElement('div');
         temp_right.className = 'half-right flex-container typography-control';
         let temp_input = document.createElement('TEXTAREA');
         temp_input.className = 'field-id-' +id + ' watermark flex-item ' + extraClass;
@@ -417,9 +437,9 @@ export class Shape {
         }
     }
     renderAddWaterMark(){
-    	let container = document.createElement('DIV');
+    	let container = document.createElement('div');
     	container.className = 'watermarks-container';
-    	let btn = document.createElement('DIV');
+    	let btn = document.createElement('div');
     	btn.className = 'btn-add-watermark';
         this.addWatermarkButton = btn;
     	btn.addEventListener('click', function(){
@@ -475,39 +495,61 @@ export class Shape {
 	        this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
         }
     }
-    renderFileField(id, idx, displayName, extraClass='')
-    {
-    	let input_id = id + '-' + this.format + '-' + this.id;
-        let temp_panel_section = document.createElement('DIV');
-        temp_panel_section.className  = "panel-section float-container " + extraClass;
-        let temp_pseudo_label = document.createElement('DIV');
-        temp_pseudo_label.className = 'pseudo-label';
-        temp_pseudo_label.innerText = displayName;
-        let temp_label = document.createElement('label');
-        temp_label.setAttribute('for', input_id);
-		temp_label.className = 'panel-section pseudo-upload';
-        temp_label.innerText = 'Choose file';
-        let temp_input = document.createElement('input');
-        temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
-        temp_input.id = input_id;
-        temp_input.type = 'file';
-		temp_input.setAttribute('image-idx', idx);
-		let backgroundImageControls = this.renderImageControls('background-image');
-		let temp_right = document.createElement('div');
-		temp_right.className = 'half-right flex-container';
-		temp_right.appendChild(temp_input);
-		temp_right.appendChild(temp_label);
-		temp_right.appendChild(backgroundImageControls);
-
-        temp_panel_section.appendChild(temp_pseudo_label);
-        temp_panel_section.appendChild(temp_right);
-		temp_panel_section.id = id + '-panel-section';
-
-		this.fields.imgs[idx] = temp_input;
-        return temp_panel_section;
+    renderFileField(id, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){
+        let input_id = this.id + '-field-id-' + id;
+        let output = document.createElement('div');
+        let input = document.createElement('input');
+        let label = document.createElement('label');
+        let extraWrapperClass = extraClass['wrapper'] && extraClass['wrapper'].length ? ' ' + this.getClassString(extraClass['wrapper']) : '';
+        output.className = 'field-wrapper ' + input_id + '-wrapper' + extraWrapperClass;
+        if(extraAttr['wrapper']) output = this.addExtraAttr(output, extraAttr['wrapper']);
+        
+        let extraInputClass = extraClass['input'] && extraClass['input'].length ? ' ' + this.getClassString(extraClass['input']) : '';
+        input.className = 'field-id-' + id + extraInputClass;
+        input.id = input_id;
+        input.type = 'file';
+		input.setAttribute('image-idx', id);
+        label.setAttribute('for', input_id);
+		label.className = 'panel-section pseudo-upload';
+        label.innerText = 'Choose file';
+        output.appendChild(input);
+        output.appendChild(label);
+        this.fields.imgs[id] = input
+        return output;
     }
+    // renderFileField(id, idx, displayName, extraClass='')
+    // {
+    //     let input_id = this.id + '-field-id-' + id;
+    //     let temp_panel_section = document.createElement('div');
+    //     temp_panel_section.className  = "panel-section float-container " + extraClass;
+    //     let temp_pseudo_label = document.createElement('div');
+    //     temp_pseudo_label.className = 'pseudo-label';
+    //     temp_pseudo_label.innerText = displayName;
+    //     let temp_label = document.createElement('label');
+    //     temp_label.setAttribute('for', input_id);
+	// 	temp_label.className = 'panel-section pseudo-upload';
+    //     temp_label.innerText = 'Choose file';
+    //     let temp_input = document.createElement('input');
+    //     temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
+    //     temp_input.id = input_id;
+    //     temp_input.type = 'file';
+	// 	temp_input.setAttribute('image-idx', idx);
+	// 	let backgroundImageControls = this.renderImageControls(input_id);
+	// 	let temp_right = document.createElement('div');
+	// 	temp_right.className = 'half-right flex-container';
+	// 	temp_right.appendChild(temp_input);
+	// 	temp_right.appendChild(temp_label);
+	// 	temp_right.appendChild(backgroundImageControls);
+
+    //     temp_panel_section.appendChild(temp_pseudo_label);
+    //     temp_panel_section.appendChild(temp_right);
+	// 	temp_panel_section.id = id + '-panel-section';
+
+	// 	this.fields.imgs[idx] = temp_input;
+    //     return temp_panel_section;
+    // }
     renderImageControls(id=''){
-		let container = document.createElement('DIV');
+		let container = document.createElement('div');
 		container.className = 'field-id-image-controls float-container flex-item';
 		container.id = id ? id + '-field-id-image-controls' : '';
 		container.setAttribute('flex', 'full');
@@ -523,7 +565,7 @@ export class Shape {
 	}
     renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
-        let temp_panel_section = document.createElement('DIV');
+        let temp_panel_section = document.createElement('div');
         temp_panel_section.className  = "panel-section float-container " + extraWrapperClass;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
@@ -535,7 +577,7 @@ export class Shape {
         temp_input.setAttribute('step', step);
         temp_input.setAttribute('min', min);
 		temp_input.id = this.id + '-field-id-' + id;
-		let temp_right = document.createElement('DIV');
+		let temp_right = document.createElement('div');
 		temp_right.className = 'half-right flex-container';
 		temp_right.appendChild(temp_input);
         temp_panel_section.appendChild(temp_label);
@@ -549,13 +591,10 @@ export class Shape {
         	var FR = new FileReader();
             FR.onload = function (e) {
                 let image = new Image();
-                // image.onload = function (e) {
-                //     console.log('loaded--');
-                //     // if(typeof cb === 'function')
-                //     //     cb(idx, {'event': e, 'img': image});	
-                // }.bind(this);
-                if(typeof cb === 'function')
-                    cb(idx, {'event': e, 'img': image});	
+                image.onload = function (e) {
+                    if(typeof cb === 'function')
+                        cb(idx, {img: image});	
+                }.bind(this);
                 image.src = e.target.result;
             }.bind(this);
             FR.readAsDataURL(input.files[0]);
@@ -657,5 +696,18 @@ export class Shape {
         }
         return returnKey ? Object.keys(options)[0] : options[Object.keys(options)[0]];
     }
+    getClassString(arr){
+        return arr.join(' ');
+    };
+    addExtraAttr(el, attrs){
+        for(let prop in attrs) {
+            if(attrs[prop] === '' || attrs[prop] == true) {
+                el.setAttribute(prop, true);
+            } else {
+                el.setAttribute(prop, attrs[prop]);
+            }
+        }
+        return el;
+    };
 }
 

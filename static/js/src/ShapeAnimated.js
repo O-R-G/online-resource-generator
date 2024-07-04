@@ -715,87 +715,32 @@ export class ShapeAnimated extends Shape {
  			this.mesh_back.remove( this.watermarks[idx].mesh_back );
 		if(!silent) this.canvasObj.draw();
 	}
-	updateFrontSpecialColor(color, silent = false){
-		var texture_loader = new THREE.TextureLoader()
-		texture_loader.load( '/media/00001.jpg', function(texture){
-			this.texture = texture;
-			this.frontMaterial = new THREE.MeshBasicMaterial( { map:texture });
-			if(!silent) this.canvasObj.draw();
-		}.bind(this), undefined, function(err){console.log(err);});
+	// updateFrontSpecialColor(color, silent = false){
+	// 	var texture_loader = new THREE.TextureLoader()
+	// 	texture_loader.load( '/media/00001.jpg', function(texture){
+	// 		this.texture = texture;
+	// 		this.frontMaterial = new THREE.MeshBasicMaterial( { map:texture });
+	// 		if(!silent) this.canvasObj.draw();
+	// 	}.bind(this), undefined, function(err){console.log(err);});
 		
-	}
+	// }
 
-	updateImg(idx, params, silent = false){
+	updateImg(idx, params, silent = false, isBack = false){
 		super.updateImg(idx, params, silent);
-        // let imageUrl = evnt.target.result;
-
-		let temp = document.createElement('canvas');
-		let temp_ctx = temp.getContext('2d');
-		// if(this.timer_color != null)
-		// {
-		// 	clearInterval(this.timer_color);
-		// 	this.timer_color = null;
-		// }
-		// temp.width = this.canvasW;
-		// temp.height = this.canvasH;
-		
-		// let length = this.frame.w - this.padding * 2;
-			
-		// let temp_scale = 1;
-		// let temp_scaledW = this.imgs[idx].img.width * temp_scale;
-		// let temp_scaledH = this.imgs[idx].img.height * temp_scale;
-		
-		// if(this.imgs[idx].img.width > this.imgs[idx].img.height)
-		// {
-		// 	temp_scale = length / this.imgs[idx].img.height * this.imgs[idx].scale;
-		// 	temp_scaledW = this.imgs[idx].img.width * temp_scale;
-		// 	temp_scaledH = this.imgs[idx].img.height * temp_scale;
-		// }
-		// else
-		// {
-		// 	temp_scale = length / this.imgs[idx].img.width * this.imgs[idx].scale;
-		// 	temp_scaledW = this.imgs[idx].img.width * temp_scale;
-		// 	temp_scaledH = this.imgs[idx].img.height * temp_scale;
-		// }
-
-		// this.imgs[idx].x = temp.width / 2 - temp_scaledW / 2 + this.imgs[idx].shiftX;
-		// this.imgs[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.imgs[idx].shiftY + this.frame.y;
-		// temp_ctx.clearRect(0, 0, temp.width, temp.height)
-		// this.clipRectangle(temp_ctx);
-		// temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
-		// console.log(this.imgs[idx].img.width);
-		// temp_ctx.drawImage(this.imgs[idx].img, 0, 0, this.imgs[idx].img.width, this.imgs[idx].img.height, 0, 0, this.imgs[idx].img.width, this.imgs[idx].img.height);
-		// console.log(this.imgs[idx].img.width, this.imgs[idx].img.height)
-		// console.log(this.canvasW, this.canvasH)
-		// temp_ctx.drawImage(this.imgs[idx].img, 0, 0, this.canvasW, this.canvasH);
-
-		// this.color = this.context.createPattern(temp, "no-repeat");
-		// console.log(temp_ctx)
-		// let texture = new THREE.Texture(temp);
-		// let texture = new THREE.Texture({image: this.imgs[idx].img});
 		const textureLoader = new THREE.TextureLoader();
-		// console.log(params['event'].target);
-		textureLoader.load(params['event'].target.result, (texture) => {
-			console.log(texture);
-			// this.frontMaterial.color = new THREE.Color('#ffffff');
-			this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-			// this.frontMaterial.blendColor = new THREE.Color('#ffffff');
-			this.frontMaterial.map = texture;
-			this.frontMaterial.needsUpdate = true;
+		textureLoader.load(params['img'].src, (texture) => {
+			if(!isBack) {
+				this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				this.frontMaterial.map = texture;
+				this.frontMaterial.needsUpdate = true;
+			} else {
+				this.backMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				this.backMaterial.map = texture;
+				this.backMaterial.needsUpdate = true;
+			}
+			
 			if(!silent) this.canvasObj.draw();
 		});
-		console.log(this.frontMaterial);
-		// this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-		
-		
-		// let texture = new THREE.Texture(this.imgs[idx].img);
-		// console.log(texture)
-		// texture.needsUpdate = true;
-		// this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-		// this.frontMaterial.map = texture;
-		// this.frontMaterial.map = texture;
-		
-		
 	}
 	processStaticColorData(colorData){
 		console.log('processStaticColorData');
@@ -1331,11 +1276,26 @@ export class ShapeAnimated extends Shape {
     renderControl(){
 		super.renderControl();
 		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
-		if(this.options.colorOptions['upload']) 
-			this.control.appendChild(this.renderFileField('background-image-front', 'background-image background-image-front', ''));
+		if(this.options.colorOptions['upload']) {
+			let prefix = 'front';
+			let field = this.renderFileField(prefix + '-background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+			let controls = this.renderImageControls(field.querySelector('input').id);
+			let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			this.control.appendChild(section);
+		}
+		
+		// if(this.options.colorOptions['upload']) 
+		// 	this.control.appendChild(this.renderFileField('background-image-front', 'background-image background-image-front', ''));
 		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
-		if(this.options.colorOptions['upload']) 
-			this.control.appendChild(this.renderFileField('background-image-back', 'background-image background-image-back', ''));
+		if(this.options.colorOptions['upload']) {
+			let prefix = 'back';
+			let field = this.renderFileField(prefix + '-background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+			let controls = this.renderImageControls(field.querySelector('input').id);
+			let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			this.control.appendChild(section);
+		}
+		// if(this.options.colorOptions['upload']) 
+		// 	this.control.appendChild(this.renderFileField('background-image-back', 'background-image background-image-back', ''));
 		this.fields['shape-back-color'].selectedIndex = 1;
 		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
@@ -1462,12 +1422,31 @@ export class ShapeAnimated extends Shape {
 
 	    let sShape_back_color = this.control.querySelector('.field-id-shape-back-color');
 	    sShape_back_color.onchange = function(e){
+	        let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
-	        if( this.options.colorOptions[shape_color]['color']['type'] == 'solid' || 
-	            this.options.colorOptions[shape_color]['color']['type'] == 'gradient')
-	            this.updateBackColor(this.options.colorOptions[shape_color]['color']);
-
-	        // document.getElementById("background-image-controls").style.display="none";
+			if(shape_color === 'upload') {
+				sec.classList.add('viewing-background-upload');
+				this.updateFrontColor('upload');
+			}
+	        else {
+				sec.classList.remove('viewing-background-upload');
+				if( this.options.colorOptions[shape_color]['color']['type'] == 'solid' || 
+					this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
+					this.options.colorOptions[shape_color]['color']['type'] == 'special')
+				{
+					this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
+					this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
+					this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
+					if(this.options.colorOptions[shape_color] !== undefined){
+						// this.updateCounterpartSelect(sShape_color, shape_color);
+						// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
+					}
+				}
+				else if(this.options.colorOptions[shape_color]['color']['type'] == 'special')
+				{
+					// this.updateFrontSpecialColor(this.options.colorOptions[shape_color]);
+				}
+			}
 	    }.bind(this);
 	   
 	    this.fields['animation'].onchange = function(e){
@@ -1501,36 +1480,14 @@ export class ShapeAnimated extends Shape {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
-				this.readImage(e, this.updateImg.bind(this));
+				this.readImage(e, (idx, params)=> {
+					let isBack = idx.indexOf('back-') !== -1;
+					this.updateImg(idx, params, false, isBack)
+				});
 			}.bind(this);
-			// let scale_input = input.parentNode.querySelector('.img-control-scale');
-			// if(scale_input) {
-			// 	scale_input.oninput = function(e){
-			// 	    e.preventDefault();
-			// 	    let scale = e.target.value >= 1 ? e.target.value : 1;
-			// 	    this.updateImgScale(scale, idx);
-			// 	}.bind(this);
-			// }	
-			// let shift_x_input = input.parentNode.querySelector('.img-control-shift-x');
-			// shift_x_input.oninput = function(e){
-			// 	this.updateImgPositionX(e.target.value, idx);
-			// }.bind(this);
-			// let shift_y_input = input.parentNode.querySelector('.img-control-shift-y');
-			// shift_y_input.oninput = function(e){
-			// 	this.updateImgPositionY(e.target.value, idx);
-			// }.bind(this);
 		}
 
 	}
-	// updateShapeCenter(shapeCenter){
-    // 	super.updateShapeCenter(shapeCenter);
-    // 	this.group.remove(this.mesh_front);
-    // 	this.group.remove(this.mesh_back);
-    // 	this.scene.remove(this.group);
-    // 	this.group = new THREE.Group();
-    // 	this.group.translateY(this.frame.y * this.scale.y);
-    // 	this.canvasObj.draw();
-    // }
     updateFrame(frame=null, silent = false)
     {
 		frame = frame ? frame : this.generateFrame();

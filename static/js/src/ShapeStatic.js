@@ -913,6 +913,7 @@ export class ShapeStatic extends Shape {
 		this.write(this.str, this.textPosition, 'default', this.typography, {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
+		console.log(this.color);
 		this.drawCustomGraphic();
 	}
 	// clip(){
@@ -930,8 +931,13 @@ export class ShapeStatic extends Shape {
 		super.renderControl();
 		// if(this.fields['animation']) this.fields['animation'].parentNode.parentNode.style.display = 'none';
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
-		if(this.options.colorOptions['upload']) 
-			this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
+		if(this.options.colorOptions['upload']) {
+			let field = this.renderFileField('background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+			let controls = this.renderImageControls(field.querySelector('input').id);
+			let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			this.control.appendChild(section);
+		}
+			// this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
 		
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
@@ -1033,7 +1039,7 @@ export class ShapeStatic extends Shape {
 			input.onchange = function(e){
 				this.readImage(e, this.updateImg.bind(this));
 			}.bind(this);
-			let scale_input = input.parentNode.querySelector('.img-control-scale');
+			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
@@ -1041,11 +1047,11 @@ export class ShapeStatic extends Shape {
 				    this.updateImgScale(scale, idx);
 				}.bind(this);
 			}	
-			let shift_x_input = input.parentNode.querySelector('.img-control-shift-x');
+			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
 				this.updateImgPositionX(e.target.value, idx);
 			}.bind(this);
-			let shift_y_input = input.parentNode.querySelector('.img-control-shift-y');
+			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
 				this.updateImgPositionY(e.target.value, idx);
 			}.bind(this);
@@ -1113,11 +1119,8 @@ export class ShapeStatic extends Shape {
 				this.timer_position = null;
 			}
 			
-
 			temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
-			console.log(temp);
 			this.color = this.context.createPattern(temp, "no-repeat");
-			
 		} 
 		if(!silent) this.canvasObj.draw();
 	}
@@ -1236,7 +1239,9 @@ export class ShapeStatic extends Shape {
 		timer = null;
     }
 	drawImages(){
+		console.log('drawImages()');
 		for(let idx in this.imgs) {
+			console.log(idx);
 			if(idx === 'background-image') continue;
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
 		}
