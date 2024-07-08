@@ -514,100 +514,6 @@ export class ShapeAnimated extends Shape {
 		output.sync();
 		return output;
 	}
-
-	// breakStrByWidth(str, width)
-    // {
-    // 	let arr_by_linebreak = str.split("\n");
-    	
-    // 	let line = '';
-    // 	let output = '';
-    // 	for(var i = 0; i < arr_by_linebreak.length; i++)
-    // 	{ 
-    // 		let arr_by_space = arr_by_linebreak[i].split(' ');
-
-    // 		for(var j = 0; j < arr_by_space.length; j++)
-    // 		{
-    // 			let temp = (i + j) !== 0 ? line + ' ' + arr_by_space[j] : arr_by_space[j];
-	//     		// let m = this.context.measureText(temp);
-	// 			// console.log('??');
-	//     		let g = new TextGeometry( temp, this.fontSetting );
-	//     		g.computeBoundingBox();
-	//     		let w = g.boundingBox.max.x - g.boundingBox.min.x;
-	//     		if( w <= width) { 
-	//     			line = temp;
-	//     			continue;
-	//     		}
-	//     		output += line + '\n';
-	//     		line =  arr_by_space[j];
-	//     		// output += line;
-    // 		}
-    // 		output += i != arr_by_linebreak.length - 1 ? line + '\n' : line;
-    // 		line = '';
-    // 	}
-    // 	output = output.split('\n');
-    // 	return output;
-    // }
-
-	// breakStrByWidthAndWrite(str, boxWidth, material, lineHeight, align)
-    // {
-    // 	let current_y = 0;
-    // 	let arr_by_linebreak = str.split("\n");
-    // 	let line = '';
-    // 	let geometry_arr = [];
-    // 	let geometry_temp = false;
-    // 	let text_width_temp = 0;
-    // 	let output = new THREE.Mesh();
-    // 	let text_height = 0;
-
-    // 	for(var i = 0; i < arr_by_linebreak.length; i++)
-    // 	{
-
-    // 		let arr_by_space = arr_by_linebreak[i].split(' ');
-    // 		for(var j = 0; j < arr_by_space.length; j++)
-    // 		{
-    // 			let temp = (i + j) !== 0 && line !== '' ? line + ' ' + arr_by_space[j] : arr_by_space[j];
-    // 			let geometry_text = new TextGeometry( temp, this.fontSetting );
-    // 			geometry_text.computeBoundingBox();
-    // 			geometry_temp = geometry_temp === '' ? geometry_text : geometry_temp;
-    // 			let text_width = geometry_text.boundingBox.max.x - geometry_text.boundingBox.min.x;
-    // 			if(geometry_temp === '')
-    // 			{
-    // 				geometry_temp = geometry_text;
-    // 				text_width_temp = text_width;
-    // 			}
-    // 			if(text_height === 0) text_height = (geometry_text.boundingBox.max.y - geometry_text.boundingBox.min.y);
-	//     		if( text_width <= boxWidth) { 
-	//     			line = temp;
-	//     			geometry_temp = geometry_text;
-	//     			text_width_temp = text_width;
-	//     			continue;
-	//     		}
-	//     		let m = new THREE.Mesh(geometry_temp, material);
-	//     		output.add(m);
-	//     		let x = align == 'center' ? -text_width_temp / 2 : 0;
-	//     		geometry_temp.translate(x, text_height / 2 - (Object.keys(output.children).length * line_height), 0);
-	    		
-	//     		line = arr_by_space[j];
-	//     		geometry_temp = j === arr_by_space.length - 1 && j !== 0 ? new TextGeometry( line, this.fontSetting ) : '';
-    // 		}
-    // 		if(geometry_temp == '') continue;
-
-    // 		geometry_temp.computeBoundingBox();
-    // 		if(text_height === 0) text_height = (geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y);
-    // 		let text_width = geometry_temp.boundingBox.max.x - geometry_temp.boundingBox.min.x;
-    // 		let text_h = geometry_temp.boundingBox.max.y - geometry_temp.boundingBox.min.y;
-
-    // 		let m = new THREE.Mesh(geometry_temp, material);
-    // 		let x = align == 'center' ? -text_width / 2 : 0;
-    // 		geometry_temp.translate( x, -current_y, 0);
-    // 		current_y += lineHeight;
-    // 		line = '';
-    // 		geometry_temp = '';
-    // 	}
- 
-    // 	return output;
-    // }
-    
 	processFontData(typography, isBack){
 		let output = {};
 		let size = typography['size'];
@@ -681,13 +587,9 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	updateFrontColor(color, silent = false){
-		// if(color['type'] == )
-		console.log('update front color');
-		console.log(color);
 		if(color === 'upload') {
 			this.shapeMethod = 'clip';
 		} else  {
-			console.log('draw');
 			this.shapeMethod = 'draw';
 			this.frontIsGridColor = color['type'] == 'special';
 			if(this.frontMaterial) this.frontMaterial.dispose();
@@ -715,20 +617,16 @@ export class ShapeAnimated extends Shape {
  			this.mesh_back.remove( this.watermarks[idx].mesh_back );
 		if(!silent) this.canvasObj.draw();
 	}
-	// updateFrontSpecialColor(color, silent = false){
-	// 	var texture_loader = new THREE.TextureLoader()
-	// 	texture_loader.load( '/media/00001.jpg', function(texture){
-	// 		this.texture = texture;
-	// 		this.frontMaterial = new THREE.MeshBasicMaterial( { map:texture });
-	// 		if(!silent) this.canvasObj.draw();
-	// 	}.bind(this), undefined, function(err){console.log(err);});
-		
-	// }
-
-	updateImg(idx, params, silent = false, isBack = false){
-		super.updateImg(idx, params, silent);
+	
+	updateImg(idx, image, silent = false, isBack = false){
+		super.updateImg(idx, image, silent);
+		console.log('updateimg');
+		// console.log('updateimg');
 		const textureLoader = new THREE.TextureLoader();
-		textureLoader.load(params['img'].src, (texture) => {
+		textureLoader.load(this.imgs[idx].img.src, (texture) => {
+			console.log('loaded');
+			console.log(this.imgs[idx].img.src);
+			console.log(texture);
 			if(!isBack) {
 				this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 				this.frontMaterial.map = texture;
@@ -738,12 +636,10 @@ export class ShapeAnimated extends Shape {
 				this.backMaterial.map = texture;
 				this.backMaterial.needsUpdate = true;
 			}
-			
 			if(!silent) this.canvasObj.draw();
 		});
 	}
 	processStaticColorData(colorData){
-		console.log('processStaticColorData');
 		var output = {}; // params of material
 		let color = '';
 		if(colorData['code'].length == 4 && colorData['code'].indexOf('#') !== -1)
@@ -761,7 +657,6 @@ export class ShapeAnimated extends Shape {
 			output['opacity'] = colorData.opacity;
 
 		}
-		console.log(output);
 		return output;
 	}
 	drawShape()
@@ -800,13 +695,11 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
 			// console.log('creating new mesh_front');
 			// console.log(this.geometry_front)
-			console.log(this.frontMaterial)
 		} 
 		else {
 			this.mesh_front.geometry = this.geometry_front;
 			this.mesh_front.material = this.frontMaterial;
 			this.mesh_front.needsUpdate = true;
-			console.log(this.frontMaterial);
 		}
 		// console.log(this.geometry_front.needsUpdate);
 		
@@ -1025,9 +918,6 @@ export class ShapeAnimated extends Shape {
 				isAllNone = false;
 			}
 		}
-		// console.log('syncing?');
-		// console.log(isAllNone);
-		// console.log(syncing);
 		if(isAllNone && !syncing) {
 			if(!syncing) {
 				document.body.classList.remove('viewing-three');
@@ -1096,7 +986,6 @@ export class ShapeAnimated extends Shape {
 			}
 			else {
 				if(this.mesh_front.parent !== this.group) {
-					console.log('add--');
 					this.group.add(this.mesh_front);
 				}
 				
@@ -1480,11 +1369,22 @@ export class ShapeAnimated extends Shape {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
-				this.readImage(e, (idx, params)=> {
+				this.readImageUploaded(e, (idx, image)=> {
+					console.log('cb readImageUploaded');
 					let isBack = idx.indexOf('back-') !== -1;
-					this.updateImg(idx, params, false, isBack)
+					this.updateImg(idx, image, false, isBack)
 				});
 			}.bind(this);
+			input.addEventListener('applySavedFile', (e)=>{
+				console.log('applySavedFile');
+				let idx = input.getAttribute('image-idx');
+				let src = input.getAttribute('data-file-src');
+				this.readImage(idx, src, (idx, image, silent)=>{
+					let isBack = idx.indexOf('back-') !== -1;
+					this.updateImg(idx, image, silent, isBack);
+				});
+				// this.updateImg();
+			});
 		}
 
 	}
@@ -1492,7 +1392,6 @@ export class ShapeAnimated extends Shape {
     {
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
-		// console.log(this.frame);
 		if(this.group) {
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
@@ -1526,7 +1425,6 @@ export class ShapeAnimated extends Shape {
 	}
 	generateFrame(){
 		// super.generateFrame();
-		// console.log('animatedShape gFrame');
 		let output = {};
         let unit_w = this.canvasObj.canvas.width;
         let unit_h = this.canvasObj.canvas.height / (Object.keys(this.canvasObj.shapes).length || 1);
@@ -1542,7 +1440,6 @@ export class ShapeAnimated extends Shape {
         this.shapeCenter = this.generateShapeCenter();
         output.x = this.shapeCenter.x;
         output.y = this.shapeCenter.y;
-		// console.log(output);
 		return output;
 	}
     sync(){

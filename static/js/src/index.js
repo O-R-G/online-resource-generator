@@ -6,11 +6,11 @@ import fontLoader from "./FontLoader.js";
 
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
-console.log(main.getAttribute('format'));
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 ``
 function init(data, cb){
-    // console.log('main init()');
+    console.log('main init()');
+    console.log(record_id);
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = {};
@@ -35,13 +35,11 @@ function init(data, cb){
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
         let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
-        // console.log(data[id]['options']);
         let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
         if (isThree) shapes['animated'].push(shape);
         else shapes['static'].push(shape);
         cvs.addShape(shape);
         cvs.addControl(control);
-        // if( (isThree && document.body.classList.contains('viewing-three')) || (!isThree && !document.body.classList.contains('viewing-three'))) cvs.init();
         data[id]['canvas'] = cvs;
         canvases[id] = cvs;
         cvs.init();
@@ -62,9 +60,8 @@ function init(data, cb){
     }
     data[Object.keys(data)[0]]['canvas'].draw();
     
-    let uri = location.pathname.split('/');
-    let record_id = uri.length > 2 ? uri[2] : '';
-    let record = new Record(main, record_id, canvases);
+    // let uri = location.pathname.split('/');
+    new Record(main, record_id, canvases);
     main.setAttribute('canvas-status', 'initialized');
     if(typeof cb === 'function') cb();
 }

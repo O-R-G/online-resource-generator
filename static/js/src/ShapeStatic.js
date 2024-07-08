@@ -401,10 +401,8 @@ export class ShapeStatic extends Shape {
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)
     		typography = this.typography;
-		// console.log(typography);
 		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];
 		if(typography['font']['static']['weight']) fontStyle = typography['font']['static']['weight'] + ' ' + fontStyle;
-		// console.log(fontStyle);
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
@@ -913,7 +911,6 @@ export class ShapeStatic extends Shape {
 		this.write(this.str, this.textPosition, 'default', this.typography, {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
-		console.log(this.color);
 		this.drawCustomGraphic();
 	}
 	// clip(){
@@ -961,8 +958,6 @@ export class ShapeStatic extends Shape {
 		
 		if(this.fields['animation']) {
 			this.fields['animation'].onchange = function(e){
-				// console.log('nimation updated');
-				// console.log(e.target.value);
 				if(e.target.value !== 'none')
 					document.body.classList.add('viewing-three');
 				this.canvasObj.sync();
@@ -1037,8 +1032,15 @@ export class ShapeStatic extends Shape {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
-				this.readImage(e, this.updateImg.bind(this));
+				this.readImageUploaded(e, this.updateImg.bind(this));
 			}.bind(this);
+			input.addEventListener('applySavedFile', (e)=>{
+				console.log('applySavedFile');
+				let idx = input.getAttribute('image-idx');
+				let src = input.getAttribute('data-file-src');
+				this.readImage(idx, src, this.updateImg.bind(this));
+				// this.updateImg();
+			});
 			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
 				scale_input.oninput = function(e){
@@ -1057,26 +1059,11 @@ export class ShapeStatic extends Shape {
 			}.bind(this);
 		}
 	}
-	// readImage(event) {
-	// 	let input = event.target;
-	// 	let idx = input.getAttribute('image-idx');
-	// 	if (input.files && input.files[0]) {
-    //     	var FR = new FileReader();
-    //         FR.onload = function (e) {
-    //             let image = new Image();
-    //             image.onload = function () {
-	// 				// this.imgs[idx].img = background_image;
-	// 				this.updateImg(image, idx);	
-    //             }.bind(this);
-    //             image.src = e.target.result;
-    //         }.bind(this);
-    //         FR.readAsDataURL(input.files[0]);
-    //         input.parentNode.parentNode.classList.add('viewing-image-control');
-    //     }
-    // }
-    updateImg(idx, params, silent = false){
-		super.updateImg(idx, params, silent);
+	
+    updateImg(idx, image, silent = false){
+		super.updateImg(idx, image, silent);
         if(idx === 'background-image') {
+			console.log(this.imgs[idx]);
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
 			if(this.timer_color != null)
@@ -1118,7 +1105,6 @@ export class ShapeStatic extends Shape {
 				clearInterval(this.timer_position);
 				this.timer_position = null;
 			}
-			
 			temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
 			this.color = this.context.createPattern(temp, "no-repeat");
 		} 
@@ -1126,7 +1112,6 @@ export class ShapeStatic extends Shape {
 	}
     updateFrame(frame = null, silent = false){
 		frame = frame ? frame : this.generateFrame();
-		// console.log(frame);
     	super.updateFrame(frame);
         if(!silent) this.canvasObj.draw();
     }
@@ -1239,9 +1224,7 @@ export class ShapeStatic extends Shape {
 		timer = null;
     }
 	drawImages(){
-		console.log('drawImages()');
 		for(let idx in this.imgs) {
-			console.log(idx);
 			if(idx === 'background-image') continue;
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
 		}

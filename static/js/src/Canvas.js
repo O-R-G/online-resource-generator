@@ -65,12 +65,11 @@ export class Canvas {
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
 	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
-            // this.media_recorder.onstop = () => {this.saveCanvasAsVideo();};
-            // this.media_recorder.onstart = () => {console.log('startredoring . . .');};
 	    }
 	    catch(err){
 	    	this.media_recorder = null;
-	    	alert('This page works on safari only.');
+	    	alert('This page works on browsers that support MediaRecorder only.');
+            return false;
 	    }
         // console.log(this.shapes);
         for(let shape_id in this.shapes) {

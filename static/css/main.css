@@ -287,11 +287,11 @@ textarea + select
 }    
 .field-id-image-controls
 {
-    display: none;
+    /* display: none; */
     margin: 1.5px 0;
 }
 .viewing-image-control .field-id-image-controls {
-    display: block;
+    /* display: block; */
 }
 input[type="file"]
 {

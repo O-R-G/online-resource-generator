@@ -1,17 +1,17 @@
 export class Record {
-    constructor(container, record_url='', canvasObjs={}){
+    constructor(container, record_id='', canvasObjs={}){
         this.container = container;
-        this.record_url = record_url;
+        this.record_id = record_id;
         this.canvasObjs = canvasObjs;
         this.record_body = '';
-        this.form_action = this.record_url ? 'save' : 'insert';
+        this.form_action = this.record_id !== '' ? 'save' : 'insert';
         this.request_url = '/online-resource-generator/static/php/recordHandler.php';
         this.elements = {
             'form': null,
             'button': null
         }
-        if (this.record_url)
-            this.fetchRecord(this.record_url, () => {
+        if (this.record_id)
+            this.fetchRecord(this.record_id, () => {
                 setTimeout(()=>this.applySavedRecord(), 0);
             });
         this.renderElements();
@@ -54,7 +54,7 @@ export class Record {
             });
         })
         this.elements.share_button.addEventListener('click', (event)=>{
-            if(!this.record_url) alert('You have to save the draft before you can share it.')
+            if(!this.record_id) alert('You have to save the draft before you can share it.')
             else {
 
                 let url = location.href;
@@ -99,19 +99,21 @@ export class Record {
         })
         // this.elements.fetch_button.addEventListener('click', (event) =>{
         //     event.preventDefault();
-        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.record_url) return;
+        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.record_id) return;
         //     this.fetchRecord(this.elements.input_id.value, ()=>{
         //         window.location.href='?record=' + this.elements.input_id.value;
         //     });
         // })
     }
-    fetchRecord(record_url='', callback=null){
+    fetchRecord(record_id='', callback=null){
+        // console.log(record_id);
+        
         let data = new FormData();
-        if (!record_url) record_url = this.record_url
-        // console.log(record_url);
+        // if (!record_id) record_id = this.record_id;
+        // console.log(record_id);
         let data_json = {
             'action': 'get',
-            'record_url': record_url
+            'record_id': record_id
         }
         for(let prop in data_json)
             data.append(prop, data_json[prop]);
@@ -122,7 +124,6 @@ export class Record {
         ).then((json) => {
             if(json['status'] == 'success') {
                 this.record_body = JSON.parse(json['body']);
-                // console.log(this.record_body);
                 if (typeof callback == 'function') {
                     callback();
                 }
@@ -141,6 +142,11 @@ export class Record {
         let avtive_canvas = null;
         // console.log(this.record_body)
         for(let canvas_id in this.record_body) {
+            if(canvas_id === 'images'){
+                // console.log(this.record_body[canvas_id]);
+                continue;
+            }
+                
             let canvas_data = this.record_body[canvas_id];
             let isThree = canvas_data['isThree'];
             let active = canvas_data['active'];
@@ -164,12 +170,15 @@ export class Record {
                 let fields = data['fields'];
                 for (let field of fields) {
                     
-                    if(!field['id'] || field['id'].indexOf('background') !== -1) {
-                        continue;
-                    }
+                    if(!field['id']) continue;
                     let field_element = common_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
                     if(!field_element.classList.contains('field-id-format') || !format) { 
+                        if(field.type === 'file') {
+                            field_element.setAttribute('data-fiel-src', field['value']);
+                            continue;
+                        }
+                        
                         field_element.value = field['value'];
                     } else 
                         field_element.value = format;
@@ -195,19 +204,36 @@ export class Record {
                 let shape_control = document.getElementById(shape_control_id);
                 let shape_id = data['shape_id'];
                 if (!shape_control) continue;
-                // console.log(shape_id);
+                let shapeObj = this.canvasObjs[canvas_id].shapes[shape_id];
+                // for(let shape of this.canvasObjs[canvas_id].shapes) {
+                //     if(shape.id === shape_id) {
+                //         shapeObj = shape;
+                //     }
+                // }
+                if(!shapeObj) continue;
                 for(let i = 0 ; i < data['watermarks_num']; i++) {
                     this.canvasObjs[canvas_id].shapes[shape_id].addWatermark();
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
-                    // console.log(field['id'])
-                    if(!field['id'] || field['id'].indexOf('background') !== -1) {
+                    if(!field['id']) {
                         continue;
                     }
-                    
+                    // if(field['id'] === 'static-shape-0-field-id-background-image') console.log('pupu');
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
+                    // console.log(field_element.type);
+                    
+                    if(field_element.type === 'file') {
+                        // console.log('cc')
+                        console.log(field_element.id);
+                        if(this.record_body['images'][field_element.id]) {
+                            this.applySavedFile(field_element, shapeObj);
+                            console.log('cc');
+                        }
+                            
+                        continue;
+                    }
                     // if(shape_control_id === 'animated-shape-1-shape-control')
                     //     console.log(active);
                     field_element.value = field['value'];
@@ -225,29 +251,56 @@ export class Record {
                     if(active) active_canvas_fields.push(field_element);
                 }
             }
+
+
         }
         for(let field_element of active_canvas_fields) {
-            // console.log('cc');
             if(field_element.classList.contains('field-id-format')) {
                 if(format) continue;
                 else {
-                    // console.log('sss');
                     avtive_canvas.changeFormat(null, null, false);
                     continue;
                 }
             }
             field_element.dispatchEvent(new Event('change'));
+            field_element.dispatchEvent(new Event('input'));
         }
-            
+        for(let field_id in this.record_body['images'] ){
+            // console.log(field_id);
+            let el = document.getElementById(field_id);
+            // console.log(el);
+            if(!el) continue;
+            // el.setAttribute('data-file-src', this.record_body['images'][field_id]);
+            this.applySavedFile(el);
+
+        }  
+    }
+    applySavedFile(field){
+        let idx = field.getAttribute('image-idx');
+        let id = field.id;
+        let src = this.record_body['images'][id];
+        if(!src) return false;
+        src = media_relative_root + src;
+        let el = document.getElementById(id);
+        if(!el) return false;
+        el.setAttribute('data-file-src', src);
+        el.dispatchEvent(new Event('applySavedFile'));
+        // shapeObj.readImage(idx, src, shapeObj.updateImg.bind(shapeObj));
+        return idx;
+    }
+    formatField(field){
+        let output = {id: field.id};
+        if(field.type === 'file') output.value = field.getAttribute('data-file-src') ? field.getAttribute('data-file-src') : '';
+        else output.value = field.value;
+        return output;
     }
     submit(event, cb){
         event.preventDefault();
-        let data = new FormData(this.elements.form);
-        // let record_body = {
-        //     'shape-controls': {},
-        //     'common-controls': {}
-        // };
-        let record_body = {};
+        let formData = new FormData(this.elements.form);
+        
+        let record_body = {
+            images: {}
+        };
         let record_name = 'new poster';
 
         let containers = document.querySelectorAll('.generator-container');
@@ -259,7 +312,7 @@ export class Record {
                 active: (document.body.classList.contains('viewing-three') && isThree) || (!document.body.classList.contains('viewing-three') && !isThree),
                 'common-controls': {},
                 'shape-controls': {},
-                'this.record_body': null
+                // 'record_body': null
             }
 
             let shape_controls = container.querySelectorAll('.shape-control');
@@ -271,7 +324,6 @@ export class Record {
                     watermarks_num++;
                 }
                 let shape_id = shape_control.getAttribute('data-shape-id');
-                // console.log(watermarks_num);
                 let data = {
                     'id': shape_control.id,
                     'shape_id': shape_id,
@@ -282,14 +334,22 @@ export class Record {
                 }
                 let fields = shape_control.querySelectorAll('select, input, textarea');
                 for(let field of fields) {
-                    if(!field.value) continue;
-                    let this_field = {
-                        'id': field.id,
-                        'value': field.value
+                    if(field.type === 'file') {
+                        if(field.files.length > 0) {
+                            formData.append(field.id, field.files[0]);
+                        } else if(field.getAttribute('data-file-src')) {
+                            record_body['images'][field.id] = field.getAttribute('data-file-src').replace(media_relative_root, '');
+                        } else {
+                            continue;
+                        }
+                        
+                    } else {
+                        if(!field.value) continue;
+                        data['fields'].push(this.formatField(field));
+                        if (field.classList.contains('field-id-text'))
+                            record_name = field.value;
                     }
-                    data['fields'].push(this_field);
-                    if (field.classList.contains('field-id-text'))
-                        record_name = field.value;
+                    
                 }
                 record_body[canvas_id]['shape-controls'][shape_control['id']] = data;
             }
@@ -305,40 +365,31 @@ export class Record {
                 let fields = common_control.querySelectorAll('select, input, textarea');
                 for(let field of fields) {
                     if(field.classList.contains('second-shape-button')) {
-                        // console.log('yaya');
-                        // console.log(field.classList);
                         record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
                         continue;
                     }
-                        
-                    if(!field.value) {
-                        
-                        
-                        continue;
-                    }
-                    let this_field = {
-                        'id': field.id,
-                        'value': field.value
-                    }
-                    data['fields'].push(this_field);
+                    if(!field.value) continue;
+                    data['fields'].push(this.formatField(field));
                 }
                 record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
+        // console.log(record_body);
+        // return;
         record_body = JSON.stringify(record_body);
         
-        data.append('record_body', record_body);
-        data.append('record_name', record_name);
-        data.append('record_url', this.record_url);
+        formData.append('record_body', record_body);
+        formData.append('record_name', record_name);
+        formData.append('record_id', this.record_id);
+        // console.log(formData.get('static-shape-0-field-id-background-image'));
+        // return;
         fetch(this.request_url, {
             method: 'POST',
-            body: data
+            body: formData
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
                 if (this.form_action == 'insert') {
-                    // alert('Saved!');
-                    // console.log(json['body']);
                     window.location.href = json['body'];
                 }
                 else if(this.form_action == 'save')

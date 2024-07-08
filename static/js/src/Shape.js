@@ -40,7 +40,7 @@ export class Shape {
         this.shapeMethod = 'draw';
 	}
     init(canvasObj){
-        console.log('shape init()');
+        // console.log('shape init()');
         this.initialized = true;
         if(!canvasObj) canvasObj = this.canvasObj;
         else this.canvasObj = canvasObj;
@@ -58,8 +58,8 @@ export class Shape {
     }
     getShapeIndex(){
         for(const index of Object.keys(this.canvasObj.shapes)) {
-            console.log(shape);
-            console.log(index);
+            // console.log(shape);
+            // console.log(index);
             if(this.canvasObj.shapes[index] === this) {
                 this.shape_index = index;
             }
@@ -584,18 +584,23 @@ export class Shape {
         temp_panel_section.appendChild(temp_right);
         return temp_panel_section;
     }
-    readImage(event, cb) {
-		let input = event.target;
+    readImage(idx, src, cb) {
+        // console.log(idx, src);
+        // console.log(src);
+        let image = new Image();
+        image.onload = function (e) {
+            if(typeof cb === 'function')
+                cb(idx, image);	
+        };
+        image.src = src;
+    }
+    readImageUploaded(event, cb){
+        let input = event.target;
 		let idx = input.getAttribute('image-idx');
 		if (input.files && input.files[0]) {
         	var FR = new FileReader();
             FR.onload = function (e) {
-                let image = new Image();
-                image.onload = function (e) {
-                    if(typeof cb === 'function')
-                        cb(idx, {img: image});	
-                }.bind(this);
-                image.src = e.target.result;
+                this.readImage(idx, e.target.result, cb);
             }.bind(this);
             FR.readAsDataURL(input.files[0]);
             input.parentNode.parentNode.classList.add('viewing-image-control');
@@ -603,18 +608,19 @@ export class Shape {
     }
     updateImgScale(imgScale, idx, silent = false){
     	this.imgs[idx].scale = imgScale;
-    	this.updateImg(idx, {img: this.imgs[idx].img}, silent)
+    	this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionX(imgShiftX, idx, silent = false){
     	this.imgs[idx].shiftX = parseFloat(imgShiftX);
-    	this.updateImg(idx, {img: this.imgs[idx].img}, silent)
+    	this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionY(imgShiftY, idx, silent = false){
     	this.imgs[idx].shiftY = parseFloat(imgShiftY);
-    	this.updateImg(idx, {img: this.imgs[idx].img}, silent)
+    	this.updateImg(idx, this.imgs[idx].img, silent)
     };
-    updateImg(idx, params, silent = false){
-        let img = params['img'] ? params['img'] : (this.imgs[idx] ? this.imgs[idx]  : null);
+    updateImg(idx, image, silent = false){
+        let img = image ? image : (this.imgs[idx] ? this.imgs[idx]  : null);
+        // console.log(img);
         if(!img) return false;
 		if(!this.imgs[idx]) {
 			this.imgs[idx] = {
