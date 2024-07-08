@@ -1035,7 +1035,6 @@ export class ShapeStatic extends Shape {
 				this.readImageUploaded(e, this.updateImg.bind(this));
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
-				console.log('applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				this.readImage(idx, src, this.updateImg.bind(this));
@@ -1063,7 +1062,6 @@ export class ShapeStatic extends Shape {
     updateImg(idx, image, silent = false){
 		super.updateImg(idx, image, silent);
         if(idx === 'background-image') {
-			console.log(this.imgs[idx]);
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
 			if(this.timer_color != null)
@@ -1224,7 +1222,9 @@ export class ShapeStatic extends Shape {
 		timer = null;
     }
 	drawImages(){
+		// console.log('drawImages()');
 		for(let idx in this.imgs) {
+			// console.log(idx);
 			if(idx === 'background-image') continue;
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
 		}

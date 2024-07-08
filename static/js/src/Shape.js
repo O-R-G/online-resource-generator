@@ -608,15 +608,18 @@ export class Shape {
     }
     updateImgScale(imgScale, idx, silent = false){
     	this.imgs[idx].scale = imgScale;
-    	this.updateImg(idx, this.imgs[idx].img, silent)
+        if(this.imgs[idx].img)
+    	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionX(imgShiftX, idx, silent = false){
     	this.imgs[idx].shiftX = parseFloat(imgShiftX);
-    	this.updateImg(idx, this.imgs[idx].img, silent)
+        if(this.imgs[idx].img)
+    	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionY(imgShiftY, idx, silent = false){
     	this.imgs[idx].shiftY = parseFloat(imgShiftY);
-    	this.updateImg(idx, this.imgs[idx].img, silent)
+        if(this.imgs[idx].img)
+    	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImg(idx, image, silent = false){
         let img = image ? image : (this.imgs[idx] ? this.imgs[idx]  : null);
