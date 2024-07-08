@@ -12,10 +12,6 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = null;
 		this.fonts = {};
 
-		// this.loader_image = new THREE.TextureLoader();
-		// this.clearMaterial = this.material_black;
-		// this.material_black = new THREE.MeshBasicMaterial( { color: new THREE.Color("rgb(0, 0, 0)") } );
-		// this.material_white = new THREE.MeshBasicMaterial( { color: new THREE.Color("rgb(255, 255, 255)") } );
 		this.mesh_front = null;
 		this.mesh_frontText = null;
 		this.mesh_front = null;
@@ -623,17 +619,19 @@ export class ShapeAnimated extends Shape {
 		console.log('updateimg');
 		// console.log('updateimg');
 		const textureLoader = new THREE.TextureLoader();
-		textureLoader.load(this.imgs[idx].img.src, (texture) => {
-			console.log('loaded');
-			console.log(this.imgs[idx].img.src);
-			console.log(texture);
+		// textureLoader.load(this.imgs[idx].img.src, (texture) => {
+		textureLoader.load('/media/00770.jpg', (texture) => {
+			// console.log(this.imgs[idx].img.src);
 			if(!isBack) {
+				console.log('is not back');
 				this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 				this.frontMaterial.map = texture;
+				// this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
 				this.frontMaterial.needsUpdate = true;
 			} else {
-				this.backMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-				this.backMaterial.map = texture;
+				// this.backMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				// this.backMaterial.map = texture;
+				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture });
 				this.backMaterial.needsUpdate = true;
 			}
 			if(!silent) this.canvasObj.draw();
