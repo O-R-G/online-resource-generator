@@ -7,10 +7,10 @@ import fontLoader from "./FontLoader.js";
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
-``
-function init(data, cb){
+
+async function init(data, cb){
     console.log('main init()');
-    console.log(record_id);
+    // console.log(record_id);
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = {};
@@ -18,6 +18,7 @@ function init(data, cb){
         'animated': [],
         'static': []
     };
+    await fontLoader.init();
     // fontLoader.loadThreeFonts();
     
     // fontLoader.onThreeLoaded = function(fonts){

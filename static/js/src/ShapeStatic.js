@@ -684,8 +684,8 @@ export class ShapeStatic extends Shape {
     	
     	return output;
     }
-    updateWatermark(idx, str = false, position = false, color = false, typography=false, font=false, shift=null, rad=0, silent = false){
-    	super.updateWatermark(idx, str, position, color, typography, font, shift, rad);
+    updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
+    	super.updateWatermark(idx, values_raw);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
@@ -1160,7 +1160,8 @@ export class ShapeStatic extends Shape {
     }
     sync(){
 		if(!this.counterpart) return;
-    	let isSilent = true;
+
+		let isSilent = true;
     	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
         this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
 
@@ -1182,13 +1183,18 @@ export class ShapeStatic extends Shape {
 		){
         	this.updateCounterpartSelectField('shape-front-color', this.fields['shape-color'].selectedIndex);
 			if(!this.options.colorOptions[this.fields['shape-color'].value]['color']) {
-				// TBA ...
+				// console.log(this.fields['shape-color'].value);
+				this.counterpart.updateFrontColor(this.fields['shape-color'].value, isSilent);
 			}else {
 				this.counterpart.updateFrontColor(this.options.colorOptions[this.fields['shape-color'].value]['color'], isSilent);
 			}
             
         }
         super.updateCounterpartWatermarks(isSilent);
+		// this.counterpart.imgs = {};
+		// for(let idx in this.imgs) {
+		// 	this.counterpart.imgs[idx] = 
+		// }
         this.canvasObj.counterpart.draw();
     }
     updateTextPosition(position, silent = false){

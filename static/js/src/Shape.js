@@ -81,10 +81,12 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}){
+        // console.log('update watermark: ', values_raw);
         let values = values_raw;
-        values['position'] = values['position'] ? values['position'] : this.getDefaultOption(this.options.watermarkPositionOptions, true);
+        
         if(this.watermarks[idx] == undefined)
     	{
+            values['position'] = values['position'] ? values['position'] : this.getDefaultOption(this.options.watermarkPositionOptions, true);
     		this.watermarks[idx] = {
     			'str': values['str'],
     			'position': values['position'],
@@ -93,7 +95,6 @@ export class Shape {
                 'shift': values['shift'],
                 'rotate': values['rad']
     		};
-    		// if (values['typography']) this.watermarks[idx].values['typography'] = values['typography'];
     	}	
     	else
     	{

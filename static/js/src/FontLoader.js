@@ -17,23 +17,58 @@ export class FontLoader {
             'animated': {}
         }
         this.threeFontLoader = new threeFontLoader();
-        this.init();
+        // this.init();
 	}
-    init(){
-        for(let data of this.font_data) {
-            if(!data.isThree)
-                this.loadFont(data);
-        }
-        // this.loadThreeFonts();
+    async init(cb){
+        Promise.all(this.font_data.map(fd=>this.loadStatic(fd))).then(()=>{
+            if (typeof cb === 'function') cb();
+        })
+        // for(let data of this.font_data) {
+        //     if(!data.isThree)
+        //         await this.loadStatic(data);
+        // }
+        // this.loadThree();
     }
-    loadFont(data){
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = this.root_path + data['path'];
-        document.head.appendChild(link);
+    async loadStatic(data){
+        return new Promise((resolve)=>{
+            if(Array.isArray(data.path['stylesheet'])) {
+                for(let s of data.path['stylesheet'])
+                    this.addStylesheet(s);
+            } else {
+                this.addStylesheet(data.path['stylesheet']);
+            }
+            if(Array.isArray(data.path['font'])) {
+                Promise.all(data.path['font'].map(path=>fetch(path))).then((res)=>{
+                    resolve('resolved');
+                });
+            } else {
+                fetch(this.preloadFont(data.path['font'])).then((res)=>console.log(res)).then(()=>{
+                    resolve('resolved');
+                });
+            }
+        })
+        
+
+        
         
     }
-    loadThreeFonts(){
+    addStylesheet(path){
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = this.root_path + path
+        document.head.appendChild(link);
+    }
+    preloadFont(path){
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = this.root_path + path;
+        link.as = 'font';
+        link.type = 'font/woff2';
+        link.crossorigin = true;
+        document.head.appendChild(link);
+    }
+    
+    loadThree(){
         if (!this.three_promise) {
             let three_fonts = this.font_data.filter(function(data) {
                 if (!data.isThree) {
@@ -60,10 +95,6 @@ export class FontLoader {
                 resolve({'name': data['name'], 'font': font, 'path': this.root_path + data['path']});
             });
         });
-        
-		// this.threeFontLoader.load( 'static/fonts/_threejs/Standard_Bold.json', function ( font ) {
-		// 	this.font_bold = font;
-		// }.bind(this));
     }
     
 }
