@@ -680,7 +680,7 @@ export class ShapeAnimated extends Shape {
 		
 		const textureLoader = new THREE.TextureLoader();
 		// textureLoader.load(this.imgs[idx].img.src, (texture) => {
-		textureLoader.load('/media/00770.jpg', (texture) => {
+		textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// console.log(this.imgs[idx].img.src);
 			if(!isBack) {
 				// console.log('is not back');
