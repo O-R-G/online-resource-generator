@@ -571,7 +571,7 @@ export class ShapeStatic extends Shape {
 					const char = str[i];
 					const charWidth = this.context.measureText(char).width;
 					charWidths[i] = charWidth;
-					console.log(char, charWidth);
+					// console.log(char, charWidth);
 				}
 				
 				for (let j = 0; j < str.length; j++) {

@@ -472,11 +472,17 @@ export class Shape {
         this.watermarkidx++;
         
     }
-    checkWatermarkPosition(positionn, label){
+    checkWatermarkPosition(position, label){
         let availables = this.shape.watermarkPositions;
-        let isAvailable = ( availables == 'all' || availables.includes(positionn) );
+        // console.log(availables)
+        let isAvailable = ( availables == 'all' || availables.includes(position) );
         if(isAvailable) label.classList.remove('not-supported');
-        else label.classList.add('not-supported');
+        else {
+            console.log(this.id);
+            console.log(position);
+            console.log(availables);
+            label.classList.add('not-supported');
+        }
     }
     updateCounterpartSelect(selectElement, value){
         let options = selectElement.querySelectorAll('option');
@@ -646,10 +652,13 @@ export class Shape {
     updateCounterpartSelectField(field, index)
     {
         if(!this.counterpart || !field) return;
-        if(typeof field === 'string' && this.counterpart.fields[field])
+        if(typeof field === 'string') {
+            if(!this.counterpart.fields[field]) return false;
             this.counterpart.fields[field].selectedIndex = index;
-        else if (typeof field === 'object')
+        } else {
             field.selectedIndex = index;
+        }
+        
     }
     updateCounterpartTextField(field, value)
     {
@@ -662,14 +671,17 @@ export class Shape {
 
     updateCounterpartWatermarks(silent=false){
         this.fields.watermarks.forEach(function(el, i){
+            console.log(el);
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();
             let that_watermark = this.counterpart.fields.watermarks[i]
             this.updateCounterpartTextField(that_watermark['text'], this.watermarks[i].str);
             this.updateCounterpartSelectField(that_watermark['position'], el['position'].selectedIndex);
+            that_watermark['position'].dispatchEvent(new Event('change'));
             this.updateCounterpartSelectField(that_watermark['color'], el['color'].selectedIndex);
             this.updateCounterpartSelectField(that_watermark['typography'], el['typography'].selectedIndex);
             this.counterpart.updateWatermark(i, { str: this.watermarks[i].str, position: this.watermarks[i].position, color: this.watermarks[i].color, typography: this.watermarks[i].typography}, silent);
+            this.counterpart.checkWatermarkPosition(this.watermarks[i].position, el['text'].parentNode.parentNode.querySelector('label'));
         }.bind(this));
     }
 
