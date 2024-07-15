@@ -555,10 +555,52 @@ export class ShapeStatic extends Shape {
     		}
     	}
     	else if(this.shape.base == 'circle'){
-    		if(align.indexOf('middle') == -1) return;
+    		// if(align.indexOf('middle') == -1) return;
 
     		let inner_p_x = this.innerPadding.x;
-    		if(align.indexOf('left') !== -1){
+			if(align === 'surrounding') {
+				
+				this.context.textBaseline = 'middle';
+				const spaceWidth = this.typography.size * 0.35 ; // Define a fixed width for spaces
+				const charWidths = [];
+				let currentAngle = -Math.PI / 2;
+				let radius = (this.frame.w - (this.padding * 2)) / 2 - this.innerPadding.x;
+				// let synced = 0;
+				
+				for (let i = 0; i < str.length; i++) {
+					const char = str[i];
+					const charWidth = this.context.measureText(char).width;
+					charWidths[i] = charWidth;
+					console.log(char, charWidth);
+				}
+				
+				for (let j = 0; j < str.length; j++) {
+					this.context.save();
+					const char = str[j];
+					// if (char === ' ') {
+					// 	currentAngle -= spaceWidth / (2 * radius);
+					// 	currentAngle -= spaceWidth / (2 * radius);
+					// 	continue;
+					// }
+					const charWidth = charWidths[j];
+					const angleOffset = charWidth / (2 * radius);
+					// currentAngle += angleOffset;
+					const x = radius * Math.cos(currentAngle) + this.canvasW / 2;
+					const y = radius * Math.sin(currentAngle) + this.frame.h / 2;
+					const rad = currentAngle + Math.PI / 2;
+					this.context.translate(x, y);
+					this.context.rotate(rad);
+					this.context.fillText(char, 0, 0);
+					this.context.translate(0, 0);
+					currentAngle += angleOffset * 2;
+					this.context.restore();
+					
+				}
+				
+				return;
+				// synced = 0;
+			}
+    		else if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
     			x = this.frame.x + this.padding + inner_p_x;
     		}
