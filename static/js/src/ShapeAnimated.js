@@ -805,11 +805,11 @@ export class ShapeAnimated extends Shape {
 						el.mesh_front = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
 						this.mesh_front.add(el.mesh_front);
 						// console.log(el);
-						if(el.position === 'surrounding' && this.watermarkTimer === null) this.watermarkTimer = this.animateWatermark(i);
-						else if(el.position !== 'surrounding' && this.watermarkTimer !== null) {
-							cancelAnimationFrame(this.watermarkTimer);
-							this.watermarkTimer = null;
-						}
+						// if(el.position === 'surrounding' && this.watermarkTimer === null) this.watermarkTimer = this.animateWatermark(i);
+						// else if(el.position !== 'surrounding' && this.watermarkTimer !== null) {
+						// 	cancelAnimationFrame(this.watermarkTimer);
+						// 	this.watermarkTimer = null;
+						// }
 					}
 					if(this.mesh_back) {
 						if(el.mesh_back instanceof Text) {
