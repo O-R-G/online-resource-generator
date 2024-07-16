@@ -234,7 +234,6 @@ export class ShapeAnimated extends Shape {
 	drawCircle(){
 		let this_p = this.padding;
 		let this_r = (this.frame.w - this_p * 2) / 2;
-		// console.log('drawCircle with r: ', this_r);
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
@@ -574,8 +573,6 @@ export class ShapeAnimated extends Shape {
 	applyTypographyToTextMesh(text_mesh, typography, isBack=false){
 		if(!text_mesh) return;
 		let fontData = this.processFontData(typography, isBack);
-		// console.log(text_mesh)
-		// console.log(text_mesh.fontSize)
 		text_mesh.fontSize = fontData.size;
 		text_mesh.font = fontData.path;
 		text_mesh.lineHeight = fontData.lineHeight;
@@ -625,7 +622,6 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPosition(position, silent = false){
-		console.log(position);
         this.frontTextPosition = position;
 		this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
 		this.mesh_frontText.needsUpdate = true;
@@ -683,7 +679,6 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	updateFrontColor(color, silent = false){
-		// console.log('updateFrontColor', color);
 		let sec = this.fields['shape-front-color'].parentNode.parentNode;
 		if(color === 'upload') {
 			sec.classList.add('viewing-background-upload');
@@ -737,7 +732,6 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
-		console.log('updateWatermark animated');
     	super.updateWatermark(idx, values_raw);
 		let mesh_data = [{
 				mesh: this.watermarks[idx].mesh_front,
@@ -804,32 +798,18 @@ export class ShapeAnimated extends Shape {
 	// }
 	
 	updateImg(idx, image, silent = false, isBack = false){
-		console.log('updateImg');
 		super.updateImg(idx, image, silent);
 		if(!isBack) {
 			this.mesh_front.remove(this.frontMaterial);
 		}
 		const textureLoader = new THREE.TextureLoader();
-		// textureLoader.load(this.imgs[idx].img.src, (texture) => {
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
-			// console.log(this.imgs[idx].img.src);
 			if(!isBack) {
-				// console.log('is not back');
-				// this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-				// this.frontMaterial.map = texture;
 				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
-				console.log('texture loaded');
-				// this.mesh_front.material = this.frontMaterial;
-				// this.frontMaterial.needsUpdate = true;
 				this.mesh_front.material = this.frontMaterial;
 				this.mesh_front.needsUpdate = true;
-				console.log(this.mesh_front.children);
-				// this.mesh_front.needsUpdate = true;
 			} else {
-				// this.backMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-				// this.backMaterial.map = texture;
 				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture });
-				// this.backMaterial.needsUpdate = true;
 				this.mesh_back.material = this.backMaterial;
 				this.mesh_back.needsUpdate = true;
 			}
@@ -858,7 +838,6 @@ export class ShapeAnimated extends Shape {
 	}
 	drawShape()
 	{
-		console.log('drawShape');
 		if(this.geometry_front) {
 			this.geometry_front.dispose();
 			if(this.mesh_front) this.mesh_front.remove(this.geometry_front);
@@ -891,7 +870,6 @@ export class ShapeAnimated extends Shape {
 	actualDraw(animate = true){
 		let sync = !animate;
 		this.scene.add( this.group );
-		// console.log('this.frontIsGridColor', this.frontIsGridColor);
 		if(this.frontIsGridColor){
 			this.mesh_front = this.frontMaterial;
 		}
@@ -907,14 +885,6 @@ export class ShapeAnimated extends Shape {
 			this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
 			this.mesh_back.scale.copy(this.scale);
 		} 
-		// console.log('this.frontMaterial.needsUpdate', this.frontMaterial.needsUpdate);
-		// this.mesh_front.material = this.frontMaterial;
-		// 	this.mesh_front.needsUpdate = true;
-		// if(this.frontMaterial.needsUpdate){
-			
-		// }
-			
-
 		if(this.frontWatermarkGroup.parent !== this.mesh_front)
 			this.mesh_front.add(this.frontWatermarkGroup);
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
@@ -929,7 +899,6 @@ export class ShapeAnimated extends Shape {
 			if(this.mesh_backText)
 				this.mesh_back.add(this.mesh_backText);
 		}
-		console.log('actualDraw()')
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
@@ -937,15 +906,12 @@ export class ShapeAnimated extends Shape {
 				var thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
-					let typography = this.options.watermarkTypographyOptions[el.typography];
-					console.log(el.mesh_front);
-					console.log(el.mesh_back);
 					if(!el.mesh_front) {
-						el.mesh_front = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+						el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
 						this.frontWatermarkGroup.add(el.mesh_front);
 					}
 					if(!el.mesh_back) {
-						el.mesh_back = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+						el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
 						this.backWatermarkGroup.add(el.mesh_back);
 					}
 				}
@@ -956,7 +922,6 @@ export class ShapeAnimated extends Shape {
 		
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
-		// console.log(this.frontMaterial);
 		this.animate(animationName);
 		 
 	}
@@ -1088,8 +1053,6 @@ export class ShapeAnimated extends Shape {
 			return this.generateThreeColorsGradient(uniforms, angle);
 	}
 	generateGridPattern(colors, size){
-		// console.log('generateGridPattern');
-		// let output = new THREE.Group();
 		let m = [];
 		// let num = (this.canvas.width) / size;
 		let num = 8;
@@ -1151,11 +1114,8 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	updateAnimationSpeed(speed, silent = false){
-		// console.log('updateAnimationSpeed');
-		// console.log(this.options.animationSpeedOptions);
 		this.animationSpeed = this.options.animationSpeedOptions[speed];
 		let value = parseFloat(this.animationSpeed.value);
-		// console.log(speed);
 		this.flipAngleInterval = 0.020 * value;     // aka, speed
         this.spinAngleInterval = 0.020 * value;
 		// return;
@@ -1237,26 +1197,12 @@ export class ShapeAnimated extends Shape {
 			this.resetAnimation();
 
 	}
-	// animateWatermark(idx){
-	// 	// console.log('animateWatermark');
-	// 	requestAnimationFrame(()=>{
-	// 		this.animateWatermark(idx)
-	// 	});
-	// 	let mesh_front = this.watermarks[idx].mesh_front;
-	// 	mesh_front.rotation.z -= this.watermarkAngleInterval;
-	// 	mesh_front.needsUpdate = true;
-	// 	let mesh_back = this.watermarks[idx].mesh_back;
-	// 	if(!mesh_back) return;
-	// 	mesh_back.rotation.z -= this.watermarkAngleInterval;
-	// 	mesh_back.needsUpdate = true;
-	// }
 	rest(move=true){
 		if(move)
 			this.timer = requestAnimationFrame( ()=>{ this.rest(move) } );
 		else 
 			this.timer = null
-		// console.log(this.group);
-		// this.mesh_front.rotation.y += this.spinAngleInterval;
+		
 		this.renderer.render( this.scene, this.camera );
 	}
 	spin(){
@@ -1615,18 +1561,14 @@ export class ShapeAnimated extends Shape {
 			}.bind(this);
 			input.onchange = function(e){
 				this.readImageUploaded(e, (idx, image)=> {
-					// console.log('cb readImageUploaded');
 					let isBack = idx.indexOf('back-') !== -1;
-					// console.log('readImageUploaded?')
 					this.updateImg(idx, image, false, isBack)
 				});
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
-				// console.log('applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				this.readImage(idx, src, (idx, image, silent)=>{
-					// console.log('applySavedFile?')
 					let isBack = idx.indexOf('back-') !== -1;
 					this.updateImg(idx, image, silent, isBack);
 				});

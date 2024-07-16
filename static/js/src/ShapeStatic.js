@@ -733,7 +733,7 @@ export class ShapeStatic extends Shape {
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
-				this.write(el.str, el.position, el.color, this.options.watermarkTypographyOptions[el.typography], el.shift, el.rotate);
+				this.write(el.str, el.position, el.color, el.typography, el.shift, el.rotate);
 		}.bind(this));
 	}
 	checkWatermarkPosition(position, label){
