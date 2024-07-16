@@ -478,9 +478,9 @@ export class Shape {
         let isAvailable = ( availables == 'all' || availables.includes(position) );
         if(isAvailable) label.classList.remove('not-supported');
         else {
-            console.log(this.id);
-            console.log(position);
-            console.log(availables);
+            // console.log(this.id);
+            // console.log(position);
+            // console.log(availables);
             label.classList.add('not-supported');
         }
     }

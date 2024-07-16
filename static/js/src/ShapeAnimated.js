@@ -17,13 +17,17 @@ export class ShapeAnimated extends Shape {
 		this.mesh_front = null;
 		this.mesh_backText = null;
 		this.isForward = true;
-		this.flipAngleInterval = 0.020;     // aka, speed
-        this.spinAngleInterval = 0.020;
+		this.animationSpeed = this.getDefaultOption(this.options.animationSpeedOptions);
+		let speed_value = this.animationSpeed.value;
+		this.flipAngleInterval = 0.020 * speed_value;     // aka, speed
+        this.spinAngleInterval = 0.020 * speed_value;
+		this.rotateAngleInterval = 0.020 * speed_value;
 		this.watermarkAngleInterval = 0.005;
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
 		this.easeAngleInterval = this.easeAngleInitial;
-		this.recordingBreakPoint = 1 * Math.PI * 2;     // aka, spins
+		
+		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
 		let defaultFrontColor = Object.values(this.options.colorOptions)[0].color;
 		if(defaultFrontColor['type'] == 'solid' || defaultFrontColor['type'] == 'transparent')
 		{
@@ -46,6 +50,7 @@ export class ShapeAnimated extends Shape {
 			this.backMaterial = this.generateGradient(this.geometry_back, defaultBackColor['code'], defaultBackColor['angle']);
 		}
 		this.frontTextMaterial = this.processColor(Object.values(this.options.textColorOptions)[0].color);
+		this.backTextMaterial = this.processColor(Object.values(this.options.textColorOptions)[0].color);
 		
 		this.frontTypography = this.getDefaultOption(this.options.typographyOptions);
 		this.backTypography = this.getDefaultOption(this.options.typographyOptions);
@@ -54,8 +59,8 @@ export class ShapeAnimated extends Shape {
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
 		this.devicePixelRatio = window.devicePixelRatio;
-		this.frontTextPosition = Object.values(this.options.textPositionOptions)[0].value;
-		this.backTextPosition = Object.values(this.options.textPositionOptions)[0].value;
+		this.frontTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
+		this.backTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		
 		this.frontTextShiftX = 0;
 		this.frontTextShiftY = 0;
@@ -78,10 +83,10 @@ export class ShapeAnimated extends Shape {
 
 		
 		this.frontIsGridColor = false;
-		// this.flow = null;
+		this.backIsGridColor = false;
 		this.path = new THREE.Curve();
-		this.watermarkAnimationDuration = 5;
-		this.watermarkAnimationStartTime = false;
+		this.frontWatermarkGroup = new THREE.Group();
+		this.backWatermarkGroup = new THREE.Group();
 	}
 	init(canvasObj){
 		super.init(canvasObj);
@@ -95,7 +100,9 @@ export class ShapeAnimated extends Shape {
 		// let scale = 540 / 960;
 		// this.scale = Object.keys(this.canvasObj.shapes).length === 1 ? new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1) : new THREE.Vector3(1, scale, 1);
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
-		// this.scale = new THREE.Vector3(1, 1, 1);
+		this.frontWatermarkGroup.scale.copy(this.scale);
+		this.backWatermarkGroup.scale.copy(this.scale);
+
 		this.group = new THREE.Group();
 		this.updateGroupTranslateY();
 		
@@ -104,18 +111,6 @@ export class ShapeAnimated extends Shape {
 	    this.addListeners();
 		this.updateShape(this.shape, true);
 	}
-	// async initFonts(){
-	// 	try {
-    //         const data = await fontLoader.loadThreeFonts();
-	// 		for (let font_data of data) {
-	// 			this.fonts[font_data['name']] = { 'font': font_data['font'], 'path': font_data['path']};
-	// 		}
-	// 		// console.log(this.fonts);
-    //     } catch (error) {
-	// 		console.log('no?');
-    //         console.error('Error loading data:', error);
-    //     }
-	// }
 	updateCanvasSize(){
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
@@ -130,7 +125,23 @@ export class ShapeAnimated extends Shape {
 		for(const prop in this.innerPadding)
 			this.innerPadding[prop] = this.getValueByPixelRatio(this.innerPadding[prop]);
 		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
+		this.drawShape();
+		this.updateTextMeshByShape();
 		if(!silent) this.canvasObj.draw();
+	}
+	updateTextMeshByShape(shape){
+		if(this.mesh_frontText) {
+			this.mesh_frontText.maxWidth = this.maxWidth;
+			if(shape.base === 'triangle') 
+				this.mesh_frontText.y += this.getValueByPixelRatio( -110 );
+			this.mesh_frontText.needsUpdate = true;
+		}
+		if(this.mesh_backText) {
+			this.mesh_backText.maxWidth = this.maxWidth;
+			if(shape.base === 'triangle') 
+				this.mesh_backText.y += this.getValueByPixelRatio( -110 );
+			this.mesh_backText.needsUpdate = true;
+		}
 	}
 	drawHeart() {
 		var path_front = new THREE.Shape();
@@ -326,17 +337,6 @@ export class ShapeAnimated extends Shape {
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
 		rad = rad ? -rad : 0;
-		this.fontSetting = {
-			font: fontData.font,
-			size: fontData.size,
-			height: 0.5,
-			curveSegments: 2,
-			bevelEnabled: false,
-			bevelThickness: 0,
-			bevelSize: 0,
-			bevelOffset: 0,
-			bevelSegments: 0
-		};
 		let output = new Text();
 		if(sync)
 		{
@@ -344,16 +344,19 @@ export class ShapeAnimated extends Shape {
 				this.canvasObj.updateReadyState();
 			}.bind(this));
 		}
+		this.applyTypographyToTextMesh(output, typography, isBack);
 		output.text = str;
-		output.fontSize = fontData.size;
+		// output.fontSize = fontData.size;
 		output.material = material;
+		// output.material = new THREE.MeshBasicMaterial({color: '#ff0000'});
+		// output.position.z = isBack ? 1 : 0.5;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = 'center';
 		output.anchorY = '50%';
-		output.font = fontData.path;
-		output.lineHeight = fontData.lineHeight;
-		output.letterSpacing = fontData.letterSpacing;
+		// output.font = fontData.path;
+		// output.lineHeight = fontData.lineHeight;
+		// output.letterSpacing = fontData.letterSpacing;
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
@@ -568,6 +571,17 @@ export class ShapeAnimated extends Shape {
 		output.sync();
 		return output;
 	}
+	applyTypographyToTextMesh(text_mesh, typography, isBack=false){
+		if(!text_mesh) return;
+		let fontData = this.processFontData(typography, isBack);
+		// console.log(text_mesh)
+		// console.log(text_mesh.fontSize)
+		text_mesh.fontSize = fontData.size;
+		text_mesh.font = fontData.path;
+		text_mesh.lineHeight = fontData.lineHeight;
+		text_mesh.letterSpacing = fontData.letterSpacing;
+		text_mesh.needsUpdate = true;
+	}
 	processFontData(typography, isBack){
 		let output = {};
 		let size = typography['size'];
@@ -581,26 +595,40 @@ export class ShapeAnimated extends Shape {
 	}
 	updateFrontTypography(key, silent = false){
 		this.frontTypography = this.options.typographyOptions[key];
+		this.applyTypographyToTextMesh(this.mesh_frontText, this.frontTypography);
+		
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTypography(key, silent = false){
 		this.backTypography = this.options.typographyOptions[key];
+		this.applyTypographyToTextMesh(this.mesh_backText, this.backTypography, true);
 		if(!silent) this.canvasObj.draw();
 	}
+	
 	updateFrontText(str, silent = false){
 		this.frontText = str;
 		this.fields['text-front'].value = this.frontText;
-		this.scene.remove( this.mesh_frontText );
+		if(this.mesh_frontText) {
+			this.mesh_frontText.text = this.frontText;
+			this.mesh_frontText.needsUpdate = true;
+		}
 		this.renderer.renderLists.dispose();
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackText(str, silent = false){
 		this.backText = str;
 		this.fields['text-back'].value = this.backText;
+		if(this.mesh_backText) {
+			this.mesh_backText.text = this.backText;
+			this.mesh_backText.needsUpdate = true;
+		}
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPosition(position, silent = false){
+		console.log(position);
         this.frontTextPosition = position;
+		this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
+		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
     updateBackTextPosition(position, silent = false){
@@ -609,10 +637,26 @@ export class ShapeAnimated extends Shape {
     }
 	updateFrontTextShiftX(x, silent = false){
         this.frontTextShiftX = x * this.canvasObj.scale;
+		this.mesh_frontText.position.x = x;
+		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateFrontTextShiftY(y, silent = false){
         this.frontTextShiftY = y * this.canvasObj.scale;
+		this.mesh_frontText.position.y = y;
+		this.mesh_frontText.needsUpdate = true;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateBackTextShiftX(x, silent = false){
+        this.backTextShiftX = x * this.canvasObj.scale;
+		this.mesh_backText.position.x = x;
+		this.mesh_backText.needsUpdate = true;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateBackTextShiftY(y, silent = false){
+        this.backTextShiftY = y * this.canvasObj.scale;
+		this.mesh_backText.position.y = y;
+		this.mesh_backText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	processColor(color)
@@ -639,60 +683,155 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	updateFrontColor(color, silent = false){
-		console.log('updateFrontColor', color);
+		// console.log('updateFrontColor', color);
 		let sec = this.fields['shape-front-color'].parentNode.parentNode;
 		if(color === 'upload') {
 			sec.classList.add('viewing-background-upload');
-			this.shapeMethod = 'clip';
+			// this.shapeMethod = 'clip';
 		} else  {
 			sec.classList.remove('viewing-background-upload');
 			this.shapeMethod = 'draw';
 			this.frontIsGridColor = color['type'] == 'special';
 			if(this.frontMaterial) this.frontMaterial.dispose();
 			this.frontMaterial = this.processColor(color);
+			if(this.mesh_front) {
+				this.mesh_front.material = this.frontMaterial;
+				this.mesh_front.needsUpdate = true;
+			}
 			if(!silent) this.canvasObj.draw();
 		}
 	}
 	updateBackColor(color, silent = false){
-		this.backMaterial = this.processColor(color);
+		let sec = this.fields['shape-back-color'].parentNode.parentNode;
+		if(color === 'upload') {
+			sec.classList.add('viewing-background-upload');
+		}  else  {
+			sec.classList.remove('viewing-background-upload');
+			this.shapeMethod = 'draw';
+			this.backIsGridColor = color['type'] == 'special';
+			if(this.backMaterial) this.backMaterial.dispose();
+			this.backMaterial = this.processColor(color);
+			if(this.mesh_back) {
+				this.mesh_back.material = this.backMaterial;
+				this.mesh_back.needsUpdate = true;
+			}
+			if(!silent) this.canvasObj.draw();
+		}
+		
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextColor(color, silent = false){
 		this.frontTextMaterial = this.processColor(color);
+		if(this.mesh_frontText) {
+			this.mesh_frontText.material = this.frontTextMaterial;
+			this.mesh_frontText.needsUpdate = true;
+		}
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextColor(color, silent = false){
 		this.backTextMaterial = this.processColor(color);
+		if(this.mesh_backText) {
+			this.mesh_backText.material = this.backTextMaterial;
+			this.mesh_backText.needsUpdate = true;
+		}
 		if(!silent) this.canvasObj.draw();
 	}
 	updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
-		// console.log('updateWatermark animated');
+		console.log('updateWatermark animated');
     	super.updateWatermark(idx, values_raw);
-    	if(this.watermarks[idx].mesh_front != undefined)
- 			this.mesh_front.remove( this.watermarks[idx].mesh_front );
- 		if(this.watermarks[idx].mesh_back != undefined)
- 			this.mesh_back.remove( this.watermarks[idx].mesh_back );
+		let mesh_data = [{
+				mesh: this.watermarks[idx].mesh_front,
+				group: this.frontWatermarkGroup
+			}, {
+				mesh: this.watermarks[idx].mesh_back,
+				group: this.backWatermarkGroup
+			}];
+		for(let key in mesh_data) {
+			if(!mesh_data[key].mesh) continue;
+			let mesh = mesh_data[key].mesh;
+			let group = mesh_data[key].group;
+			group.remove(mesh);
+			if(mesh instanceof Text) {
+				group.remove(mesh);
+				mesh.dispose();
+			} else if(mesh instanceof THREE.Group) {
+				group.remove(mesh);
+				mesh.children.forEach(child => {
+					if (child instanceof THREE.Mesh) {
+						child.dispose();
+					}
+					mesh.remove(child);
+				});
+				mesh.children = [];
+			}
+			// mesh = false;
+			// group.needsUpdate = true;
+		}
+		this.frontWatermarkGroup.remove(this.watermarks[idx].mesh_front);
+		this.backWatermarkGroup.remove(this.watermarks[idx].mesh_back);
+		this.watermarks[idx].mesh_front = false;
+		this.watermarks[idx].mesh_back = false;
+		// this.frontWatermarkGroup.needsUpdate = true;
+		// this.backWatermarkGroup.needsUpdate = true;
+		// if(this.watermarks[idx].mesh_front) {
+		// 	this.watermarks[idx].mesh_front.needsUpdate = true;
+		// }
+		// if(this.watermarks[idx].mesh_back) {
+			
+		// 	this.watermarks[idx].mesh_back.needsUpdate = true;
+		// }
 		if(!silent) this.canvasObj.draw();
 	}
+	// removeWatermarkMeshFromGroup(mesh, group){
+	// 	if(!mesh) return;
+	// 	// let mesh = mesh_data[key].mesh;
+	// 	// let group = mesh_data[key].group;
+		
+	// 	if(mesh instanceof Text) {
+	// 		group.remove(mesh);
+	// 		mesh.dispose();
+	// 	} else if(mesh instanceof THREE.Group) {
+	// 		group.remove(mesh);
+	// 		mesh.children.forEach(child => {
+	// 			if (child instanceof THREE.Mesh) {
+	// 				child.dispose();
+	// 			}
+	// 			mesh.remove(child);
+	// 		});
+	// 		mesh.children = [];
+	// 	}
+	// 	group.remove(mesh);
+	// }
 	
 	updateImg(idx, image, silent = false, isBack = false){
+		console.log('updateImg');
 		super.updateImg(idx, image, silent);
-		
+		if(!isBack) {
+			this.mesh_front.remove(this.frontMaterial);
+		}
 		const textureLoader = new THREE.TextureLoader();
 		// textureLoader.load(this.imgs[idx].img.src, (texture) => {
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// console.log(this.imgs[idx].img.src);
 			if(!isBack) {
 				// console.log('is not back');
-				this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-				this.frontMaterial.map = texture;
-				// this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
-				this.frontMaterial.needsUpdate = true;
+				// this.frontMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				// this.frontMaterial.map = texture;
+				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
+				console.log('texture loaded');
+				// this.mesh_front.material = this.frontMaterial;
+				// this.frontMaterial.needsUpdate = true;
+				this.mesh_front.material = this.frontMaterial;
+				this.mesh_front.needsUpdate = true;
+				console.log(this.mesh_front.children);
+				// this.mesh_front.needsUpdate = true;
 			} else {
 				// this.backMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 				// this.backMaterial.map = texture;
 				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture });
-				this.backMaterial.needsUpdate = true;
+				// this.backMaterial.needsUpdate = true;
+				this.mesh_back.material = this.backMaterial;
+				this.mesh_back.needsUpdate = true;
 			}
 			if(!silent) this.canvasObj.draw();
 		});
@@ -719,8 +858,15 @@ export class ShapeAnimated extends Shape {
 	}
 	drawShape()
 	{
-		if(this.geometry_front) this.geometry_front.dispose();
-		if(this.geometry_back) this.geometry_back.dispose();
+		console.log('drawShape');
+		if(this.geometry_front) {
+			this.geometry_front.dispose();
+			if(this.mesh_front) this.mesh_front.remove(this.geometry_front);
+		}
+		if(this.geometry_back) {
+			this.geometry_back.dispose();
+			if(this.mesh_back) this.mesh_back.remove(this.geometry_back);
+		}
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
@@ -731,123 +877,86 @@ export class ShapeAnimated extends Shape {
 			this.drawHexagon();
 		else if(this.shape.base == 'heart')
 			this.drawHeart();
-		this.geometry_front.needsUpdate = true;
-		this.geometry_back.needsUpdate = true;
+		// this.geometry_front.needsUpdate = true;
+		// this.geometry_back.needsUpdate = true;
+		if(this.mesh_front) {
+			this.mesh_front.geometry = this.geometry_front;
+			this.mesh_front.needsUpdate = true;
+		}
+		if(this.mesh_back) {
+			this.mesh_back.geometry = this.geometry_back;
+			this.mesh_back.needsUpdate = true;
+		}
 	}
 	actualDraw(animate = true){
 		let sync = !animate;
 		this.scene.add( this.group );
-		this.drawShape();
-		if(this.mesh_frontText) {
-			this.mesh_front.remove(this.mesh_frontText);
-			this.mesh_frontText.dispose();
-		}
-		this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, 0, sync );
-		if(this.mesh_backText) {
-			this.mesh_back.remove(this.mesh_backText);
-			this.mesh_backText.dispose();
-		}
-		this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, 0, sync );
-	
+		// console.log('this.frontIsGridColor', this.frontIsGridColor);
 		if(this.frontIsGridColor){
 			this.mesh_front = this.frontMaterial;
 		}
 		else if(!this.mesh_front){
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
-			// console.log('creating new mesh_front');
-			// console.log(this.geometry_front)
+			this.mesh_front.scale.copy(this.scale);
 		} 
-		else {
-			this.mesh_front.geometry = this.geometry_front;
-			this.mesh_front.material = this.frontMaterial;
-			this.mesh_front.needsUpdate = true;
-		}
-		// console.log(this.geometry_front.needsUpdate);
 		
-		this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
-
-		if(this.mesh_frontText && this.mesh_frontText.parent !== this.mesh_front) {
-			// console.log('add?');
-			this.mesh_front.add(this.mesh_frontText);
+		if(this.backIsGridColor){
+			this.mesh_back = this.backMaterial;
 		}
+		else if(!this.mesh_back){
+			this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
+			this.mesh_back.scale.copy(this.scale);
+		} 
+		// console.log('this.frontMaterial.needsUpdate', this.frontMaterial.needsUpdate);
+		// this.mesh_front.material = this.frontMaterial;
+		// 	this.mesh_front.needsUpdate = true;
+		// if(this.frontMaterial.needsUpdate){
 			
-		if(this.mesh_backText && this.mesh_backText.parent !== this.mesh_back) 
-			this.mesh_back.add(this.mesh_backText);
-		
+		// }
+			
+
+		if(this.frontWatermarkGroup.parent !== this.mesh_front)
+			this.mesh_front.add(this.frontWatermarkGroup);
+		if(this.backWatermarkGroup.parent !== this.mesh_back)
+			this.mesh_back.add(this.backWatermarkGroup);
+		if(!this.mesh_frontText) {
+			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, 0, sync );
+			if(this.mesh_frontText)
+				this.mesh_front.add(this.mesh_frontText);
+		}
+		if(!this.mesh_backText) {
+			this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, 0, sync );
+			if(this.mesh_backText)
+				this.mesh_back.add(this.mesh_backText);
+		}
+		console.log('actualDraw()')
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
-				// console.log('watermark ' + i);
 				let thisColor = this.options.watermarkColorOptions[el.color]['color'];
 				var thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
 					let typography = this.options.watermarkTypographyOptions[el.typography];
-					if(this.mesh_front) {
-						if(el.mesh_front instanceof Text) {
-							this.mesh_front.remove(el.mesh_front);
-							el.mesh_front.dispose();
-						} else if(Array.isArray(el.mesh_front)) {
-							for(let text of el.mesh_front) {
-								this.mesh_front.remove(text);
-								text.dispose();
-							}
-						} else if(el.mesh_front instanceof THREE.Group) {
-							this.mesh_front.remove(el.mesh_front);
-							el.mesh_front.children.forEach(child => {
-								if (child instanceof THREE.Mesh) {
-									child.dispose();
-								}
-								el.mesh_front.remove(child);
-							});
-							el.mesh_front.children = [];
-						}
+					console.log(el.mesh_front);
+					console.log(el.mesh_back);
+					if(!el.mesh_front) {
 						el.mesh_front = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-						this.mesh_front.add(el.mesh_front);
-						// console.log(el);
-						// if(el.position === 'surrounding' && this.watermarkTimer === null) this.watermarkTimer = this.animateWatermark(i);
-						// else if(el.position !== 'surrounding' && this.watermarkTimer !== null) {
-						// 	cancelAnimationFrame(this.watermarkTimer);
-						// 	this.watermarkTimer = null;
-						// }
+						this.frontWatermarkGroup.add(el.mesh_front);
 					}
-					if(this.mesh_back) {
-						if(el.mesh_back instanceof Text) {
-							this.mesh_back.remove(el.mesh_back);
-							el.mesh_back.dispose();
-						} else if(Array.isArray(el.mesh_back)) {
-							for(let text of el.mesh_back) {
-								this.mesh_back.remove(text);
-								text.dispose();
-							}
-						} else if(el.mesh_back instanceof THREE.Group) {
-							this.mesh_back.remove(el.mesh_back);
-							el.mesh_back.children.forEach(child => {
-								if (child instanceof THREE.Mesh) {
-									child.dispose();
-								}
-								el.mesh_back.remove(child);
-							});
-							el.mesh_back.children = [];
-						}
+					if(!el.mesh_back) {
 						el.mesh_back = this.write(el.str, typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-						this.mesh_back.add(el.mesh_back);
+						this.backWatermarkGroup.add(el.mesh_back);
 					}
 				}
 			}.bind(this));
 		}
 		if(this.mesh_front.parent !== this.group) 
 			this.group.add(this.mesh_front);
-		this.mesh_front.scale.multiply(this.scale);
-		this.mesh_back.scale.multiply(this.scale);
+		
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
-		// console.log('end of actualDraw');
-		// console.log(this.mesh_front.children.length);
-		// console.log(this.mesh_front.children);
-		// for(let t of this.mesh_front.children) {
-		// 	console.log(t.text);
-		// }
+		// console.log(this.frontMaterial);
 		this.animate(animationName);
 		 
 	}
@@ -858,10 +967,10 @@ export class ShapeAnimated extends Shape {
 		this.actualDraw(animate);
 	}
 	
-	drawForRecording(){
-		if(this.animationName == 'none') return;
-		this.draw(false);
-	}
+	// drawForRecording(){
+	// 	if(this.animationName == 'none') return;
+	// 	this.draw(false);
+	// }
 	
 	generateThreeColorsGradient(uniforms, angle){
 		uniforms.measure = Math.abs(uniforms.bboxMax.value.x * 2);
@@ -1041,42 +1150,56 @@ export class ShapeAnimated extends Shape {
 			
 		}
 	}
+	updateAnimationSpeed(speed, silent = false){
+		// console.log('updateAnimationSpeed');
+		// console.log(this.options.animationSpeedOptions);
+		this.animationSpeed = this.options.animationSpeedOptions[speed];
+		let value = parseFloat(this.animationSpeed.value);
+		// console.log(speed);
+		this.flipAngleInterval = 0.020 * value;     // aka, speed
+        this.spinAngleInterval = 0.020 * value;
+		// return;
+		this.rotateAngleInterval = 0.020 * value;
+		this.recordingBreakPoint = value * Math.PI * 2;
+		if(!silent) this.canvasObj.draw();
+	}
 	animate(animationName){
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
-			this.mesh_back.scale.multiply(new THREE.Vector3(-1, 1, 1));
-			if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
+			// this.mesh_back.scale.copy(this.scale);
+			this.backWatermarkGroup.scale.copy(this.scale);
+			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 			this.spin();
 		}
 		else if(animationName == 'flip'){
 			this.mesh_back.rotation.x = Math.PI;
-			this.mesh_back.scale.multiply(new THREE.Vector3(1, -1, 1));
-			if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
+			this.backWatermarkGroup.scale.copy(this.scale);
+			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 			this.flip();
 		}
 		else if(animationName == 'rotate'){
-			this.mesh_back.rotation.z = Math.PI;
-			this.mesh_back.scale.multiply(new THREE.Vector3(1, 1, -1));
-			if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
 			this.rotate();
 		}
 		else if(animationName == 'rotate-counter'){
-			this.mesh_back.rotation.z = Math.PI;
-			this.mesh_back.scale.multiply(new THREE.Vector3(1, 1, -1));
-			if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
+			// this.mesh_back.rotation.z = Math.PI;
+			// this.mesh_back.scale.multiply(new THREE.Vector3(1, 1, -1));
+			// if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
 			this.rotate(true);
 		}
 		else if(animationName == 'spin-ease')
 		{
 			this.mesh_back.rotation.y = Math.PI;
-			this.mesh_back.scale.multiply(new THREE.Vector3(-1, 1, 1));
+			// this.mesh_back.scale.copy(this.scale);
+			this.backWatermarkGroup.scale.copy(this.scale);
+			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 			if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
 			this.spinEase();
 		}
 		else if(animationName == 'flip-ease')
 		{
 			this.mesh_back.rotation.x = Math.PI;
-			this.mesh_back.scale.multiply(new THREE.Vector3(1, -1, 1));
+			this.backWatermarkGroup.scale.copy(this.scale);
+			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 			if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
 			this.flipEase();
 		}
@@ -1084,16 +1207,17 @@ export class ShapeAnimated extends Shape {
 		{
 			if(animationName == 'rest-back-spin'){
 				this.isForward = false;
-				this.mesh_back.scale.multiply(new THREE.Vector3(-1, 1, 1));
-				if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
+				this.backWatermarkGroup.scale.copy(this.scale);
+				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
 			}
 			else if(animationName == 'rest-back-flip')
 			{
 				this.isForward = false;
-				this.mesh_back.scale.multiply(new THREE.Vector3(1, -1, 1));
-				if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
+				// this.mesh_back.scale.copy(this.scale);
+				this.backWatermarkGroup.scale.copy(this.scale);
+				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
 			}
@@ -1113,19 +1237,19 @@ export class ShapeAnimated extends Shape {
 			this.resetAnimation();
 
 	}
-	animateWatermark(idx){
-		// console.log('animateWatermark');
-		requestAnimationFrame(()=>{
-			this.animateWatermark(idx)
-		});
-		let mesh_front = this.watermarks[idx].mesh_front;
-		mesh_front.rotation.z -= this.watermarkAngleInterval;
-		mesh_front.needsUpdate = true;
-		let mesh_back = this.watermarks[idx].mesh_back;
-		if(!mesh_back) return;
-		mesh_back.rotation.z -= this.watermarkAngleInterval;
-		mesh_back.needsUpdate = true;
-	}
+	// animateWatermark(idx){
+	// 	// console.log('animateWatermark');
+	// 	requestAnimationFrame(()=>{
+	// 		this.animateWatermark(idx)
+	// 	});
+	// 	let mesh_front = this.watermarks[idx].mesh_front;
+	// 	mesh_front.rotation.z -= this.watermarkAngleInterval;
+	// 	mesh_front.needsUpdate = true;
+	// 	let mesh_back = this.watermarks[idx].mesh_back;
+	// 	if(!mesh_back) return;
+	// 	mesh_back.rotation.z -= this.watermarkAngleInterval;
+	// 	mesh_back.needsUpdate = true;
+	// }
 	rest(move=true){
 		if(move)
 			this.timer = requestAnimationFrame( ()=>{ this.rest(move) } );
@@ -1195,7 +1319,7 @@ export class ShapeAnimated extends Shape {
 	    this.renderer.render( this.scene, this.camera );
 	}
 	flip(){
-		// console.log(this.mesh_frontText);
+		
 		this.timer = requestAnimationFrame( this.flip.bind(this) );
 	    this.mesh_front.rotation.x += this.flipAngleInterval;
 	    this.mesh_back.rotation.x  += this.flipAngleInterval;
@@ -1256,33 +1380,13 @@ export class ShapeAnimated extends Shape {
 	rotate(backward=false){
 		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
 		if(!backward) {
-			this.mesh_front.rotation.z -= this.spinAngleInterval;
-	    	this.mesh_back.rotation.z  -= this.spinAngleInterval;
+			this.mesh_front.rotation.z -= this.rotateAngleInterval;
+	    	this.mesh_back.rotation.z  -= this.rotateAngleInterval;
 		} else {
-			this.mesh_front.rotation.z += this.spinAngleInterval;
-	    	this.mesh_back.rotation.z  += this.spinAngleInterval;
+			this.mesh_front.rotation.z += this.rotateAngleInterval;
+	    	this.mesh_back.rotation.z  += this.rotateAngleInterval;
 		}
-	    
-	    // if(this.mesh_front.rotation.z % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.z % (Math.PI * 2) < 3 * Math.PI / 2)
-	  	// {
-	  	// 	if(this.isForward)
-	  	// 	{
-	  	// 		this.isForward = false;
-	  	// 		this.group.remove( this.mesh_front );
-	  	// 		this.group.add( this.mesh_back );
-	  	// 	}
-	  	// }
-	    // else
-	  	// {
-	  	// 	if(!this.isForward)
-	  	// 	{
-	  	// 		this.isForward = true;
-	  	// 		this.group.add( this.mesh_front );
-	  	// 		this.group.remove( this.mesh_back );
-	  	// 	}
-	  	// }
-	  	// if( this.canvasObj.isRecording && this.mesh_front.rotation.z >= this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
-	  	if( this.canvasObj.isRecording && this.mesh_front.rotation.z > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
+		if( this.canvasObj.isRecording && Math.abs(this.mesh_front.rotation.z) > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
 
 	    this.renderer.render( this.scene, this.camera );
 	}
@@ -1291,6 +1395,7 @@ export class ShapeAnimated extends Shape {
     }
     renderControl(){
 		super.renderControl();
+		this.control.appendChild(this.renderSelectField('animation-speed', 'Speed', this.options.animationSpeedOptions));
 		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'front';
@@ -1299,9 +1404,6 @@ export class ShapeAnimated extends Shape {
 			let section = this.renderSection('', '', [field, controls], 'background-image-section');
 			this.control.appendChild(section);
 		}
-		
-		// if(this.options.colorOptions['upload']) 
-		// 	this.control.appendChild(this.renderFileField('background-image-front', 'background-image background-image-front', ''));
 		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'back';
@@ -1310,8 +1412,6 @@ export class ShapeAnimated extends Shape {
 			let section = this.renderSection('', '', [field, controls], 'background-image-section');
 			this.control.appendChild(section);
 		}
-		// if(this.options.colorOptions['upload']) 
-		// 	this.control.appendChild(this.renderFileField('background-image-back', 'background-image background-image-back', ''));
 		this.fields['shape-back-color'].selectedIndex = 1;
 		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
@@ -1319,24 +1419,19 @@ export class ShapeAnimated extends Shape {
 		this.control_wrapper.appendChild(this.control);
 	}
     addListeners(){
-		// let sShape = this.control.querySelector('.field-id-shape');
-		// console.log(this.fields);
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
 				let shape_name = e.target.value;
 				if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
-					// this.counterpart.updateShape(shapeOptions[shape_name]['shape']);
 					this.updateShape(shapeOptions[shape_name]['shape']);
 				}
 				else if(this.options.shapeOptions[shape_name]['shape']['type'] == 'animation')
 				{
-					// if(this.options.shapeOptions[shape_name]['shape']['animation-type'] == 'corner')
-					//     this.initCornerAnimation(this.options.shapeOptions[shape_name]['shape']);
 					console.log('threejs doesnt support this option');
 				}
 				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
 				[].forEach.call(sWatermark_panels, function(el, i){
-					let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
+					// let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
 					let position = el.querySelector('.watermark-position').value;
 					let label = el.querySelector('label[for^="watermark"]');
 					this.checkWatermarkPosition(position, label);
@@ -1360,8 +1455,11 @@ export class ShapeAnimated extends Shape {
 	    sText_front_color.onchange = function(e){
 	        let text_color = this.options.textColorOptions[e.target.value]['color'];
 	        this.updateFrontTextColor(text_color);
-	        // this.counterpart.updateTextColor(text_color);
-	        // this.updateCounterpartSelectField('text-color', e.target.selectedIndex);
+	    }.bind(this);
+		let sText_back_color = this.control.querySelector('.field-id-text-back-color');
+	    sText_back_color.onchange = function(e){
+	        let text_color = this.options.textColorOptions[e.target.value]['color'];
+	        this.updateBackTextColor(text_color);
 	    }.bind(this);
 
 		if(this.fields['text-front-shift-x']) {	
@@ -1373,7 +1471,7 @@ export class ShapeAnimated extends Shape {
 				this.updateFrontTextShiftY(shift.y)
 			});
 			this.fields['text-front-shift-x'].onblur = () => {
-				this.unfocusInputs([this.fields['text-front-shift-x'], this.fields['text-shift-y']]);
+				this.unfocusInputs([this.fields['text-front-shift-x'], this.fields['text-front-shift-y']]);
 			}
 		}
 		if(this.fields['text-front-shift-y']) {	
@@ -1388,6 +1486,30 @@ export class ShapeAnimated extends Shape {
 				this.unfocusInputs([this.fields['text-front-shift-x'], this.fields['text-front-shift-y']]);
 			}
 		}
+		if(this.fields['text-back-shift-x']) {	
+			this.fields['text-back-shift-x'].onchange = function(e){
+				this.updateBackTextShiftX(parseInt(e.target.value));
+			}.bind(this);
+			this.fields['text-back-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
+				this.updateBackTextShiftX(shift.x)
+				this.updateBackTextShiftY(shift.y)
+			});
+			this.fields['text-back-shift-x'].onblur = () => {
+				this.unfocusInputs([this.fields['text-back-shift-x'], this.fields['text-back-shift-y']]);
+			}
+		}
+		if(this.fields['text-back-shift-y']) {	
+			this.fields['text-back-shift-y'].onchange = function(e){
+				this.updateBackTextShiftY(parseInt(e.target.value));
+			}.bind(this);
+			this.fields['text-back-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
+				this.updateBackTextShiftX(shift.x);
+				this.updateBackTextShiftY(-shift.y);
+			});
+			this.fields['text-back-shift-y'].onblur = () => {
+				this.unfocusInputs([this.fields['text-back-shift-x'], this.fields['text-back-shift-y']]);
+			}
+		}
 	    let sText_back = this.control.querySelector('.field-id-text-back');
 	    this.fields['text-back'] = sText_back;
 	    sText_back.onchange = function(e){
@@ -1395,15 +1517,12 @@ export class ShapeAnimated extends Shape {
 	    }.bind(this);
 
 	    let sText_back_typography = this.control.querySelector('.field-id-text-back-typography');
+		
 	    sText_back_typography.onchange = function(e){
 	        this.updateBackTypography(e.target.value);
 	    }.bind(this);
 
-	    let sText_back_color = this.control.querySelector('.field-id-text-back-color');
-	    sText_back_color.onchange = function(e){
-	        let text_color = this.options.textColorOptions[e.target.value]['color'];
-	        this.updateBackTextColor(text_color);
-	    }.bind(this);
+	    
 
 	    let sShape_front_color = this.control.querySelector('.field-id-shape-front-color');
 		this.fields['shape-front-color'] = sShape_front_color;
@@ -1419,7 +1538,6 @@ export class ShapeAnimated extends Shape {
 					this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
 					this.options.colorOptions[shape_color]['color']['type'] == 'special')
 				{
-					console.log('sShape_front_color onchange');
 					this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
 					this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
 					this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
@@ -1470,7 +1588,6 @@ export class ShapeAnimated extends Shape {
 	        if(!document.body.classList.contains('recording'))
 	        {
 	            this.animation_selectedIndex = e.target.selectedIndex;
-	            // this.counterpart.fields['animation'].selectedIndex = this.animation_selectedIndex;
 	            this.updateAnimation(e.target.value);
 	        }
 	        else
@@ -1500,6 +1617,7 @@ export class ShapeAnimated extends Shape {
 				this.readImageUploaded(e, (idx, image)=> {
 					// console.log('cb readImageUploaded');
 					let isBack = idx.indexOf('back-') !== -1;
+					// console.log('readImageUploaded?')
 					this.updateImg(idx, image, false, isBack)
 				});
 			}.bind(this);
@@ -1508,11 +1626,20 @@ export class ShapeAnimated extends Shape {
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				this.readImage(idx, src, (idx, image, silent)=>{
+					// console.log('applySavedFile?')
 					let isBack = idx.indexOf('back-') !== -1;
 					this.updateImg(idx, image, silent, isBack);
 				});
 				// this.updateImg();
 			});
+		}
+
+		let sAnimation_speed = this.control.querySelector('.field-id-animation-speed');
+		if(sAnimation_speed) {
+			this.fields['animation_speed'] = sAnimation_speed;
+			sAnimation_speed.onchange = function(e){
+				this.updateAnimationSpeed(e.target.value);  
+			}.bind(this);
 		}
 
 	}

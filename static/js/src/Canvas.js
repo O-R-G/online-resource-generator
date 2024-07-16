@@ -746,7 +746,7 @@ export class Canvas {
         if(this.readyState == this.textAmount || this.textAmount == 0){
             setTimeout(function(){
                 this.startRecording();
-            }.bind(this), 1000);
+            }.bind(this), );
         }
     }
     toFix(val, digits=2){
