@@ -91,7 +91,7 @@ export class Shape {
     			'str': values['str'],
     			'position': values['position'],
     			'color': values['color'],
-    			'typography': values['typography'],
+    			'typography': this.typographyOptions[values['typography']] ? this.typographyOptions[values['typography']] : false,
                 'shift': values['shift'],
                 'rotate': values['rad']
     		};
@@ -99,9 +99,11 @@ export class Shape {
     	else
     	{
             for(let name in values) {
-                if(values[name] !== false) {
+                if(values[name] === false) continue;
+                if(name === 'typography') {
+                    this.watermarks[idx][name] = this.typographyOptions[values['typography']] ? this.typographyOptions[values['typography']] : false;
+                }else
                     this.watermarks[idx][name] = values[name];
-                }
             }   
     	} 		
 	}

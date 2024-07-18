@@ -126,7 +126,7 @@ export class ShapeAnimated extends Shape {
 			this.innerPadding[prop] = this.getValueByPixelRatio(this.innerPadding[prop]);
 		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
 		this.drawShape();
-		this.updateTextMeshByShape();
+		this.updateTextMeshByShape(shape);
 		if(!silent) this.canvasObj.draw();
 	}
 	updateTextMeshByShape(shape){
@@ -331,6 +331,8 @@ export class ShapeAnimated extends Shape {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
+		console.log('typography in write: ');
+		console.log(typography)
 		let fontData = this.processFontData(typography, isBack);
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
@@ -582,6 +584,7 @@ export class ShapeAnimated extends Shape {
 	processFontData(typography, isBack){
 		let output = {};
 		let size = typography['size'];
+		console.log(typography);
 		let fontData = this.fonts[typography['font']['animated']['name']] ? this.fonts[typography['font']['animated']['name']] : '';
 		output.font = fontData['font'];
 		output.path = typography['font']['animated']['path'];
@@ -732,6 +735,8 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
+		console.log('updateWatermark');
+		console.log(values_raw.typography);
     	super.updateWatermark(idx, values_raw);
 		let mesh_data = [{
 				mesh: this.watermarks[idx].mesh_front,
@@ -758,44 +763,14 @@ export class ShapeAnimated extends Shape {
 				});
 				mesh.children = [];
 			}
-			// mesh = false;
-			// group.needsUpdate = true;
 		}
 		this.frontWatermarkGroup.remove(this.watermarks[idx].mesh_front);
 		this.backWatermarkGroup.remove(this.watermarks[idx].mesh_back);
 		this.watermarks[idx].mesh_front = false;
 		this.watermarks[idx].mesh_back = false;
-		// this.frontWatermarkGroup.needsUpdate = true;
-		// this.backWatermarkGroup.needsUpdate = true;
-		// if(this.watermarks[idx].mesh_front) {
-		// 	this.watermarks[idx].mesh_front.needsUpdate = true;
-		// }
-		// if(this.watermarks[idx].mesh_back) {
-			
-		// 	this.watermarks[idx].mesh_back.needsUpdate = true;
-		// }
+		
 		if(!silent) this.canvasObj.draw();
 	}
-	// removeWatermarkMeshFromGroup(mesh, group){
-	// 	if(!mesh) return;
-	// 	// let mesh = mesh_data[key].mesh;
-	// 	// let group = mesh_data[key].group;
-		
-	// 	if(mesh instanceof Text) {
-	// 		group.remove(mesh);
-	// 		mesh.dispose();
-	// 	} else if(mesh instanceof THREE.Group) {
-	// 		group.remove(mesh);
-	// 		mesh.children.forEach(child => {
-	// 			if (child instanceof THREE.Mesh) {
-	// 				child.dispose();
-	// 			}
-	// 			mesh.remove(child);
-	// 		});
-	// 		mesh.children = [];
-	// 	}
-	// 	group.remove(mesh);
-	// }
 	
 	updateImg(idx, image, silent = false, isBack = false){
 		super.updateImg(idx, image, silent);
@@ -907,6 +882,8 @@ export class ShapeAnimated extends Shape {
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
 					if(!el.mesh_front) {
+						console.log('el.typography');
+						console.log(el.typography);
 						el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
 						this.frontWatermarkGroup.add(el.mesh_front);
 					}
