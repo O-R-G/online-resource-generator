@@ -18,14 +18,7 @@ async function init(data, cb){
         'animated': [],
         'static': []
     };
-    await fontLoader.init();
-    // fontLoader.loadThreeFonts();
-    
-    // fontLoader.onThreeLoaded = function(fonts){
-    //     for(let s of shapes['animated']) {
-    //         s.
-    //     }
-    // }
+    // fontLoader.init();
 
     for(let id in data) {
         /* render canvas / shapes */

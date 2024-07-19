@@ -402,7 +402,9 @@ export class ShapeStatic extends Shape {
     	if(typography === false)
     		typography = this.typography;
 		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];
+		
 		if(typography['font']['static']['weight']) fontStyle = typography['font']['static']['weight'] + ' ' + fontStyle;
+		console.log(fontStyle);
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;

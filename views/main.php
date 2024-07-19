@@ -23,6 +23,8 @@
         
 
 ?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?>></main>
+<div style="font-family: 'standard'; ">&nbsp;</div>
+<div style="font-family: 'standard'; font-weight: bold; ">&nbsp;</div>
 <script>
     const root_path = '<?php echo $root_path; ?>';
     const record_id = '<?php echo $record_id; ?>';

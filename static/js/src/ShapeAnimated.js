@@ -333,9 +333,10 @@ export class ShapeAnimated extends Shape {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		console.log('typography in write: ');
-		console.log(typography)
+		// console.log('typography in write: ');
+		// console.log(typography)
 		let fontData = this.processFontData(typography, isBack);
+		console.log(fontData);
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
@@ -782,11 +783,12 @@ export class ShapeAnimated extends Shape {
 		const textureLoader = new THREE.TextureLoader();
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// Set texture filtering
-			// texture.magFilter = THREE.LinearFilter;
+			texture.magFilter = THREE.LinearFilter;
 			// texture.minFilter = THREE.LinearMipmapLinearFilter;
-			// texture.minFilter = THREE.LinearFilter;
+			texture.minFilter = THREE.LinearFilter;
 			// texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 			// texture.encoding = THREE.sRGBEncoding;
+			texture.colorSpace = THREE.SRGBColorSpace;
 			texture.wrapS = THREE.ClampToEdgeWrapping;
 			texture.wrapT = THREE.ClampToEdgeWrapping;
   			
@@ -799,32 +801,32 @@ export class ShapeAnimated extends Shape {
 				this.mesh_back.material = this.backMaterial;
 				this.mesh_back.needsUpdate = true;
 			}
-			// let geometry = isBack ? this.geometry_back : this.geometry_front;
-			// let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
-			// geometry.attributes.uv.array.set(original_uvs);
-			// const imageAspect = texture.image.width / texture.image.height;
-			// geometry.computeBoundingBox();
-			// const bbox = geometry.boundingBox;
-			// const geomWidth = bbox.max.x - bbox.min.x;
-			// const geomHeight = bbox.max.y - bbox.min.y;
-			// const geometryAspect = geomWidth / geomHeight;
-			// const uvs = geometry.attributes.uv.array;
-			// for (let i = 0; i < uvs.length; i += 2) {
-			// 	const x = uvs[i];
-			// 	const y = uvs[i + 1];
+			let geometry = isBack ? this.geometry_back : this.geometry_front;
+			let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
+			geometry.attributes.uv.array.set(original_uvs);
+			const imageAspect = texture.image.width / texture.image.height;
+			geometry.computeBoundingBox();
+			const bbox = geometry.boundingBox;
+			const geomWidth = bbox.max.x - bbox.min.x;
+			const geomHeight = bbox.max.y - bbox.min.y;
+			const geometryAspect = geomWidth / geomHeight;
+			const uvs = geometry.attributes.uv.array;
+			for (let i = 0; i < uvs.length; i += 2) {
+				const x = uvs[i];
+				const y = uvs[i + 1];
 
-			// 	if (imageAspect > geometryAspect) {
-			// 		const scale = geometryAspect / imageAspect;
-			// 		uvs[i] = x * scale + (1 - scale) / 2;
-			// 	} else {
-			// 		const scale = imageAspect / geometryAspect;
-			// 		uvs[i + 1] = y * scale + (1 - scale) / 2;
-			// 	}
-			// }
+				if (imageAspect > geometryAspect) {
+					const scale = geometryAspect / imageAspect;
+					uvs[i] = x * scale + (1 - scale) / 2;
+				} else {
+					const scale = imageAspect / geometryAspect;
+					uvs[i + 1] = y * scale + (1 - scale) / 2;
+				}
+			}
 			
-			// geometry.attributes.uv.needsUpdate = true;
-			this.renderer.render( this.scene, this.camera );
-			// if(!silent) this.canvasObj.draw();
+			geometry.attributes.uv.needsUpdate = true;
+			// this.renderer.render( this.scene, this.camera );
+			if(!silent) this.canvasObj.draw();
 		});
 	}
 	processStaticColorData(colorData){
