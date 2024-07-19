@@ -811,17 +811,34 @@ export class ShapeAnimated extends Shape {
 			const geomHeight = bbox.max.y - bbox.min.y;
 			const geometryAspect = geomWidth / geomHeight;
 			const uvs = geometry.attributes.uv.array;
+			// for (let i = 0; i < uvs.length; i += 2) {
+			// 	const x = uvs[i];
+			// 	const y = uvs[i + 1];
+
+			// 	if (imageAspect > geometryAspect) {
+			// 		const scale = geometryAspect / imageAspect * this.imgs[idx].scale;
+			// 		uvs[i] = x * scale + (1 - scale) / 2;
+			// 	} else {
+			// 		const scale = imageAspect / geometryAspect * this.imgs[idx].scale;
+			// 		uvs[i + 1] = y * scale + (1 - scale) / 2;
+			// 	}
+			// }
+			let scaleX = 1 / this.imgs[idx].scale;
+			let scaleY = 1 / this.imgs[idx].scale;
+
+			if (imageAspect > geometryAspect) {
+				scaleX *= geometryAspect / imageAspect;
+			} else {
+				scaleY *= imageAspect / geometryAspect;
+			}
+			console.log(scaleX, scaleY);
 			for (let i = 0; i < uvs.length; i += 2) {
 				const x = uvs[i];
 				const y = uvs[i + 1];
 
-				if (imageAspect > geometryAspect) {
-					const scale = geometryAspect / imageAspect;
-					uvs[i] = x * scale + (1 - scale) / 2;
-				} else {
-					const scale = imageAspect / geometryAspect;
-					uvs[i + 1] = y * scale + (1 - scale) / 2;
-				}
+				// Apply scaling and centering
+				uvs[i] = x * scaleX + (1 - scaleX) / 2;
+				uvs[i + 1] = y * scaleY + (1 - scaleY) / 2;
 			}
 			
 			geometry.attributes.uv.needsUpdate = true;
@@ -1591,6 +1608,24 @@ export class ShapeAnimated extends Shape {
 				});
 				// this.updateImg();
 			});
+			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+			if(scale_input) {
+				scale_input.oninput = function(e){
+				    e.preventDefault();
+				    let scale = e.target.value >= 1 ? e.target.value : 1;
+					console.log(scale);
+				    this.updateImgScale(scale, idx);
+				}.bind(this);
+			}	
+			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+			shift_x_input.oninput = function(e){
+				console.log('shift_x_input');
+				this.updateImgPositionX(e.target.value, idx);
+			}.bind(this);
+			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+			shift_y_input.oninput = function(e){
+				this.updateImgPositionY(e.target.value, idx);
+			}.bind(this);
 		}
 
 		let sAnimation_speed = this.control.querySelector('.field-id-animation-speed');
