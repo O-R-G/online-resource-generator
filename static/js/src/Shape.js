@@ -81,8 +81,10 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}){
-        // console.log('update watermark: ', values_raw);
-        let values = values_raw;
+        console.log(values_raw['typography']);
+        console.log(this.options.typographyOptions);
+        let typography = typeof values_raw.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_raw['typography']] ? this.options.watermarkTypographyOptions[values_raw['typography']] : false ) : values_raw.typography;
+        let values = {...values_raw, typography:typography};
         
         if(this.watermarks[idx] == undefined)
     	{
@@ -91,7 +93,7 @@ export class Shape {
     			'str': values['str'],
     			'position': values['position'],
     			'color': values['color'],
-    			'typography': this.typographyOptions[values['typography']] ? this.typographyOptions[values['typography']] : false,
+    			'typography': values['typography'],
                 'shift': values['shift'],
                 'rotate': values['rad']
     		};
@@ -100,10 +102,7 @@ export class Shape {
     	{
             for(let name in values) {
                 if(values[name] === false) continue;
-                if(name === 'typography') {
-                    this.watermarks[idx][name] = this.typographyOptions[values['typography']] ? this.typographyOptions[values['typography']] : false;
-                }else
-                    this.watermarks[idx][name] = values[name];
+                this.watermarks[idx][name] = values[name];
             }   
     	} 		
 	}
