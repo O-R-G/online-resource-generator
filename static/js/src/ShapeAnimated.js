@@ -9,7 +9,9 @@ export class ShapeAnimated extends Shape {
 		super(prefix, canvasObj, options, format, shape_index);
 		
 		this.geometry_front = null;
+		this.geometry_front_uvs = null;
 		this.geometry_back = null;
+		this.geometry_back_uvs = null;
 		this.fonts = {};
 
 		this.mesh_front = null;
@@ -779,6 +781,15 @@ export class ShapeAnimated extends Shape {
 		}
 		const textureLoader = new THREE.TextureLoader();
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
+			// Set texture filtering
+			// texture.magFilter = THREE.LinearFilter;
+			// texture.minFilter = THREE.LinearMipmapLinearFilter;
+			// texture.minFilter = THREE.LinearFilter;
+			// texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+			// texture.encoding = THREE.sRGBEncoding;
+			texture.wrapS = THREE.ClampToEdgeWrapping;
+			texture.wrapT = THREE.ClampToEdgeWrapping;
+  			
 			if(!isBack) {
 				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
 				this.mesh_front.material = this.frontMaterial;
@@ -788,7 +799,32 @@ export class ShapeAnimated extends Shape {
 				this.mesh_back.material = this.backMaterial;
 				this.mesh_back.needsUpdate = true;
 			}
-			if(!silent) this.canvasObj.draw();
+			// let geometry = isBack ? this.geometry_back : this.geometry_front;
+			// let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
+			// geometry.attributes.uv.array.set(original_uvs);
+			// const imageAspect = texture.image.width / texture.image.height;
+			// geometry.computeBoundingBox();
+			// const bbox = geometry.boundingBox;
+			// const geomWidth = bbox.max.x - bbox.min.x;
+			// const geomHeight = bbox.max.y - bbox.min.y;
+			// const geometryAspect = geomWidth / geomHeight;
+			// const uvs = geometry.attributes.uv.array;
+			// for (let i = 0; i < uvs.length; i += 2) {
+			// 	const x = uvs[i];
+			// 	const y = uvs[i + 1];
+
+			// 	if (imageAspect > geometryAspect) {
+			// 		const scale = geometryAspect / imageAspect;
+			// 		uvs[i] = x * scale + (1 - scale) / 2;
+			// 	} else {
+			// 		const scale = imageAspect / geometryAspect;
+			// 		uvs[i + 1] = y * scale + (1 - scale) / 2;
+			// 	}
+			// }
+			
+			// geometry.attributes.uv.needsUpdate = true;
+			this.renderer.render( this.scene, this.camera );
+			// if(!silent) this.canvasObj.draw();
 		});
 	}
 	processStaticColorData(colorData){
@@ -841,6 +877,8 @@ export class ShapeAnimated extends Shape {
 			this.mesh_back.geometry = this.geometry_back;
 			this.mesh_back.needsUpdate = true;
 		}
+		this.geometry_front_uvs = new Float32Array(this.geometry_front.attributes.uv.array);
+		this.geometry_back_uvs = new Float32Array(this.geometry_back.attributes.uv.array);
 	}
 	actualDraw(animate = true){
 		let sync = !animate;
