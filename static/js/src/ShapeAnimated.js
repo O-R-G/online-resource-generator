@@ -786,31 +786,36 @@ export class ShapeAnimated extends Shape {
 		const textureLoader = new THREE.TextureLoader();
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// Set texture filtering
+			console.log(this.imgs[idx]);
 			texture.magFilter = THREE.LinearFilter;
 			texture.minFilter = THREE.LinearFilter;
 			texture.colorSpace = THREE.SRGBColorSpace;
 			texture.wrapS = THREE.ClampToEdgeWrapping;
 			texture.wrapT = THREE.ClampToEdgeWrapping;
-  			
+  			let mesh = isBack ? this.mesh_back : this.mesh_front;
 			if(!isBack) {
 				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
-				this.mesh_front.material = this.frontMaterial;
-				this.mesh_front.needsUpdate = true;
+				mesh.material = this.frontMaterial;
 			} else {
 				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture });
-				this.mesh_back.material = this.backMaterial;
-				this.mesh_back.needsUpdate = true;
+				mesh.material = this.backMaterial;
 			}
+			mesh.needsUpdate = true;
 			let geometry = isBack ? this.geometry_back : this.geometry_front;
 			let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
-			geometry.attributes.uv.array.set(original_uvs);
+			// geometry.attributes.uv.array.set(original_uvs);
 			const imageAspect = texture.image.width / texture.image.height;
 			geometry.computeBoundingBox();
 			const bbox = geometry.boundingBox;
 			const geomWidth = bbox.max.x - bbox.min.x;
 			const geomHeight = bbox.max.y - bbox.min.y;
+			// console.log('geometry width and height: ');
+			// console.log(geomWidth, geomHeight);
+			// console.log('texture width and height: ');
+			// console.log(texture.image.width, texture.image.height);
 			const geometryAspect = geomWidth / geomHeight;
-			const uvs = geometry.attributes.uv.array;
+			
+			// console.log(uvs);
 			
 			let scaleX = 1 / this.imgs[idx].scale;
 			let scaleY = 1 / this.imgs[idx].scale;
@@ -820,21 +825,46 @@ export class ShapeAnimated extends Shape {
 			} else {
 				scaleY *= imageAspect / geometryAspect;
 			}
-			// console.log(this.imgs[idx].shiftX);
-			// console.log(scaleX, scaleY);
 			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / this.canvasObj.canvas.width : 0;
 			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY / this.canvasObj.canvas.height : 0;
-			for (let i = 0; i < uvs.length; i += 2) {
-				const x = uvs[i];
-				const y = uvs[i + 1];
-
-				// Apply scaling and centering
-				uvs[i] = (x - dev_x) * scaleX + (1 - scaleX) / 2;
-				uvs[i + 1] = (y + dev_y) * scaleY + (1 - scaleY) / 2;				
-	
+			
+			let geometry_type = geometry.constructor.name.toLowerCase();
+			if(geometry_type === 'shapegeometry') {
+				const uvArray = [];
+    			const position = geometry.attributes.position;
+				const max = bbox.max;
+				const min = bbox.min;
+				
+				for (let i = 0; i < position.count; i++) {
+					const x = position.getX(i);
+					const y = position.getY(i);
+			
+					let u = (x - min.x) / (max.x - min.x);
+					let v = (y - min.y) / (max.y - min.y);
+					u = u * scaleX + (1 - scaleX) / 2 - dev_x;
+					v = v * scaleY + (1 - scaleY) / 2 + dev_y;
+					uvArray.push(u, v);
+				}
+			
+				geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+				geometry.attributes.uv.needsUpdate = true;
+				// geometry.uvsNeedUpdate = true;
+			}
+			else if(geometry_type === 'circlegeometry') {
+				const uvs = geometry.attributes.uv.array;
+				for (let i = 0; i < uvs.length; i += 2) {
+					const x = uvs[i];
+					const y = uvs[i + 1];
+					
+					// Apply scaling and centering
+					uvs[i] = (x) * scaleX + (1 - scaleX) / 2 - dev_x;
+					uvs[i + 1] = (y) * scaleY + (1 - scaleY) / 2 + dev_y;	
+				}
+				geometry.attributes.uv.needsUpdate = true;
 			}
 			
-			geometry.attributes.uv.needsUpdate = true;
+			
+			
 			// this.renderer.render( this.scene, this.camera );
 			if(!silent) this.canvasObj.draw();
 		});
@@ -891,6 +921,17 @@ export class ShapeAnimated extends Shape {
 		}
 		this.geometry_front_uvs = new Float32Array(this.geometry_front.attributes.uv.array);
 		this.geometry_back_uvs = new Float32Array(this.geometry_back.attributes.uv.array);
+		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
+			if(this.imgs['front-background-image']) {
+				console.log('update..');
+				this.updateImg('front-background-image', this.imgs['front-background-image'].img);
+			}
+		}
+		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
+			if(this.imgs['back-background-image']) {
+				this.updateImg('back-background-image', this.imgs['back-background-image'].img, false, false);
+			}
+		}
 	}
 	actualDraw(animate = true){
 		let sync = !animate;
@@ -1119,7 +1160,7 @@ export class ShapeAnimated extends Shape {
 	}
 
 	updateAnimation(animationData, syncing = false, silent = false){
-		console.log('updateAnimation');
+		// console.log('updateAnimation');
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1686,7 +1727,7 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
     sync(){
-		console.log('animated sync()');
+		// console.log('animated sync()');
 		if(!this.counterpart) return;
     	let isSilent = true;
 		// console.log(this.fieldCounterparts);

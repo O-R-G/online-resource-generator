@@ -60,7 +60,7 @@ export class ShapeStatic extends Shape {
 		this.fieldCounterparts['shape-color'] = 'shape-front-color';
 	}
 	updateShape(shape, silent = false){
-		console.log('static updateShape');
+		// console.log('static updateShape');
 		if(shape['type'] == 'static') super.updateShape(shape);
 		else if(shape['type'] == 'animation')
 		{
@@ -1192,7 +1192,7 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		console.log('static sync()');
+		// console.log('static sync()');
 		if(!this.counterpart) return;
 
 		let isSilent = true;

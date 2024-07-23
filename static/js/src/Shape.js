@@ -679,7 +679,7 @@ export class Shape {
 
     updateCounterpartWatermarks(silent=false){
         this.fields.watermarks.forEach(function(el, i){
-            console.log(el);
+            // console.log(el);
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();
             let that_watermark = this.counterpart.fields.watermarks[i]
@@ -749,12 +749,12 @@ export class Shape {
 			let tagName = field.tagName.toLowerCase();
 			if(tagName === 'select') {
 				let val = field.value;
-                if(name === 'shape') {
-                    console.log(name);
-                    console.log(val);
-                    console.log(counterField);
-                    console.log(counterField.value);
-                }
+                // if(name === 'shape') {
+                //     console.log(name);
+                //     console.log(val);
+                //     console.log(counterField);
+                //     console.log(counterField.value);
+                // }
 				if(val !== counterField.value) {
                     let options = counterField.querySelectorAll('option');
                     for(const [index, option] of options.entries()) {
