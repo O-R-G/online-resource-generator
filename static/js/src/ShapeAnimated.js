@@ -120,6 +120,18 @@ export class ShapeAnimated extends Shape {
 	addCounterpart(obj)
 	{
 		super.addCounterpart(obj);
+		this.setFieldCounterparts();
+	}
+	setFieldCounterparts(){
+		this.fieldCounterparts['shape'] = 'shape';
+		this.fieldCounterparts['animation'] = 'animation';
+		this.fieldCounterparts['text-front'] = 'text';
+		this.fieldCounterparts['text-front-position'] = 'text-position';
+		this.fieldCounterparts['text-front-color'] = 'text-color';
+		this.fieldCounterparts['text-front-typography'] = 'text-typography';
+		this.fieldCounterparts['text-front-shift-x'] = 'text-shift-x';
+		this.fieldCounterparts['text-front-shift-y'] = 'text-shift-y';
+		this.fieldCounterparts['shape-front-color'] = 'shape-color';
 	}
 	updateShape(shape, silent = false){
 		super.updateShape(shape);
@@ -333,10 +345,8 @@ export class ShapeAnimated extends Shape {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		// console.log('typography in write: ');
-		// console.log(typography)
+		
 		let fontData = this.processFontData(typography, isBack);
-		console.log(fontData);
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
@@ -350,21 +360,14 @@ export class ShapeAnimated extends Shape {
 		}
 		this.applyTypographyToTextMesh(output, typography, isBack);
 		output.text = str;
-		// output.fontSize = fontData.size;
 		output.material = material;
-		// output.material = new THREE.MeshBasicMaterial({color: '#ff0000'});
-		// output.position.z = isBack ? 1 : 0.5;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = 'center';
 		output.anchorY = '50%';
-		// output.font = fontData.path;
-		// output.lineHeight = fontData.lineHeight;
-		// output.letterSpacing = fontData.letterSpacing;
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
-		// let lines = str.split('\n');
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
 			output.position.x += shift.x;
@@ -784,10 +787,7 @@ export class ShapeAnimated extends Shape {
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// Set texture filtering
 			texture.magFilter = THREE.LinearFilter;
-			// texture.minFilter = THREE.LinearMipmapLinearFilter;
 			texture.minFilter = THREE.LinearFilter;
-			// texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-			// texture.encoding = THREE.sRGBEncoding;
 			texture.colorSpace = THREE.SRGBColorSpace;
 			texture.wrapS = THREE.ClampToEdgeWrapping;
 			texture.wrapT = THREE.ClampToEdgeWrapping;
@@ -811,18 +811,7 @@ export class ShapeAnimated extends Shape {
 			const geomHeight = bbox.max.y - bbox.min.y;
 			const geometryAspect = geomWidth / geomHeight;
 			const uvs = geometry.attributes.uv.array;
-			// for (let i = 0; i < uvs.length; i += 2) {
-			// 	const x = uvs[i];
-			// 	const y = uvs[i + 1];
-
-			// 	if (imageAspect > geometryAspect) {
-			// 		const scale = geometryAspect / imageAspect * this.imgs[idx].scale;
-			// 		uvs[i] = x * scale + (1 - scale) / 2;
-			// 	} else {
-			// 		const scale = imageAspect / geometryAspect * this.imgs[idx].scale;
-			// 		uvs[i + 1] = y * scale + (1 - scale) / 2;
-			// 	}
-			// }
+			
 			let scaleX = 1 / this.imgs[idx].scale;
 			let scaleY = 1 / this.imgs[idx].scale;
 
@@ -831,14 +820,18 @@ export class ShapeAnimated extends Shape {
 			} else {
 				scaleY *= imageAspect / geometryAspect;
 			}
-			console.log(scaleX, scaleY);
+			// console.log(this.imgs[idx].shiftX);
+			// console.log(scaleX, scaleY);
+			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / this.canvasObj.canvas.width : 0;
+			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY / this.canvasObj.canvas.height : 0;
 			for (let i = 0; i < uvs.length; i += 2) {
 				const x = uvs[i];
 				const y = uvs[i + 1];
 
 				// Apply scaling and centering
-				uvs[i] = x * scaleX + (1 - scaleX) / 2;
-				uvs[i + 1] = y * scaleY + (1 - scaleY) / 2;
+				uvs[i] = (x - dev_x) * scaleX + (1 - scaleX) / 2;
+				uvs[i + 1] = (y + dev_y) * scaleY + (1 - scaleY) / 2;				
+	
 			}
 			
 			geometry.attributes.uv.needsUpdate = true;
@@ -1124,6 +1117,7 @@ export class ShapeAnimated extends Shape {
 	}
 
 	updateAnimation(animationData, syncing = false, silent = false){
+		console.log('updateAnimation');
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1446,7 +1440,7 @@ export class ShapeAnimated extends Shape {
 			this.fields['text-front-shift-x'].onchange = function(e){
 				this.updateFrontTextShiftX(parseInt(e.target.value));
 			}.bind(this);
-			this.fields['text-front-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
+			this.fields['text-front-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
 				this.updateFrontTextShiftX(shift.x)
 				this.updateFrontTextShiftY(shift.y)
 			});
@@ -1619,7 +1613,6 @@ export class ShapeAnimated extends Shape {
 			}	
 			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
-				console.log('shift_x_input');
 				this.updateImgPositionX(e.target.value, idx);
 			}.bind(this);
 			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
@@ -1692,29 +1685,32 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
     sync(){
+		console.log('animated sync()');
 		if(!this.counterpart) return;
     	let isSilent = true;
-    	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
-        this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
+		// console.log(this.fieldCounterparts);
+		super.sync();
+    	// this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
+        // this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
 
-        this.updateCounterpartSelectField('animation', this.fields['animation'].selectedIndex);
+        // this.updateCounterpartSelectField('animation', this.fields['animation'].selectedIndex);
 
-    	super.updateCounterpartTextField('text', this.fields['text-front'].value);
-    	this.counterpart.updateText(this.fields['text-front'].value, isSilent);
+    	// super.updateCounterpartTextField('text', this.fields['text-front'].value);
+    	// this.counterpart.updateText(this.fields['text-front'].value, isSilent);
         
-        this.updateCounterpartSelectField('text-typography', this.fields['text-front-typography'].selectedIndex);
-        this.counterpart.updatetypography(this.fields['text-front-typography'].value, isSilent);
+        // this.updateCounterpartSelectField('text-typography', this.fields['text-front-typography'].selectedIndex);
+        // this.counterpart.updatetypography(this.fields['text-front-typography'].value, isSilent);
 
-        this.updateCounterpartSelectField('text-color', this.fields['text-front-color'].selectedIndex);
-        this.counterpart.updateTextColor(this.options.textColorOptions[this.fields['text-front-color'].value]['color'], isSilent);
+        // this.updateCounterpartSelectField('text-color', this.fields['text-front-color'].selectedIndex);
+        // this.counterpart.updateTextColor(this.options.textColorOptions[this.fields['text-front-color'].value]['color'], isSilent);
         
 
-        if( this.options.colorOptions[this.fields['shape-front-color'].value]['color']['type'] == 'solid' || 
-            this.options.colorOptions[this.fields['shape-front-color'].value]['color']['type'] == 'gradient')
-        {
-        	this.updateCounterpartSelectField('shape-color', this.fields['shape-front-color'].selectedIndex);
-            this.counterpart.updateColor(this.options.colorOptions[this.fields['shape-front-color'].value]['color'], isSilent);
-        }
+        // if( this.options.colorOptions[this.fields['shape-front-color'].value]['color']['type'] == 'solid' || 
+        //     this.options.colorOptions[this.fields['shape-front-color'].value]['color']['type'] == 'gradient')
+        // {
+        // 	this.updateCounterpartSelectField('shape-color', this.fields['shape-front-color'].selectedIndex);
+        //     this.counterpart.updateColor(this.options.colorOptions[this.fields['shape-front-color'].value]['color'], isSilent);
+        // }
         super.updateCounterpartWatermarks(isSilent);
 
         this.canvasObj.counterpart.draw();

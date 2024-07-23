@@ -36,6 +36,7 @@ export class Shape {
         this.fields = {};
         this.fields.imgs = {};
         this.fields.watermarks = [];
+        this.fieldCounterparts = {};
 
         this.shapeMethod = 'draw';
 	}
@@ -81,9 +82,12 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}){
-        console.log(values_raw['typography']);
-        console.log(this.options.typographyOptions);
+        console.log('updateWatermark')
+        // console.log(values_raw['typography']);
+        // console.log(this.options.typographyOptions);
         let typography = typeof values_raw.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_raw['typography']] ? this.options.watermarkTypographyOptions[values_raw['typography']] : false ) : values_raw.typography;
+        if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
+        console.log(typography);
         let values = {...values_raw, typography:typography};
         
         if(this.watermarks[idx] == undefined)
@@ -653,12 +657,12 @@ export class Shape {
     updateCounterpartSelectField(field, index)
     {
         if(!this.counterpart || !field) return;
-        if(typeof field === 'string') {
-            if(!this.counterpart.fields[field]) return false;
-            this.counterpart.fields[field].selectedIndex = index;
-        } else {
-            field.selectedIndex = index;
+        let f = field;
+        if(typeof f === 'string') {
+            if(!this.counterpart.fields[f]) return false;
+            f = this.counterpart.fields[field];
         }
+        f.selectedIndex = index;
         
     }
     updateCounterpartTextField(field, value)
@@ -732,5 +736,36 @@ export class Shape {
         }
         return el;
     };
+    sync(){
+        for(const name in this.fieldCounterparts) {
+            
+			let field = this.fields[name];
+			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
+			if(!counterField || !field) continue;
+            
+			let tagName = field.tagName.toLowerCase();
+			if(tagName === 'select') {
+				let val = field.value;
+                if(name === 'text-front-position' || name === 'text-position') {
+                    console.log(name);
+                    console.log(val);
+                    console.log(counterField.value)
+                }
+				if(val === counterField.value) continue;
+				let options = counterField.querySelectorAll('option');
+				for(const [index, option] of options.entries()) {
+					if(option.value === val) {
+						this.updateCounterpartSelectField(counterField, index);
+						break;
+					}
+				}
+			} else if(tagName === 'textarea' || tagName === 'input') {
+				let val = field.value;
+				if(!val) continue;
+				counterField.value = val;
+			}
+			counterField.dispatchEvent(new Event('change'));
+		}
+    }
 }
 

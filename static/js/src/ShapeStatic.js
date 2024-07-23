@@ -6,24 +6,11 @@ export class ShapeStatic extends Shape {
 		this.colorData = this.getDefaultOption(this.options.colorOptions);
 		this.colorData = this.colorData.color;
 		this.color = this.colorData.code;
-		// this.color = null;
-        // for(let prop in this.options.colorOptions) {
-        //     if(this.options.colorOptions[prop]['default']) this.color = this.options.colorOptions[prop].color.code;
-        // }
-        // if(!this.color) this.color = Object.values(this.options.colorOptions)[0].color.code;
-
-		// this.colorData = null;
-        // for(let prop in this.options.colorOptions) {
-        //     if(this.options.colorOptions[prop]['default']) this.colorData = this.options.colorOptions[prop].color;
-        // }
-        // if(!this.colorData) this.colorData = Object.values(this.options.colorOptions)[0].color;
-
 		this.textColor = null;
         for(let prop in this.options.textColorOptions) {
             if(this.options.textColorOptions[prop]['default']) this.textColor = this.options.textColorOptions[prop].color.code;
         }
         if(!this.textColor) this.textColor = Object.values(this.options.textColorOptions)[0].color.code;
-
 		this.textPosition = null;
         for(let prop in this.options.textPositionOptions) {
             if(this.options.textPositionOptions[prop]['default']) this.textPosition = this.options.textPositionOptions[prop].value;
@@ -34,16 +21,12 @@ export class ShapeStatic extends Shape {
 
 		this.textShiftX = 0;
 		this.textShiftY = 0;
-
 		this.timer_color = null;
-
 		this.timer_position = null;
 		this.timer_shape = null;
-
-	    // this.shapeMethod = 'draw';
 		this.customGraphic = [];
 	}
-	init(canvasObj){
+	init(canvasObj) {
 		super.init(canvasObj);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
@@ -55,15 +38,26 @@ export class ShapeStatic extends Shape {
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
+		// this.setFieldCounterparts();
 	}
-	updateCanvasSize(){
+	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
 	}
-	addCounterpart(obj)
-	{
+	addCounterpart(obj) {
 		super.addCounterpart(obj);
-		// this.fields['animation'].parentNode.parentNode.style.display = 'block';
+		this.setFieldCounterparts();
+	}
+	setFieldCounterparts(){
+		this.fieldCounterparts['shape'] = 'shape';
+		this.fieldCounterparts['animation'] = 'animation';
+		this.fieldCounterparts['text'] = 'text-front';
+		this.fieldCounterparts['text-position'] = 'text-front-position';
+		this.fieldCounterparts['text-color'] = 'text-front-color';
+		this.fieldCounterparts['text-typography'] = 'text-front-typography';
+		this.fieldCounterparts['text-shift-x'] = 'text-front-shift-x';
+		this.fieldCounterparts['text-shift-y'] = 'text-front-shift-y';
+		this.fieldCounterparts['shape-color'] = 'shape-front-color';
 	}
 	updateShape(shape, silent = false){
 		if(shape['type'] == 'static') super.updateShape(shape);
@@ -74,7 +68,7 @@ export class ShapeStatic extends Shape {
 		}
 		if(!silent) this.canvasObj.draw();
 	}
-	processStaticColorData(colorData){
+	processStaticColorData(colorData) {
 		if(colorData.type == 'solid'){
 			return colorData.code;
 		}
@@ -397,8 +391,10 @@ export class ShapeStatic extends Shape {
 		this.write('');
 	}
     write(str = '', align='center', color='default', typography = false, shift=null, rad=0){
+		console.log('static write');
     	this.context.fillStyle = color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
+		console.log(typography);
     	if(typography === false)
     		typography = this.typography;
 		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];
@@ -443,7 +439,7 @@ export class ShapeStatic extends Shape {
 			let ln;
 	        
 			let lines = text.lines;
-	        x += align == 'align-left' ? this.innerPadding.x : this.shapeCenter.x;
+	        x += align == 'align-left' ? this.shapeCenter.x - text['max-width'] / 2 : this.shapeCenter.x;
 			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			for(let i = 0; i < lines.length; i++) { 
@@ -665,7 +661,7 @@ export class ShapeStatic extends Shape {
 				'width': lines[i].width,
 				'segs': []
 			};
-			if(lines.width > output['max-width']) output['max-width'] = lines.width;
+			if(line.width > output['max-width']) output['max-width'] = line.width;
 			let segs = lines[i].content.split(p);
 			for(let seg of segs) {
 
@@ -733,8 +729,10 @@ export class ShapeStatic extends Shape {
 	}
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
-			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
+			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position)) {
 				this.write(el.str, el.position, el.color, el.typography, el.shift, el.rotate);
+			}
+				
 		}.bind(this));
 	}
 	checkWatermarkPosition(position, label){
@@ -1001,9 +999,10 @@ export class ShapeStatic extends Shape {
 		
 		if(this.fields['animation']) {
 			this.fields['animation'].onchange = function(e){
-				if(e.target.value !== 'none')
+				if(e.target.value !== 'none') {
 					document.body.classList.add('viewing-three');
-				this.canvasObj.sync();
+					this.canvasObj.sync();
+				}
 			}.bind(this);
 		}
 		if(this.fields['text']) {
@@ -1186,54 +1185,17 @@ export class ShapeStatic extends Shape {
 			output.w = side;
 			output.h = side;   
 
-        // if(this.shape.base == 'fill') {
-		// 	let side = canvas_w < canvas_h / 2 ? canvas_w : canvas_h / 2; // assuming frames are always square
-		// 	output.w = side;
-		// 	output.h = side;            
-        // }
-        // else {
-        //     let side = canvas_w < canvas_h / 2 ? canvas_w : canvas_h / 2; // assuming frames are always square
-		// 	output.w = side;
-		// 	output.h = side; 
-        // }
-        
         output.x = this.shapeCenter.x - output.w / 2;
         output.y = this.shapeCenter.y - output.h / 2;
 		return output;
     }
     sync(){
+		console.log('static sync()');
 		if(!this.counterpart) return;
 
 		let isSilent = true;
-    	this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
-        this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
-
-        this.updateCounterpartSelectField('animation', this.fields['animation'].selectedIndex);
-    	this.counterpart.updateAnimation(this.fields['animation'].value, true, isSilent);
-    	
-    	super.updateCounterpartTextField('text-front', this.fields['text'].value);
-    	this.counterpart.updateFrontText(this.fields['text'].value, true);
-        
-        this.updateCounterpartSelectField('text-front-font', this.fields['text-typography'].selectedIndex);
-        this.counterpart.updateFrontTypography(this.fields['text-typography'].value, isSilent);
-
-        this.updateCounterpartSelectField('text-front-color', this.fields['text-color'].selectedIndex);
-        this.counterpart.updateFrontTextColor(this.options.textColorOptions[this.fields['text-color'].value]['color'], isSilent);
-        
-		if(!this.options.colorOptions[this.fields['shape-color'].value]['color'] || 
-			this.options.colorOptions[this.fields['shape-color'].value]['color']['type'] == 'solid' || 
-            this.options.colorOptions[this.fields['shape-color'].value]['color']['type'] == 'gradient'
-		){
-        	this.updateCounterpartSelectField('shape-front-color', this.fields['shape-color'].selectedIndex);
-			if(!this.options.colorOptions[this.fields['shape-color'].value]['color']) {
-				// console.log(this.fields['shape-color'].value);
-				this.counterpart.updateFrontColor(this.fields['shape-color'].value, isSilent);
-			}else {
-				this.counterpart.updateFrontColor(this.options.colorOptions[this.fields['shape-color'].value]['color'], isSilent);
-			}
-            
-        }
-        super.updateCounterpartWatermarks(isSilent);
+		super.sync();
+    	super.updateCounterpartWatermarks(isSilent);
 		// this.counterpart.imgs = {};
 		// for(let idx in this.imgs) {
 		// 	this.counterpart.imgs[idx] = 
