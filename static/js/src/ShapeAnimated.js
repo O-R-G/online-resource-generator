@@ -765,13 +765,14 @@ export class ShapeAnimated extends Shape {
 				mesh.dispose();
 			} else if(mesh instanceof THREE.Group) {
 				group.remove(mesh);
-				mesh.children.forEach(child => {
-					if (child instanceof THREE.Mesh) {
-						child.dispose();
-					}
-					mesh.remove(child);
-				});
-				mesh.children = [];
+				this.disposeGroup(mesh);
+				// mesh.children.forEach(child => {
+				// 	if (child instanceof THREE.Mesh) {
+				// 		child.dispose();
+				// 	}
+				// 	mesh.remove(child);
+				// });
+				// mesh.children = [];
 			}
 		}
 		this.frontWatermarkGroup.remove(this.watermarks[idx].mesh_front);
@@ -781,7 +782,15 @@ export class ShapeAnimated extends Shape {
 		
 		if(!silent) this.canvasObj.draw();
 	}
-	
+	disposeGroup(g){
+		g.children.forEach(child => {
+			if (child instanceof THREE.Mesh) {
+				child.dispose();
+			}
+			g.remove(child);
+		});
+		g.children = [];
+	}
 	updateImg(idx, image, silent = false, isBack = false){
 		super.updateImg(idx, image, silent);
 		if(!isBack) {
@@ -963,17 +972,19 @@ export class ShapeAnimated extends Shape {
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
-				
-
 				if(el.mesh_front) {
 					this.frontWatermarkGroup.remove(el.mesh_front);
-					el.mesh_front.dispose();
-					// this.frontWatermarkGroup.needsUpdate = true;
+					if(el.mesh_front instanceof Text)
+						el.mesh_front.dispose();
+					else if(el.mesh_front instanceof THREE.Group)
+						this.disposeGroup(el.mesh_front);
 				}
 				if(el.mesh_back) {
 					this.backWatermarkGroup.remove(el.mesh_back);
-					el.mesh_back.dispose();
-					// this.backWatermarkGroup.needsUpdate = true;
+					if(el.mesh_back instanceof Text)
+						el.mesh_back.dispose();
+					else if(el.mesh_back instanceof THREE.Group)
+						this.disposeGroup(el.mesh_back);
 				}
 
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
