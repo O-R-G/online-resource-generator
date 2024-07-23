@@ -483,9 +483,6 @@ export class Shape {
         let isAvailable = ( availables == 'all' || availables.includes(position) );
         if(isAvailable) label.classList.remove('not-supported');
         else {
-            // console.log(this.id);
-            // console.log(position);
-            // console.log(availables);
             label.classList.add('not-supported');
         }
     }
@@ -678,6 +675,7 @@ export class Shape {
     }
 
     updateCounterpartWatermarks(silent=false){
+        console.log('updateCounterpartWatermarks');
         this.fields.watermarks.forEach(function(el, i){
             // console.log(el);
             if(!this.counterpart.fields.watermarks[i])

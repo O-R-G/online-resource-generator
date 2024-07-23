@@ -141,6 +141,13 @@ export class ShapeAnimated extends Shape {
 		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
 		this.drawShape();
 		this.updateTextMeshByShape(shape);
+		let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
+		[].forEach.call(sWatermark_panels, function(el, i){
+			// let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
+			let position = el.querySelector('.watermark-position').value;
+			let label = el.querySelector('label[for^="watermark"]');
+			this.checkWatermarkPosition(position, label);
+		}.bind(this));
 		if(!silent) this.canvasObj.draw();
 	}
 	updateTextMeshByShape(shape){
@@ -968,22 +975,27 @@ export class ShapeAnimated extends Shape {
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
-				let thisColor = this.options.watermarkColorOptions[el.color]['color'];
-				var thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
+				
+
+				if(el.mesh_front) {
+					this.frontWatermarkGroup.remove(el.mesh_front);
+					el.mesh_front.dispose();
+					// this.frontWatermarkGroup.needsUpdate = true;
+				}
+				if(el.mesh_back) {
+					this.backWatermarkGroup.remove(el.mesh_back);
+					el.mesh_back.dispose();
+					// this.backWatermarkGroup.needsUpdate = true;
+				}
+
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
-					if(!el.mesh_front) {
-						// console.log('el.typography');
-						// console.log(el.typography);
-						el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-						if(el.mesh_front)
-							this.frontWatermarkGroup.add(el.mesh_front);
-					}
-					if(!el.mesh_back) {
-						el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-						if(el.mesh_back)
-							this.backWatermarkGroup.add(el.mesh_back);
-					}
+					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
+					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
+					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
+					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+					if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
 				}
 			}.bind(this));
 		}
@@ -1446,13 +1458,6 @@ export class ShapeAnimated extends Shape {
 				{
 					console.log('threejs doesnt support this option');
 				}
-				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
-				[].forEach.call(sWatermark_panels, function(el, i){
-					// let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
-					let position = el.querySelector('.watermark-position').value;
-					let label = el.querySelector('label[for^="watermark"]');
-					this.checkWatermarkPosition(position, label);
-				}.bind(this));
 			}.bind(this);
 		}
 		
