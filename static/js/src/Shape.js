@@ -41,7 +41,6 @@ export class Shape {
         this.shapeMethod = 'draw';
 	}
     init(canvasObj){
-        // console.log('shape init()');
         this.initialized = true;
         if(!canvasObj) canvasObj = this.canvasObj;
         else this.canvasObj = canvasObj;
@@ -59,8 +58,6 @@ export class Shape {
     }
     getShapeIndex(){
         for(const index of Object.keys(this.canvasObj.shapes)) {
-            // console.log(shape);
-            // console.log(index);
             if(this.canvasObj.shapes[index] === this) {
                 this.shape_index = index;
             }
@@ -81,20 +78,16 @@ export class Shape {
         this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
 	}
 	
-    updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}){
-        // console.log('updateWatermark')
-        // console.log(values_raw['typography']);
-        // console.log(this.options.typographyOptions);
-        let typography = typeof values_raw.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_raw['typography']] ? this.options.watermarkTypographyOptions[values_raw['typography']] : false ) : values_raw.typography;
-        if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
-        // console.log(typography);
-        let values = {...values_raw, typography:typography};
-        
+    updateWatermark(idx, values_obj = {}){
+        let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
         if(this.watermarks[idx] == undefined)
     	{
+            // let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
+            if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
+            let values = {...values_obj, typography:typography};
             values['position'] = values['position'] ? values['position'] : this.getDefaultOption(this.options.watermarkPositionOptions, true);
     		this.watermarks[idx] = {
-    			'str': values['str'],
+    			'str': values['str'] ? values['str'] : '',
     			'position': values['position'],
     			'color': values['color'],
     			'typography': values['typography'],
@@ -104,10 +97,12 @@ export class Shape {
     	}	
     	else
     	{
+            if(!typography) typography = this.watermarks[idx]['typography'];
+            let values = {...values_obj, typography:typography};
             for(let name in values) {
-                if(values[name] === false) continue;
+                if(!values[name]) continue;
                 this.watermarks[idx][name] = values[name];
-            }   
+            }
     	} 		
 	}
     renderSection(id='', displayName, children=[], extraClass=''){
@@ -479,7 +474,6 @@ export class Shape {
     }
     checkWatermarkPosition(position, label){
         let availables = this.shape.watermarkPositions;
-        // console.log(availables)
         let isAvailable = ( availables == 'all' || availables.includes(position) );
         if(isAvailable) label.classList.remove('not-supported');
         else {
@@ -594,8 +588,6 @@ export class Shape {
         return temp_panel_section;
     }
     readImage(idx, src, cb) {
-        // console.log(idx, src);
-        // console.log(src);
         let image = new Image();
         image.onload = function (e) {
             if(typeof cb === 'function')
@@ -635,7 +627,6 @@ export class Shape {
     };
     updateImg(idx, image, silent = false){
         let img = image ? image : (this.imgs[idx] ? this.imgs[idx]  : null);
-        // console.log(img);
         if(!img) return false;
 		if(!this.imgs[idx]) {
 			this.imgs[idx] = {
@@ -675,9 +666,7 @@ export class Shape {
     }
 
     updateCounterpartWatermarks(silent=false){
-        console.log('updateCounterpartWatermarks');
         this.fields.watermarks.forEach(function(el, i){
-            // console.log(el);
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();
             let that_watermark = this.counterpart.fields.watermarks[i]
@@ -747,12 +736,6 @@ export class Shape {
 			let tagName = field.tagName.toLowerCase();
 			if(tagName === 'select') {
 				let val = field.value;
-                // if(name === 'shape') {
-                //     console.log(name);
-                //     console.log(val);
-                //     console.log(counterField);
-                //     console.log(counterField.value);
-                // }
 				if(val !== counterField.value) {
                     let options = counterField.querySelectorAll('option');
                     for(const [index, option] of options.entries()) {

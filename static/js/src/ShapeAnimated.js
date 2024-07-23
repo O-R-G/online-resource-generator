@@ -597,7 +597,6 @@ export class ShapeAnimated extends Shape {
 	processFontData(typography, isBack){
 		let output = {};
 		let size = typography['size'];
-		// console.log(typography);
 		let fontData = this.fonts[typography['font']['animated']['name']] ? this.fonts[typography['font']['animated']['name']] : '';
 		output.font = fontData['font'];
 		output.path = typography['font']['animated']['path'];
@@ -747,10 +746,8 @@ export class ShapeAnimated extends Shape {
 		}
 		if(!silent) this.canvasObj.draw();
 	}
-	updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
-		// console.log('updateWatermark');
-		// console.log(values_raw.typography);
-    	super.updateWatermark(idx, values_raw);
+	updateWatermark(idx, values_obj = {}, silent=false){
+    	super.updateWatermark(idx, values_obj);
 		let mesh_data = [{
 				mesh: this.watermarks[idx].mesh_front,
 				group: this.frontWatermarkGroup
@@ -793,7 +790,6 @@ export class ShapeAnimated extends Shape {
 		const textureLoader = new THREE.TextureLoader();
 		textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// Set texture filtering
-			console.log(this.imgs[idx]);
 			texture.magFilter = THREE.LinearFilter;
 			texture.minFilter = THREE.LinearFilter;
 			texture.colorSpace = THREE.SRGBColorSpace;
@@ -816,14 +812,7 @@ export class ShapeAnimated extends Shape {
 			const bbox = geometry.boundingBox;
 			const geomWidth = bbox.max.x - bbox.min.x;
 			const geomHeight = bbox.max.y - bbox.min.y;
-			// console.log('geometry width and height: ');
-			// console.log(geomWidth, geomHeight);
-			// console.log('texture width and height: ');
-			// console.log(texture.image.width, texture.image.height);
 			const geometryAspect = geomWidth / geomHeight;
-			
-			// console.log(uvs);
-			
 			let scaleX = 1 / this.imgs[idx].scale;
 			let scaleY = 1 / this.imgs[idx].scale;
 
@@ -930,7 +919,6 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = new Float32Array(this.geometry_back.attributes.uv.array);
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
 			if(this.imgs['front-background-image']) {
-				console.log('update..');
 				this.updateImg('front-background-image', this.imgs['front-background-image'].img);
 			}
 		}
@@ -1172,7 +1160,6 @@ export class ShapeAnimated extends Shape {
 	}
 
 	updateAnimation(animationData, syncing = false, silent = false){
-		// console.log('updateAnimation');
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1732,10 +1719,8 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
     sync(){
-		// console.log('animated sync()');
 		if(!this.counterpart) return;
     	let isSilent = true;
-		// console.log(this.fieldCounterparts);
 		super.sync();
         super.updateCounterpartWatermarks(isSilent);
 

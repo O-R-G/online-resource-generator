@@ -60,7 +60,6 @@ export class ShapeStatic extends Shape {
 		this.fieldCounterparts['shape-color'] = 'shape-front-color';
 	}
 	updateShape(shape, silent = false){
-		// console.log('static updateShape');
 		if(shape['type'] == 'static') super.updateShape(shape);
 		else if(shape['type'] == 'animation')
 		{
@@ -393,10 +392,8 @@ export class ShapeStatic extends Shape {
 		this.write('');
 	}
     write(str = '', align='center', color='default', typography = false, shift=null, rad=0){
-		// console.log('static write');
     	this.context.fillStyle = color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
-		// console.log(typography);
     	if(typography === false)
     		typography = this.typography;
 		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];
@@ -570,7 +567,6 @@ export class ShapeStatic extends Shape {
 					const char = str[i];
 					const charWidth = this.context.measureText(char).width;
 					charWidths[i] = charWidth;
-					// console.log(char, charWidth);
 				}
 				
 				for (let j = 0; j < str.length; j++) {
@@ -725,8 +721,8 @@ export class ShapeStatic extends Shape {
     	
     	return output;
     }
-    updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
-    	super.updateWatermark(idx, values_raw);
+    updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
+		super.updateWatermark(idx, values_raw);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
@@ -1192,7 +1188,6 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		// console.log('static sync()');
 		if(!this.counterpart) return;
 
 		let isSilent = true;
@@ -1235,9 +1230,7 @@ export class ShapeStatic extends Shape {
 		timer = null;
     }
 	drawImages(){
-		// console.log('drawImages()');
 		for(let idx in this.imgs) {
-			// console.log(idx);
 			if(idx === 'background-image') continue;
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
 		}
