@@ -60,12 +60,14 @@ export class ShapeStatic extends Shape {
 		this.fieldCounterparts['shape-color'] = 'shape-front-color';
 	}
 	updateShape(shape, silent = false){
+		console.log('static updateShape');
 		if(shape['type'] == 'static') super.updateShape(shape);
 		else if(shape['type'] == 'animation')
 		{
 			if(shape['animation-type'] == 'corner')
                 this.animate(this.color, shape);
 		}
+		this.shape = shape;
 		if(!silent) this.canvasObj.draw();
 	}
 	processStaticColorData(colorData) {
@@ -391,10 +393,10 @@ export class ShapeStatic extends Shape {
 		this.write('');
 	}
     write(str = '', align='center', color='default', typography = false, shift=null, rad=0){
-		console.log('static write');
+		// console.log('static write');
     	this.context.fillStyle = color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
-		console.log(typography);
+		// console.log(typography);
     	if(typography === false)
     		typography = this.typography;
 		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];

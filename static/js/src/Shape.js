@@ -82,12 +82,12 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}){
-        console.log('updateWatermark')
+        // console.log('updateWatermark')
         // console.log(values_raw['typography']);
         // console.log(this.options.typographyOptions);
         let typography = typeof values_raw.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_raw['typography']] ? this.options.watermarkTypographyOptions[values_raw['typography']] : false ) : values_raw.typography;
         if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
-        console.log(typography);
+        // console.log(typography);
         let values = {...values_raw, typography:typography};
         
         if(this.watermarks[idx] == undefined)
@@ -619,16 +619,19 @@ export class Shape {
         }
     }
     updateImgScale(imgScale, idx, silent = false){
+        if(!this.imgs[idx]) return;
     	this.imgs[idx].scale = imgScale;
         if(this.imgs[idx].img)
     	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionX(imgShiftX, idx, silent = false){
+        if(!this.imgs[idx]) return;
     	this.imgs[idx].shiftX = parseFloat(imgShiftX);
         if(this.imgs[idx].img)
     	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionY(imgShiftY, idx, silent = false){
+        if(!this.imgs[idx]) return;
     	this.imgs[idx].shiftY = parseFloat(imgShiftY);
         if(this.imgs[idx].img)
     	    this.updateImg(idx, this.imgs[idx].img, silent)
@@ -746,25 +749,28 @@ export class Shape {
 			let tagName = field.tagName.toLowerCase();
 			if(tagName === 'select') {
 				let val = field.value;
-                if(name === 'text-front-position' || name === 'text-position') {
+                if(name === 'shape') {
                     console.log(name);
                     console.log(val);
-                    console.log(counterField.value)
+                    console.log(counterField);
+                    console.log(counterField.value);
                 }
-				if(val === counterField.value) continue;
-				let options = counterField.querySelectorAll('option');
-				for(const [index, option] of options.entries()) {
-					if(option.value === val) {
-						this.updateCounterpartSelectField(counterField, index);
-						break;
-					}
-				}
+				if(val !== counterField.value) {
+                    let options = counterField.querySelectorAll('option');
+                    for(const [index, option] of options.entries()) {
+                        if(option.value === val) {
+                            this.updateCounterpartSelectField(counterField, index);
+                            break;
+                        }
+                    }
+                }
 			} else if(tagName === 'textarea' || tagName === 'input') {
 				let val = field.value;
 				if(!val) continue;
 				counterField.value = val;
 			}
 			counterField.dispatchEvent(new Event('change'));
+            counterField.dispatchEvent(new Event('input'));
 		}
     }
 }

@@ -590,7 +590,7 @@ export class ShapeAnimated extends Shape {
 	processFontData(typography, isBack){
 		let output = {};
 		let size = typography['size'];
-		console.log(typography);
+		// console.log(typography);
 		let fontData = this.fonts[typography['font']['animated']['name']] ? this.fonts[typography['font']['animated']['name']] : '';
 		output.font = fontData['font'];
 		output.path = typography['font']['animated']['path'];
@@ -741,8 +741,8 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, typography:false, shift : false, rad:false}, silent = false){
-		console.log('updateWatermark');
-		console.log(values_raw.typography);
+		// console.log('updateWatermark');
+		// console.log(values_raw.typography);
     	super.updateWatermark(idx, values_raw);
 		let mesh_data = [{
 				mesh: this.watermarks[idx].mesh_front,
@@ -932,14 +932,16 @@ export class ShapeAnimated extends Shape {
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
 					if(!el.mesh_front) {
-						console.log('el.typography');
-						console.log(el.typography);
+						// console.log('el.typography');
+						// console.log(el.typography);
 						el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-						this.frontWatermarkGroup.add(el.mesh_front);
+						if(el.mesh_front)
+							this.frontWatermarkGroup.add(el.mesh_front);
 					}
 					if(!el.mesh_back) {
 						el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
-						this.backWatermarkGroup.add(el.mesh_back);
+						if(el.mesh_back)
+							this.backWatermarkGroup.add(el.mesh_back);
 					}
 				}
 			}.bind(this));
@@ -1607,7 +1609,6 @@ export class ShapeAnimated extends Shape {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
-					console.log(scale);
 				    this.updateImgScale(scale, idx);
 				}.bind(this);
 			}	
@@ -1690,27 +1691,6 @@ export class ShapeAnimated extends Shape {
     	let isSilent = true;
 		// console.log(this.fieldCounterparts);
 		super.sync();
-    	// this.updateCounterpartSelectField('shape', this.fields['shape'].selectedIndex);
-        // this.counterpart.updateShape(this.options.shapeOptions[this.fields['shape'].value]['shape'], isSilent);
-
-        // this.updateCounterpartSelectField('animation', this.fields['animation'].selectedIndex);
-
-    	// super.updateCounterpartTextField('text', this.fields['text-front'].value);
-    	// this.counterpart.updateText(this.fields['text-front'].value, isSilent);
-        
-        // this.updateCounterpartSelectField('text-typography', this.fields['text-front-typography'].selectedIndex);
-        // this.counterpart.updatetypography(this.fields['text-front-typography'].value, isSilent);
-
-        // this.updateCounterpartSelectField('text-color', this.fields['text-front-color'].selectedIndex);
-        // this.counterpart.updateTextColor(this.options.textColorOptions[this.fields['text-front-color'].value]['color'], isSilent);
-        
-
-        // if( this.options.colorOptions[this.fields['shape-front-color'].value]['color']['type'] == 'solid' || 
-        //     this.options.colorOptions[this.fields['shape-front-color'].value]['color']['type'] == 'gradient')
-        // {
-        // 	this.updateCounterpartSelectField('shape-color', this.fields['shape-front-color'].selectedIndex);
-        //     this.counterpart.updateColor(this.options.colorOptions[this.fields['shape-front-color'].value]['color'], isSilent);
-        // }
         super.updateCounterpartWatermarks(isSilent);
 
         this.canvasObj.counterpart.draw();
