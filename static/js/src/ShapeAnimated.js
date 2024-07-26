@@ -132,6 +132,7 @@ export class ShapeAnimated extends Shape {
 		this.fieldCounterparts['text-front-shift-x'] = 'text-shift-x';
 		this.fieldCounterparts['text-front-shift-y'] = 'text-shift-y';
 		this.fieldCounterparts['shape-front-color'] = 'shape-color';
+		this.fieldCounterparts['front-background-image'] = 'background-image';
 	}
 	updateShape(shape, silent = false){
 		super.updateShape(shape);
@@ -581,7 +582,7 @@ export class ShapeAnimated extends Shape {
 		}
 		if(animationName)
 			output.position.z = 0.1;
-		// if(align !== 'surrounding')
+
 		output.sync();
 		return output;
 	}
@@ -638,12 +639,18 @@ export class ShapeAnimated extends Shape {
 	}
 	updateFrontTextPosition(position, silent = false){
         this.frontTextPosition = position;
-		this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
-		this.mesh_frontText.needsUpdate = true;
+		if(this.mesh_frontText) {
+			this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
+			this.mesh_frontText.needsUpdate = true;
+		}
         if(!silent) this.canvasObj.draw();
     }
     updateBackTextPosition(position, silent = false){
         this.backTextPosition = position;
+		if(this.mesh_backText) {
+			this.mesh_backText.textAlign = position == 'align-left' ? 'left' : 'center';
+			this.mesh_backText.needsUpdate = true;
+		}
         if(!silent) this.canvasObj.draw();
     }
 	updateFrontTextShiftX(x, silent = false){
@@ -792,6 +799,8 @@ export class ShapeAnimated extends Shape {
 		g.children = [];
 	}
 	updateImg(idx, image, silent = false, isBack = false){
+		// console.log('updateImg');
+		// console.log(image);
 		super.updateImg(idx, image, silent);
 		if(!isBack) {
 			this.mesh_front.remove(this.frontMaterial);
@@ -1737,5 +1746,12 @@ export class ShapeAnimated extends Shape {
 
         this.canvasObj.counterpart.draw();
     }
+	syncImgs(){
+		super.syncImgs();
+		if(this.frontMaterial.map instanceof THREE.Texture && this.imgs['front-background-image']) {
+			let idx = this.fieldCounterparts['front-background-image'];
+			this.counterpart.updateImg(idx, this.imgs['front-background-image'].img);
+		}
+	}
 }
 

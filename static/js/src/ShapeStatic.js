@@ -58,6 +58,7 @@ export class ShapeStatic extends Shape {
 		this.fieldCounterparts['text-shift-x'] = 'text-front-shift-x';
 		this.fieldCounterparts['text-shift-y'] = 'text-front-shift-y';
 		this.fieldCounterparts['shape-color'] = 'shape-front-color';
+		this.fieldCounterparts['background-image'] = 'front-background-image';
 	}
 	updateShape(shape, silent = false){
 		if(shape['type'] == 'static') super.updateShape(shape);
@@ -1056,6 +1057,7 @@ export class ShapeStatic extends Shape {
 			this.fields['shape-color'].onchange = function(e){
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
+					this.color = 'upload';
 					sec.classList.add('viewing-background-upload');
 				} else {
 					sec.classList.remove('viewing-background-upload');
@@ -1101,6 +1103,8 @@ export class ShapeStatic extends Shape {
 	
     updateImg(idx, image, silent = false){
 		super.updateImg(idx, image, silent);
+		console.log(idx);
+		console.log(image);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
@@ -1193,10 +1197,6 @@ export class ShapeStatic extends Shape {
 		let isSilent = true;
 		super.sync();
     	super.updateCounterpartWatermarks(isSilent);
-		// this.counterpart.imgs = {};
-		// for(let idx in this.imgs) {
-		// 	this.counterpart.imgs[idx] = 
-		// }
         this.canvasObj.counterpart.draw();
     }
     updateTextPosition(position, silent = false){
@@ -1233,6 +1233,13 @@ export class ShapeStatic extends Shape {
 		for(let idx in this.imgs) {
 			if(idx === 'background-image') continue;
 			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
+		}
+	}
+	syncImgs(){
+		super.syncImgs();
+		if(this.color instanceof CanvasPattern && this.imgs['background-image']) {
+			let idx = this.fieldCounterparts['background-image'];
+			this.counterpart.updateImg(idx, this.imgs['background-image'].img);
 		}
 	}
 }

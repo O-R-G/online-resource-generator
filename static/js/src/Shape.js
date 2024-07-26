@@ -644,7 +644,27 @@ export class Shape {
         frame = frame ? frame : this.generateFrame();
         this.frame = frame;
     }
-
+    updateCounterpartField(field, counter_field){
+        let tagName = field.tagName.toLowerCase();
+        if(tagName === 'select') {
+            let val = field.value;
+            if(val !== counter_field.value) {
+                let options = counter_field.querySelectorAll('option');
+                for(const [index, option] of options.entries()) {
+                    if(option.value === val) {
+                        this.updateCounterpartSelectField(counter_field, index);
+                        break;
+                    }
+                }
+            }
+        } else if(tagName === 'textarea' || tagName === 'input') {
+            let val = field.value;
+            if(!val) return;
+            counter_field.value = val;
+        }
+        counter_field.dispatchEvent(new Event('change'));
+        counter_field.dispatchEvent(new Event('input'));
+    }
     updateCounterpartSelectField(field, index)
     {
         if(!this.counterpart || !field) return;
@@ -666,17 +686,30 @@ export class Shape {
     }
 
     updateCounterpartWatermarks(silent=false){
-        this.fields.watermarks.forEach(function(el, i){
+        this.fields.watermarks.forEach(function(this_watermark, i){
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();
-            let that_watermark = this.counterpart.fields.watermarks[i]
-            this.updateCounterpartTextField(that_watermark['text'], this.watermarks[i].str);
-            this.updateCounterpartSelectField(that_watermark['position'], el['position'].selectedIndex);
-            that_watermark['position'].dispatchEvent(new Event('change'));
-            this.updateCounterpartSelectField(that_watermark['color'], el['color'].selectedIndex);
-            this.updateCounterpartSelectField(that_watermark['typography'], el['typography'].selectedIndex);
-            this.counterpart.updateWatermark(i, { str: this.watermarks[i].str, position: this.watermarks[i].position, color: this.watermarks[i].color, typography: this.watermarks[i].typography}, silent);
-            this.counterpart.checkWatermarkPosition(this.watermarks[i].position, el['text'].parentNode.parentNode.querySelector('label'));
+            let that_watermark = this.counterpart.fields.watermarks[i];
+            for(const name in this_watermark) {
+                let field = this_watermark[name];
+                let counterField = that_watermark[name];
+                if(!counterField || !field) continue;
+                if(field.tagName) {
+                    this.updateCounterpartField(field, counterField);
+                } else {
+                    for(const prop in field) {
+                        this.updateCounterpartField(field[prop], counterField[prop]);
+                    }
+                }
+                
+            }
+            // this.updateCounterpartTextField(that_watermark['text'], this.watermarks[i].str);
+            // this.updateCounterpartSelectField(that_watermark['position'], el['position'].selectedIndex);
+            // that_watermark['position'].dispatchEvent(new Event('change'));
+            // this.updateCounterpartSelectField(that_watermark['color'], el['color'].selectedIndex);
+            // this.updateCounterpartSelectField(that_watermark['typography'], el['typography'].selectedIndex);
+            // this.counterpart.updateWatermark(i, { str: this.watermarks[i].str, position: this.watermarks[i].position, color: this.watermarks[i].color, typography: this.watermarks[i].typography}, silent);
+            // this.counterpart.checkWatermarkPosition(this.watermarks[i].position, el['text'].parentNode.parentNode.querySelector('label'));
         }.bind(this));
     }
 
@@ -726,33 +759,22 @@ export class Shape {
         }
         return el;
     };
+    syncImgs(){
+        for(const idx in this.imgs) {
+            if(!this.fieldCounterparts[idx]) continue;
+            let counter_idx = this.fieldCounterparts[idx];
+            this.counterpart.imgs[counter_idx] = this.imgs[idx];
+        }
+    }
     sync(){
         for(const name in this.fieldCounterparts) {
             
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
 			if(!counterField || !field) continue;
-            
-			let tagName = field.tagName.toLowerCase();
-			if(tagName === 'select') {
-				let val = field.value;
-				if(val !== counterField.value) {
-                    let options = counterField.querySelectorAll('option');
-                    for(const [index, option] of options.entries()) {
-                        if(option.value === val) {
-                            this.updateCounterpartSelectField(counterField, index);
-                            break;
-                        }
-                    }
-                }
-			} else if(tagName === 'textarea' || tagName === 'input') {
-				let val = field.value;
-				if(!val) continue;
-				counterField.value = val;
-			}
-			counterField.dispatchEvent(new Event('change'));
-            counterField.dispatchEvent(new Event('input'));
+            this.updateCounterpartField(field, counterField);
 		}
+        this.syncImgs();
     }
 }
 
