@@ -106,7 +106,7 @@ export class Record {
         // })
     }
     fetchRecord(record_id='', callback=null){
-        // console.log(record_id);
+        console.log(record_id);
         
         let data = new FormData();
         // if (!record_id) record_id = this.record_id;

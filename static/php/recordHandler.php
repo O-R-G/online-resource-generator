@@ -94,7 +94,7 @@ if ($action == 'insert') :
     $response['body'] = '/online-resource-generator/' . $url;
 elseif ($action == 'get'):
     $record_id = $_POST['record_id'];
-    $sql = "SELECT objects.body, objects.id, objects.url FROM objects, wires WHERE objects.id = $record_id AND objects.id = wires.toid AND objects.active='1' AND wires.active='1' AND wires.fromid = $main_record_id LIMIT 1";
+    $sql = "SELECT `body`, `id`, `url` FROM objects WHERE id = $record_id AND active='1' LIMIT 1";
     $res = $db->query($sql);
     if($res->num_rows == 0) {
         $response['body'] = 'fail to find a record of this url';

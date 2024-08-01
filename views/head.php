@@ -42,7 +42,7 @@ $fonts = array();
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 	<?php 
 	foreach($css as $link){
-		echo '<link rel="stylesheet" href="'.$link.'">';
+		echo '<link rel="stylesheet" href="'.$root_path . '/' . $link.'">';
 	} 
 	foreach($fonts as $font){
 		echo $font;

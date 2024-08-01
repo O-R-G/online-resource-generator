@@ -7,10 +7,14 @@
     // $isTestShapeAnimated = isset($_GET['isTestShapeAnimated']);
     $format = isset($_GET['format']) ? $_GET['format'] : ''; 
     $record_id = '';
-    if(isset($uri[2])) {
-        $temp = $oo->urls_to_ids(array(...$save_record_urls, $uri[2]));
-        if(count($temp) == count($save_record_urls) + 1)
+    if(count($uri) > 2) {
+        $temp_url = array_slice($uri, 2);
+        $temp = $oo->urls_to_ids(array_merge($save_record_urls, $temp_url));
+        if(count($temp) == count($save_record_urls) + count($temp_url)) {
             $record_id = end($temp);
+            $temp = $oo->get($record_id);
+            if(!$temp['body']) $record_id = '';
+        }   
     }
     
     
@@ -31,6 +35,6 @@
     const media_relative_root = '<?php echo $media_relative_root; ?>';
     // console.log(media_relative_root);
 </script>
-<script id="script-options" src="config/options.js"></script>
-<script id="script-fonts" src="config/fonts.js"></script>
-<script id="script-main" type="module" src="static/js/dist/main.js?<?php echo rand(0, 10000); ?>"></script>
+<script id="script-options" src="<?php echo $root_path; ?>/config/options.js"></script>
+<script id="script-fonts" src="<?php echo $root_path; ?>/config/fonts.js"></script>
+<script id="script-main" type="module" src="<?php echo $root_path; ?>/static/js/dist/main.js?<?php echo rand(0, 10000); ?>"></script>
