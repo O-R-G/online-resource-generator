@@ -62,7 +62,7 @@ elseif ($action == 'get'):
 elseif ($action == 'save'):
     $record_id = $_POST['record_id'];
     $record_body = addslashes($_POST['record_body']);
-    $sql = "UPDATE objects JOIN wires ON objects.id = wires.toid SET objects.body='$record_body' WHERE objects.active = '1' AND wires.active = '1' AND wires.fromid = $main_record_id AND objects.id = $record_id";
+    $sql = "UPDATE objects SET body='$record_body' WHERE id = $record_id";
     $res = $db->query($sql);
     $response['status'] = 'success';
     $response['body'] = 'save success';
