@@ -1,3 +1,3 @@
 <?php
 $root_path = '/online-resource-generator';
-$save_record_urls = array('online-resource-generator');
+$root_database = array('online-resource-generator');

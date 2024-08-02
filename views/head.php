@@ -16,22 +16,35 @@ $uu = new URL();
 $css = array(
 	'static/css/main.css'
 );
-$fonts_root = __DIR__ . '/../static/fonts';
-$fonts_dir = scandir($fonts_root);
-$fonts = array();
-// foreach($fonts_dir as $font_dir) {
-// 	$font_dir_path = $fonts_root . '/' . $font_dir;
-// 	if(substr($font_dir, 0, 1) === '.' || substr($font_dir, 0, 1) === '_' || !is_dir($font_dir_path)) continue;
-// 	$files = scandir($font_dir_path);
-// 	foreach($files as $f) {
-// 		if(substr($f, 0, 1) == '.'|| is_dir($font_dir_path . '/' . $f)) continue;
-// 		$ext = substr($f, strrpos($f, '.') + 1);
-// 		if($ext === 'css') $css[] = 'static/fonts/' . $font_dir . '/' . $f;
-// 		else {
-// 			$fonts[] = '<link rel="preload" href="/online-resource-generator/static/fonts/' . $font_dir . '/' . $f.'" as="font" type="font/'.$ext.'" crossorigin>';
-// 		}
-// 	}
-// }
+
+/* 
+	fetching record by uri if the page is not the online resource generator root. 
+	
+	if
+	1. there's no such record
+	2. the body of the record is empty, 
+	   meaning it is a directory or
+	   created by accident
+	then $record_id is an empty string.
+
+	if $record_id is an empty string and the page is not the online resource generator root, 
+	redirect to online resource generator root
+*/
+$record_id = '';
+$root_path_count = count(explode('/', $root_path));
+if(count($uri) > $root_path_count) {
+	$temp_url = array_slice($uri, $root_path_count);
+	$temp = $oo->urls_to_ids(array_merge($root_database, $temp_url));
+	if(count($temp) == count($root_database) + count($temp_url)) {
+		$record_id = end($temp);
+		$temp = $oo->get($record_id);
+		if(!$temp['body']) $record_id = '';
+	}   
+}
+if(!$record_id && (count($uri) > count(explode('/', $root_path)))) {
+	header("Location: " . $root_path);
+}
+
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,9 +57,9 @@ $fonts = array();
 	foreach($css as $link){
 		echo '<link rel="stylesheet" href="'.$root_path . '/' . $link.'">';
 	} 
-	foreach($fonts as $font){
-		echo $font;
-	} 
+	// foreach($fonts as $font){
+	// 	echo $font;
+	// } 
 	?>
 </head>
 <body>
