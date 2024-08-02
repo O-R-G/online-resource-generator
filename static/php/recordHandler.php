@@ -15,7 +15,6 @@ $response = array(
 
 $temp = $oo->urls_to_ids($root_database);
 if(count($temp) !== count($root_database)) {
-    // var_dump($temp);
     $response['body'] = 'The record specified with $root_database does not exist';
     exit(json_encode($response));
 }

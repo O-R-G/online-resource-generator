@@ -1,14 +1,11 @@
-<?
-
-    /*  
-        a view for making instagram and other social media graphics
-    */
+<?php
     $format = isset($_GET['format']) ? $_GET['format'] : ''; 
     $media_relative_root = str_replace($root, '/', $media_root);
-
-?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?>></main>
-<div style="font-family: 'standard'; ">&nbsp;</div>
-<div style="font-family: 'standard'; font-weight: bold; ">&nbsp;</div>
+    $filename = $record_id ? $oo->get($record_id)['name1'] : '';
+    $filename = $filename ? 'filename="' . $filename . '"' : ''
+?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?> <?php echo $filename; ?>></main>
+<!-- <div style="font-family: 'standard'; ">&nbsp;</div>
+<div style="font-family: 'standard'; font-weight: bold; ">&nbsp;</div> -->
 <script>
     const root_path = '<?php echo $root_path; ?>';
     const record_id = '<?php echo $record_id; ?>';

@@ -250,8 +250,10 @@ export class Canvas {
         // Attach the object URL to an <a> element, setting the download file name
         this.downloadA = document.createElement('a');
         this.downloadA.href = this.recording_url;
-        let filename = this.autoRecordingQueue[this.autoRecordingQueueIdx] + '.mp4';
-        if (!this.autoRecordingQueue[this.autoRecordingQueueIdx]) filename = 'video.mp4';
+        let filename = document.getElementById('main').getAttribute('filename');
+        if(!filename) filename = 'video';
+        filename += '.mp4';
+        // if (!this.autoRecordingQueue[this.autoRecordingQueueIdx]) filename = 'video.mp4';
         this.downloadA.download = filename;
         // Trigger the file download
         this.downloadA.click();
@@ -269,8 +271,10 @@ export class Canvas {
     }
     saveCanvasAsImage(){
         const link = document.createElement('a');
-        link.download = this.autoRecordingQueue[this.autoRecordingQueueIdx] + '.png';
-        if (!this.autoRecordingQueue[this.autoRecordingQueueIdx]) link.download = 'download.png';
+        let filename = document.getElementById('main').getAttribute('filename');
+        if(!filename) filename = 'image';
+        filename += '.png';
+        link.download = filename;
         if(this.isThree) var context = this.canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
         link.href = this.canvas.toDataURL();
         link.click();
