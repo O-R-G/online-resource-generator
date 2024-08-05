@@ -61,5 +61,6 @@ if(!$record_id && (count($uri) > count(explode('/', $root_path)))) {
 	// 	echo $font;
 	// } 
 	?>
+	<link href="/online-resource-generator/static/fonts/noto/stylesheet.css" rel="stylesheet">
 </head>
 <body>
