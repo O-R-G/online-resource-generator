@@ -15,8 +15,3 @@
 <script id="script-options" src="<?php echo $root_path; ?>/config/options.js"></script>
 <script id="script-fonts" src="<?php echo $root_path; ?>/config/fonts.js"></script>
 <script id="script-main" type="module" src="<?php echo $root_path; ?>/static/js/dist/main.js?<?php echo rand(0, 10000); ?>"></script>
-<style>
-    body {
-        background-color: #fff;
-    }
-</style>
