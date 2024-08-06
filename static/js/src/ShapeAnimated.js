@@ -666,7 +666,7 @@ export class ShapeAnimated extends Shape {
     }
 	updateFrontTextShiftY(y, silent = false){
         this.frontTextShiftY = y * this.canvasObj.scale;
-		this.mesh_frontText.position.y = y;
+		this.mesh_frontText.position.y = -y;
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
@@ -1532,7 +1532,7 @@ export class ShapeAnimated extends Shape {
 			}.bind(this);
 			this.fields['text-front-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
 				this.updateFrontTextShiftX(shift.x);
-				this.updateFrontTextShiftY(-shift.y);
+				this.updateFrontTextShiftY(shift.y);
 			});
 			this.fields['text-front-shift-y'].onblur = () => {
 				this.unfocusInputs([this.fields['text-front-shift-x'], this.fields['text-front-shift-y']]);
@@ -1556,7 +1556,7 @@ export class ShapeAnimated extends Shape {
 			}.bind(this);
 			this.fields['text-back-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
 				this.updateBackTextShiftX(shift.x);
-				this.updateBackTextShiftY(-shift.y);
+				this.updateBackTextShiftY(shift.y);
 			});
 			this.fields['text-back-shift-y'].onblur = () => {
 				this.unfocusInputs([this.fields['text-back-shift-x'], this.fields['text-back-shift-y']]);
