@@ -49,6 +49,10 @@ export class ShapeStatic extends Shape {
 		this.setFieldCounterparts();
 	}
 	setFieldCounterparts(){
+		/* 
+			the prop names are static field names 
+			the values are animated field names
+		*/
 		this.fieldCounterparts['shape'] = 'shape';
 		this.fieldCounterparts['animation'] = 'animation';
 		this.fieldCounterparts['text'] = 'text-front';
@@ -59,6 +63,9 @@ export class ShapeStatic extends Shape {
 		this.fieldCounterparts['text-shift-y'] = 'text-front-shift-y';
 		this.fieldCounterparts['shape-color'] = 'shape-front-color';
 		this.fieldCounterparts['background-image'] = 'front-background-image';
+		this.fieldCounterparts['background-image-scale'] = 'front-background-image-scale';
+		this.fieldCounterparts['background-image-shift-x'] = 'front-background-image-shift-x';
+		this.fieldCounterparts['background-image-shift-y'] = 'front-background-image-shift-y';
 	}
 	updateShape(shape, silent = false){
 		if(shape['type'] == 'static') super.updateShape(shape);
@@ -970,7 +977,8 @@ export class ShapeStatic extends Shape {
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) {
 			let field = this.renderFileField('background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			let controls = this.renderImageControls(field.querySelector('input').id);
+			// let controls = this.renderImageControls(field.querySelector('input').id);
+			let controls = this.renderImageControls('background-image');
 			let section = this.renderSection('', '', [field, controls], 'background-image-section');
 			this.control.appendChild(section);
 		}
@@ -1103,8 +1111,6 @@ export class ShapeStatic extends Shape {
 	
     updateImg(idx, image, silent = false){
 		super.updateImg(idx, image, silent);
-		console.log(idx);
-		console.log(image);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');

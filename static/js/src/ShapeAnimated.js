@@ -89,6 +89,7 @@ export class ShapeAnimated extends Shape {
 		this.path = new THREE.Curve();
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
+		this.initRecording = false;
 	}
 	init(canvasObj){
 		super.init(canvasObj);
@@ -133,6 +134,9 @@ export class ShapeAnimated extends Shape {
 		this.fieldCounterparts['text-front-shift-y'] = 'text-shift-y';
 		this.fieldCounterparts['shape-front-color'] = 'shape-color';
 		this.fieldCounterparts['front-background-image'] = 'background-image';
+		this.fieldCounterparts['front-background-image-shift-x'] = 'background-image-shift-x';
+		this.fieldCounterparts['front-background-image-shift-y'] = 'background-image-shift-y';
+		this.fieldCounterparts['front-background-image-scale'] = 'background-image-scale';
 	}
 	updateShape(shape, silent = false){
 		super.updateShape(shape);
@@ -373,7 +377,7 @@ export class ShapeAnimated extends Shape {
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = 'center';
 		output.anchorY = '50%';
-		console.log(output);
+		// console.log(output);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
@@ -824,7 +828,7 @@ export class ShapeAnimated extends Shape {
 			}
 			mesh.needsUpdate = true;
 			let geometry = isBack ? this.geometry_back : this.geometry_front;
-			let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
+			// let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
 			// geometry.attributes.uv.array.set(original_uvs);
 			const imageAspect = texture.image.width / texture.image.height;
 			geometry.computeBoundingBox();
@@ -832,6 +836,7 @@ export class ShapeAnimated extends Shape {
 			const geomWidth = bbox.max.x - bbox.min.x;
 			const geomHeight = bbox.max.y - bbox.min.y;
 			const geometryAspect = geomWidth / geomHeight;
+			console.log(geomWidth, geomHeight);
 			let scaleX = 1 / this.imgs[idx].scale;
 			let scaleY = 1 / this.imgs[idx].scale;
 
@@ -840,8 +845,11 @@ export class ShapeAnimated extends Shape {
 			} else {
 				scaleY *= imageAspect / geometryAspect;
 			}
-			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / this.canvasObj.canvas.width : 0;
-			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY / this.canvasObj.canvas.height : 0;
+			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / geomWidth : 0;
+			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY / geomHeight : 0;
+			console.log(dev_x, dev_y);
+			// const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / scaleX : 0;
+			// const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY : 0;
 			
 			let geometry_type = geometry.constructor.name.toLowerCase();
 			if(geometry_type === 'shapegeometry') {
@@ -1180,7 +1188,7 @@ export class ShapeAnimated extends Shape {
         this.renderer.render( this.scene, this.camera );
 	}
 
-	updateAnimation(animationData, syncing = false, silent = false){
+	updateAnimation(animationData, syncing = false, silent = false, initRecording = false){
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1214,28 +1222,37 @@ export class ShapeAnimated extends Shape {
 		this.recordingBreakPoint = value * Math.PI * 2;
 		if(!silent) this.canvasObj.draw();
 	}
-	animate(animationName){
+	animate(animationName, isSilent = false){
+		if(this.initRecording && !this.canvasObj.isRecording) {
+			isSilent = true;
+			setTimeout(()=>{
+				// this.initRecording = false;
+				this.canvasObj.startRecording();
+				setTimeout(()=>{
+					console.log(this.mesh_front.rotation.z);
+					this.animate(this.animationName);
+				}, 2000)
+				
+			}, 500);
+			
+		}
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
-			// this.mesh_back.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
-			this.spin();
+			if(!isSilent) this.spin();
 		}
 		else if(animationName == 'flip'){
 			this.mesh_back.rotation.x = Math.PI;
 			this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
-			this.flip();
+			if(!isSilent) this.flip();
 		}
 		else if(animationName == 'rotate'){
-			this.rotate();
+			if(!isSilent) this.rotate();
 		}
 		else if(animationName == 'rotate-counter'){
-			// this.mesh_back.rotation.z = Math.PI;
-			// this.mesh_back.scale.multiply(new THREE.Vector3(1, 1, -1));
-			// if(this.mesh_backText) this.mesh_backText.rotation.z = Math.PI;
-			this.rotate(true);
+			if(!isSilent) this.rotate(true);
 		}
 		else if(animationName == 'spin-ease')
 		{
@@ -1244,7 +1261,7 @@ export class ShapeAnimated extends Shape {
 			this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 			if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
-			this.spinEase();
+			if(!isSilent) this.spinEase();
 		}
 		else if(animationName == 'flip-ease')
 		{
@@ -1252,7 +1269,7 @@ export class ShapeAnimated extends Shape {
 			this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 			if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
-			this.flipEase();
+			if(!isSilent) this.flipEase();
 		}
 		else if(animationName.indexOf('rest') !== -1)
 		{
@@ -1416,13 +1433,20 @@ export class ShapeAnimated extends Shape {
 	}
 	rotate(backward=false){
 		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
+		// if( this.canvasObj.isRecording ) console.log(this.mesh_front.rotation.z)
 		if(!backward) {
+			if(this.initRecording) {
+				this.mesh_front.rotation.z += 2 * this.rotateAngleInterval;
+	    		this.mesh_back.rotation.z  += 2 * this.rotateAngleInterval;
+				this.initRecording = false;
+			}
 			this.mesh_front.rotation.z -= this.rotateAngleInterval;
 	    	this.mesh_back.rotation.z  -= this.rotateAngleInterval;
 		} else {
 			this.mesh_front.rotation.z += this.rotateAngleInterval;
 	    	this.mesh_back.rotation.z  += this.rotateAngleInterval;
 		}
+		
 		if( this.canvasObj.isRecording && Math.abs(this.mesh_front.rotation.z) > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
 
 	    this.renderer.render( this.scene, this.camera );
@@ -1437,7 +1461,7 @@ export class ShapeAnimated extends Shape {
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'front';
 			let field = this.renderFileField(prefix + '-background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			let controls = this.renderImageControls(field.querySelector('input').id);
+			let controls = this.renderImageControls(prefix + '-background-image');
 			let section = this.renderSection('', '', [field, controls], 'background-image-section');
 			this.control.appendChild(section);
 		}
@@ -1445,7 +1469,7 @@ export class ShapeAnimated extends Shape {
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'back';
 			let field = this.renderFileField(prefix + '-background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			let controls = this.renderImageControls(field.querySelector('input').id);
+			let controls = this.renderImageControls(prefix + '-background-image');
 			let section = this.renderSection('', '', [field, controls], 'background-image-section');
 			this.control.appendChild(section);
 		}

@@ -557,13 +557,12 @@ export class Shape {
 		container.id = id ? id + '-field-id-image-controls' : '';
 		container.setAttribute('flex', 'full');
 
-		let scale = this.renderNumeralField(id + '-background-image-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
-		let x = this.renderNumeralField(id + '-background-image-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
-		let y = this.renderNumeralField(id + '-background-image-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
+		let scale = this.renderNumeralField(id + '-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
+		let x = this.renderNumeralField(id + '-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
+		let y = this.renderNumeralField(id + '-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
 		container.append(scale);
 		container.append(x);
 		container.append(y);
-
 		return container;
 	}
     renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
@@ -585,6 +584,7 @@ export class Shape {
 		temp_right.appendChild(temp_input);
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
+        this.fields[id] = temp_input;
         return temp_panel_section;
     }
     readImage(idx, src, cb) {
@@ -615,13 +615,13 @@ export class Shape {
     };
     updateImgPositionX(imgShiftX, idx, silent = false){
         if(!this.imgs[idx]) return;
-    	this.imgs[idx].shiftX = parseFloat(imgShiftX);
+    	this.imgs[idx].shiftX = parseFloat(imgShiftX) * this.canvasObj.scale;
         if(this.imgs[idx].img)
     	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
     updateImgPositionY(imgShiftY, idx, silent = false){
         if(!this.imgs[idx]) return;
-    	this.imgs[idx].shiftY = parseFloat(imgShiftY);
+    	this.imgs[idx].shiftY = parseFloat(imgShiftY) * this.canvasObj.scale;
         if(this.imgs[idx].img)
     	    this.updateImg(idx, this.imgs[idx].img, silent)
     };
@@ -658,8 +658,14 @@ export class Shape {
                 }
             }
         } else if(tagName === 'textarea' || tagName === 'input') {
+            if(field.id === 'static-shape-0-field-id-background-image-scale') {
+                console.log('tatata');
+            }
             let val = field.value;
             if(!val) return;
+            if(field.id === 'static-shape-0-field-id-background-image-scale') {
+                console.log(counter_field);
+            }
             counter_field.value = val;
         }
         counter_field.dispatchEvent(new Event('change'));
@@ -771,7 +777,14 @@ export class Shape {
             
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
+            // console.log(name);
+            
 			if(!counterField || !field) continue;
+            if(name === 'background-image-scale') {
+                console.log('yaya'); 
+                console.log(field);
+                console.log(counterField);
+            }  
             this.updateCounterpartField(field, counterField);
 		}
         this.syncImgs();
