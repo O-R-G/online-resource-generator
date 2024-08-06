@@ -658,14 +658,8 @@ export class Shape {
                 }
             }
         } else if(tagName === 'textarea' || tagName === 'input') {
-            if(field.id === 'static-shape-0-field-id-background-image-scale') {
-                console.log('tatata');
-            }
             let val = field.value;
             if(!val) return;
-            if(field.id === 'static-shape-0-field-id-background-image-scale') {
-                console.log(counter_field);
-            }
             counter_field.value = val;
         }
         counter_field.dispatchEvent(new Event('change'));
@@ -780,11 +774,6 @@ export class Shape {
             // console.log(name);
             
 			if(!counterField || !field) continue;
-            if(name === 'background-image-scale') {
-                console.log('yaya'); 
-                console.log(field);
-                console.log(counterField);
-            }  
             this.updateCounterpartField(field, counterField);
 		}
         this.syncImgs();

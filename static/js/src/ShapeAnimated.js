@@ -264,6 +264,8 @@ export class ShapeAnimated extends Shape {
 
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
 		this.geometry_back = new THREE.CircleGeometry( this_r, 64);
+		this.geometry_front_uvs = this.geometry_front.attributes.uv.array;
+		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
 		var path_front = new THREE.Shape();
@@ -828,8 +830,7 @@ export class ShapeAnimated extends Shape {
 			}
 			mesh.needsUpdate = true;
 			let geometry = isBack ? this.geometry_back : this.geometry_front;
-			// let original_uvs = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
-			// geometry.attributes.uv.array.set(original_uvs);
+			let original_uv_array = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
 			const imageAspect = texture.image.width / texture.image.height;
 			geometry.computeBoundingBox();
 			const bbox = geometry.boundingBox;
@@ -848,41 +849,28 @@ export class ShapeAnimated extends Shape {
 
 			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX * scaleX / geomWidth : 0;
 			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY * scaleY / geomHeight : 0;
-			
-			let geometry_type = geometry.constructor.name.toLowerCase();
-			if(geometry_type === 'shapegeometry') {
-				const uvArray = [];
-    			const position = geometry.attributes.position;
-				const max = bbox.max;
-				const min = bbox.min;
-				
-				for (let i = 0; i < position.count; i++) {
-					const x = position.getX(i);
-					const y = position.getY(i);
-			
-					let u = (x - min.x) / (max.x - min.x);
-					let v = (y - min.y) / (max.y - min.y);
-					u = u * scaleX + (1 - scaleX) / 2 - dev_x;
-					v = v * scaleY + (1 - scaleY) / 2 + dev_y;
-					uvArray.push(u, v);
-				}
-			
-				geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-				geometry.attributes.uv.needsUpdate = true;
-				// geometry.uvsNeedUpdate = true;
+			console.log(scaleX, scaleY);
+			console.log(dev_x, dev_y);
+
+			const uvArray = [];
+			const position = geometry.attributes.position;
+			const max = bbox.max;
+			const min = bbox.min;
+			console.log(geometry.attributes.position)
+			for (let i = 0; i < position.count; i++) {
+				const x = position.getX(i);
+				const y = position.getY(i);
+		
+				let u = (x - min.x) / (max.x - min.x);
+				let v = (y - min.y) / (max.y - min.y);
+				u = u * scaleX + (1 - scaleX) / 2 - dev_x;
+				v = v * scaleY + (1 - scaleY) / 2 + dev_y;
+				uvArray.push(u, v);
 			}
-			else if(geometry_type === 'circlegeometry') {
-				const uvs = geometry.attributes.uv.array;
-				for (let i = 0; i < uvs.length; i += 2) {
-					const x = uvs[i];
-					const y = uvs[i + 1];
-					
-					// Apply scaling and centering
-					uvs[i] = (x) * scaleX + (1 - scaleX) / 2 - dev_x;
-					uvs[i + 1] = (y) * scaleY + (1 - scaleY) / 2 + dev_y;	
-				}
-				geometry.attributes.uv.needsUpdate = true;
-			}
+		
+			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+			geometry.attributes.uv.needsUpdate = true;
+
 			
 			
 			
