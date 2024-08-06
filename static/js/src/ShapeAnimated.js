@@ -373,6 +373,7 @@ export class ShapeAnimated extends Shape {
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = 'center';
 		output.anchorY = '50%';
+		console.log(output);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
