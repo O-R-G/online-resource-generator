@@ -108,51 +108,6 @@ export class Canvas {
     }
     initRecording(){
         console.log('initRecording()');
-        /* =====================================
-        
-        workflow of recording for animated canvas
-
-        initRecording()
-          |
-        prepareNextRecording()
-          |                   
-        [first item?]_______________________
-          |                                 |
-        false                              true
-          |                                 |
-        requestRecordByName()               |
-          |                                 |
-        handleResponse()                    |
-          |                                 |
-        calling drawForRecording()          |
-        of shapes, which renders shapes     |
-        and texts on the canvas but         |
-        doesn't animate it. when a text     |
-        is rendered, it calls               |
-        updateReadyState() of canvas.       | 
-          |                                 |      
-        updateReadyState() manages          |
-        readyState and if readyState equals |
-        textAmount, it proceeds             |
-          |                                 |
-        startRecording(), it also  _________|
-        calls updateAnimation(), 
-        which starts animations of
-        the shapes
-          |
-        the shape calls saveCanvasAsVideo()
-        of the canvas once the animation 
-        passes recordingBreakPoint
-          |
-        [autoRecordingQueueIdx >= autoRecordingQueue.length?]
-          |                                  |
-        false                               true
-      .   |                                  |
-      . prepareNextRecording()              stopRecording()
-      .   |
-      |___|
-
-        ===================================== */
         this.autoRecordingQueueIdx = 0;
         // this.isRecording = true;
         this.readyState = 0;
@@ -162,8 +117,6 @@ export class Canvas {
     	this.chunks = [];
         document.body.classList.add('recording');
         this.animate(false, true);
-        // this.prepareNextRecording();
-        // this.startRecording();
     }
     initSavingImage(){
         this.autoRecordingQueueIdx = 0;
@@ -248,8 +201,8 @@ export class Canvas {
         }
     }
     stopRecording(){
-        this.autoRecordingQueueIdx = 0;
-        this.autoRecordingQueue = [];
+        // this.autoRecordingQueueIdx = 0;
+        // this.autoRecordingQueue = [];
         this.isAutoRecording = false;
         this.isRecording = false;
         this.readyState = 0;
@@ -511,7 +464,7 @@ export class Canvas {
             // el.resetAnimation();
             
             if(this.isThree) {
-                el.initRecording = true;
+                if(initRecording) el.initRecording = true;
                 el.updateAnimation(el.animationName, isSilent);
             }
             else el.animate(el.colorData);

@@ -941,7 +941,7 @@ export class ShapeAnimated extends Shape {
 			}
 		}
 	}
-	actualDraw(animate = true){
+	actualDraw (animate = true){
 		let sync = !animate;
 		this.scene.add( this.group );
 		if(this.frontIsGridColor){
@@ -1011,7 +1011,7 @@ export class ShapeAnimated extends Shape {
 		 
 	}
 	
-	draw(animate = true){
+	draw (animate = true){
 		this.resetAnimation();
 		this.isForward = true;
 		this.actualDraw(animate);
@@ -1209,6 +1209,7 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	animate(animationName, isSilent = false){
+		console.log('niamte');
 		if(this.initRecording && !this.canvasObj.isRecording) {
 			isSilent = true;
 			setTimeout(()=>{
@@ -1217,9 +1218,9 @@ export class ShapeAnimated extends Shape {
 				setTimeout(()=>{
 					console.log(this.mesh_front.rotation.z);
 					this.animate(this.animationName);
-				}, 2000)
+				}, 200)
 				
-			}, 500);
+			}, 200);
 			
 		}
 		if(animationName == 'spin'){
@@ -1301,6 +1302,11 @@ export class ShapeAnimated extends Shape {
 	}
 	spin(){
 		this.timer = requestAnimationFrame( this.spin.bind(this) );
+		if(this.initRecording) {
+			this.mesh_front.rotation.y -= 2 * this.spinAngleInterval;
+			this.mesh_back.rotation.y  -= 2 * this.spinAngleInterval;
+			this.initRecording = false;
+		}
 	    this.mesh_front.rotation.y += this.spinAngleInterval;
 	    this.mesh_back.rotation.y  += this.spinAngleInterval;
 	    if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
@@ -1361,8 +1367,14 @@ export class ShapeAnimated extends Shape {
 	flip(){
 		
 		this.timer = requestAnimationFrame( this.flip.bind(this) );
+		if(this.initRecording) {
+			this.mesh_front.rotation.x -= 2 * this.flipAngleInterval;
+			this.mesh_back.rotation.x  -= 2 * this.flipAngleInterval;
+			this.initRecording = false;
+		}
 	    this.mesh_front.rotation.x += this.flipAngleInterval;
 	    this.mesh_back.rotation.x  += this.flipAngleInterval;
+		
 	    if(this.mesh_front.rotation.x % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.x % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
 	  		if(this.isForward)
@@ -1417,7 +1429,7 @@ export class ShapeAnimated extends Shape {
 	  	}
 	    this.renderer.render( this.scene, this.camera );
 	}
-	rotate(backward=false){
+	rotate (backward=false){
 		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
 		// if( this.canvasObj.isRecording ) console.log(this.mesh_front.rotation.z)
 		if(!backward) {
@@ -1429,6 +1441,11 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front.rotation.z -= this.rotateAngleInterval;
 	    	this.mesh_back.rotation.z  -= this.rotateAngleInterval;
 		} else {
+			if(this.initRecording) {
+				this.mesh_front.rotation.z -= 2 * this.rotateAngleInterval;
+	    		this.mesh_back.rotation.z  -= 2 * this.rotateAngleInterval;
+				this.initRecording = false;
+			}
 			this.mesh_front.rotation.z += this.rotateAngleInterval;
 	    	this.mesh_back.rotation.z  += this.rotateAngleInterval;
 		}
