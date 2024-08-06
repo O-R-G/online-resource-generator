@@ -836,7 +836,7 @@ export class ShapeAnimated extends Shape {
 			const geomWidth = bbox.max.x - bbox.min.x;
 			const geomHeight = bbox.max.y - bbox.min.y;
 			const geometryAspect = geomWidth / geomHeight;
-			console.log(geomWidth, geomHeight);
+
 			let scaleX = 1 / this.imgs[idx].scale;
 			let scaleY = 1 / this.imgs[idx].scale;
 
@@ -845,11 +845,9 @@ export class ShapeAnimated extends Shape {
 			} else {
 				scaleY *= imageAspect / geometryAspect;
 			}
-			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / geomWidth : 0;
-			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY / geomHeight : 0;
-			console.log(dev_x, dev_y);
-			// const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX / scaleX : 0;
-			// const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY : 0;
+
+			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX * scaleX / geomWidth : 0;
+			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY * scaleY / geomHeight : 0;
 			
 			let geometry_type = geometry.constructor.name.toLowerCase();
 			if(geometry_type === 'shapegeometry') {
