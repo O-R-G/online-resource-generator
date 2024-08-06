@@ -445,8 +445,11 @@ export class Canvas {
     }
     renderControlBottom(){
         this.control_bottom.appendChild(this.renderAddShape('second-shape-button'));
-        this.control_bottom.appendChild(this.renderDownloadImageButton());
-        this.control_bottom.appendChild(this.renderDownloadVideoButton());
+        let buttons_container = document.createElement('div');
+        buttons_container.className = 'buttons-container';
+        buttons_container.appendChild(this.renderDownloadImageButton());
+        buttons_container.appendChild(this.renderDownloadVideoButton());
+        this.control_bottom.appendChild(buttons_container);
         if(!this.isThree) this.downloadVideoButton.style.display = 'none';
         if(this.isThree) {
             
@@ -488,11 +491,6 @@ export class Canvas {
 		if(!this.isThree)
     	{
     		this.context.fillStyle = this.base;
-            // console.log(this.id);
-            // console.log('=== drawBase ===');
-            // console.log(this.base);
-            // console.log(this.canvas.width);
-            // console.log(this.canvas.height);
     		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     	}
     	else
@@ -672,7 +670,7 @@ export class Canvas {
         let updated = false;
         if(size.width) {
             updated = true;
-            this.canvas.width = size.width *  this.scale;
+            this.canvas.width = size.width * this.scale;
             this.canvas.style.width = size.width + 'px';
         }
         if(size.height) {
@@ -680,6 +678,8 @@ export class Canvas {
             this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
+        // this.canvas.parentNode.style.width = size.width + 'px';
+        // this.canvas.parentNode.style.height = size.height + 'px';
         if(!this.wrapper.offsetHeight) return;
         if(size.width > this.wrapper.offsetWidth) {
             let style = window.getComputedStyle(this.canvas);
