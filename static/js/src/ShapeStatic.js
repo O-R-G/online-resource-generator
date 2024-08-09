@@ -404,7 +404,7 @@ export class ShapeStatic extends Shape {
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)
     		typography = this.typography;
-		let fontStyle = typography.size + 'px ' + typography['font']['static']['name'];
+		let fontStyle = typography.size + 'px ' + typography['font']['static']['family'];
 		
 		if(typography['font']['static']['weight']) fontStyle = typography['font']['static']['weight'] + ' ' + fontStyle;
 		let addStroke = (typography == 'small' || typography == 'medium-small');
