@@ -21,15 +21,19 @@ export class ShapeAnimated extends Shape {
 		this.isForward = true;
 		this.animationSpeed = this.getDefaultOption(this.options.animationSpeedOptions);
 		let speed_value = this.animationSpeed.value;
-		this.flipAngleInterval = 0.020 * speed_value;     // aka, speed
-        this.spinAngleInterval = 0.020 * speed_value;
-		this.rotateAngleInterval = 0.020 * speed_value;
+		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
+		this.flipAngleInterval_base = 0.01;     // aka, speed
+        this.spinAngleInterval_base = 0.01;
+		this.rotateAngleInterval_base = 0.01;
+		this.flipAngleInterval = this.flipAngleInterval_base * speed_value;     // aka, speed
+        this.spinAngleInterval = this.spinAngleInterval_base * speed_value;
+		this.rotateAngleInterval = this.rotateAngleInterval_base * speed_value;
 		this.watermarkAngleInterval = 0.005;
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
 		this.easeAngleInterval = this.easeAngleInitial;
 		
-		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
+		
 		let defaultFrontColor = Object.values(this.options.colorOptions)[0].color;
 		if(defaultFrontColor['type'] == 'solid' || defaultFrontColor['type'] == 'transparent')
 		{
@@ -1201,10 +1205,9 @@ export class ShapeAnimated extends Shape {
 	updateAnimationSpeed(speed, silent = false){
 		this.animationSpeed = this.options.animationSpeedOptions[speed];
 		let value = parseFloat(this.animationSpeed.value);
-		this.flipAngleInterval = 0.020 * value;     // aka, speed
-        this.spinAngleInterval = 0.020 * value;
-		// return;
-		this.rotateAngleInterval = 0.020 * value;
+		this.flipAngleInterval = this.flipAngleInterval_base * value;
+        this.spinAngleInterval = this.spinAngleInterval_base * value;
+		this.rotateAngleInterval = this.rotateAngleInterval_base * value;
 		this.recordingBreakPoint = value * Math.PI * 2;
 		if(!silent) this.canvasObj.draw();
 	}

@@ -10,6 +10,10 @@ const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 
+/* fotmat font */
+
+
+
 async function init(data, cb){
     console.log('main init()');
     // console.log(record_id);
