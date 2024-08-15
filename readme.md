@@ -1,6 +1,6 @@
 # ONLINE RESOURCE GENERATOR
 Version 1.0
-O-R-G inc.  
+O-R-G inc. 
 Last updated 15 AUGUST 2024
 
 ## INSTRUCTIONS
