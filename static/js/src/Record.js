@@ -178,7 +178,6 @@ export class Record {
                             field_element.setAttribute('data-fiel-src', field['value']);
                             continue;
                         }
-                        
                         field_element.value = field['value'];
                     } else 
                         field_element.value = format;
@@ -200,6 +199,7 @@ export class Record {
                 }
             }
             for(let shape_control_id in canvas_data['shape-controls']) {
+                // console.log(shape_control_id);
                 let data = canvas_data['shape-controls'][shape_control_id];
                 let shape_control = document.getElementById(shape_control_id);
                 let shape_id = data['shape_id'];
@@ -216,27 +216,37 @@ export class Record {
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
+                    
                     if(!field['id']) {
                         continue;
                     }
+                    
                     // if(field['id'] === 'static-shape-0-field-id-background-image') console.log('pupu');
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
+                    if(field['id'] === 'animated-shape-0-field-id-front-background-image-scale') {
+                        console.log(field_element);
+                    }
                     // console.log(field_element.type);
                     
                     if(field_element.type === 'file') {
                         // console.log('cc')
-                        console.log(field_element.id);
+                        // console.log(field_element.id);
                         if(this.record_body['images'][field_element.id]) {
                             this.applySavedFile(field_element, shapeObj);
-                            console.log('cc');
                         }
                             
                         continue;
                     }
                     // if(shape_control_id === 'animated-shape-1-shape-control')
                     //     console.log(active);
-                    field_element.value = field['value'];
+                    if(field_element.type === 'number'){
+                        console.log('num');
+                        console.log(field_element.id)
+                        field_element.value = parseFloat(field['value']);
+                    }
+                    else 
+                        field_element.value = field['value'];
                     if (field_element.tagName.toLowerCase() == 'textarea') 
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
@@ -254,17 +264,6 @@ export class Record {
 
 
         }
-        for(let field_element of active_canvas_fields) {
-            if(field_element.classList.contains('field-id-format')) {
-                if(format) continue;
-                else {
-                    avtive_canvas.changeFormat(null, null, false);
-                    continue;
-                }
-            }
-            field_element.dispatchEvent(new Event('change'));
-            field_element.dispatchEvent(new Event('input'));
-        }
         for(let field_id in this.record_body['images'] ){
             // console.log(field_id);
             let el = document.getElementById(field_id);
@@ -274,8 +273,26 @@ export class Record {
             this.applySavedFile(el);
 
         }  
+        for(let field_element of active_canvas_fields) {
+            if(field_element.id === 'animated-shape-0-field-id-front-background-image-scale') {
+                console.log('yaya');
+                console.log(field_element.value)
+            }
+            if(field_element.classList.contains('field-id-format')) {
+                if(format) continue;
+                else {
+                    avtive_canvas.changeFormat(null, null, false);
+                    continue;
+                }
+            }
+            field_element.dispatchEvent(new Event('initImg'));
+            field_element.dispatchEvent(new Event('change'));
+            field_element.dispatchEvent(new Event('input'));
+            
+        }
+        
     }
-    applySavedFile(field){
+    applySavedFile(field, shapeObj){
         let idx = field.getAttribute('image-idx');
         let id = field.id;
         let src = this.record_body['images'][id];
@@ -283,6 +300,17 @@ export class Record {
         src = media_relative_root + src;
         let el = document.getElementById(id);
         if(!el) return false;
+        // if(shapeObj) {
+        //     if(!shapeObj.imgs[idx])
+        //         shapeObj.imgs[idx] = {
+        //             img: null,
+        //             x: 0,
+        //             y: 0,				
+        //             shiftY: 0,
+        //             shiftX: 0,
+        //             scale: 1
+        //         };
+        // }
         el.setAttribute('data-file-src', src);
         el.dispatchEvent(new Event('applySavedFile'));
         // shapeObj.readImage(idx, src, shapeObj.updateImg.bind(shapeObj));

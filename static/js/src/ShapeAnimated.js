@@ -809,15 +809,20 @@ export class ShapeAnimated extends Shape {
 		});
 		g.children = [];
 	}
-	updateImg(idx, image, silent = false, isBack = false){
-		// console.log('updateImg');
+	updateImg(idx, image, silent = false, isBack = false, debug=''){
+		
+		if(debug) {
+			console.log('updateImg');
+			// console.log(debug);
+			console.log(idx, this.imgs)
+		}
 		// console.log(image);
 		super.updateImg(idx, image, silent);
 		if(!isBack) {
 			this.mesh_front.remove(this.frontMaterial);
 		}
 		const textureLoader = new THREE.TextureLoader();
-		textureLoader.load(this.imgs[idx].img.src, (texture) => {
+		return textureLoader.load(this.imgs[idx].img.src, (texture) => {
 			// Set texture filtering
 			texture.magFilter = THREE.LinearFilter;
 			texture.minFilter = THREE.LinearFilter;
@@ -860,7 +865,7 @@ export class ShapeAnimated extends Shape {
 			const position = geometry.attributes.position;
 			const max = bbox.max;
 			const min = bbox.min;
-			console.log(geometry.attributes.position)
+			// console.log(geometry.attributes.position)
 			for (let i = 0; i < position.count; i++) {
 				const x = position.getX(i);
 				const y = position.getY(i);
@@ -875,11 +880,12 @@ export class ShapeAnimated extends Shape {
 			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
 			geometry.attributes.uv.needsUpdate = true;
 
-			
-			
+			console.log('updateImg done');
+			console.log(this.imgs['front-background-image']);
 			
 			// this.renderer.render( this.scene, this.camera );
 			if(!silent) this.canvasObj.draw();
+			// return true;
 		});
 	}
 	processStaticColorData(colorData){
@@ -1212,7 +1218,6 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	animate(animationName, isSilent = false){
-		console.log('niamte');
 		if(this.initRecording && !this.canvasObj.isRecording) {
 			isSilent = true;
 			setTimeout(()=>{
@@ -1680,11 +1685,12 @@ export class ShapeAnimated extends Shape {
 				});
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
+				console.log('applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				this.readImage(idx, src, (idx, image, silent)=>{
 					let isBack = idx.indexOf('back-') !== -1;
-					this.updateImg(idx, image, silent, isBack);
+					this.updateImg(idx, image, silent, isBack, 'applySavedFile');
 				});
 				// this.updateImg();
 			});
@@ -1693,17 +1699,27 @@ export class ShapeAnimated extends Shape {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
+					console.log(scale_input.id + ', scale = ', scale);
 				    this.updateImgScale(scale, idx);
 				}.bind(this);
+				scale_input.addEventListener('initImg', ()=>{
+					this.initImg(idx);
+				});
 			}	
 			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
 				this.updateImgPositionX(e.target.value, idx);
 			}.bind(this);
+			shift_x_input.addEventListener('initImg', ()=>{
+				this.initImg(idx);
+			});
 			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
 				this.updateImgPositionY(e.target.value, idx);
 			}.bind(this);
+			shift_y_input.addEventListener('initImg', ()=>{
+				this.initImg(idx);
+			});
 		}
 
 		let sAnimation_speed = this.control.querySelector('.field-id-animation-speed');
@@ -1714,6 +1730,16 @@ export class ShapeAnimated extends Shape {
 			}.bind(this);
 		}
 
+	}
+	initImg(idx){
+		if(!this.imgs[idx]) this.imgs[idx] = {
+			img: null,
+			x: 0,
+			y: 0,				
+			shiftY: 0,
+			shiftX: 0,
+			scale: 1
+		};
 	}
     updateFrame(frame=null, silent = false)
     {

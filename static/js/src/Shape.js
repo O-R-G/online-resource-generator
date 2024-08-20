@@ -608,7 +608,10 @@ export class Shape {
         }
     }
     updateImgScale(imgScale, idx, silent = false){
+        console.log('updateImgScale: ' + idx);
+        console.log(this.imgs[idx]);
         if(!this.imgs[idx]) return;
+        
     	this.imgs[idx].scale = imgScale;
         if(this.imgs[idx].img)
     	    this.updateImg(idx, this.imgs[idx].img, silent)
