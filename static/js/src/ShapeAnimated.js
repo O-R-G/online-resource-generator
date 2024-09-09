@@ -1681,13 +1681,13 @@ export class ShapeAnimated extends Shape {
 				const file = e.target.files[0];
 				if(file.type === 'video/mp4') {
 					this.readVideoUploaded(e, (videoElement)=>{
-						console.log(videoElement);
+						let isBack = idx.indexOf('back-') !== -1;
 						const texture = new THREE.VideoTexture( videoElement );
-						this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture })
-						this.mesh_front.material = this.frontMaterial;
-						this.mesh_front.needsUpdate = true;
-						console.log(texture);
-						console.log(this.frontMaterial);
+						let material = isBack ? this.backMaterial : this.frontMaterial;
+						let mesh = isBack ? this.mesh_back : this.mesh_front;
+						material = new THREE.MeshBasicMaterial({ map: texture })
+						mesh.material = material;
+						mesh.needsUpdate = true;
 					});
 				} else {
 					this.readImageUploaded(e, (idx, image)=> {
@@ -1704,7 +1704,6 @@ export class ShapeAnimated extends Shape {
 					let isBack = idx.indexOf('back-') !== -1;
 					this.updateImg(idx, image, silent, isBack, 'applySavedFile');
 				});
-				// this.updateImg();
 			});
 			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
@@ -1764,7 +1763,6 @@ export class ShapeAnimated extends Shape {
 			this.group = new THREE.Group();
 			this.updateGroupTranslateY();
 		}
-		
     	if(!silent) this.canvasObj.draw();
     }
 	updateGroupTranslateY(){
@@ -1823,14 +1821,17 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	async readVideoUploaded(event, cb){
+		console.log('readVideoUploaded?');
 		const file = event.target.files[0];
 		const videoURL = URL.createObjectURL(file);
 
 		// Create video element
 		const videoElement = document.createElement('video');
+		videoElement.className = 'hidden';
 		videoElement.src = videoURL;
 		videoElement.loop = true;
 		videoElement.controls = true;
+		videoElement.muted = true;
 		// videoElement.width = 600; // Adjust width as needed
 
 		// Append video element to body

@@ -132,7 +132,9 @@ option:after {
     height: 30px;
     /* display: inline-block; */
 }
-
+.hidden {
+    display: none;
+}
 .generator-container {
     /* display: flex; */
 }
