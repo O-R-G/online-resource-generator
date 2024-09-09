@@ -1830,7 +1830,7 @@ export class ShapeAnimated extends Shape {
 		const videoElement = document.createElement('video');
 		videoElement.src = videoURL;
 		videoElement.loop = true;
-		// videoElement.controls = true;
+		videoElement.controls = true;
 		// videoElement.width = 600; // Adjust width as needed
 
 		// Append video element to body
@@ -1838,7 +1838,13 @@ export class ShapeAnimated extends Shape {
 
 		// Load and play video
 		videoElement.load();
-		await videoElement.play();
+		try {
+			await videoElement.play();
+		} catch(err)
+		{
+			console.log(err);
+		}
+		
 		if(typeof cb === 'function')
 			cb(videoElement);
 	}
