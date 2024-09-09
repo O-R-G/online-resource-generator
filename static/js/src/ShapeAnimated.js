@@ -813,7 +813,6 @@ export class ShapeAnimated extends Shape {
 		
 		if(debug) {
 			console.log('updateImg');
-			// console.log(debug);
 			console.log(idx, this.imgs)
 		}
 		// console.log(image);
@@ -1679,10 +1678,23 @@ export class ShapeAnimated extends Shape {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
-				this.readImageUploaded(e, (idx, image)=> {
-					let isBack = idx.indexOf('back-') !== -1;
-					this.updateImg(idx, image, false, isBack)
-				});
+				const file = e.target.files[0];
+				if(file.type === 'video/mp4') {
+					this.readVideoUploaded(e, (videoElement)=>{
+						console.log(videoElement);
+						const texture = new THREE.VideoTexture( videoElement );
+						this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture })
+						this.mesh_front.material = this.frontMaterial;
+						this.mesh_front.needsUpdate = true;
+						console.log(texture);
+						console.log(this.frontMaterial);
+					});
+				} else {
+					this.readImageUploaded(e, (idx, image)=> {
+						let isBack = idx.indexOf('back-') !== -1;
+						this.updateImg(idx, image, false, isBack)
+					});
+				}
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
 				console.log('applySavedFile');
@@ -1809,6 +1821,26 @@ export class ShapeAnimated extends Shape {
 			let idx = this.fieldCounterparts['front-background-image'];
 			this.counterpart.updateImg(idx, this.imgs['front-background-image'].img);
 		}
+	}
+	async readVideoUploaded(event, cb){
+		const file = event.target.files[0];
+		const videoURL = URL.createObjectURL(file);
+
+		// Create video element
+		const videoElement = document.createElement('video');
+		videoElement.src = videoURL;
+		videoElement.loop = true;
+		// videoElement.controls = true;
+		// videoElement.width = 600; // Adjust width as needed
+
+		// Append video element to body
+		document.body.appendChild(videoElement);
+
+		// Load and play video
+		videoElement.load();
+		await videoElement.play();
+		if(typeof cb === 'function')
+			cb(videoElement);
 	}
 }
 
