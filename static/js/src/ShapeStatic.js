@@ -746,6 +746,7 @@ export class ShapeStatic extends Shape {
     }
 
 	drawRectangle(){
+		// console.log(this.frame);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -1183,15 +1184,26 @@ export class ShapeStatic extends Shape {
 		this.shapeCenter = this.generateShapeCenter();
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
+		// console.log(this.canvasObj.canvas.width, this.canvasObj.canvas.height);
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
-		let side = 0;
+		let w = 0, 
+		    h = 0;
 		if(shape_num === 1) {
-			side = canvas_w < canvas_h ? canvas_w : canvas_h; // assuming frames are always square
+			if(this.shape.base === 'fill') {
+				w = canvas_w;
+				h = canvas_h;
+			} else {
+				w = canvas_w < canvas_h ? canvas_w : canvas_h;
+				h = w;
+			}
+			
+			
 		}else if (shape_num === 2){
-			side = canvas_w > canvas_h / 2 ? canvas_h / 2 : canvas_w;
+			w = canvas_w > canvas_h / 2 ? canvas_h / 2 : canvas_w;
+			h = w;
 		}
-			output.w = side;
-			output.h = side;   
+		output.w = w;
+		output.h = h;
 
         output.x = this.shapeCenter.x - output.w / 2;
         output.y = this.shapeCenter.y - output.h / 2;
