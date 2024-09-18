@@ -469,7 +469,7 @@ export class ShapeStatic extends Shape {
 	updateText(str, silent = false){
 		this.str = str;
 		if(str) this.fields.text.value = this.str;
-        this.canvas.style.letterSpacing = this.options.fontOptions[this.fontSize]['letterSpacing'] + 'px';
+        // this.canvas.style.letterSpacing = this.options.fontOptions[this.fontSize]['letterSpacing'] + 'px';
         if(!silent) this.canvasObj.draw();
     }
     updateTextColor(colorData, silent = false){

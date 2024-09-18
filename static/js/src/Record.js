@@ -151,22 +151,23 @@ export class Record {
                 if(!field_element) continue;
                 
                 try {
-                    // console.log(field_element.tagName);
-                    if(field_element.tagName.toLowerCase() === 'select') {
-                        // console.log('select--');
-                        console.log(field['value']);
-                        const options = field_element.querySelectorAll('option');
-                        for(let i = 0; i < options.length; i++) {
-                            let option = options[i];
-                            console.log(option.value !== field['value']);
-                            if(option.value !== field['value']) continue;
-                            console.log('found--', option.value);
-                            option.selected = true;
-                            field_element.selectedIndex = 1;
-                            break;
-                        }
-                    }else {
+                    if(field_element.type === 'number'){
+                        console.log('num');
+                        console.log(field_element.id)
+                        field_element.value = parseFloat(field['value']);
+                    }
+                    else 
                         field_element.value = field['value'];
+                    if (field_element.tagName.toLowerCase() == 'textarea') 
+                        field_element.innerText = field['value'];
+                    else if(field_element.tagName.toLowerCase() == 'select') {
+                        console.log()
+                        for(let i = 0; i < field_element.options.length; i++) {
+                            if (field_element.options[i].value === field_element.value) {
+                                field_element.selectedIndex = i;
+                                break;
+                            }
+                        }
                     }
                 } catch (err) {
                     // field_element.value = '/media/00898.jpg';
