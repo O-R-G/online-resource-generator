@@ -149,17 +149,34 @@ export class Record {
                 }
                 let field_element = shape_control.querySelector('#' + field['id']);
                 if(!field_element) continue;
-                console.log(field['id']);
+                
                 try {
-                    field_element.value = field['value'];
+                    // console.log(field_element.tagName);
+                    if(field_element.tagName.toLowerCase() === 'select') {
+                        // console.log('select--');
+                        console.log(field['value']);
+                        const options = field_element.querySelectorAll('option');
+                        for(let i = 0; i < options.length; i++) {
+                            let option = options[i];
+                            console.log(option.value !== field['value']);
+                            if(option.value !== field['value']) continue;
+                            console.log('found--', option.value);
+                            option.selected = true;
+                            field_element.selectedIndex = 1;
+                            break;
+                        }
+                    }else {
+                        field_element.value = field['value'];
+                    }
                 } catch (err) {
                     // field_element.value = '/media/00898.jpg';
                     console.log('fail to apply saved value '+ field['value'] +' to #' + field['id']);
                     console.log(err);
                 }
-                if(field['id'].indexOf('id-shape-color') !== -1) 
-                    console.log(field['value']);
-                
+                // if(field['id'] === 'shape-static-1-field-id-shape-color') {
+                //     console.log(field_element);
+                //     console.log(field_element.value);
+                // }
 
                 if (field_element.classList.contains('field-id-animation')) 
                     active_canvas = field['value'] == 'none' ? 'static' : 'animated'; 

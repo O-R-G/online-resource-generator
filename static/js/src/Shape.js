@@ -1,6 +1,7 @@
 
 export class Shape {
 	constructor(id, canvasObj, options, control_wrapper, format){
+        console.log(options);
         this.id = id;
         this.options = options;
         this.canvasObj = canvasObj;

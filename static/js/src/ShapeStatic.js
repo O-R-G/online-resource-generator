@@ -1137,6 +1137,7 @@ export class ShapeStatic extends Shape {
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
 				console.log("this.fields['shape-color'] change--")
+				console.log(e.target.value)
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					sec.classList.add('viewing-background-upload');
@@ -1144,6 +1145,7 @@ export class ShapeStatic extends Shape {
 				else {
 					sec.classList.remove('viewing-background-upload');
 					this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
+					// console.log(e.target.value);
 					this.updateColor(this.options.colorOptions[e.target.value].color);
 				}
 			}.bind(this);
