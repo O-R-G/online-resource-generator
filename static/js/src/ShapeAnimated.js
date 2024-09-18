@@ -1123,26 +1123,29 @@ export class ShapeAnimated extends Shape {
 	}
     addListeners(){
 		let sShape = this.control.querySelector('.field-id-shape');
-		sShape.onchange = function(e){
-	        let shape_name = e.target.value;
-	        if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
-	            // this.counterpart.updateShape(shapeOptions[shape_name]['shape']);
-	            this.updateShape(shapeOptions[shape_name]['shape']);
-	        }
-	        else if(this.options.shapeOptions[shape_name]['shape']['type'] == 'animation')
-	        {
-	            // if(this.options.shapeOptions[shape_name]['shape']['animation-type'] == 'corner')
-	            //     this.initCornerAnimation(this.options.shapeOptions[shape_name]['shape']);
-	            console.log('threejs doesnt support this option');
-	        }
-	        let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
-	        [].forEach.call(sWatermark_panels, function(el, i){
-	            let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
-	            let position = el.querySelector('.watermark-position').value;
-	            let label = el.querySelector('label[for^="watermark"]');
-	            this.checkWatermarkPosition(position, label);
-	        }.bind(this));
-	    }.bind(this);
+		if(sShape) {
+			sShape.onchange = function(e){
+				let shape_name = e.target.value;
+				if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
+					// this.counterpart.updateShape(shapeOptions[shape_name]['shape']);
+					this.updateShape(shapeOptions[shape_name]['shape']);
+				}
+				else if(this.options.shapeOptions[shape_name]['shape']['type'] == 'animation')
+				{
+					// if(this.options.shapeOptions[shape_name]['shape']['animation-type'] == 'corner')
+					//     this.initCornerAnimation(this.options.shapeOptions[shape_name]['shape']);
+					console.log('threejs doesnt support this option');
+				}
+				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
+				[].forEach.call(sWatermark_panels, function(el, i){
+					let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
+					let position = el.querySelector('.watermark-position').value;
+					let label = el.querySelector('label[for^="watermark"]');
+					this.checkWatermarkPosition(position, label);
+				}.bind(this));
+			}.bind(this);
+		}
+		
 
 	    this.fields['text-front'].onchange = function(e){
 	        this.updateFrontText(e.target.value);
@@ -1215,21 +1218,23 @@ export class ShapeAnimated extends Shape {
 
 	        // document.getElementById("background-image-controls").style.display="none";
 	    }.bind(this);
-	   
-	    this.fields['animation'].onchange = function(e){
-	        if(!document.body.classList.contains('recording'))
-	        {
-	            this.animation_selectedIndex = e.target.selectedIndex;
-	            // this.counterpart.fields['animation'].selectedIndex = this.animation_selectedIndex;
-	            this.updateAnimation(e.target.value);
-	        }
-	        else
-	        {
-	            e.preventDefault();
-	            e.target.selectedIndex = this.animation_selectedIndex;
-	            alert("animation type can't be changed when recording");
-	        }	        
-	    }.bind(this);
+		if(this.fields['animation']) {
+			this.fields['animation'].onchange = function(e){
+				if(!document.body.classList.contains('recording'))
+				{
+					this.animation_selectedIndex = e.target.selectedIndex;
+					// this.counterpart.fields['animation'].selectedIndex = this.animation_selectedIndex;
+					this.updateAnimation(e.target.value);
+				}
+				else
+				{
+					e.preventDefault();
+					e.target.selectedIndex = this.animation_selectedIndex;
+					alert("animation type can't be changed when recording");
+				}	        
+			}.bind(this);
+		}
+	    
 
 	    this.fields['text-front-position'].onchange = function(e){
 	    	let position = e.target.value;

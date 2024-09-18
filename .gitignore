@@ -1,5 +1,6 @@
 .DS_Store
 options.js
+fonts.js
 static/fonts/*
 static/fonts/_threejs/*.json
 !static/fonts/_fonts.txt
@@ -9,6 +10,7 @@ static/js/src/custom/*
 !static/js/src/custom/*-sample.*
 static/js/custom/*
 !static/js/custom/*-sample.*
+static/js/node_modules
 webpack.config.js
 config.php
 .htaccess

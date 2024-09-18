@@ -74,7 +74,8 @@ export class ShapeStatic extends Shape {
 	addCounterpart(obj)
 	{
 		super.addCounterpart(obj);
-		this.fields['animation'].parentNode.parentNode.style.display = 'block';
+		if(this.fields['animation'])
+			this.fields['animation'].parentNode.parentNode.style.display = 'block';
 	}
 	updateShape(shape, silent = false){
 		if(shape['type'] == 'static') super.updateShape(shape);
@@ -1135,6 +1136,7 @@ export class ShapeStatic extends Shape {
 	    // let sShape_color = this.fields['shape-color'];
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
+				console.log("this.fields['shape-color'] change--")
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					sec.classList.add('viewing-background-upload');

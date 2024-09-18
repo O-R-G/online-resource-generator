@@ -149,8 +149,17 @@ export class Record {
                 }
                 let field_element = shape_control.querySelector('#' + field['id']);
                 if(!field_element) continue;
-        
-                field_element.value = field['value'];
+                console.log(field['id']);
+                try {
+                    field_element.value = field['value'];
+                } catch (err) {
+                    // field_element.value = '/media/00898.jpg';
+                    console.log('fail to apply saved value '+ field['value'] +' to #' + field['id']);
+                    console.log(err);
+                }
+                if(field['id'].indexOf('id-shape-color') !== -1) 
+                    console.log(field['value']);
+                
 
                 if (field_element.classList.contains('field-id-animation')) 
                     active_canvas = field['value'] == 'none' ? 'static' : 'animated'; 

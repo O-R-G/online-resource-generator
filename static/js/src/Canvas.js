@@ -109,7 +109,7 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
-        console.log('initRecording()');
+        // console.log('initRecording()');
         /* =====================================
         
         workflow of recording for animated canvas
@@ -468,7 +468,7 @@ export class Canvas {
         this.renderControlBottom();
     }
     renderControlTop(){
-        console.log(this.formatOptions);
+        // console.log(this.formatOptions);
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
         if(this.baseOptions && Object.keys(this.baseOptions).length > 1)
@@ -895,7 +895,7 @@ export class Canvas {
         for(let i = 0; i < this.shapes.length; i++) {
             this.shapes[i].updateFrame();
         }
-        console.log(document.querySelector('#main').offsetWidth);
+        // console.log(document.querySelector('#main').offsetWidth);
         if(updated && draw) {
             this.draw();
         }
@@ -903,7 +903,7 @@ export class Canvas {
     updateReadyState(){
         this.readyState++;
         // console.log('updateReadyState');
-        console.log(this.readyState +' / '+this.textAmount);
+        // console.log(this.readyState +' / '+this.textAmount);
         if(this.readyState == this.textAmount || this.textAmount == 0){
             // console.log('media_recorder.start()');
             setTimeout(function(){
