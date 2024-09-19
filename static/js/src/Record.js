@@ -133,6 +133,75 @@ export class Record {
         })
     }
     applySavedRecord(){
+        let static_fields = [], animated_fields = [];
+        let active_canvas = 'static';
+        
+        for(let shape_control_id in this.record_body) {
+            let shape_control = document.getElementById(shape_control_id);
+            if (!shape_control) continue;
+            let isThree = shape_control.classList.contains('animated-shape-control');
+            for(let i = 0 ; i < this.record_body[shape_control_id]['watermarks_num']; i++) {
+                for (let j = 0; j < this.canvasObjs.length; j++) {
+                    for (let k = 0; k < this.canvasObjs[j].shapes.length; k++) {
+                        this.canvasObjs[j].shapes[k].addWatermark();
+                    }
+                }
+            }
+            let fields = this.record_body[shape_control_id]['fields'];
+            for (let field of fields) {
+                if(!field['id']) {
+                    continue;
+                }
+                let field_element = shape_control.querySelector('#' + field['id']);
+                if(!field_element) continue;
+                
+                try {
+                    if(field_element.type === 'number'){
+                        console.log('num');
+                        console.log(field_element.id)
+                        field_element.value = parseFloat(field['value']);
+                    }
+                    else 
+                        field_element.value = field['value'];
+                    if (field_element.tagName.toLowerCase() == 'textarea') 
+                        field_element.innerText = field['value'];
+                    else if(field_element.tagName.toLowerCase() == 'select') {
+                        console.log()
+                        for(let i = 0; i < field_element.options.length; i++) {
+                            if (field_element.options[i].value === field_element.value) {
+                                field_element.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                } catch (err) {
+                    // field_element.value = '/media/00898.jpg';
+                    console.log('fail to apply saved value '+ field['value'] +' to #' + field['id']);
+                    console.log(err);
+                }
+                // if(field['id'] === 'shape-static-1-field-id-shape-color') {
+                //     console.log(field_element);
+                //     console.log(field_element.value);
+                // }
+
+                if (field_element.classList.contains('field-id-animation')) 
+                    active_canvas = field['value'] == 'none' ? 'static' : 'animated'; 
+                
+                if (field_element.tagName.toLowerCase() == 'textarea') 
+                    field_element.innerText = field['value'];
+                if (isThree) animated_fields.push(field_element);
+                else static_fields.push(field_element);
+            }
+        }
+        console.log(active_canvas)
+        if (active_canvas == 'static') 
+            for(let field_element of static_fields) 
+                field_element.dispatchEvent(new Event('change'));
+        else
+            for(let field_element of animated_fields) 
+                field_element.dispatchEvent(new Event('change'));
+    }
+    applySavedRecord_main(){
         // let static_fields = [], animated_fields = [];
         let active_canvas_fields = [];
         // let viewingThree = false;
