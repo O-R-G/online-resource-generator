@@ -424,7 +424,8 @@ export class Record {
                 }
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {
-                    'id': shape_control.id,
+                    // 'id': shape_control.id,
+                    'id': shape_id + '-shape-control',
                     'shape_id': shape_id,
                     'type': 'shape_control',
                     'fields': [],

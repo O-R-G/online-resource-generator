@@ -2,7 +2,7 @@
 export class Shape {
 	constructor(id, canvasObj, options, control_wrapper, format){
         this.id = id;
-        // this.id = prefix + '-shape-' + shape_index;
+        this.new_id = id + '-shape-0';
         this.options = options;
         this.canvasObj = canvasObj;
 		this.canvas = this.canvasObj.canvas;
@@ -24,6 +24,7 @@ export class Shape {
         this.control = document.createElement('DIV');
         this.control.className = 'shape-control';
         this.control.id = this.id + '-shape-control';
+        this.control.setAttribute('data-shape-id', this.new_id);
         if(this.control_wrapper.lastElementChild && this.control_wrapper.lastElementChild.classList.contains('shape-general-control')){
             this.control_wrapper.insertBefore(this.control, this.control_wrapper.lastElementChild);
         }
