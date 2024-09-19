@@ -24,5 +24,6 @@
     console.log('record_id', record_id);
     const media_relative_root = '<?php echo $media_relative_root; ?>';
 </script>
+<script id="script-fonts" src="<?php echo $root_path; ?>/config/fonts.js"></script>
 <script id="script-options" src="config/options.js"></script>
 <script id="script-main" type="module" src="static/js/dist/main.js"></script>

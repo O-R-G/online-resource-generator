@@ -135,8 +135,9 @@ export class Record {
     applySavedRecord(){
         let static_fields = [], animated_fields = [];
         let active_canvas = 'static';
-        
+        console.log(this.record_body);
         for(let shape_control_id in this.record_body) {
+            console.log('shape_control_id', shape_control_id);
             let shape_control = document.getElementById(shape_control_id);
             if (!shape_control) continue;
             let isThree = shape_control.classList.contains('animated-shape-control');
@@ -148,6 +149,7 @@ export class Record {
                 }
             }
             let fields = this.record_body[shape_control_id]['fields'];
+            console.log(fields);
             for (let field of fields) {
                 if(!field['id']) {
                     continue;

@@ -5,7 +5,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 const main = document.getElementById('main');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 function init(data, cb){
-    console.log('main init()');
+    // console.log('main init()');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = [];
@@ -35,9 +35,9 @@ function init(data, cb){
         }
         if(typeof data[id]['counterpart'] === 'undefined' || !data[id]['counterpart'] || typeof data[data[id]['counterpart']] == 'undefined') continue;
         let c = data[data[id]['counterpart']];
-        console.log(c);
+        // console.log(c);
         for(let i = 0; i < data[id]['canvas']['shapes'].length; i++) {
-            console.log(data[id]['canvas']['shapes'][i]);
+            // console.log(data[id]['canvas']['shapes'][i]);
             data[id]['canvas']['shapes'][i].addCounterpart(c['canvas']['shapes'][i]);
         }
     }
@@ -84,7 +84,7 @@ function loadCustomScripts(scriptsObj, hook, cb){
         firstScript.parentNode.insertBefore(s, firstScript);
     }
 }
-console.log(customScriptsByHook);
+// console.log(customScriptsByHook);
 if(customScriptsByHook['beforeMainInit']) {
     let count = 0;
     let firstScript = document.querySelector('script');
