@@ -1,17 +1,17 @@
 export class Record {
-    constructor(container, record_url='', canvasObjs=[]){
+    constructor(container, record_id='', canvasObjs={}){
         this.container = container;
-        this.record_url = record_url;
+        this.record_id = record_id;
         this.canvasObjs = canvasObjs;
         this.record_body = '';
-        this.form_action = this.record_url ? 'save' : 'insert';
+        this.form_action = this.record_id !== '' ? 'save' : 'insert';
         this.request_url = '/online-resource-generator/static/php/recordHandler.php';
         this.elements = {
             'form': null,
             'button': null
         }
-        if (this.record_url)
-            this.fetchRecord(this.record_url, () => {
+        if (this.record_id)
+            this.fetchRecord(this.record_id, () => {
                 setTimeout(()=>this.applySavedRecord(), 0);
             });
         this.renderElements();
@@ -26,33 +26,35 @@ export class Record {
         input_action.type = 'hidden';
         input_action.name = 'action';
         input_action.value = this.form_action;
-        let temp_float_container = document.createElement('div');
-        temp_float_container.className = 'float-container';
+        let temp_flex_container = document.createElement('div');
+        temp_flex_container.className = 'flex-container';
 
-        this.elements.button = document.createElement('div');
-        this.elements.button.className = 'record-form-button button-like-label half-left';
-        this.elements.button.id = 'save-record-button';
-        this.elements.button.innerHTML = 'Save <img class="inline-icon" src="/online-resource-generator/media/svg/save-3-w.svg">';
+        this.elements.save_button = document.createElement('div');
+        this.elements.save_button.className = 'record-form-button button-like-label flex-item';
+        this.elements.save_button.setAttribute('flex', 'half');
+        this.elements.save_button.id = 'save-record-button';
+        this.elements.save_button.innerHTML = 'Save <img class="inline-icon" src="/online-resource-generator/media/svg/save-3-w.svg">';
 
         this.elements.share_button = document.createElement('div');
-        this.elements.share_button.className = 'record-form-button button-like-label half-right';
+        this.elements.share_button.className = 'record-form-button button-like-label flex-item';
+        this.elements.share_button.setAttribute('flex', 'half');
         this.elements.share_button.id = 'fetch-record-button';
         this.elements.share_button.innerHTML = 'Share <img class="inline-icon" src="/online-resource-generator/media/svg/share-3-w.svg">';
         
-        temp_float_container.appendChild(this.elements.button);
-        temp_float_container.appendChild(this.elements.share_button);
+        temp_flex_container.appendChild(this.elements.save_button);
+        temp_flex_container.appendChild(this.elements.share_button);
         this.elements.form.append(input_action);
-        this.elements.form.appendChild(temp_float_container);
+        this.elements.form.appendChild(temp_flex_container);
         this.container.appendChild(this.elements.form);
     }
     addListeners(){
-        this.elements.button.addEventListener('click', (event)=>{
+        this.elements.save_button.addEventListener('click', (event)=>{
             this.submit(event, ()=>{
                 alert('Saved!');
             });
         })
         this.elements.share_button.addEventListener('click', (event)=>{
-            if(!this.record_url) alert('You have to save the draft before you can share it.')
+            if(!this.record_id) alert('You have to save the draft before you can share it.')
             else {
 
                 let url = location.href;
@@ -97,18 +99,21 @@ export class Record {
         })
         // this.elements.fetch_button.addEventListener('click', (event) =>{
         //     event.preventDefault();
-        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.record_url) return;
+        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.record_id) return;
         //     this.fetchRecord(this.elements.input_id.value, ()=>{
         //         window.location.href='?record=' + this.elements.input_id.value;
         //     });
         // })
     }
-    fetchRecord(record_url='', callback=null){
+    fetchRecord(record_id='', callback=null){
+        // console.log(record_id);
+        
         let data = new FormData();
-        if (!record_url) record_url = this.record_url
+        // if (!record_id) record_id = this.record_id;
+        // console.log(record_id);
         let data_json = {
             'action': 'get',
-            'record_url': record_url
+            'record_id': record_id
         }
         for(let prop in data_json)
             data.append(prop, data_json[prop]);
@@ -123,34 +128,118 @@ export class Record {
                     callback();
                 }
             } else {
-                alert('Fail to find any record with id: ' + id);
+                alert('Fail to find any record');
             }
         })
     }
     applySavedRecord(){
-        let static_fields = [], animated_fields = [];
-        let active_canvas = 'static';
-        
-        for(let shape_control_id in this.record_body) {
-            let shape_control = document.getElementById(shape_control_id);
-            if (!shape_control) continue;
-            let isThree = shape_control.classList.contains('animated-shape-control');
-            for(let i = 0 ; i < this.record_body[shape_control_id]['watermarks_num']; i++) {
-                for (let j = 0; j < this.canvasObjs.length; j++) {
-                    for (let k = 0; k < this.canvasObjs[j].shapes.length; k++) {
-                        this.canvasObjs[j].shapes[k].addWatermark();
+        // let static_fields = [], animated_fields = [];
+        let active_canvas_fields = [];
+        // let viewingThree = false;
+        let params = new URL(document.location).searchParams;
+        let format = params.get("format");
+        let hasSecondShape = false;
+        let avtive_canvas = null;
+        // console.log(this.record_body)
+        for(let canvas_id in this.record_body) {
+            if(canvas_id === 'images'){
+                // console.log(this.record_body[canvas_id]);
+                continue;
+            }
+                
+            let canvas_data = this.record_body[canvas_id];
+            let isThree = canvas_data['isThree'];
+            let active = canvas_data['active'];
+            if(isThree && active) document.body.classList.add('viewing-three');
+            if(active) avtive_canvas = this.canvasObjs[canvas_id];
+            // console.log(Object.keys(canvas_data['shape-controls']).length > 1);
+            if(Object.keys(canvas_data['shape-controls']).length > 1 && !hasSecondShape) {
+                hasSecondShape = true;
+            }
+            if(hasSecondShape && canvas_data['add_second_shape_button']) {
+                // console.log(canvas_data['add_second_shape_button']);
+                let btn = document.getElementById(canvas_data['add_second_shape_button']['id']);
+                btn.click();
+            }
+                
+            for(let common_control_id in canvas_data['common-controls']) {
+                let data = canvas_data['common-controls'][common_control_id];
+                let common_control = document.getElementById(common_control_id);
+                if (!common_control) continue;
+                // let isThree = data['isThree'];
+                let fields = data['fields'];
+                for (let field of fields) {
+                    
+                    if(!field['id']) continue;
+                    let field_element = common_control.querySelector('#' + field['id']);
+                    if(!field_element) continue;
+                    if(!field_element.classList.contains('field-id-format') || !format) { 
+                        if(field.type === 'file') {
+                            field_element.setAttribute('data-fiel-src', field['value']);
+                            continue;
+                        }
+                        field_element.value = field['value'];
+                    } else 
+                        field_element.value = format;
+                    
+
+                    if (field_element.tagName.toLowerCase() == 'textarea') 
+                        field_element.innerText = field['value'];
+                    else if(field_element.tagName.toLowerCase() == 'select') {
+                        for(let i = 0; i < field_element.options.length; i++) {
+                            // console.log(field_element.options[i].value);
+                            if (field_element.options[i].value === field_element.value) {
+                                field_element.selectedIndex = i;
+                                break;
+                            }
+                        }
                     }
+
+                    if(active) active_canvas_fields.push(field_element);
                 }
             }
-            let fields = this.record_body[shape_control_id]['fields'];
-            for (let field of fields) {
-                if(!field['id']) {
-                    continue;
+            for(let shape_control_id in canvas_data['shape-controls']) {
+                // console.log(shape_control_id);
+                let data = canvas_data['shape-controls'][shape_control_id];
+                let shape_control = document.getElementById(shape_control_id);
+                let shape_id = data['shape_id'];
+                if (!shape_control) continue;
+                let shapeObj = this.canvasObjs[canvas_id].shapes[shape_id];
+                // for(let shape of this.canvasObjs[canvas_id].shapes) {
+                //     if(shape.id === shape_id) {
+                //         shapeObj = shape;
+                //     }
+                // }
+                if(!shapeObj) continue;
+                for(let i = 0 ; i < data['watermarks_num']; i++) {
+                    this.canvasObjs[canvas_id].shapes[shape_id].addWatermark();
                 }
-                let field_element = shape_control.querySelector('#' + field['id']);
-                if(!field_element) continue;
-                
-                try {
+                let fields = data['fields'];
+                for (let field of fields) {
+                    
+                    if(!field['id']) {
+                        continue;
+                    }
+                    
+                    // if(field['id'] === 'static-shape-0-field-id-background-image') console.log('pupu');
+                    let field_element = shape_control.querySelector('#' + field['id']);
+                    if(!field_element) continue;
+                    if(field['id'] === 'animated-shape-0-field-id-front-background-image-scale') {
+                        console.log(field_element);
+                    }
+                    // console.log(field_element.type);
+                    
+                    if(field_element.type === 'file') {
+                        // console.log('cc')
+                        // console.log(field_element.id);
+                        if(this.record_body['images'][field_element.id]) {
+                            this.applySavedFile(field_element, shapeObj);
+                        }
+                            
+                        continue;
+                    }
+                    // if(shape_control_id === 'animated-shape-1-shape-control')
+                    //     console.log(active);
                     if(field_element.type === 'number'){
                         console.log('num');
                         console.log(field_element.id)
@@ -161,7 +250,6 @@ export class Record {
                     if (field_element.tagName.toLowerCase() == 'textarea') 
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
-                        console.log()
                         for(let i = 0; i < field_element.options.length; i++) {
                             if (field_element.options[i].value === field_element.value) {
                                 field_element.selectedIndex = i;
@@ -169,79 +257,167 @@ export class Record {
                             }
                         }
                     }
-                } catch (err) {
-                    // field_element.value = '/media/00898.jpg';
-                    console.log('fail to apply saved value '+ field['value'] +' to #' + field['id']);
-                    console.log(err);
+                    
+                    if(active) active_canvas_fields.push(field_element);
                 }
-                // if(field['id'] === 'shape-static-1-field-id-shape-color') {
-                //     console.log(field_element);
-                //     console.log(field_element.value);
-                // }
-
-                if (field_element.classList.contains('field-id-animation')) 
-                    active_canvas = field['value'] == 'none' ? 'static' : 'animated'; 
-                
-                if (field_element.tagName.toLowerCase() == 'textarea') 
-                    field_element.innerText = field['value'];
-                if (isThree) animated_fields.push(field_element);
-                else static_fields.push(field_element);
             }
+
+
         }
-        console.log(active_canvas)
-        if (active_canvas == 'static') 
-            for(let field_element of static_fields) 
-                field_element.dispatchEvent(new Event('change'));
-        else
-            for(let field_element of animated_fields) 
-                field_element.dispatchEvent(new Event('change'));
+        for(let field_id in this.record_body['images'] ){
+            // console.log(field_id);
+            let el = document.getElementById(field_id);
+            // console.log(el);
+            if(!el) continue;
+            // el.setAttribute('data-file-src', this.record_body['images'][field_id]);
+            this.applySavedFile(el);
+
+        }  
+        for(let field_element of active_canvas_fields) {
+            if(field_element.id === 'animated-shape-0-field-id-front-background-image-scale') {
+                console.log('yaya');
+                console.log(field_element.value)
+            }
+            if(field_element.classList.contains('field-id-format')) {
+                if(format) continue;
+                else {
+                    avtive_canvas.changeFormat(null, null, false);
+                    continue;
+                }
+            }
+            field_element.dispatchEvent(new Event('initImg'));
+            field_element.dispatchEvent(new Event('change'));
+            field_element.dispatchEvent(new Event('input'));
+            
+        }
+        
+    }
+    applySavedFile(field, shapeObj){
+        let idx = field.getAttribute('image-idx');
+        let id = field.id;
+        let src = this.record_body['images'][id];
+        if(!src) return false;
+        src = media_relative_root + src;
+        let el = document.getElementById(id);
+        if(!el) return false;
+        // if(shapeObj) {
+        //     if(!shapeObj.imgs[idx])
+        //         shapeObj.imgs[idx] = {
+        //             img: null,
+        //             x: 0,
+        //             y: 0,				
+        //             shiftY: 0,
+        //             shiftX: 0,
+        //             scale: 1
+        //         };
+        // }
+        el.setAttribute('data-file-src', src);
+        el.dispatchEvent(new Event('applySavedFile'));
+        // shapeObj.readImage(idx, src, shapeObj.updateImg.bind(shapeObj));
+        return idx;
+    }
+    formatField(field){
+        let output = {id: field.id};
+        if(field.type === 'file') output.value = field.getAttribute('data-file-src') ? field.getAttribute('data-file-src') : '';
+        else output.value = field.value;
+        return output;
     }
     submit(event, cb){
         event.preventDefault();
-        let data = new FormData(this.elements.form);
-        // if(this.form_action == 'save') {
-        let record_body = {};
+        let formData = new FormData(this.elements.form);
+        
+        let record_body = {
+            images: {}
+        };
         let record_name = 'new poster';
-        let shape_controls = document.querySelectorAll('.shape-control');
-        console.log(shape_controls)
-        // let watermark_classes = ['watermark', 'watermark-position', 'watermark-color', 'watermark-fontsize', 'watermark-rotate', 'watermark-shift-x', 'watermark-shift-y'];
-        for(let shape_control of shape_controls) {
-            let watermarks = shape_control.querySelectorAll('.watermark');
-            let watermarks_num = 0;
-            for (let watermark of watermarks) {
-                if (!watermark.value) continue;
-                watermarks_num++;
+
+        let containers = document.querySelectorAll('.generator-container');
+        for (let container of containers) {
+            let canvas_id = container.getAttribute('data-canvas-id');
+            let isThree = container.getAttribute('data-is-three') == 'true';
+            record_body[canvas_id] = {
+                isThree: isThree,
+                active: (document.body.classList.contains('viewing-three') && isThree) || (!document.body.classList.contains('viewing-three') && !isThree),
+                'common-controls': {},
+                'shape-controls': {},
+                // 'record_body': null
             }
-            record_body[shape_control['id']] = {
-                'id': shape_control['id'],
-                'fields': [],
-                'watermarks_num': watermarks_num
-            }
-            let fields = shape_control.querySelectorAll('select, input, textarea');
-            for(let field of fields) {
-                if(!field.value) continue;
-                let this_field = {
-                    'id': field.id,
-                    'value': field.value
+
+            let shape_controls = container.querySelectorAll('.shape-control');
+            for(let shape_control of shape_controls) {
+                let watermarks = shape_control.querySelectorAll('.watermark');
+                let watermarks_num = 0;
+                for (let watermark of watermarks) {
+                    if (!watermark.value) continue;
+                    watermarks_num++;
                 }
-                record_body[shape_control['id']]['fields'].push(this_field);
-                if (field.classList.contains('field-id-text'))
-                    record_name = field.value;
+                let shape_id = shape_control.getAttribute('data-shape-id');
+                let data = {
+                    'id': shape_control.id,
+                    'shape_id': shape_id,
+                    'type': 'shape_control',
+                    'fields': [],
+                    'watermarks_num': watermarks_num,
+                    'isThree': shape_control.classList.contains('animated-shape-control')
+                }
+                let fields = shape_control.querySelectorAll('select, input, textarea');
+                for(let field of fields) {
+                    if(field.type === 'file') {
+                        if(field.files.length > 0) {
+                            formData.append(field.id, field.files[0]);
+                        } else if(field.getAttribute('data-file-src')) {
+                            record_body['images'][field.id] = field.getAttribute('data-file-src').replace(media_relative_root, '');
+                        } else {
+                            continue;
+                        }
+                        
+                    } else {
+                        if(!field.value) continue;
+                        data['fields'].push(this.formatField(field));
+                        if (field.classList.contains('field-id-text'))
+                            record_name = field.value;
+                    }
+                    
+                }
+                record_body[canvas_id]['shape-controls'][shape_control['id']] = data;
+            }
+            let common_controls = container.querySelectorAll('.common-control');
+            for(let common_control of common_controls) {
+                let data = {
+                    'id': common_control['id'],
+                    'type': 'common_control',
+                    'fields': [],
+                    'isThree': common_control.classList.contains('animated-common-control'),
+                    'add_second_shape_button': null
+                }
+                let fields = common_control.querySelectorAll('select, input, textarea');
+                for(let field of fields) {
+                    if(field.classList.contains('second-shape-button')) {
+                        record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
+                        continue;
+                    }
+                    if(!field.value) continue;
+                    data['fields'].push(this.formatField(field));
+                }
+                record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
+        // console.log(record_body);
+        // return;
         record_body = JSON.stringify(record_body);
-        data.append('record_body', record_body);
-        data.append('record_name', record_name);
-        data.append('record_url', this.record_url);
-    // }
+        
+        formData.append('record_body', record_body);
+        formData.append('record_name', record_name);
+        formData.append('record_id', this.record_id);
+        // console.log(formData.get('static-shape-0-field-id-background-image'));
+        // return;
         fetch(this.request_url, {
             method: 'POST',
-            body: data
+            body: formData
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
                 if (this.form_action == 'insert') {
-                    alert('Saved!');
                     window.location.href = json['body'];
                 }
                 else if(this.form_action == 'save')
