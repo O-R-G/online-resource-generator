@@ -388,7 +388,7 @@ export class Record {
         return idx;
     }
     formatField(field){
-        let output = {id: field.id};
+        let output = {id: field.id.replace('shape-static-1-', 'static-1-shape-0-')};
         if(field.type === 'file') output.value = field.getAttribute('data-file-src') ? field.getAttribute('data-file-src') : '';
         else output.value = field.value;
         return output;
