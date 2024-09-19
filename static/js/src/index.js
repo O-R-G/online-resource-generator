@@ -61,7 +61,7 @@ function renderElements(id, d){
 }
 
 let customScriptsByHook = {};
-if(customScripts) {
+if(typeof customScripts !== 'undefined') {
     for(let item of customScripts) {
         let h = item['hook'];
         if(!customScriptsByHook[h])customScriptsByHook[h] = [];
