@@ -451,7 +451,7 @@ export class Record {
                     }
                     
                 }
-                record_body[canvas_id]['shape-controls'][shape_control['id']] = data;
+                record_body[canvas_id]['shape-controls'][shape_id + '-shape-control'] = data;
             }
             let common_controls = container.querySelectorAll('.common-control');
             for(let common_control of common_controls) {
