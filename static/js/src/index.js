@@ -4,7 +4,7 @@ import { Record } from "./Record.js";
 import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
-import fontLoader from "./FontLoader.js";
+import ORGFontLoader from "./ORGFontLoader.js";
 
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
