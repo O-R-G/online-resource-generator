@@ -386,7 +386,7 @@ export class ShapeStatic extends Shape {
 	updateText(str, silent = false){
 		this.str = str;
 		if(str) this.fields.text.value = this.str;
-        this.canvas.style.letterSpacing = this.typography['letterSpacing'] + 'px';
+        // this.canvas.style.letterSpacing = this.typography['letterSpacing'] + 'px';
         if(!silent) this.canvasObj.draw();
     }
     updateTextColor(colorData, silent = false){
@@ -413,7 +413,7 @@ export class ShapeStatic extends Shape {
 		this.context.font = fontStyle;
 
 		let text = this.getText(str);
-		console.log('this.textBoxWidth', this.textBoxWidth);
+		// console.log('this.textBoxWidth', this.textBoxWidth);
 		/*
 			lines = {
 				'max-width': ...,
@@ -449,7 +449,6 @@ export class ShapeStatic extends Shape {
 			let lines = text.lines;
 	        // x += align == 'align-left' ? this.shapeCenter.x - text['max-width'] / 2 : this.shapeCenter.x;
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x * 2 : this.shapeCenter.x;
-			console.log('this.innerPadding.x', this.innerPadding.x);
 			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			for(let i = 0; i < lines.length; i++) { 
@@ -664,7 +663,6 @@ export class ShapeStatic extends Shape {
 			'max-width': 0
 		};
 		let lines = this.getLines(str);
-		console.log('lines in getText()', lines);
 		let p = /(\[.*?\])/g;
 		for(let i = 0; i < lines.length; i++) {
 			let line = {
