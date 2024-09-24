@@ -18,7 +18,7 @@ export class ORGFontLoader {
         if (typeof cb === 'function') cb();
     }
     addStylesheet(path){
-        console.log('eee');
+        // console.log('eee');
         if(this.loaded_css.includes(path)) return;
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -29,13 +29,13 @@ export class ORGFontLoader {
     addDummyDiv(style){
         let style_str = '';
         for(let prop in style) {
-            console.log(prop);
+            // console.log(prop);
             if(!style[prop]) continue;
             style_str += `font-${prop}: ${style[prop]}; `;
         }
         let temp = document.createElement('div');
         temp.innerHTML = '&nbsp;';
-        console.log(style_str);
+        // console.log(style_str);
         temp.style = style_str;
         document.body.appendChild(temp);
     }

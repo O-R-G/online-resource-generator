@@ -809,19 +809,62 @@ export class ShapeAnimated extends Shape {
 		});
 		g.children = [];
 	}
-	updateImg(idx, image, silent = false, isBack = false, debug=''){
+	applyVideoAsMaterial(idx, silent=false, isBack=false){
+		// console.log(idx);
+		let videoElement = this.media[idx].obj;
+		// console.log(videoElement)
+		// let isBack = idx.indexOf('back-') !== -1;
+		const texture = new THREE.VideoTexture( videoElement );
+		let material = isBack ? this.backMaterial : this.frontMaterial;
+		let mesh = isBack ? this.mesh_back : this.mesh_front;
+		material = new THREE.MeshBasicMaterial({ map: texture })
+		mesh.material = material;
+
+		const videoAspect = videoElement.videoWidth / videoElement.videoHeight;
+		// console.log(videoElement.videoWidth, videoElement.videoHeight);
+		let geometry = isBack ? this.geometry_back : this.geometry_front;
+		geometry.computeBoundingBox();
+		const bbox = geometry.boundingBox;
+		const geomWidth = bbox.max.x - bbox.min.x;
+		const geomHeight = bbox.max.y - bbox.min.y;
+		const geometryAspect = geomWidth / geomHeight;
+		// Adjust the UV coordinates to match the aspect ratio
+		let offsetX = 0, offsetY = 0, repeatX = 1, repeatY = 1;
+		// console.log(videoAspect, geometryAspect);
+		if (videoAspect > geometryAspect) {
+			// Video is wider than geometry, scale UV coordinates horizontally
+			repeatX = geometryAspect / videoAspect;
+			offsetX = (1 - repeatX) / 2;  // Center the video horizontally
+		} else {
+			// Video is taller than geometry, scale UV coordinates vertically
+			repeatY = videoAspect / geometryAspect;
+			offsetY = (1 - repeatY) / 2;  // Center the video vertically
+		}
 		
-		if(debug) {
-			console.log('updateImg');
-			console.log(idx, this.imgs)
+		// Set the UV transformation on the texture
+		texture.wrapS = THREE.ClampToEdgeWrapping;
+		texture.wrapT = THREE.ClampToEdgeWrapping;
+		texture.offset.set(offsetX, offsetY);
+		texture.repeat.set(repeatX, repeatY);
+
+		mesh.needsUpdate = true;
+	}
+	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
+		console.log(obj);
+		super.updateMedia(idx, obj, silent);
+		// if()
+		if(isVideo) {
+			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
-		// console.log(image);
-		super.updateImg(idx, image, silent);
-		if(!isBack) {
-			this.mesh_front.remove(this.frontMaterial);
+		else {
+			if(!isBack) 
+				this.mesh_front.remove(this.frontMaterial);
+			this.applyImageAsMaterial(idx, silent, isBack)
 		}
+	}
+	applyImageAsMaterial(idx, silent, isBack){
 		const textureLoader = new THREE.TextureLoader();
-		return textureLoader.load(this.imgs[idx].img.src, (texture) => {
+		return textureLoader.load(this.media[idx].obj.src, (texture) => {
 			// Set texture filtering
 			texture.magFilter = THREE.LinearFilter;
 			texture.minFilter = THREE.LinearFilter;
@@ -838,7 +881,7 @@ export class ShapeAnimated extends Shape {
 			}
 			mesh.needsUpdate = true;
 			let geometry = isBack ? this.geometry_back : this.geometry_front;
-			let original_uv_array = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
+			// let original_uv_array = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
 			const imageAspect = texture.image.width / texture.image.height;
 			geometry.computeBoundingBox();
 			const bbox = geometry.boundingBox;
@@ -846,8 +889,8 @@ export class ShapeAnimated extends Shape {
 			const geomHeight = bbox.max.y - bbox.min.y;
 			const geometryAspect = geomWidth / geomHeight;
 
-			let scaleX = 1 / this.imgs[idx].scale;
-			let scaleY = 1 / this.imgs[idx].scale;
+			let scaleX = 1 / this.media[idx].scale;
+			let scaleY = 1 / this.media[idx].scale;
 
 			if (imageAspect > geometryAspect) {
 				scaleX *= geometryAspect / imageAspect;
@@ -855,10 +898,10 @@ export class ShapeAnimated extends Shape {
 				scaleY *= imageAspect / geometryAspect;
 			}
 
-			const dev_x = this.imgs[idx].shiftX ? this.imgs[idx].shiftX * scaleX / geomWidth : 0;
-			const dev_y = this.imgs[idx].shiftY ? this.imgs[idx].shiftY * scaleY / geomHeight : 0;
-			console.log(scaleX, scaleY);
-			console.log(dev_x, dev_y);
+			const dev_x = this.media[idx].shiftX ? this.media[idx].shiftX * scaleX / geomWidth : 0;
+			const dev_y = this.media[idx].shiftY ? this.media[idx].shiftY * scaleY / geomHeight : 0;
+			// console.log(scaleX, scaleY);
+			// console.log(dev_x, dev_y);
 
 			const uvArray = [];
 			const position = geometry.attributes.position;
@@ -879,8 +922,8 @@ export class ShapeAnimated extends Shape {
 			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
 			geometry.attributes.uv.needsUpdate = true;
 
-			console.log('updateImg done');
-			console.log(this.imgs['front-background-image']);
+			// console.log('updateMedia done');
+			// console.log(this.media['front-background-image']);
 			
 			// this.renderer.render( this.scene, this.camera );
 			if(!silent) this.canvasObj.draw();
@@ -940,13 +983,13 @@ export class ShapeAnimated extends Shape {
 		this.geometry_front_uvs = new Float32Array(this.geometry_front.attributes.uv.array);
 		this.geometry_back_uvs = new Float32Array(this.geometry_back.attributes.uv.array);
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
-			if(this.imgs['front-background-image']) {
-				this.updateImg('front-background-image', this.imgs['front-background-image'].img);
+			if(this.media['front-background-image']) {
+				this.updateMedia('front-background-image', this.media['front-background-image'].img);
 			}
 		}
 		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
-			if(this.imgs['back-background-image']) {
-				this.updateImg('back-background-image', this.imgs['back-background-image'].img, false, false);
+			if(this.media['back-background-image']) {
+				this.updateMedia('back-background-image', this.media['back-background-image'].img, false, false);
 			}
 		}
 	}
@@ -1672,46 +1715,50 @@ export class ShapeAnimated extends Shape {
 	    	this.updateBackTextPosition(position);
 	    }.bind(this);
 
-		for(let idx in this.fields.imgs) {
-			let input = this.fields.imgs[idx];
+		for(let idx in this.fields.media) {
+			let input = this.fields.media[idx];
 			input.onclick = function (e) {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
 				const file = e.target.files[0];
 				if(file.type === 'video/mp4') {
-					this.readVideoUploaded(e, (videoElement)=>{
+					this.readVideoUploaded(e, (video)=>{
 						let isBack = idx.indexOf('back-') !== -1;
-						const texture = new THREE.VideoTexture( videoElement );
-						let material = isBack ? this.backMaterial : this.frontMaterial;
-						let mesh = isBack ? this.mesh_back : this.mesh_front;
-						material = new THREE.MeshBasicMaterial({ map: texture })
-						mesh.material = material;
-						mesh.needsUpdate = true;
+						this.updateMedia(idx, video, false, isBack, true);
+						// this.applyVideoAsMaterial();
 					});
 				} else {
 					this.readImageUploaded(e, (idx, image)=> {
 						let isBack = idx.indexOf('back-') !== -1;
-						this.updateImg(idx, image, false, isBack)
+						this.updateMedia(idx, image, false, isBack)
 					});
 				}
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
-				console.log('applySavedFile');
+				// console.log('applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
-				this.readImage(idx, src, (idx, image, silent)=>{
-					let isBack = idx.indexOf('back-') !== -1;
-					this.updateImg(idx, image, silent, isBack, 'applySavedFile');
-				});
+				let ext = src.substring(src.lastIndexOf('.') + 1);
+				if(this.supported_ext['video'].includes(ext)) {
+					this.readVideo(idx, src, (idx, video, silent)=>{
+						let isBack = idx.indexOf('back-') !== -1;
+						this.updateMedia(idx, video, silent, isBack, 'applySavedFile');
+					});
+				}else {
+					this.readImage(idx, src, (idx, image, silent)=>{
+						let isBack = idx.indexOf('back-') !== -1;
+						this.updateMedia(idx, image, silent, isBack, 'applySavedFile');
+					});
+				}
 			});
 			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
-					console.log(scale_input.id + ', scale = ', scale);
-				    this.updateImgScale(scale, idx);
+					// console.log(scale_input.id + ', scale = ', scale);
+				    this.updateMediaScale(scale, idx);
 				}.bind(this);
 				scale_input.addEventListener('initImg', ()=>{
 					this.initImg(idx);
@@ -1719,14 +1766,14 @@ export class ShapeAnimated extends Shape {
 			}	
 			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
-				this.updateImgPositionX(e.target.value, idx);
+				this.updateMediaPositionX(e.target.value, idx);
 			}.bind(this);
 			shift_x_input.addEventListener('initImg', ()=>{
 				this.initImg(idx);
 			});
 			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
-				this.updateImgPositionY(e.target.value, idx);
+				this.updateMediaPositionY(e.target.value, idx);
 			}.bind(this);
 			shift_y_input.addEventListener('initImg', ()=>{
 				this.initImg(idx);
@@ -1743,7 +1790,7 @@ export class ShapeAnimated extends Shape {
 
 	}
 	initImg(idx){
-		if(!this.imgs[idx]) this.imgs[idx] = {
+		if(!this.media[idx]) this.media[idx] = {
 			img: null,
 			x: 0,
 			y: 0,				
@@ -1815,13 +1862,13 @@ export class ShapeAnimated extends Shape {
     }
 	syncImgs(){
 		super.syncImgs();
-		if(this.frontMaterial.map instanceof THREE.Texture && this.imgs['front-background-image']) {
+		if(this.frontMaterial.map instanceof THREE.Texture && this.media['front-background-image']) {
 			let idx = this.fieldCounterparts['front-background-image'];
-			this.counterpart.updateImg(idx, this.imgs['front-background-image'].img);
+			this.counterpart.updateMedia(idx, this.media['front-background-image'].img);
 		}
 	}
 	async readVideoUploaded(event, cb){
-		console.log('readVideoUploaded?');
+		// console.log('readVideoUploaded?');
 		const file = event.target.files[0];
 		const videoURL = URL.createObjectURL(file);
 

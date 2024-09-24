@@ -23,9 +23,9 @@ export class Shape {
             x: 0,
             y: 0
         };
-        this.imgs = {
+        this.media = {
 			'background-image': {
-				img: null,
+				obj: null,
 				x: 0,
 				y: 0,
 				shiftY: 0,
@@ -33,8 +33,12 @@ export class Shape {
 				scale: 1
 			}
 		};
+        this.supported_ext = {
+            'image': ['jpg', 'jpeg', 'png', 'gif'],
+            'video': ['mp4']
+        };
         this.fields = {};
-        this.fields.imgs = {};
+        this.fields.media = {};
         this.fields.watermarks = [];
         this.fieldCounterparts = {};
 
@@ -517,7 +521,7 @@ export class Shape {
         label.innerText = 'Choose file';
         output.appendChild(input);
         output.appendChild(label);
-        this.fields.imgs[id] = input
+        this.fields.media[id] = input
         return output;
     }
     // renderFileField(id, idx, displayName, extraClass='')
@@ -548,7 +552,7 @@ export class Shape {
     //     temp_panel_section.appendChild(temp_right);
 	// 	temp_panel_section.id = id + '-panel-section';
 
-	// 	this.fields.imgs[idx] = temp_input;
+	// 	this.fields.media[idx] = temp_input;
     //     return temp_panel_section;
     // }
     renderImageControls(id=''){
@@ -595,6 +599,35 @@ export class Shape {
         };
         image.src = src;
     }
+    async readVideo(idx, src, cb){
+        // console.log('readVideoUploaded?');
+        // const file = event.target.files[0];
+        // const videoURL = URL.createObjectURL(file);
+
+        // Create video element
+        const videoElement = document.createElement('video');
+        videoElement.className = 'hidden';
+        videoElement.src = src;
+        videoElement.loop = true;
+        videoElement.controls = true;
+        videoElement.muted = true;
+        // videoElement.width = 600; // Adjust width as needed
+
+        // Append video element to body
+        document.body.appendChild(videoElement);
+
+        // Load and play video
+        videoElement.load();
+        try {
+            await videoElement.play();
+        } catch(err)
+        {
+            console.log(err);
+        }
+        
+        if(typeof cb === 'function')
+            cb(idx, videoElement);	
+    }
     readImageUploaded(event, cb){
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
@@ -607,33 +640,33 @@ export class Shape {
             input.parentNode.parentNode.classList.add('viewing-image-control');
         }
     }
-    updateImgScale(imgScale, idx, silent = false){
-        console.log('updateImgScale: ' + idx);
-        console.log(this.imgs[idx]);
-        if(!this.imgs[idx]) return;
+    updateMediaScale(imgScale, idx, silent = false){
+        // console.log('updateMediaScale: ' + idx);
+        // console.log(this.media[idx]);
+        if(!this.media[idx]) return;
         
-    	this.imgs[idx].scale = imgScale;
-        if(this.imgs[idx].img)
-    	    this.updateImg(idx, this.imgs[idx].img, silent)
+    	this.media[idx].scale = imgScale;
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
-    updateImgPositionX(imgShiftX, idx, silent = false){
-        if(!this.imgs[idx]) return;
-    	this.imgs[idx].shiftX = parseFloat(imgShiftX) * this.canvasObj.scale;
-        if(this.imgs[idx].img)
-    	    this.updateImg(idx, this.imgs[idx].img, silent)
+    updateMediaPositionX(imgShiftX, idx, silent = false){
+        if(!this.media[idx]) return;
+    	this.media[idx].shiftX = parseFloat(imgShiftX) * this.canvasObj.scale;
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
-    updateImgPositionY(imgShiftY, idx, silent = false){
-        if(!this.imgs[idx]) return;
-    	this.imgs[idx].shiftY = parseFloat(imgShiftY) * this.canvasObj.scale;
-        if(this.imgs[idx].img)
-    	    this.updateImg(idx, this.imgs[idx].img, silent)
+    updateMediaPositionY(imgShiftY, idx, silent = false){
+        if(!this.media[idx]) return;
+    	this.media[idx].shiftY = parseFloat(imgShiftY) * this.canvasObj.scale;
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
-    updateImg(idx, image, silent = false){
-        let img = image ? image : (this.imgs[idx] ? this.imgs[idx]  : null);
-        if(!img) return false;
-		if(!this.imgs[idx]) {
-			this.imgs[idx] = {
-				img: null,
+    updateMedia(idx, obj, silent = false){
+        obj = obj ? obj : (this.media[idx] ? this.media[idx].obj : null);
+        if(!obj) return false;
+		if(!this.media[idx]) {
+			this.media[idx] = {
+				obj: null,
 				x: 0,
 				y: 0,				
 				shiftY: 0,
@@ -641,7 +674,7 @@ export class Shape {
 				scale: 1
 			}
 		}
-		this.imgs[idx].img = img;
+		this.media[idx].obj = obj;
 	}
     updateFrame(frame){
         frame = frame ? frame : this.generateFrame();
@@ -762,11 +795,11 @@ export class Shape {
         }
         return el;
     };
-    syncImgs(){
-        for(const idx in this.imgs) {
+    syncMedia(){
+        for(const idx in this.media) {
             if(!this.fieldCounterparts[idx]) continue;
             let counter_idx = this.fieldCounterparts[idx];
-            this.counterpart.imgs[counter_idx] = this.imgs[idx];
+            this.counterpart.media[counter_idx] = this.media[idx];
         }
     }
     sync(){
@@ -779,7 +812,7 @@ export class Shape {
 			if(!counterField || !field) continue;
             this.updateCounterpartField(field, counterField);
 		}
-        this.syncImgs();
+        this.syncMedia();
     }
 }
 

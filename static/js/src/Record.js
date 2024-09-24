@@ -224,9 +224,9 @@ export class Record {
                     // if(field['id'] === 'static-shape-0-field-id-background-image') console.log('pupu');
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
-                    if(field['id'] === 'animated-shape-0-field-id-front-background-image-scale') {
-                        console.log(field_element);
-                    }
+                    // if(field['id'] === 'animated-shape-0-field-id-front-background-image-scale') {
+                    //     console.log(field_element);
+                    // }
                     // console.log(field_element.type);
                     
                     if(field_element.type === 'file') {
@@ -241,8 +241,8 @@ export class Record {
                     // if(shape_control_id === 'animated-shape-1-shape-control')
                     //     console.log(active);
                     if(field_element.type === 'number'){
-                        console.log('num');
-                        console.log(field_element.id)
+                        // console.log('num');
+                        // console.log(field_element.id)
                         field_element.value = parseFloat(field['value']);
                     }
                     else 
@@ -274,10 +274,6 @@ export class Record {
 
         }  
         for(let field_element of active_canvas_fields) {
-            if(field_element.id === 'animated-shape-0-field-id-front-background-image-scale') {
-                console.log('yaya');
-                console.log(field_element.value)
-            }
             if(field_element.classList.contains('field-id-format')) {
                 if(format) continue;
                 else {

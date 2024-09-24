@@ -1072,48 +1072,48 @@ export class ShapeStatic extends Shape {
 					sec.classList.add('viewing-background-upload');
 				} else {
 					sec.classList.remove('viewing-background-upload');
-					if(this.fields.imgs['background-image'])
-						this.fields.imgs['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
+					if(this.fields.media['background-image'])
+						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
 					this.updateColor(this.options.colorOptions[e.target.value].color);
 				}
 			}.bind(this);
 		}
 
-		for(let idx in this.fields.imgs) {
-			let input = this.fields.imgs[idx];
+		for(let idx in this.fields.media) {
+			let input = this.fields.media[idx];
 			input.onclick = function (e) {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
-				this.readImageUploaded(e, this.updateImg.bind(this));
+				this.readImageUploaded(e, this.updateMedia.bind(this));
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
-				this.readImage(idx, src, this.updateImg.bind(this));
-				// this.updateImg();
+				this.readImage(idx, src, this.updateMedia.bind(this));
+				// this.updateMedia();
 			});
 			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
-				    this.updateImgScale(scale, idx);
+				    this.updateMediaScale(scale, idx);
 				}.bind(this);
 			}	
 			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
-				this.updateImgPositionX(e.target.value, idx);
+				this.updateMediaPositionX(e.target.value, idx);
 			}.bind(this);
 			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
-				this.updateImgPositionY(e.target.value, idx);
+				this.updateMediaPositionY(e.target.value, idx);
 			}.bind(this);
 		}
 	}
 	
-    updateImg(idx, image, silent = false){
-		super.updateImg(idx, image, silent);
+    updateMedia(idx, image, silent = false){
+		super.updateMedia(idx, image, silent);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
@@ -1128,24 +1128,24 @@ export class ShapeStatic extends Shape {
 			let length = this.frame.w - this.padding * 2;
 				
 			let temp_scale = 1;
-			let temp_scaledW = this.imgs[idx].img.width * temp_scale;
-			let temp_scaledH = this.imgs[idx].img.height * temp_scale;
+			let temp_scaledW = this.media[idx].obj.width * temp_scale;
+			let temp_scaledH = this.media[idx].obj.height * temp_scale;
 			
-			if(this.imgs[idx].img.width > this.imgs[idx].img.height)
+			if(this.media[idx].obj.width > this.media[idx].obj.height)
 			{
-				temp_scale = length / this.imgs[idx].img.height * this.imgs[idx].scale;
-				temp_scaledW = this.imgs[idx].img.width * temp_scale;
-				temp_scaledH = this.imgs[idx].img.height * temp_scale;
+				temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
+				temp_scaledW = this.media[idx].obj.width * temp_scale;
+				temp_scaledH = this.media[idx].obj.height * temp_scale;
 			}
 			else
 			{
-				temp_scale = length / this.imgs[idx].img.width * this.imgs[idx].scale;
-				temp_scaledW = this.imgs[idx].img.width * temp_scale;
-				temp_scaledH = this.imgs[idx].img.height * temp_scale;
+				temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
+				temp_scaledW = this.media[idx].obj.width * temp_scale;
+				temp_scaledH = this.media[idx].obj.height * temp_scale;
 			}
 
-			this.imgs[idx].x = temp.width / 2 - temp_scaledW / 2 + this.imgs[idx].shiftX;
-			this.imgs[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.imgs[idx].shiftY + this.frame.y;
+			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
+			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.media[idx].shiftY + this.frame.y;
 			if(this.timer_color != null)
 			{
 				clearInterval(this.timer_color);
@@ -1156,7 +1156,7 @@ export class ShapeStatic extends Shape {
 				clearInterval(this.timer_position);
 				this.timer_position = null;
 			}
-			temp_ctx.drawImage(this.imgs[idx].img, this.imgs[idx].x, this.imgs[idx].y, temp_scaledW, temp_scaledH);
+			temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
 			this.color = this.context.createPattern(temp, "no-repeat");
 		} 
 		if(!silent) this.canvasObj.draw();
@@ -1250,16 +1250,16 @@ export class ShapeStatic extends Shape {
 		timer = null;
     }
 	drawImages(){
-		for(let idx in this.imgs) {
+		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
-			this.context.drawImage(this.imgs[idx].img, (this.imgs[idx].x + this.imgs[idx].shiftX) * this.canvasObj.scale, (this.imgs[idx].y + this.imgs[idx].shiftY) *  this.canvasObj.scale, this.imgs[idx].img.width * this.canvasObj.scale * this.imgs[idx].scale, this.imgs[idx].img.height * this.canvasObj.scale * this.imgs[idx].scale);
+			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX) * this.canvasObj.scale, (this.media[idx].y + this.media[idx].shiftY) *  this.canvasObj.scale, this.media[idx].obj.width * this.canvasObj.scale * this.media[idx].scale, this.media[idx].obj.height * this.canvasObj.scale * this.media[idx].scale);
 		}
 	}
-	syncImgs(){
-		super.syncImgs();
-		if(this.color instanceof CanvasPattern && this.imgs['background-image']) {
+	syncMedia(){
+		super.syncMedia();
+		if(this.color instanceof CanvasPattern && this.media['background-image']) {
 			let idx = this.fieldCounterparts['background-image'];
-			this.counterpart.updateImg(idx, this.imgs['background-image'].img);
+			this.counterpart.updateMedia(idx, this.media['background-image'].img);
 		}
 	}
 }
