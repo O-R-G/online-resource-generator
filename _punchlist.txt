@@ -16,3 +16,4 @@ x add textbox position dropdown
 + hide dropdowns with only one option
 + apply white brackets to word-level
 - canvasAnimated
+- saving for stories not working as expected (sophia, 23 sep 2024 email)
