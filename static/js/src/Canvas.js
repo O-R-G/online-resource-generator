@@ -444,7 +444,7 @@ export class Canvas {
 		if(!this.isThree)
     	{
     		this.context.fillStyle = this.base;
-            console.log(this.canvas.width, this.canvas.height);
+            // console.log(this.canvas.width, this.canvas.height);
     		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     	}
     	else
@@ -453,7 +453,7 @@ export class Canvas {
     	}
 	}
     draw(){
-        // console.log('canvas draw()');
+        console.log('canvas draw()');
         this.drawBase();
         for(let shape_id in this.shapes) {
             this.shapes[shape_id].draw();

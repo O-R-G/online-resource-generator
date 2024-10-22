@@ -33,6 +33,18 @@ export class Shape {
 				scale: 1
 			}
 		};
+        this.text = {
+			'text': {
+				obj: null,
+                position: '',
+                color: '',
+                typography: '',
+                rotate: 0,
+				shiftY: 0,
+				shiftX: 0,
+                isWatermark: false
+			}
+		};
         this.supported_ext = {
             'image': ['jpg', 'jpeg', 'png', 'gif'],
             'video': ['mp4']
@@ -104,7 +116,7 @@ export class Shape {
             if(!typography) typography = this.watermarks[idx]['typography'];
             let values = {...values_obj, typography:typography};
             for(let name in values) {
-                if(!values[name]) continue;
+                if(!values[name] && values[name] !== 0) continue;
                 this.watermarks[idx][name] = values[name];
             }
     	} 		
@@ -228,7 +240,7 @@ export class Shape {
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
         this.fields[id] = temp_textarea;
-        ``
+
         return temp_panel_section;
     }
     renderTextControls(id, container, items=[], cb){
@@ -356,6 +368,7 @@ export class Shape {
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, temp_label);
                         let param = {};
                         param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
+                        if(item['name'] === 'rotate') console.log(param[item['name']]);
                         self.updateWatermark(idx, param);
                     }
                     if(item['name'] === 'rotate') {

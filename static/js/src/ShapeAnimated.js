@@ -143,6 +143,7 @@ export class ShapeAnimated extends Shape {
 		this.fieldCounterparts['front-background-image-scale'] = 'background-image-scale';
 	}
 	updateShape(shape, silent = false){
+		console.log('shapeAnimated updateShape()', silent);
 		super.updateShape(shape);
 		this.padding = this.getValueByPixelRatio(this.padding);
 		for(const prop in this.innerPadding)
@@ -850,7 +851,7 @@ export class ShapeAnimated extends Shape {
 		mesh.needsUpdate = true;
 	}
 	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
-		console.log(obj);
+		// console.log(obj);
 		super.updateMedia(idx, obj, silent);
 		// if()
 		if(isVideo) {
@@ -1243,6 +1244,7 @@ export class ShapeAnimated extends Shape {
 		if(isAllNone && !syncing) {
 			if(!syncing) {
 				document.body.classList.remove('viewing-three');
+				console.log('?');
 				this.canvasObj.sync();
 			} else {
 				document.body.classList.add('viewing-three');
@@ -1535,9 +1537,12 @@ export class ShapeAnimated extends Shape {
     addListeners(){
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(e.target.id, isSilent);
+				
 				let shape_name = e.target.value;
 				if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
-					this.updateShape(shapeOptions[shape_name]['shape']);
+					this.updateShape(shapeOptions[shape_name]['shape'], isSilent);
 				}
 				else if(this.options.shapeOptions[shape_name]['shape']['type'] == 'animation')
 				{
@@ -1548,30 +1553,44 @@ export class ShapeAnimated extends Shape {
 		
 		if(this.fields['text-front']) {
 			this.fields['text-front'].onchange = function(e){
-				this.updateFrontText(e.target.value);
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(e.target.id, isSilent);
+				// console.log(e.target.id, isSilent);
+				this.updateFrontText(e.target.value, isSilent);
 			}.bind(this);
 		}
 	    
 
 	    let sText_front_typography = this.control.querySelector('.field-id-text-front-typography');
 	    sText_front_typography.onchange = function(e){
-	        this.updateFrontTypography(e.target.value);
+			let isSilent = e && e.detail ? e.detail.isSilent : false;
+			console.log(e.target.id, isSilent);
+	        this.updateFrontTypography(e.target.value, isSilent);
 	    }.bind(this);
 
 	    let sText_front_color = this.control.querySelector('.field-id-text-front-color');
 	    sText_front_color.onchange = function(e){
+			let isSilent = e && e.detail ? e.detail.isSilent : false;
+			console.log(e.target.id, isSilent);
+			// console.log(e.target.id, isSilent);
 	        let text_color = this.options.textColorOptions[e.target.value]['color'];
-	        this.updateFrontTextColor(text_color);
+	        this.updateFrontTextColor(text_color, isSilent);
 	    }.bind(this);
 		let sText_back_color = this.control.querySelector('.field-id-text-back-color');
 	    sText_back_color.onchange = function(e){
+			let isSilent = e && e.detail ? e.detail.isSilent : false;
+			console.log(e.target.id, isSilent);
+			// console.log(e.target.id, isSilent);
 	        let text_color = this.options.textColorOptions[e.target.value]['color'];
-	        this.updateBackTextColor(text_color);
+	        this.updateBackTextColor(text_color, isSilent);
 	    }.bind(this);
 
 		if(this.fields['text-front-shift-x']) {	
 			this.fields['text-front-shift-x'].onchange = function(e){
-				this.updateFrontTextShiftX(parseInt(e.target.value));
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(e.target.id, isSilent);
+				// console.log(e.target.id, isSilent);
+				this.updateFrontTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-front-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
 				this.updateFrontTextShiftX(shift.x)
@@ -1583,7 +1602,10 @@ export class ShapeAnimated extends Shape {
 		}
 		if(this.fields['text-front-shift-y']) {	
 			this.fields['text-front-shift-y'].onchange = function(e){
-				this.updateFrontTextShiftY(parseInt(e.target.value));
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(e.target.id, isSilent);
+				// console.log(e.target.id, isSilent);
+				this.updateFrontTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-front-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
 				this.updateFrontTextShiftX(shift.x);
@@ -1595,7 +1617,10 @@ export class ShapeAnimated extends Shape {
 		}
 		if(this.fields['text-back-shift-x']) {	
 			this.fields['text-back-shift-x'].onchange = function(e){
-				this.updateBackTextShiftX(parseInt(e.target.value));
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(e.target.id, isSilent);
+				// console.log(e.target.id, isSilent);
+				this.updateBackTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-back-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
 				this.updateBackTextShiftX(shift.x)
@@ -1607,7 +1632,10 @@ export class ShapeAnimated extends Shape {
 		}
 		if(this.fields['text-back-shift-y']) {	
 			this.fields['text-back-shift-y'].onchange = function(e){
-				this.updateBackTextShiftY(parseInt(e.target.value));
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(e.target.id, isSilent);
+				// console.log(e.target.id, isSilent);
+				this.updateBackTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-back-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
 				this.updateBackTextShiftX(shift.x);
@@ -1620,13 +1648,19 @@ export class ShapeAnimated extends Shape {
 	    let sText_back = this.control.querySelector('.field-id-text-back');
 	    this.fields['text-back'] = sText_back;
 	    sText_back.onchange = function(e){
-	        this.updateBackText(e.target.value);
+			let isSilent = e && e.detail ? e.detail.isSilent : false;
+			console.log(e.target.id, isSilent);
+			console.log(e.target.id, isSilent);
+	        this.updateBackText(e.target.value, isSilent);
 	    }.bind(this);
 
 	    let sText_back_typography = this.control.querySelector('.field-id-text-back-typography');
 		
 	    sText_back_typography.onchange = function(e){
-	        this.updateBackTypography(e.target.value);
+			let isSilent = e && e.detail ? e.detail.isSilent : false;
+			console.log(e.target.id, isSilent);
+			console.log(e.target.id, isSilent);
+	        this.updateBackTypography(e.target.value, isSilent);
 	    }.bind(this);
 
 	    

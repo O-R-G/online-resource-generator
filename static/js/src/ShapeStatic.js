@@ -379,7 +379,7 @@ export class ShapeStatic extends Shape {
     	
     }
 	
-	updatetypography(typographyKey, silent = false){
+	updateTypography(typographyKey, silent = false){
 		this.typography = this.options.typographyOptions[typographyKey];
 		if(!silent) this.canvasObj.draw();
 	}
@@ -976,16 +976,13 @@ export class ShapeStatic extends Shape {
 
 	renderControl(){
 		super.renderControl();
-		// if(this.fields['animation']) this.fields['animation'].parentNode.parentNode.style.display = 'none';
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) {
 			let field = this.renderFileField('background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			// let controls = this.renderImageControls(field.querySelector('input').id);
 			let controls = this.renderImageControls('background-image');
 			let section = this.renderSection('', '', [field, controls], 'background-image-section');
 			this.control.appendChild(section);
 		}
-			// this.control.appendChild(this.renderFileField('background-image', 'background-image', ''));
 		
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
@@ -994,9 +991,11 @@ export class ShapeStatic extends Shape {
 	addListeners(){
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				let shape = this.options.shapeOptions[e.target.value]['shape'];
 				this.shape = shape;
-				this.updateShape(this.shape);
+				this.updateShape(this.shape, isSilent);
 				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
 				[].forEach.call(sWatermark_panels, function(el, i){
 					let availables = shape.watermarkPositions;
@@ -1009,6 +1008,8 @@ export class ShapeStatic extends Shape {
 		
 		if(this.fields['animation']) {
 			this.fields['animation'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				if(e.target.value !== 'none') {
 					document.body.classList.add('viewing-three');
 					this.canvasObj.sync();
@@ -1017,30 +1018,40 @@ export class ShapeStatic extends Shape {
 		}
 		if(this.fields['text']) {
 			this.fields['text'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				let value = e.target.value;
-				this.updateText(value);
+				this.updateText(value, isSilent);
 			}.bind(this);
 		}
 		if(this.fields['text-typography']) {
 			this.fields['text-typography'].onchange = function(e){
-				this.updatetypography(e.target.value);
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
+				this.updateTypography(e.target.value, isSilent);
 			}.bind(this);
 		}
 		if(this.fields['text-color']) {
 			this.fields['text-color'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				let color = this.options.textColorOptions[e.target.value]['color'];
-				this.updateTextColor(color);
+				this.updateTextColor(color, isSilent);
 			}.bind(this);
 		}
 		if(this.fields['text-position']) {
 			this.fields['text-position'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				let position = e.target.value;
-				this.updateTextPosition(position);
+				this.updateTextPosition(position, isSilent);
 			}.bind(this);
 		}
 		if(this.fields['text-shift-x']) {	
 			this.fields['text-shift-x'].onchange = function(e){
-				this.updateTextShiftX(parseInt(e.target.value));
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
+				this.updateTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
 				this.updateTextShiftX(shift.x)
@@ -1053,7 +1064,9 @@ export class ShapeStatic extends Shape {
 
 		if(this.fields['text-shift-y']) {
 			this.fields['text-shift-y'].onchange = function(e){
-				this.updateTextShiftY(parseInt(e.target.value));
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
+				this.updateTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
 				this.updateTextShiftX(shift.x)
@@ -1066,6 +1079,8 @@ export class ShapeStatic extends Shape {
 	    // let sShape_color = this.fields['shape-color'];
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
@@ -1074,7 +1089,7 @@ export class ShapeStatic extends Shape {
 					sec.classList.remove('viewing-background-upload');
 					if(this.fields.media['background-image'])
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
-					this.updateColor(this.options.colorOptions[e.target.value].color);
+					this.updateColor(this.options.colorOptions[e.target.value].color, isSilent);
 				}
 			}.bind(this);
 		}
@@ -1085,6 +1100,8 @@ export class ShapeStatic extends Shape {
 				e.target.value = null;
 			}.bind(this);
 			input.onchange = function(e){
+				// let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
 				this.readImageUploaded(e, this.updateMedia.bind(this));
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
@@ -1096,18 +1113,24 @@ export class ShapeStatic extends Shape {
 			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 			if(scale_input) {
 				scale_input.oninput = function(e){
+					let isSilent = e && e.detail ? e.detail.isSilent : false;
+					console.log(isSilent);
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
-				    this.updateMediaScale(scale, idx);
+				    this.updateMediaScale(scale, idx, isSilent);
 				}.bind(this);
 			}	
 			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
 			shift_x_input.oninput = function(e){
-				this.updateMediaPositionX(e.target.value, idx);
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
+				this.updateMediaPositionX(e.target.value, idx, isSilent);
 			}.bind(this);
 			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
-				this.updateMediaPositionY(e.target.value, idx);
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log(isSilent);
+				this.updateMediaPositionY(e.target.value, idx, isSilent);
 			}.bind(this);
 		}
 	}

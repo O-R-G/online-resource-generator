@@ -133,6 +133,7 @@ export class Record {
         })
     }
     applySavedRecord(){
+        // return;
         // let static_fields = [], animated_fields = [];
         let active_canvas_fields = [];
         // let viewingThree = false;
@@ -143,7 +144,6 @@ export class Record {
         // console.log(this.record_body)
         for(let canvas_id in this.record_body) {
             if(canvas_id === 'images'){
-                // console.log(this.record_body[canvas_id]);
                 continue;
             }
                 
@@ -221,28 +221,16 @@ export class Record {
                         continue;
                     }
                     
-                    // if(field['id'] === 'static-shape-0-field-id-background-image') console.log('pupu');
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
-                    // if(field['id'] === 'animated-shape-0-field-id-front-background-image-scale') {
-                    //     console.log(field_element);
-                    // }
-                    // console.log(field_element.type);
                     
                     if(field_element.type === 'file') {
-                        // console.log('cc')
-                        // console.log(field_element.id);
                         if(this.record_body['images'][field_element.id]) {
                             this.applySavedFile(field_element, shapeObj);
                         }
-                            
                         continue;
                     }
-                    // if(shape_control_id === 'animated-shape-1-shape-control')
-                    //     console.log(active);
                     if(field_element.type === 'number'){
-                        // console.log('num');
-                        // console.log(field_element.id)
                         field_element.value = parseFloat(field['value']);
                     }
                     else 
@@ -261,15 +249,10 @@ export class Record {
                     if(active) active_canvas_fields.push(field_element);
                 }
             }
-
-
         }
         for(let field_id in this.record_body['images'] ){
-            // console.log(field_id);
             let el = document.getElementById(field_id);
-            // console.log(el);
             if(!el) continue;
-            // el.setAttribute('data-file-src', this.record_body['images'][field_id]);
             this.applySavedFile(el);
 
         }  
@@ -281,12 +264,15 @@ export class Record {
                     continue;
                 }
             }
+            if(field_element.id === 'animated-shape-0-field-id-shape')
+                console.log(field_element.id);
             field_element.dispatchEvent(new Event('initImg'));
-            field_element.dispatchEvent(new Event('change'));
-            field_element.dispatchEvent(new Event('input'));
-            
+            field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
+            field_element.dispatchEvent(new CustomEvent('input', {'detail': {'isSilent': true}}));
         }
-        
+        // for(let c_id in this.canvasObjs) {
+        //     this.canvasObjs[c_id].draw();
+        // }
     }
     applySavedFile(field, shapeObj){
         let idx = field.getAttribute('image-idx');
