@@ -17,3 +17,4 @@ x add textbox position dropdown
 + apply white brackets to word-level
 + canvasAnimated
 + saving for stories not working as expected (sophia, 23 sep 2024 email)
+- watermarks are distorted when there are two shapes
