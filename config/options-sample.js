@@ -1,17 +1,19 @@
+// console.log('options.js');
 let formatOptions = {
 	'post': {
 		'name': 'post',
-		'w': 480,
-		'h': 480,
+		'w': 540,
+		'h': 540,
 		'shape_capacity': 1
 	},
 	'story': {
 		'name': 'story',
-		'w': 480,
+		'w': 540,
 		'h': 960,
 		'shape_capacity': 2
 	}
 }
+
 let colorOptions = {
 	'blue': {
 		'name': 'blue',
@@ -224,6 +226,9 @@ let colorOptions = {
 			'code': ['#ff0000', '#0000ff'],
 			'size': 40
 		}
+	},
+	'upload': {
+		'name': 'custom image'
 	}
 };
 let threeColorOptions = {
@@ -308,6 +313,9 @@ let threeColorOptions = {
 			'angle': 45
 		}
 	},
+	'upload': {
+		'name' :'custom image'
+	}
 	// 'blue-red-1': {
 	// 	'name': 'blue-red (8)',
 	// 	'color':{
@@ -412,11 +420,55 @@ let textPositionOptions = {
 	},
 	'center': {
 		'name': 'center',
-		'value': 'center'
+		'value': 'center',
+		'default': true
 	}
 }
 
 let shapeOptions = {
+	'circle': {
+		'name': 'circle',
+		'shape': {
+			'type': 'static',
+			'base': 'circle',
+			'padding': 40,
+			'cornerRadius': false,
+			'innerPadding': [40],
+			'watermarkPositions': ['middle-left', 'middle-right', 'surrounding']
+		}
+	},
+	'heart': {
+		'name': 'heart',
+		'shape': {
+			'type': 'static',
+			'base': 'heart',
+			'padding': 50,
+			'innerPadding': [45],
+			'watermarkPositions': ''
+		}
+	},
+	'hexagon': {
+		'name': 'hexagon',
+		'shape': {
+			'type': 'static',
+			'base': 'hexagon',
+			'padding': 20,
+			'cornerRadius': 60,
+			'innerPadding': [50],
+			'watermarkPositions': 'all'
+		}
+	},
+	'rounded': {
+		'name': 'rounded',
+		'shape': {
+			'type': 'static',
+			'base': 'rectangle',
+			'padding': 50,
+			'cornerRadius': 200,
+			'innerPadding': [110, 80],
+			'watermarkPositions': 'all'
+		}
+	},
 	'rounded-less': {
 		'name': 'rounded-less',
 		'shape': {
@@ -439,74 +491,8 @@ let shapeOptions = {
 			'watermarkPositions': 'all'
 		}
 	},
-	'rounded': {
-		'name': 'rounded',
-		'shape': {
-			'type': 'static',
-			'base': 'rectangle',
-			'padding': 50,
-			'cornerRadius': 200,
-			'innerPadding': [110, 80],
-			'watermarkPositions': 'all'
-		}
-	},
-	'triangle': {
-		'name': 'triangle',
-		'shape': {
-			'type': 'static',
-			'base': 'triangle',
-			'padding': -20,
-			'cornerRadius': 180,
-			'innerPadding': [140, 50],
-			'watermarkPositions': ['bottom-left', 'bottom-center', 'bottom-right']
-		}
-	},
-	'hexagon': {
-		'name': 'hexagon',
-		'shape': {
-			'type': 'static',
-			'base': 'hexagon',
-			'padding': 20,
-			'cornerRadius': 60,
-			'innerPadding': [50],
-			'watermarkPositions': 'all'
-		}
-	},
-	'circle': {
-		'name': 'circle',
-		'shape': {
-			'type': 'static',
-			'base': 'circle',
-			'padding': 40,
-			'cornerRadius': false,
-			'innerPadding': [40],
-			'watermarkPositions': ['middle-left', 'middle-right']
-		}
-	},
-	'rounded-corners': {
-		'name': 'rounded-corners',
-		'shape': {
-			'type': 'animation',
-			'base': 'rectangle',
-			'animation-type': 'corner',
-			'padding': 40,
-			'cornerRadius': 50,
-			'innerPadding': [140, 70],
-			'begin': {
-                r: 50
-            },
-            'current': {
-                r: 50
-            },
-            'end': {
-                r: 200
-            },
-            'duration': 5000,
-			'watermarkPositions': 'all'
-		}
-	},
 	'fill': {
-		'name': 'fill',
+		'name': 'square',
 		'shape': {
 			'type': 'static',
 			'base': 'fill',
@@ -517,47 +503,59 @@ let shapeOptions = {
 		}
 
 	},
-};
-let fontOptions = {
-	'large': {
-    	name: 'large',
-		size: 100,
-        lineHeight: '100',
-        letterSpacing: '-4',
-		default: true,
-		font: {
-			'static': '',
-			'animated': ''
+	'triangle': {
+		'name': 'triangle',
+		'shape': {
+			'type': 'static',
+			'base': 'triangle',
+			'padding': -20,
+			'cornerRadius': 180,
+			'innerPadding': [140, 50],
+			'watermarkPositions': ['bottom-left', 'bottom-center', 'bottom-right', 'surrounding']
 		}
-    },
+	},
+};
+let typographyOptions = {
 	'small': {
-		name: 'small',
+    	name: 'small',
 		size: 34,
         lineHeight: '44',
         letterSpacing: '0',
+		default: true,
+		// font: 'standard',
 		font: {
-			'static': '',
-			'animated': ''
+			'static': fonts['standard']['style'],
+			'animated': {...fonts['standard']['style'], path: fonts['standard']['troika-font-file']}
 		}
     },
 	'medium-small': {
-    	name: 'medium-small',
+		name: 'medium small',
 		size: 54,
         lineHeight: '60',
-        letterSpacing: '-1',
+        letterSpacing: '0',
 		font: {
-			'static': '',
-			'animated': ''
+			'static': fonts['standard']['style'],
+			'animated': {...fonts['standard']['style'], path: fonts['standard']['troika-font-file']}
 		}
     },
-    'medium': {
+	'medium': {
     	name: 'medium',
 		size: 80,
         lineHeight: '80',
         letterSpacing: '-1',
 		font: {
-			'static': '',
-			'animated': ''
+			'static': fonts['standard-bold']['style'],
+			'animated': {...fonts['standard-bold']['style'], path: fonts['standard-bold']['troika-font-file']}
+		}
+    },
+    'large': {
+    	name: 'large',
+		size: 160,
+        lineHeight: '160',
+        letterSpacing: '-1',
+		font: {
+			'static': fonts['standard-bold']['style'],
+			'animated': {...fonts['standard-bold']['style'], path: fonts['standard-bold']['troika-font-file']}
 		}
     },
     
@@ -608,15 +606,15 @@ let animationOptions = {
 	'flip': {
 		name: 'flip'
 	},
-	// 'flip-ease': {
-	// 	name: 'flip (ease out)'
-	// },
 	'spin': {
 		name: 'spin'
 	},
-	// 'spin-ease': {
-	// 	name: 'spin (ease out)'
-	// },
+	'rotate': {
+		name: 'rotate'
+	},
+	'rotate-counter': {
+		name: 'rotate (counter)'
+	},
 	'rest-front': {
 		name: 'rest (front)'
 	},
@@ -627,31 +625,70 @@ let animationOptions = {
 		name: 'rest (back, spin)'
 	}
 };
-let watermarkFontOptions = {
+let animationSpeedOptions = {
+	'speed-1': {
+		name: '1',
+		value: 1
+	},
+	'speed-2': {
+		name: '2',
+		value: 2
+	},
+	'speed-3': {
+		name: '3',
+		value: 3
+	},
+	'speed-4': {
+		name: '4',
+		value: 4
+	},
+	'speed-5': {
+		name: '5',
+		value: 5
+	},
+
+}
+let watermarkTypographyOptions = {
 	'small': {
 		name: 'small',
 		size: 34,
         lineHeight: '44',
-        letterSpacing: '0'
+        letterSpacing: '0',
+		font: {
+			'static': fonts['standard']['style'],
+			'animated': {...fonts['standard']['style'], path: fonts['standard']['troika-font-file']}
+		},
+		default: true
     },
 	'medium-small': {
-    	name: 'medium-small',
+    	name: 'medium small',
 		size: 54,
         lineHeight: '60',
-        letterSpacing: '-1'
+        letterSpacing: '0',
+		font: {
+			'static': fonts['standard']['style'],
+			'animated': {...fonts['standard']['style'], path: fonts['standard']['troika-font-file']}
+		}
     },
     'medium': {
     	name: 'medium',
 		size: 80,
         lineHeight: '80',
-        letterSpacing: '-1'
+        letterSpacing: '-1',
+		font: {
+			'static': fonts['standard-bold']['style'],
+			'animated': {...fonts['standard-bold']['style'], path: fonts['standard-bold']['troika-font-file']}
+		}
     },
 	'large': {
     	name: 'large',
 		size: 105,
-        lineHeight: '100',
-        letterSpacing: '-4',
-		default: true
+        lineHeight: '105',
+        letterSpacing: '-1',
+		font: {
+			'static': fonts['standard-bold']['style'],
+			'animated': {...fonts['standard-bold']['style'], path: fonts['standard-bold']['troika-font-file']}
+		}
     },
 };
 let watermarkColorOptions = {
@@ -731,26 +768,46 @@ let watermarkPositionOptions = {
 	},
 	'bottom-right': {
 		name: 'bottom-right'
+	},
+	'surrounding': {
+		name: 'surrounding'
 	}
 };
+
 const resources_data = {
-	'static-1': {
-		// id: 'static-1',
+	'static': {
 		options: {
 			'formatOptions': formatOptions,
 			'shapeOptions': shapeOptions,
 			'colorOptions': colorOptions,
-			'fontOptions': fontOptions,
+			'typographyOptions': typographyOptions,
 			'textColorOptions': textColorOptions,
-			'watermarkColorOptions': textColorOptions,
-			'animationOptions': animationOptions,
 			'textPositionOptions': textPositionOptions,
+			'watermarkTypographyOptions': watermarkTypographyOptions,
+			'watermarkColorOptions': textColorOptions,
 			'watermarkPositionOptions': watermarkPositionOptions,
-			'watermarkFontOptions': watermarkFontOptions
+			'animationOptions': animationOptions,
 		},
 		isThree: false,
-		counterpart: 'animated-1'
+		counterpart: 'animated'
 	},
+	'animated': {
+		options: {
+			'formatOptions': formatOptions,
+			'shapeOptions': shapeOptions,
+			'colorOptions': threeColorOptions,
+			'typographyOptions': typographyOptions,
+			'textColorOptions': textColorOptions,
+			'textPositionOptions': textPositionOptions,
+			'watermarkTypographyOptions': watermarkTypographyOptions,
+			'watermarkColorOptions': textColorOptions,
+			'watermarkPositionOptions': watermarkPositionOptions,
+			'animationOptions': animationOptions,
+			'animationSpeedOptions': animationSpeedOptions
+		},
+		isThree: true,
+		counterpart: 'static'
+	}
 };
 /* 
 	custom script example:

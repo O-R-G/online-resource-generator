@@ -178,7 +178,7 @@ select
     appearance: none;
     border-radius: 0;
     position: relative;
-    background: url(/media/svg/v-9-k.svg) 98% / 10% no-repeat #FFF;        
+    background: url(../../media/svg/v-9-k.svg) 98% / 10% no-repeat #FFF;        
     background-color: #666060;
 }
 textarea
