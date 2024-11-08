@@ -369,7 +369,6 @@ export class Shape {
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, temp_label);
                         let param = {};
                         param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
-                        if(item['name'] === 'rotate') console.log(param[item['name']]);
                         self.updateWatermark(idx, param);
                     }
                     if(item['name'] === 'rotate') {
@@ -614,10 +613,6 @@ export class Shape {
         image.src = src;
     }
     async readVideo(idx, src, cb){
-        // console.log('readVideoUploaded?');
-        // const file = event.target.files[0];
-        // const videoURL = URL.createObjectURL(file);
-
         // Create video element
         const videoElement = document.createElement('video');
         videoElement.className = 'hidden';
@@ -655,8 +650,6 @@ export class Shape {
         }
     }
     updateMediaScale(imgScale, idx, silent = false){
-        // console.log('updateMediaScale: ' + idx);
-        // console.log(this.media[idx]);
         if(!this.media[idx]) return;
         
     	this.media[idx].scale = imgScale;
@@ -812,10 +805,8 @@ export class Shape {
     }
     sync(){
         for(const name in this.fieldCounterparts) {
-            
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
-            // console.log(name);
             
 			if(!counterField || !field) continue;
             this.updateCounterpartField(field, counterField);

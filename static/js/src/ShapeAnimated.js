@@ -119,15 +119,11 @@ export class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-		// this.canvasW = this.canvas.width;
-		// this.canvasH = this.canvas.height;
 		this.context = this.canvas.getContext("2d");
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
-		console.log(this.scale);
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
-		// this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
 		this.frontWatermarkGroup.scale.copy(this.scale);
 		this.backWatermarkGroup.scale.copy(this.scale);
 		if(this.mesh_front) {
@@ -280,13 +276,7 @@ export class ShapeAnimated extends Shape {
 	}
 	drawCircle(){
 		let this_p = this.padding;
-		console.log('drawCircle');
-		if(this.mesh_front)
-			console.log('this.mesh_front.scale', this.mesh_front.scale);
 		let this_r = (this.frame.w - this_p * 2) / 2;
-		console.log('this.frame: ', this.frame);
-		console.log('r', this_r);
-		console.log('this.canvas: ', this.canvasObj.canvas);
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
@@ -295,15 +285,11 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
-		console.log('drawRectangle');
-		console.log(this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
 		var a = this.frame.w / 2 - this_r - this_p;
-		console.log(this.frame);
-		console.log(this.shapeCenter);
 		path_front.moveTo(this.shapeCenter.x - a, 0 + a + this_r);
 		path_front.lineTo(this.shapeCenter.x + a, 0 + a + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
@@ -410,7 +396,6 @@ export class ShapeAnimated extends Shape {
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = 'center';
 		output.anchorY = '50%';
-		// console.log(output);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
@@ -837,10 +822,7 @@ export class ShapeAnimated extends Shape {
 		g.children = [];
 	}
 	applyVideoAsMaterial(idx, silent=false, isBack=false){
-		// console.log(idx);
 		let videoElement = this.media[idx].obj;
-		// console.log(videoElement)
-		// let isBack = idx.indexOf('back-') !== -1;
 		const texture = new THREE.VideoTexture( videoElement );
 		let material = isBack ? this.backMaterial : this.frontMaterial;
 		let mesh = isBack ? this.mesh_back : this.mesh_front;
@@ -848,7 +830,6 @@ export class ShapeAnimated extends Shape {
 		mesh.material = material;
 
 		const videoAspect = videoElement.videoWidth / videoElement.videoHeight;
-		// console.log(videoElement.videoWidth, videoElement.videoHeight);
 		let geometry = isBack ? this.geometry_back : this.geometry_front;
 		geometry.computeBoundingBox();
 		const bbox = geometry.boundingBox;
@@ -857,7 +838,6 @@ export class ShapeAnimated extends Shape {
 		const geometryAspect = geomWidth / geomHeight;
 		// Adjust the UV coordinates to match the aspect ratio
 		let offsetX = 0, offsetY = 0, repeatX = 1, repeatY = 1;
-		// console.log(videoAspect, geometryAspect);
 		if (videoAspect > geometryAspect) {
 			// Video is wider than geometry, scale UV coordinates horizontally
 			repeatX = geometryAspect / videoAspect;
@@ -877,9 +857,7 @@ export class ShapeAnimated extends Shape {
 		mesh.needsUpdate = true;
 	}
 	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
-		// console.log(obj);
 		super.updateMedia(idx, obj, silent);
-		// if()
 		if(isVideo) {
 			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
@@ -927,14 +905,12 @@ export class ShapeAnimated extends Shape {
 
 			const dev_x = this.media[idx].shiftX ? this.media[idx].shiftX * scaleX / geomWidth : 0;
 			const dev_y = this.media[idx].shiftY ? this.media[idx].shiftY * scaleY / geomHeight : 0;
-			// console.log(scaleX, scaleY);
-			// console.log(dev_x, dev_y);
-
+			
 			const uvArray = [];
 			const position = geometry.attributes.position;
 			const max = bbox.max;
 			const min = bbox.min;
-			// console.log(geometry.attributes.position)
+
 			for (let i = 0; i < position.count; i++) {
 				const x = position.getX(i);
 				const y = position.getY(i);
@@ -949,10 +925,6 @@ export class ShapeAnimated extends Shape {
 			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
 			geometry.attributes.uv.needsUpdate = true;
 
-			// console.log('updateMedia done');
-			// console.log(this.media['front-background-image']);
-			
-			// this.renderer.render( this.scene, this.camera );
 			if(!silent) this.canvasObj.draw();
 			// return true;
 		});
@@ -1091,7 +1063,6 @@ export class ShapeAnimated extends Shape {
 	}
 	
 	draw (animate = true){
-		// console.log('shapeAnimated draw');
 		this.resetAnimation();
 		this.isForward = true;
 		this.actualDraw(animate);
@@ -1271,7 +1242,6 @@ export class ShapeAnimated extends Shape {
 		if(isAllNone && !syncing) {
 			if(!syncing) {
 				document.body.classList.remove('viewing-three');
-				console.log('?');
 				this.canvasObj.sync();
 			} else {
 				document.body.classList.add('viewing-three');
@@ -1509,7 +1479,6 @@ export class ShapeAnimated extends Shape {
 	}
 	rotate (backward=false){
 		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
-		// if( this.canvasObj.isRecording ) console.log(this.mesh_front.rotation.z)
 		if(!backward) {
 			if(this.initRecording) {
 				this.mesh_front.rotation.z += 2 * this.rotateAngleInterval;
@@ -1579,7 +1548,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-front']) {
 			this.fields['text-front'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				// console.log(e.target.id, isSilent);
 				this.updateFrontText(e.target.value, isSilent);
 			}.bind(this);
 		}
@@ -1777,7 +1745,6 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
-				// console.log('applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				let ext = src.substring(src.lastIndexOf('.') + 1);
@@ -1798,7 +1765,6 @@ export class ShapeAnimated extends Shape {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
 				    let scale = e.target.value >= 1 ? e.target.value : 1;
-					// console.log(scale_input.id + ', scale = ', scale);
 				    this.updateMediaScale(scale, idx);
 				}.bind(this);
 				scale_input.addEventListener('initImg', ()=>{
@@ -1844,16 +1810,9 @@ export class ShapeAnimated extends Shape {
     {
 		silent = false;
 		this.updateCanvasSize();
-		// console.log(this.canvasW);
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
-		// console.log(frame);
-		// console.log(silent);
-		// console.log('this.group', this.group);
-		// console.log(frame);
-		console.log('updateFrame');
 		if(this.group) {
-			console.log('removing mesh--');
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
 			this.scene.remove(this.group);
@@ -1863,11 +1822,9 @@ export class ShapeAnimated extends Shape {
     	if(!silent) this.canvasObj.draw();
     }
 	updateGroupTranslateY(){
-		// console.log('updateGroupTranslateY');
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
 			this.group.translateY(0);
 		} else {
-			console.log(this.frame.y);
 			this.group.translateY(this.frame.y * this.scale.y);
 		}
 	}
@@ -1920,7 +1877,6 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	async readVideoUploaded(event, cb){
-		// console.log('readVideoUploaded?');
 		const file = event.target.files[0];
 		const videoURL = URL.createObjectURL(file);
 

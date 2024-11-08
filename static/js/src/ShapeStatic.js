@@ -414,7 +414,7 @@ export class ShapeStatic extends Shape {
 		this.context.font = fontStyle;
 
 		let text = this.getText(str);
-		// console.log('this.textBoxWidth', this.textBoxWidth);
+
 		/*
 			lines = {
 				'max-width': ...,
@@ -749,7 +749,6 @@ export class ShapeStatic extends Shape {
     }
 
 	drawRectangle(){
-		// console.log(this.frame);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -1185,9 +1184,7 @@ export class ShapeStatic extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
     updateFrame(frame = null, silent = false){
-		console.log('static updateFrame');
 		frame = frame ? frame : this.generateFrame();
-		console.log(frame);
     	super.updateFrame(frame);
         if(!silent) this.canvasObj.draw();
     }
@@ -1211,7 +1208,6 @@ export class ShapeStatic extends Shape {
 		this.shapeCenter = this.generateShapeCenter();
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
-		// console.log(this.canvasObj.canvas.width, this.canvasObj.canvas.height);
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		let w = 0, 
 		    h = 0;

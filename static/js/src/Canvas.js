@@ -71,16 +71,13 @@ export class Canvas {
 	    	alert('This page works on browsers that support MediaRecorder only.');
             return false;
 	    }
-        // console.log(this.shapes);
         for(let shape_id in this.shapes) {
-            // console.log(this.shapes[shape_id]);
             if(!this.shapes[shape_id].initialized) this.shapes[shape_id].init(this);
         }
         this.draw();
 	}
     
 	initThree(){
-        console.log('initThree');
 		this.renderer = new THREE.WebGLRenderer({
 			'canvas': this.canvas, 
 			'antialias': true,
@@ -88,16 +85,10 @@ export class Canvas {
 		});
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
-        // this.setRenderer()
-        // console.log(this.canvas.width);
-        // console.log(this.canvas.height);
 		this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
-		// let z = this.formatOptions[this.format].w * 5.72 * window.devicePixelRatio;
-		// this.near = z - this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
-		// this.far = z + this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
         let z = this.canvas.width * 5.72 * window.devicePixelRatio;
 		this.near = z - this.canvas.width / 2 * window.devicePixelRatio;
 		this.far = z + this.canvas.width / 2 * window.devicePixelRatio;
@@ -138,7 +129,6 @@ export class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(){
-        console.log('startRecording()');
         if(this.isRecording) return;
         this.isRecording = true;
     	/* 
@@ -166,7 +156,7 @@ export class Canvas {
     // }
     saveCanvasAsVideo(mediaType="video/mp4"){
         // Gather chunks of video data into a blob and create an object URL
-        console.log('length of chunks: ', this.chunks.length);
+        // console.log('length of chunks: ', this.chunks.length);
         let blob = new Blob(this.chunks, {type: mediaType });
         this.recording_url = URL.createObjectURL(blob);
         // Attach the object URL to an <a> element, setting the download file name
@@ -222,7 +212,7 @@ export class Canvas {
         this.readyState = 0;
 
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
-        console.log('stop recording');        
+        // console.log('stop recording');        
         document.body.classList.remove('recording');
         this.downloadVideoButton.innerText = 'Record video';
 
@@ -668,7 +658,7 @@ export class Canvas {
             for(let shape_id in this.shapes) {
                 this.shapes[shape_id].updateCanvasSize();
                 this.shapes[shape_id].updateFrame(null, true);
-                console.log(this.isThree);
+                // console.log(this.isThree);
                 if(this.isThree)
                     this.shapes[shape_id].drawShape();
             }
