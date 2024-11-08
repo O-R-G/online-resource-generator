@@ -1082,10 +1082,12 @@ export class ShapeStatic extends Shape {
 			}
 		}
 	    // let sShape_color = this.fields['shape-color'];
+		console.log(this.fields['shape-color']);
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
+				console.log('shape-color on change')
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				
+				console.log(isSilent);
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
@@ -1096,6 +1098,7 @@ export class ShapeStatic extends Shape {
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
 					this.updateColor(this.options.colorOptions[e.target.value].color, isSilent);
 				}
+				console.log(this.options.colorOptions[e.target.value].color);
 			}.bind(this);
 		}
 

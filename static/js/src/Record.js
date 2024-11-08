@@ -268,9 +268,7 @@ export class Record {
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
             field_element.dispatchEvent(new CustomEvent('input', {'detail': {'isSilent': true}}));
         }
-        // for(let c_id in this.canvasObjs) {
-        //     this.canvasObjs[c_id].draw();
-        // }
+        avtive_canvas.draw();
     }
     applySavedFile(field, shapeObj){
         let idx = field.getAttribute('image-idx');
