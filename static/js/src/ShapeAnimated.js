@@ -1260,16 +1260,14 @@ export class ShapeAnimated extends Shape {
 	}
 	animate(animationName, isSilent = false){
 		if(this.initRecording && !this.canvasObj.isRecording) {
-			isSilent = true;
 			setTimeout(()=>{
-				// this.initRecording = false;
 				this.canvasObj.startRecording();
 				setTimeout(()=>{
 					this.animate(this.animationName);
-				}, 200)
+				}, 100)
 				
-			}, 200);
-			
+			}, 100);
+			return;
 		}
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
@@ -1375,8 +1373,8 @@ export class ShapeAnimated extends Shape {
 	  			this.group.remove( this.mesh_back );
 	  		}
 	  	}
-	  	// if( this.canvasObj.isRecording && this.mesh_front.rotation.y >= this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
-	  	if( this.canvasObj.isRecording && this.mesh_front.rotation.y > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
+
+		if( this.canvasObj.isRecording && this.mesh_front.rotation.y > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
 
 	    this.renderer.render( this.scene, this.camera );
 	}

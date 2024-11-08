@@ -26,6 +26,7 @@ export class Canvas {
         this.fields = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2;
+        this.framerate = 60;
 	}
 	init(){
         if(this.initialized) return;
@@ -120,6 +121,7 @@ export class Canvas {
     	this.chunks = [];
         document.body.classList.add('recording');
         this.animate(false, true);
+        // if(!this.isThree) this.startRecording();
     }
     initSavingImage(){
         this.autoRecordingQueueIdx = 0;
@@ -139,24 +141,13 @@ export class Canvas {
         */
         this.media_recorder.addEventListener('start', ()=>{console.log('start')})
         this.media_recorder.start(1); 
+
     }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
     }
-    // fakeSaveCanvasAsVideo(){
-    //     this.autoRecordingQueueIdx++;
-    //     setTimeout(function(){
-    //         if(this.autoRecordingQueueIdx >= this.autoRecordingQueue.length) {
-    //             console.log(this.isRecording)
-    //             console.log('saveCanvasAsVideo end');
-    //             // this.stopRecording();
-    //         }
-    //         else this.prepareNextRecording();
-    //     }.bind(this), 0);
-    // }
     saveCanvasAsVideo(mediaType="video/mp4"){
         // Gather chunks of video data into a blob and create an object URL
-        // console.log('length of chunks: ', this.chunks.length);
         let blob = new Blob(this.chunks, {type: mediaType });
         this.recording_url = URL.createObjectURL(blob);
         // Attach the object URL to an <a> element, setting the download file name
@@ -165,21 +156,11 @@ export class Canvas {
         let filename = document.getElementById('main').getAttribute('filename');
         if(!filename) filename = 'video';
         filename += '.mp4';
-        // if (!this.autoRecordingQueue[this.autoRecordingQueueIdx]) filename = 'video.mp4';
         this.downloadA.download = filename;
-        // Trigger the file download
         this.downloadA.click();
         this.downloadA.delete;
         URL.revokeObjectURL(this.recording_url);
-        // this.autoRecordingQueueIdx++;
-        // console.log('RecordingQueue: ' + this.autoRecordingQueueIdx +  ' / ' + this.autoRecordingQueue.length);
-        // this.media_recorder.stop();
-        // setTimeout(function(){
-        //     if(this.autoRecordingQueueIdx >= this.autoRecordingQueue.length) {
-        //         this.stopRecording();
-        //     }
-        //     else this.prepareNextRecording();
-        // }.bind(this), 0);
+        
         this.stopRecording();
     }
     saveCanvasAsImage(){
@@ -194,8 +175,6 @@ export class Canvas {
         link.delete;
         this.autoRecordingQueueIdx++;
         if(this.autoRecordingQueueIdx >= this.autoRecordingQueue.length) {
-            // console.log(this.isRecording)
-            // console.log('saveCanvasAsVideo end');
             this.stopSaving();
         }
         else {
@@ -212,7 +191,6 @@ export class Canvas {
         this.readyState = 0;
 
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
-        // console.log('stop recording');        
         document.body.classList.remove('recording');
         this.downloadVideoButton.innerText = 'Record video';
 
@@ -282,8 +260,6 @@ export class Canvas {
             temp_right.appendChild(customWidth);
             temp_right.appendChild(cross);
             temp_right.appendChild(customHeight);
-            // formatField.querySelector('.half-right').appendChild(customSizeField);
-            // console.log(formatField);
         }
         let options = formatField.querySelectorAll('option');
         [].forEach.call(options, function(el, i){
@@ -293,7 +269,6 @@ export class Canvas {
         }.bind(this));
         let select = formatField.querySelector('select');
         select.addEventListener('change', function(event){
-            // console.log('format onchange');
             this.changeFormat(event, this.format);
         }.bind(this));
         return formatField;
@@ -340,36 +315,8 @@ export class Canvas {
         return button;
     }
     addShape(shapeObj){
-        // if(!shapeObj.id) {
-        //     console.log('addShape(): missing shapeObj id');
-        // } else if (this.shapes[shapeObj.id]){
-        //     console.log('addShape(): shapeObj id ('+shapeObj.id+') is already taken');
-        // }
-
         this.shapes[shapeObj.id] = shapeObj;
     }
-    // renderAutoRecordingField(){
-    //     let id = 'auto-recording-records';
-    //     let temp_panel_section = document.createElement('DIV');
-    //     temp_panel_section.className  = "panel-section float-container ";
-    //     let temp_label = document.createElement('LABEL');
-    //     temp_label.setAttribute('for', id);
-    //     temp_label.className = 'button-like-label';
-    //     let temp_input = document.createElement('INPUT');
-    //     temp_input.type = 'text';
-    //     temp_input.id = id;
-    //     temp_panel_section.appendChild(temp_input);
-    //     temp_panel_section.appendChild(temp_label);
-    //     this.fields[id] = temp_input;
-    //     return temp_panel_section;
-    // }
-    // renderAutoRecordingButton(){
-    //     let button = document.createElement('BUTTON');
-    //     button.className = 'btn';
-    //     button.innerText = 'Auto-record';
-    //     this.autoRecordingButton = button;
-    //     return button;
-    // }
     addControl(control_wrapper)
     {
     	this.control_wrapper = control_wrapper;
@@ -422,14 +369,11 @@ export class Canvas {
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
-            // console.log('sCustomWidth change', sCustomWidth.value);
             this.setCanvasSize({width: parseInt(sCustomWidth.value)}, null, false);
-            // this.counterpart.setCanvasSize({width: parseInt(sCustomWidth.value)}, null, false);
         };
         let sCustomHeight = this.control_top.querySelector('#custom-height-input');
         if(sCustomHeight) sCustomHeight.onchange = () => {
             this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
-            // this.counterpart.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
         };
     }
     addListenersBottom(){
@@ -437,9 +381,6 @@ export class Canvas {
         if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
     }
     updateBase(base){
-        // console.log(this.id);
-        // console.log('updateBase');
-        // console.log(base);
     	this.base = base;
 		this.draw();
 	}
@@ -447,7 +388,6 @@ export class Canvas {
 		if(!this.isThree)
     	{
     		this.context.fillStyle = this.base;
-            // console.log(this.canvas.width, this.canvas.height);
     		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     	}
     	else
@@ -456,7 +396,6 @@ export class Canvas {
     	}
 	}
     draw(){
-        // console.log('canvas draw()');
         this.drawBase();
         for(let shape_id in this.shapes) {
             this.shapes[shape_id].draw();
@@ -466,17 +405,13 @@ export class Canvas {
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
             // el.resetAnimation();
-            
-            if(this.isThree) {
-                if(initRecording) el.initRecording = true;
-                el.updateAnimation(el.animationName, isSilent);
-            }
+            if(initRecording) el.initRecording = true;
+            if(this.isThree) el.updateAnimation(el.animationName, isSilent);
             else el.animate(el.colorData);
         }
     }
     addCounterpart(obj)
     {
-        // console.log('addCounterpart');
         this.counterpart = obj;
         if(obj.isThree) this.downloadVideoButton.style.display = 'block';
     }
@@ -500,12 +435,9 @@ export class Canvas {
         {
             let format = this.format;            
             let shapeIndex = shapes_length;
-            // let shapeId = this.prefix + '-shape-' + shapeIndex;
             let firstShape = this.shapes[Object.keys(this.shapes)[0]];
             let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, firstShape.options, format, firstShape.fonts, shapeIndex) : new ShapeStatic(this.prefix, this, firstShape.options, format, shapeIndex);
-            // console.log('sad')
             this.addShape(newShape);
-            // this.shapes.push( newShape );
             
             if(!isSync) {
                 let counterNewShape = this.counterpart.toggleSecondShape(event, true);
@@ -658,7 +590,6 @@ export class Canvas {
             for(let shape_id in this.shapes) {
                 this.shapes[shape_id].updateCanvasSize();
                 this.shapes[shape_id].updateFrame(null, true);
-                // console.log(this.isThree);
                 if(this.isThree)
                     this.shapes[shape_id].drawShape();
             }

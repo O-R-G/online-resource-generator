@@ -26,6 +26,7 @@ export class ShapeStatic extends Shape {
 		this.timer_position = null;
 		this.timer_shape = null;
 		this.customGraphic = [];
+		this.initRecording = false;
 	}
 	init(canvasObj) {
 		super.init(canvasObj);
@@ -254,8 +255,12 @@ export class ShapeStatic extends Shape {
                 (this.animation_color_data.interval.blue > 0 && (this.animation_color_data.current.blue <= this.animation_color_data.begin.blue)) ||
                 (this.animation_color_data.interval.blue < 0 && (this.animation_color_data.current.blue >= this.animation_color_data.begin.blue))
             ){
+				if(this.canvasObj.isRecording) {
+					console.log('saving...');
+					this.canvasObj.saveCanvasAsVideo();
+				}
                 this.animation_color_data.isForward = !this.animation_color_data.isForward;
-            	if(this.canvasObj.isRecording) this.canvasObj.saveCanvasAsVideo();
+            	
             }
         }
         this.color = "rgb(" + this.animation_color_data.current.red + "," + this.animation_color_data.current.green + "," + this.animation_color_data.current.blue + ")";
@@ -746,6 +751,7 @@ export class ShapeStatic extends Shape {
 	}
 	checkWatermarkPosition(position, label){
     	super.checkWatermarkPosition(position, label);
+		// this.canvasObj.saveCanvasAsVideo();
     }
 
 	drawRectangle(){
@@ -1253,8 +1259,19 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
     animate(colorData = false, shape = false){
+		if(this.initRecording && !this.canvasObj.isRecording) {
+			setTimeout(()=>{
+				this.canvasObj.startRecording();
+				setTimeout(()=>{
+					this.animate();
+				}, 100)
+				
+			}, 100);
+			return;
+		}
     	if(!colorData) colorData = this.colorData;
     	if(!shape) shape = this.shape;
+		
     	this.resetTimer(this.timer_shape);
     	this.resetTimer(this.timer_color);
     	this.resetTimer(this.timer_position);
