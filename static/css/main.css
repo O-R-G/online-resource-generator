@@ -136,7 +136,9 @@ option:after {
     display: none;
 }
 .generator-container {
-    padding-left: 500px;
+    margin-left: 500px;
+    width: calc(100% - 500px);
+    max-height: 100vh;
 }
 .control-panel {
     /* flex: 0 0 300px; */
@@ -626,7 +628,9 @@ input[value="fetch"]
         width: 540px;
     }
     .generator-container {
-        padding-left: 0;
+        margin-left: 0;
+        width: auto;
+        max-height: none;
     }
     .buttons-container {
         flex-direction: row;

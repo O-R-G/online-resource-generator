@@ -1088,6 +1088,7 @@ export class ShapeStatic extends Shape {
 				console.log('shape-color on change')
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				console.log(isSilent);
+				
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
@@ -1096,9 +1097,10 @@ export class ShapeStatic extends Shape {
 					sec.classList.remove('viewing-background-upload');
 					if(this.fields.media['background-image'])
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
+					if(this.options.colorOptions[e.target.value].color.type === 'animation') isSilent = false;
 					this.updateColor(this.options.colorOptions[e.target.value].color, isSilent);
 				}
-				console.log(this.options.colorOptions[e.target.value].color);
+				// console.log(this.options.colorOptions[e.target.value].color);
 			}.bind(this);
 		}
 
