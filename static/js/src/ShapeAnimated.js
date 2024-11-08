@@ -119,8 +119,25 @@ export class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-		this.canvasW = this.canvas.width;
-		this.canvasH = this.canvas.height;
+		// this.canvasW = this.canvas.width;
+		// this.canvasH = this.canvas.height;
+		this.context = this.canvas.getContext("2d");
+		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
+		console.log(this.scale);
+		this.renderer = this.canvasObj.renderer;
+		this.scene = this.canvasObj.scene;
+		this.camera = this.canvasObj.camera;
+		// this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
+		this.frontWatermarkGroup.scale.copy(this.scale);
+		this.backWatermarkGroup.scale.copy(this.scale);
+		if(this.mesh_front) {
+			this.mesh_front.scale.copy(this.scale);
+			this.mesh_front.needsUpdate = true;
+		}
+		if(this.mesh_back) {
+			this.mesh_back.scale.copy(this.scale);
+			this.mesh_back.needsUpdate = true;
+		}
 	}
 	addCounterpart(obj)
 	{
@@ -143,7 +160,6 @@ export class ShapeAnimated extends Shape {
 		this.fieldCounterparts['front-background-image-scale'] = 'background-image-scale';
 	}
 	updateShape(shape, silent = false){
-		console.log('shapeAnimated updateShape()', silent);
 		super.updateShape(shape);
 		this.padding = this.getValueByPixelRatio(this.padding);
 		for(const prop in this.innerPadding)
@@ -264,7 +280,13 @@ export class ShapeAnimated extends Shape {
 	}
 	drawCircle(){
 		let this_p = this.padding;
+		console.log('drawCircle');
+		if(this.mesh_front)
+			console.log('this.mesh_front.scale', this.mesh_front.scale);
 		let this_r = (this.frame.w - this_p * 2) / 2;
+		console.log('this.frame: ', this.frame);
+		console.log('r', this_r);
+		console.log('this.canvas: ', this.canvasObj.canvas);
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
@@ -273,11 +295,15 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
+		console.log('drawRectangle');
+		console.log(this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
 		var a = this.frame.w / 2 - this_r - this_p;
+		console.log(this.frame);
+		console.log(this.shapeCenter);
 		path_front.moveTo(this.shapeCenter.x - a, 0 + a + this_r);
 		path_front.lineTo(this.shapeCenter.x + a, 0 + a + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
@@ -1065,6 +1091,7 @@ export class ShapeAnimated extends Shape {
 	}
 	
 	draw (animate = true){
+		// console.log('shapeAnimated draw');
 		this.resetAnimation();
 		this.isForward = true;
 		this.actualDraw(animate);
@@ -1268,7 +1295,6 @@ export class ShapeAnimated extends Shape {
 				// this.initRecording = false;
 				this.canvasObj.startRecording();
 				setTimeout(()=>{
-					console.log(this.mesh_front.rotation.z);
 					this.animate(this.animationName);
 				}, 200)
 				
@@ -1538,7 +1564,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(e.target.id, isSilent);
 				
 				let shape_name = e.target.value;
 				if(this.options.shapeOptions[shape_name]['shape']['type'] == 'static'){
@@ -1554,7 +1579,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-front']) {
 			this.fields['text-front'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(e.target.id, isSilent);
 				// console.log(e.target.id, isSilent);
 				this.updateFrontText(e.target.value, isSilent);
 			}.bind(this);
@@ -1564,23 +1588,18 @@ export class ShapeAnimated extends Shape {
 	    let sText_front_typography = this.control.querySelector('.field-id-text-front-typography');
 	    sText_front_typography.onchange = function(e){
 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-			console.log(e.target.id, isSilent);
 	        this.updateFrontTypography(e.target.value, isSilent);
 	    }.bind(this);
 
 	    let sText_front_color = this.control.querySelector('.field-id-text-front-color');
 	    sText_front_color.onchange = function(e){
 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-			console.log(e.target.id, isSilent);
-			// console.log(e.target.id, isSilent);
-	        let text_color = this.options.textColorOptions[e.target.value]['color'];
+			let text_color = this.options.textColorOptions[e.target.value]['color'];
 	        this.updateFrontTextColor(text_color, isSilent);
 	    }.bind(this);
 		let sText_back_color = this.control.querySelector('.field-id-text-back-color');
 	    sText_back_color.onchange = function(e){
 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-			console.log(e.target.id, isSilent);
-			// console.log(e.target.id, isSilent);
 	        let text_color = this.options.textColorOptions[e.target.value]['color'];
 	        this.updateBackTextColor(text_color, isSilent);
 	    }.bind(this);
@@ -1588,8 +1607,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-front-shift-x']) {	
 			this.fields['text-front-shift-x'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(e.target.id, isSilent);
-				// console.log(e.target.id, isSilent);
 				this.updateFrontTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-front-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
@@ -1603,8 +1620,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-front-shift-y']) {	
 			this.fields['text-front-shift-y'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(e.target.id, isSilent);
-				// console.log(e.target.id, isSilent);
 				this.updateFrontTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-front-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
@@ -1618,8 +1633,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-back-shift-x']) {	
 			this.fields['text-back-shift-x'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(e.target.id, isSilent);
-				// console.log(e.target.id, isSilent);
 				this.updateBackTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-back-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
@@ -1633,8 +1646,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-back-shift-y']) {	
 			this.fields['text-back-shift-y'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(e.target.id, isSilent);
-				// console.log(e.target.id, isSilent);
 				this.updateBackTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-back-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
@@ -1649,18 +1660,14 @@ export class ShapeAnimated extends Shape {
 	    this.fields['text-back'] = sText_back;
 	    sText_back.onchange = function(e){
 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-			console.log(e.target.id, isSilent);
-			console.log(e.target.id, isSilent);
-	        this.updateBackText(e.target.value, isSilent);
+			this.updateBackText(e.target.value, isSilent);
 	    }.bind(this);
 
 	    let sText_back_typography = this.control.querySelector('.field-id-text-back-typography');
 		
 	    sText_back_typography.onchange = function(e){
 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-			console.log(e.target.id, isSilent);
-			console.log(e.target.id, isSilent);
-	        this.updateBackTypography(e.target.value, isSilent);
+			this.updateBackTypography(e.target.value, isSilent);
 	    }.bind(this);
 
 	    
@@ -1835,9 +1842,18 @@ export class ShapeAnimated extends Shape {
 	}
     updateFrame(frame=null, silent = false)
     {
+		silent = false;
+		this.updateCanvasSize();
+		// console.log(this.canvasW);
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
+		// console.log(frame);
+		// console.log(silent);
+		// console.log('this.group', this.group);
+		// console.log(frame);
+		console.log('updateFrame');
 		if(this.group) {
+			console.log('removing mesh--');
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
 			this.scene.remove(this.group);
@@ -1847,9 +1863,11 @@ export class ShapeAnimated extends Shape {
     	if(!silent) this.canvasObj.draw();
     }
 	updateGroupTranslateY(){
+		// console.log('updateGroupTranslateY');
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
 			this.group.translateY(0);
 		} else {
+			console.log(this.frame.y);
 			this.group.translateY(this.frame.y * this.scale.y);
 		}
 	}

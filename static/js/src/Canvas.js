@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
+import { getDefaultOption } from './lib.js'
 
 export class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
@@ -25,7 +26,6 @@ export class Canvas {
         this.fields = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2;
-        // this.init();
 	}
 	init(){
         if(this.initialized) return;
@@ -39,21 +39,21 @@ export class Canvas {
         
         this.canvas.className = "org-main-canvas";
         this.wrapper.appendChild(this.canvas);
-        let canvasSizeUpdated = this.setCanvasSize(
-            {
-                'width': this.formatOptions[this.format].w,
-                'height': this.formatOptions[this.format].h
-            }, 
-            false, 
-            ()=>{
-                for(let shape_id in this.shapes) {
-                    this.shapes[shape_id].updateFrame(false, true);
+        if(this.format !== 'custom') {
+            this.setCanvasSize(
+                {
+                    'width': this.formatOptions[this.format].w,
+                    'height': this.formatOptions[this.format].h
                 }
-                // for(let i = 0; i < this.shapes.length; i++) {
-                //     this.shapes[i].updateFrame(false, true);
-                // }
-            }
-        );
+            );
+        } else {
+            this.setCanvasSize(
+                {
+                    'width': this.formatOptions[this.format].w,
+                    'height': this.formatOptions[this.format].h
+                }
+            );
+        }
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
         this.isRecording = false;
@@ -80,6 +80,7 @@ export class Canvas {
 	}
     
 	initThree(){
+        console.log('initThree');
 		this.renderer = new THREE.WebGLRenderer({
 			'canvas': this.canvas, 
 			'antialias': true,
@@ -87,19 +88,34 @@ export class Canvas {
 		});
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
+        // this.setRenderer()
         // console.log(this.canvas.width);
         // console.log(this.canvas.height);
 		this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
-		let z = this.formatOptions[this.format].w * 5.72 * window.devicePixelRatio;
-		this.near = z - this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
-		this.far = z + this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
+		// let z = this.formatOptions[this.format].w * 5.72 * window.devicePixelRatio;
+		// this.near = z - this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
+		// this.far = z + this.formatOptions[this.format].w / 2 * window.devicePixelRatio;
+        let z = this.canvas.width * 5.72 * window.devicePixelRatio;
+		this.near = z - this.canvas.width / 2 * window.devicePixelRatio;
+		this.far = z + this.canvas.width / 2 * window.devicePixelRatio;
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
 		this.camera.position.set(0, 0, z);
 
 	}
+    setRenderer(){
+        if(!this.initialized) {
+            this.renderer = new THREE.WebGLRenderer({
+                'canvas': this.canvas, 
+                'antialias': true,
+                'preserveDrawingBuffer': true 
+            });
+            this.renderer.setPixelRatio( window.devicePixelRatio );
+        }
+        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
+    }
     updateAutoRecordingQueue()
     {
         let pattern = /\[(.*?)\]/g;
@@ -107,13 +123,9 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
-        console.log('initRecording()');
         this.autoRecordingQueueIdx = 0;
-        // this.isRecording = true;
         this.readyState = 0;
-        // this.downloadVideoButton.innerText = 'Stop & save video';
         this.downloadVideoButton.innerText = 'Recording . . .';
-        // alert('Recording stops automatically.');
     	this.chunks = [];
         document.body.classList.add('recording');
         this.animate(false, true);
@@ -138,7 +150,9 @@ export class Canvas {
         this.media_recorder.addEventListener('start', ()=>{console.log('start')})
         this.media_recorder.start(1); 
     }
-    
+    getDefaultOption(options, returnKey = false){
+        return getDefaultOption(options, returnKey);
+    }
     // fakeSaveCanvasAsVideo(){
     //     this.autoRecordingQueueIdx++;
     //     setTimeout(function(){
@@ -259,16 +273,12 @@ export class Canvas {
         let formatField = this.renderSelectField('format', 'Format', this.formatOptions, '', 'field-id-format');
         formatField.querySelector('select').setAttribute('flex', 'full');
         if(this.format == 'custom') {
-            
-            // let customSizeField = document.createElement('div');
-            // customSizeField.id="custom-size-wrapper";
-            // customSizeField.className = 'flex-container'
             let customWidth = document.createElement('input');
             customWidth.id="custom-width-input";
             customWidth.placeholder = 'W';
             customWidth.className = 'flex-item';
             customWidth.setAttribute('flex', 1);
-            customWidth.value = parseInt(this.canvas.style.width);
+            customWidth.value = this.formatOptions['custom']['w'];
             let cross = document.createElement('span');
             cross.innerHTML = '&times;';
             cross.className = 'flex-item';
@@ -277,7 +287,7 @@ export class Canvas {
             customHeight.className = 'flex-item';
             customHeight.placeholder="H";
             customHeight.setAttribute('flex', 1);
-            customHeight.value = parseInt(this.canvas.style.height);
+            customHeight.value = this.formatOptions['custom']['h'];
             let temp_right = formatField.querySelector('.half-right');
             temp_right.appendChild(customWidth);
             temp_right.appendChild(cross);
@@ -422,11 +432,14 @@ export class Canvas {
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
-            this.setCanvasSize({width: parseInt(sCustomWidth.value)});
+            // console.log('sCustomWidth change', sCustomWidth.value);
+            this.setCanvasSize({width: parseInt(sCustomWidth.value)}, null, false);
+            // this.counterpart.setCanvasSize({width: parseInt(sCustomWidth.value)}, null, false);
         };
         let sCustomHeight = this.control_top.querySelector('#custom-height-input');
         if(sCustomHeight) sCustomHeight.onchange = () => {
-            this.setCanvasSize({height: parseInt(sCustomHeight.value)});
+            this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
+            // this.counterpart.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
         };
     }
     addListenersBottom(){
@@ -453,7 +466,7 @@ export class Canvas {
     	}
 	}
     draw(){
-        console.log('canvas draw()');
+        // console.log('canvas draw()');
         this.drawBase();
         for(let shape_id in this.shapes) {
             this.shapes[shape_id].draw();
@@ -620,7 +633,7 @@ export class Canvas {
             shape.sync();
         }
     }
-    setCanvasSize(size, rescale=false, callback){
+    setCanvasSize(size, callback, silent=true, rescale=false){
         let updated = false;
         if(size.width) {
             updated = true;
@@ -632,28 +645,37 @@ export class Canvas {
             this.canvas.height = size.height *  this.scale;
             this.canvas.style.height = size.height + 'px';
         }
-        // this.canvas.parentNode.style.width = size.width + 'px';
-        // this.canvas.parentNode.style.height = size.height + 'px';
-        if(!this.wrapper.offsetHeight) return;
-        if(size.width > this.wrapper.offsetWidth) {
-            let style = window.getComputedStyle(this.canvas);
-            if(style.getPropertyValue('position') === 'absolute') {
-                let r = this.toFix(this.canvas.height / this.canvas.width * 100);
-                this.wrapper.style.paddingTop = r + '%';
-            }
-            let s = this.toFix(this.wrapper.offsetWidth / size.width);
-            this.canvas.style.transform = 'scale('+s+')';
-        }
+        if(!this.wrapper.offsetHeight || ! updated) return;
+        // this.setRenderer()
+        if(this.isThree)
+            this.initThree();
+        // if(this.renderer)
+        //     this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
+        // if(size.width > this.wrapper.offsetWidth) {
+        //     let style = window.getComputedStyle(this.canvas);
+        //     if(style.getPropertyValue('position') === 'absolute') {
+        //         let r = this.toFix(this.canvas.height / this.canvas.width * 100);
+        //         this.wrapper.style.paddingTop = r + '%';
+        //     }
+        //     let s = this.toFix(this.wrapper.offsetWidth / size.width);
+        //     this.canvas.style.transform = 'scale('+s+')';
+        // }
         if(typeof callback === 'function') {
             callback(size);
         }
-        // for(let i = 0; i < this.shapes.length; i++) {
-        //     this.shapes[i].updateFrame();
-        // }
-        return updated;
-        if(updated && draw) {
+        
+        if(updated && !silent) {
+            for(let shape_id in this.shapes) {
+                this.shapes[shape_id].updateCanvasSize();
+                this.shapes[shape_id].updateFrame(null, true);
+                console.log(this.isThree);
+                if(this.isThree)
+                    this.shapes[shape_id].drawShape();
+            }
+            // setTimeout(this.draw.bind(this), 2000);
             this.draw();
         }
+        return updated;
     }
     // updateReadyState(){
     //     this.readyState++;

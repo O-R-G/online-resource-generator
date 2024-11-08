@@ -136,15 +136,17 @@ option:after {
     display: none;
 }
 .generator-container {
-    /* display: flex; */
+    padding-left: 500px;
 }
 .control-panel {
     /* flex: 0 0 300px; */
     width: 500px;
     padding-right: 20px;
     padding-bottom: 60px;
-    position: sticky;
+    /* position: sticky; */
+    position: fixed;
     top: 20px;
+    left: 20px;
     /* margin-top: calc)var(--flex-item-margin); */
 }
 #logo-container {
@@ -227,8 +229,8 @@ textarea + select
 #main{
     padding: 20px;
     padding-bottom: 80px;
-    display: flex;
-    justify-content: center;
+    /* display: flex; */
+    /* justify-content: center; */
 }
 .background-image-section {
     display: none;
@@ -600,6 +602,12 @@ input[value="fetch"]
     width: 16px;
     margin-left: 0.5em;
 }
+#custom-width-input {
+    margin-right: calc( var(--flex-item-margin) * 2 );
+}
+#custom-height-input {
+    margin-left: calc( var(--flex-item-margin) * 2 );
+}
 @media screen and (max-width: 1080px)
 {
     #content
@@ -615,13 +623,10 @@ input[value="fetch"]
     }
     .control-panel {
         position: static;
-        /* margin-bottom: 20px; */
         width: 540px;
     }
     .generator-container {
-        /* display: flex;
-        flex-direction: column;
-        align-items: center; */
+        padding-left: 0;
     }
     .buttons-container {
         flex-direction: row;

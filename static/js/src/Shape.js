@@ -1,3 +1,4 @@
+import { getDefaultOption } from './lib.js'
 
 export class Shape {
 	constructor(prefix, canvasObj, options, format, shape_index = 0){
@@ -787,13 +788,7 @@ export class Shape {
     }
     
     getDefaultOption(options, returnKey = false){
-        // if(target !== null && typeof options[target] !== 'undefined') return options[target];
-        for(let key in options) {
-            if(options[key]['default']) {
-                return returnKey ? key : options[key];
-            }
-        }
-        return returnKey ? Object.keys(options)[0] : options[Object.keys(options)[0]];
+        return getDefaultOption(options, returnKey);
     }
     getClassString(arr){
         return arr.join(' ');

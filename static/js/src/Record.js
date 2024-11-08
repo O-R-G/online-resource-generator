@@ -264,8 +264,6 @@ export class Record {
                     continue;
                 }
             }
-            if(field_element.id === 'animated-shape-0-field-id-shape')
-                console.log(field_element.id);
             field_element.dispatchEvent(new Event('initImg'));
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
             field_element.dispatchEvent(new CustomEvent('input', {'detail': {'isSilent': true}}));

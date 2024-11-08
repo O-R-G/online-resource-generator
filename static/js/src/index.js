@@ -15,7 +15,7 @@ if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('forma
 
 
 async function init(data, cb){
-    console.log('main init()');
+    // console.log('main init()');
     // console.log(record_id);
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
