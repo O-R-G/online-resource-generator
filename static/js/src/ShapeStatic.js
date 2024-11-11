@@ -45,6 +45,15 @@ export class ShapeStatic extends Shape {
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
+		console.log('updateCanvasSize');
+		console.log(this.canvas.width, this.canvas.height);
+		console.log(this.color);
+		if(this.color === 'upload' || typeof this.color === 'object') {
+			for(let idx in this.media) {
+				this.updateMedia(idx);
+			}
+		}
+			
 	}
 	addCounterpart(obj) {
 		super.addCounterpart(obj);
@@ -1146,7 +1155,10 @@ export class ShapeStatic extends Shape {
 	}
 	
     updateMedia(idx, image, silent = false){
+		console.log('updateMedia');
+		console.log(this.canvasW, this.canvasH);
 		super.updateMedia(idx, image, silent);
+		console.log(idx);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
