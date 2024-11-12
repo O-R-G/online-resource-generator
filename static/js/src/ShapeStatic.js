@@ -29,12 +29,14 @@ export class ShapeStatic extends Shape {
 		this.initRecording = false;
 	}
 	init(canvasObj) {
+		console.log('init');
 		super.init(canvasObj);
+		console.log(this.frame);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();
-		this.shapeCenter.x = this.frame.x + this.frame.w / 2;
-	    this.shapeCenter.y = this.frame.y + this.frame.h / 2;
+		this.shapeCenter.x = this.frame.x + this.frame.w / 2 + this.shapeShiftX;
+	    this.shapeCenter.y = this.frame.y + this.frame.h / 2 + this.shapeShiftY;
 		this.control.classList.add('static-shape-control');
 		this.renderControl();
 	    this.addListeners();
@@ -808,6 +810,7 @@ export class ShapeStatic extends Shape {
 	}
 	drawCircle(){
 	    let r = (this.frame.w - (this.padding * 2)) / 2;
+		
 	    this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 	    this.context.fillStyle = this.color;
 	    this.context.beginPath();
@@ -983,6 +986,7 @@ export class ShapeStatic extends Shape {
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
 		this.drawCustomGraphic();
+		console.log('?');
 	}
 	// clip(){
 	// 	this.context.save();
@@ -1024,6 +1028,33 @@ export class ShapeStatic extends Shape {
 					this.checkWatermarkPosition(position, label);
 				}.bind(this));
 			}.bind(this);
+		}
+		console.log(this.fields['shape-shift-x']);
+		if(this.fields['shape-shift-x']) {
+			this.fields['shape-shift-x'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateShapeShiftX(parseInt(e.target.value), isSilent);
+			}.bind(this);
+			this.fields['shape-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+				this.updateShapeShiftX(shift.x)
+				this.updateShapeShiftY(shift.y)
+			});
+			this.fields['shape-shift-x'].onblur = () => {
+				this.unfocusInputs([this.fields['shape-shift-x'], this.fields['shape-shift-y']]);
+			}
+		}
+		if(this.fields['shape-shift-y']) {
+			this.fields['shape-shift-y'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateShapeShiftY(parseInt(e.target.value), isSilent);
+			}.bind(this);
+			this.fields['shape-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+				this.updateShapeShiftX(shift.x)
+				this.updateShapeShiftY(shift.y)
+			});
+			this.fields['shape-shift-y'].onblur = () => {
+				this.unfocusInputs([this.fields['shape-shift-x'], this.fields['shape-shift-y']]);
+			}
 		}
 		
 		if(this.fields['animation']) {
@@ -1211,51 +1242,49 @@ export class ShapeStatic extends Shape {
     	super.updateFrame(frame);
         if(!silent) this.canvasObj.draw();
     }
-	generateShapeCenter(){
-		let output = {x: 0, y: 0};
+	generateShapeCenter(frame){
+		// this.shapeCenter.x = this.frame.x + this.frame.w / 2 + this.shapeShiftX;
+	    // this.shapeCenter.y = this.frame.y + this.frame.h / 2 + this.shapeShiftY;
+		frame = frame ? frame : this.frame;
+		console.log(frame);
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
-		if(shape_num === 1) {
-			output.x = canvas_w / 2;
-			output.y = canvas_h / 2;
-		} else if(shape_num === 2) {
-			output.x = canvas_w / 2;
-			output.y = this.shape_index == 0 ? canvas_h / 4 : 3 * canvas_h / 4;
-		}		
+		let min = Math.min(frame.w, frame.h);
+		let output = {
+			x: (frame.w - min) / 2 + this.shapeShiftX * this.canvasObj.scale,
+			y: (frame.h - min) / 2 + this.shapeShiftY * this.canvasObj.scale
+		};
+		
+		
+		// if(shape_num === 1) {
+		// 	output.x = canvas_w / 2 + this.shapeShiftX * this.canvasObj.scale;
+		// 	output.y = canvas_h / 2 + this.shapeShiftY * this.canvasObj.scale;
+		// } else if(shape_num === 2) {
+		// 	output.x = canvas_w / 2 + this.shapeShiftX * this.canvasObj.scale;
+		// 	output.y = this.shape_index == 0 ? canvas_h / 4 : 3 * canvas_h / 4;
+		// 	output.y +=  this.shapeShiftY * this.canvasObj.scale;
+		// }		
 		return output;
 	}
 	generateFrame()
     {
-        let output = {w: 0, h: 0};
-		this.shapeCenter = this.generateShapeCenter();
+		console.log('generateFrame');
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
-		let w = 0, 
-		    h = 0;
-		if(shape_num === 1) {
-			if(this.shape.base === 'fill') {
-				w = canvas_w;
-				h = canvas_h;
-			} else {
-				w = canvas_w < canvas_h ? canvas_w : canvas_h;
-				h = w;
-			}
-			
-			
-		}else if (shape_num === 2){
-			w = canvas_w > canvas_h / 2 ? canvas_h / 2 : canvas_w;
-			h = w;
-		}
-		output.w = w;
-		output.h = h;
+        let output = {
+			w: canvas_w, 
+			h: canvas_h / shape_num,
+			x: 0,
+			y: this.shape_index * canvas_h / shape_num
+		};
 
-        output.x = this.shapeCenter.x - output.w / 2;
-        output.y = this.shapeCenter.y - output.h / 2;
+		this.shapeCenter = this.generateShapeCenter(output);
 		return output;
     }
     sync(){
+		console.log('sync');
 		if(!this.counterpart) return;
 
 		let isSilent = true;
@@ -1274,6 +1303,17 @@ export class ShapeStatic extends Shape {
     }
 	updateTextShiftY(y, silent = false){
         this.textShiftY = y * this.canvasObj.scale;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateShapeShiftX(x, silent = false){
+        this.shapeShiftX = x * this.canvasObj.scale;
+		// console.log('updateTextShiftX',this.textShiftX, silent);
+		this.updateFrame();
+        if(!silent) this.canvasObj.draw();
+    }
+	updateShapeShiftY(y, silent = false){
+        this.shapeShiftY = y * this.canvasObj.scale;
+		this.updateFrame();
         if(!silent) this.canvasObj.draw();
     }
     animate(colorData = false, shape = false){

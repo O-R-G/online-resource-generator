@@ -16,13 +16,17 @@ export class Shape {
 		this.cornerRadius = this.shape.cornerRadius;
 		this.padding = this.shape.padding;
         this.innerPadding = {};
+        this.shapeShiftX = 0;
+        this.shapeShiftY = 0;
+        // this.setShape();
+
 		this.framerate = 120;
 		this.watermarks = [];
 		this.watermarkidx = 0;
 		
         this.shapeCenter = {
-            x: 0,
-            y: 0
+            x: this.shapeShiftX,
+            y: this.shapeShiftY
         };
         this.media = {
 			'background-image': {
@@ -78,21 +82,30 @@ export class Shape {
             if(this.canvasObj.shapes[index] === this) {
                 this.shape_index = index;
             }
-                
         }
     }
 	addCounterpart(obj)
 	{
 		this.counterpart = obj;
 	}
+    setShape(){
+        for(let prop in this.options.shapeOptions) {
+            if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
+        }
+        if(!this.shape) this.shape = Object.values(this.options.shapeOptions)[0].shape;
+        this.updateShape(this.shape, true);
+        this.shapeShiftX = 0;
+        this.shapeShiftY = 0;
+    }
 	updateShape(shape){
+        console.log('updateShape original');
 		this.shape = shape;
 		this.cornerRadius = shape.cornerRadius;
 		this.padding = shape.padding;
-        // this.innerPadding.x = shape.innerPadding[0] * this.canvasObj.scale;
-        // this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] * this.canvasObj.scale : shape.innerPadding[0] * this.canvasObj.scale;
-        this.innerPadding.x = shape.innerPadding[0];
-        this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
+        this.innerPadding = {
+            x: shape.innerPadding[0],
+            y: shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0]
+        }
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){
@@ -185,7 +198,32 @@ export class Shape {
         this.fields[id] = temp_select;
         return temp_panel_section;
     }
-    renderTextField(id, displayName, textPositionOptions, textColorOptions, typographyOptions, extraClass='')
+    renderShapeField(id, displayName, extraClass='')
+    {
+        // let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
+        // shape.querySelector('select').classList.add('flex-item');
+        let temp_panel_section = document.createElement('div');
+        temp_panel_section.className  = "panel-section float-container " + extraClass;
+        let temp_label = document.createElement('LABEL');
+        temp_label.setAttribute('for', id);
+        temp_label.innerText = displayName;
+        let temp_right = document.createElement('div');
+        temp_right.className = 'half-right flex-container';
+        let cls = 'flex-item typography-flex-item';
+        let select = this.renderSelect('shape', this.options.shapeOptions, cls, {'flex': 'full'});
+        let input_x = this.renderInput('shape-shift-x', null, {'flex': 'half', 'placeholder' : 'X (0)'}, cls);
+        let input_y = this.renderInput('shape-shift-y', null, {'flex': 'half', 'placeholder' : 'X (0)'}, cls);
+        this.fields['shape'] = select;
+        this.fields['shape-shift-x'] = input_x;
+        this.fields['shape-shift-y'] = input_y;
+        temp_right.appendChild(select);
+        temp_right.appendChild(input_x);
+        temp_right.appendChild(input_y);
+        temp_panel_section.appendChild(temp_label);
+        temp_panel_section.appendChild(temp_right);
+        return temp_panel_section;
+    }
+    renderTextField(id, displayName, extraClass='')
     {
 
         let temp_panel_section = document.createElement('div');
@@ -506,9 +544,8 @@ export class Shape {
 
     renderControl(){
         if(this.options.shapeOptions && Object.keys(this.options.shapeOptions).length > 1) {
-            let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
-            shape.querySelector('select').classList.add('flex-item');
-            this.control.appendChild(shape);
+            this.control.appendChild(this.renderShapeField('shape', 'Shape', this.options.shapeOptions));
+            // this.control.appendChild(this.renderSelectField('shape', 'Shape', this.options.shapeOptions));
         }
         if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
 	        this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
