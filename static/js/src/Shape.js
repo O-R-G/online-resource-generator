@@ -95,9 +95,9 @@ export class Shape {
         this.innerPadding.y = shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0];
 	}
 	
-    updateWatermark(idx, values_obj = {}){
+    updateWatermark(idx, values_obj = {}, silent=true){
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
-        if(this.watermarks[idx] == undefined)
+        if(typeof this.watermarks[idx] == 'undefined')
     	{
             // let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
             if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
@@ -121,6 +121,10 @@ export class Shape {
                 this.watermarks[idx][name] = values[name];
             }
     	} 		
+        
+        
+        if(!silent)
+            this.canvasObj.draw();
 	}
     renderSection(id='', displayName, children=[], extraClass=''){
         let output = document.createElement('div');
@@ -391,13 +395,7 @@ export class Shape {
                         self.updateWatermark(idx, params);
                     }
                     item['el'].onkeydown = (e) => {
-                        let params = {
-                            'shift': {}
-                        };
-                        for(let d in self.fields['watermarks'][idx]['shift']) {
-                            params['shift'][d] = parseFloat( self.fields['watermarks'][idx]['shift'][d].value * self.canvasObj.scale);
-                        }
-                        this.updatePositionByKey(e, self.fields['watermarks'][idx]['shift'], ()=>this.updateWatermark(idx, params));
+                        this.updatePositionByKey(e, self.fields['watermarks'][idx]['shift'], (shift)=>this.updateWatermark(idx, {'shift': shift}, false));
                     }
                 }
                 
@@ -420,9 +418,9 @@ export class Shape {
         return output;
     }
     updateRotationByKey(e, input, cb){
-        if(e.keyCode !== 38 && e.keyCode !== 40) return;
+        if(e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
         e.preventDefault();
-        let val = e.keyCode === 40 ?  -1.0 : 1.0;
+        let val = e.key === 'ArrowUp' ?  -1.0 : 1.0;
         if(!input.value) input.value = 0;
         input.value = this.toFix(input.value) + val;
         input.classList.add('pseudo-focused');
@@ -430,19 +428,20 @@ export class Shape {
         if(typeof cb === 'function') cb({rotate: input.value});
     }
     updatePositionByKey(e, inputs, cb){
-        if(e.keyCode !== 37 && e.keyCode !== 38 && e.keyCode !== 39 && e.keyCode !== 40) return;
+        if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
         e.preventDefault();
-        let val = e.keyCode === 38 || e.keyCode === 37 ? -1.0 : 1.0;
-        if(e.keyCode === 38 || e.keyCode === 40) {
+        let val = e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
+        val *= e.shiftKey ? 10 : 1;
+        if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             if(!inputs.y.value) inputs.y.value = 0;
             inputs.y.value = this.toFix(inputs.y.value) + val;
-        } else if(e.keyCode === 37 || e.keyCode === 39) {
+        } else if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             if(!inputs.x.value) inputs.x.value = 0;
             inputs.x.value = this.toFix(inputs.x.value) + val;
         }
         inputs.x.classList.add('pseudo-focused');
         inputs.y.classList.add('pseudo-focused');
-        if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
+        if(typeof cb === 'function') cb({x: inputs.x.value * this.canvasObj.scale, y: inputs.y.value * this.canvasObj.scale});
     }
     toFix(val, digits=2){
         let output = parseFloat(val).toFixed(digits);
@@ -746,13 +745,7 @@ export class Shape {
                 }
                 
             }
-            // this.updateCounterpartTextField(that_watermark['text'], this.watermarks[i].str);
-            // this.updateCounterpartSelectField(that_watermark['position'], el['position'].selectedIndex);
-            // that_watermark['position'].dispatchEvent(new Event('change'));
-            // this.updateCounterpartSelectField(that_watermark['color'], el['color'].selectedIndex);
-            // this.updateCounterpartSelectField(that_watermark['typography'], el['typography'].selectedIndex);
-            // this.counterpart.updateWatermark(i, { str: this.watermarks[i].str, position: this.watermarks[i].position, color: this.watermarks[i].color, typography: this.watermarks[i].typography}, silent);
-            // this.counterpart.checkWatermarkPosition(this.watermarks[i].position, el['text'].parentNode.parentNode.querySelector('label'));
+            
         }.bind(this));
     }
 

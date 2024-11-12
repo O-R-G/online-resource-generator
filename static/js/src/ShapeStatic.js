@@ -726,14 +726,13 @@ export class ShapeStatic extends Shape {
 			temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
 			
 			let m = this.context.measureText(temp);
-			console.log(temp, m.width);
+
 			if( m.width <= width) { 
 				line = line ? line + ' ' + arr[j] : arr[j];
 				unit.width = m.width;
 				unit.content = line;
 				continue;
 			}
-			console.log('too large', unit);
 			output.push(unit);
 			line = arr[j];
 			temp = line;
@@ -1071,7 +1070,6 @@ export class ShapeStatic extends Shape {
 		if(this.fields['text-shift-x']) {	
 			this.fields['text-shift-x'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				
 				this.updateTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
 			this.fields['text-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
@@ -1100,9 +1098,9 @@ export class ShapeStatic extends Shape {
 	    // let sShape_color = this.fields['shape-color'];
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
-				console.log('shape-color on change')
+				// console.log('shape-color on change')
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log(isSilent);
+				// console.log(isSilent);
 				
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
@@ -1271,6 +1269,7 @@ export class ShapeStatic extends Shape {
     }
 	updateTextShiftX(x, silent = false){
         this.textShiftX = x * this.canvasObj.scale;
+		// console.log('updateTextShiftX',this.textShiftX, silent);
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftY(y, silent = false){
