@@ -45,9 +45,6 @@ export class ShapeStatic extends Shape {
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
-		console.log('updateCanvasSize');
-		console.log(this.canvas.width, this.canvas.height);
-		console.log(this.color);
 		if(this.color === 'upload' || typeof this.color === 'object') {
 			for(let idx in this.media) {
 				this.updateMedia(idx);
@@ -428,7 +425,7 @@ export class ShapeStatic extends Shape {
 		this.context.font = fontStyle;
 
 		let text = this.getText(str);
-
+		// console.log(text);
 		/*
 			lines = {
 				'max-width': ...,
@@ -673,11 +670,13 @@ export class ShapeStatic extends Shape {
         }
     }
 	getText(str){
+		// console.log(str);
 		let output = {
 			'lines': [],
 			'max-width': 0
 		};
 		let lines = this.getLines(str);
+		// console.log(lines);
 		let p = /(\[.*?\])/g;
 		for(let i = 0; i < lines.length; i++) {
 			let line = {
@@ -686,8 +685,9 @@ export class ShapeStatic extends Shape {
 			};
 			if(line.width > output['max-width']) output['max-width'] = line.width;
 			let segs = lines[i].content.split(p);
+			
 			for(let seg of segs) {
-
+				
 				line.segs.push( {
 					content: seg.match(p) ? seg.substring(1, seg.length - 1) : seg,
 					color: seg.match(p) ?  '#ffffff' : 'default'
@@ -700,8 +700,10 @@ export class ShapeStatic extends Shape {
 	getLines(str){
 		let output = [];
 		let temp = str.split('\n');
+		// console.log(str);
 		for(let i = 0; i < temp.length; i++) {
 			let lns = this.breakLineByWidth(temp[i], this.textBoxWidth);
+			// console.log(lns);
 			for(let l of lns) output.push(l);
 		}
 		return output;
@@ -724,17 +726,22 @@ export class ShapeStatic extends Shape {
 			temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
 			
 			let m = this.context.measureText(temp);
+			console.log(temp, m.width);
 			if( m.width <= width) { 
 				line = line ? line + ' ' + arr[j] : arr[j];
 				unit.width = m.width;
 				unit.content = line;
 				continue;
 			}
+			console.log('too large', unit);
 			output.push(unit);
 			line = arr[j];
+			temp = line;
+			temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
+			m = this.context.measureText(temp);
 			unit = {
-				'content': '',
-				'width': 0
+				'content': arr[j],
+				'width': m.width
 			}
 		}
 		temp = line;
@@ -1091,7 +1098,6 @@ export class ShapeStatic extends Shape {
 			}
 		}
 	    // let sShape_color = this.fields['shape-color'];
-		console.log(this.fields['shape-color']);
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
 				console.log('shape-color on change')
@@ -1148,17 +1154,13 @@ export class ShapeStatic extends Shape {
 			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 			shift_y_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				
 				this.updateMediaPositionY(e.target.value, idx, isSilent);
 			}.bind(this);
 		}
 	}
 	
     updateMedia(idx, image, silent = false){
-		console.log('updateMedia');
-		console.log(this.canvasW, this.canvasH);
 		super.updateMedia(idx, image, silent);
-		console.log(idx);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');

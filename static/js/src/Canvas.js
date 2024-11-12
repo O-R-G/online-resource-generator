@@ -441,13 +441,8 @@ export class Canvas {
             
             if(!isSync) {
                 let counterNewShape = this.counterpart.toggleSecondShape(event, true);
-                // setTimeout(function(){
-                //     newShape.addCounterpart(counterNewShape);
-                // }.bind(this), 0);
                 newShape.addCounterpart(counterNewShape);
             }
-            // else
-            //     newShape.addCounterpart(this.counterpart.shapes[this.counterpart.shapes.length - 1]);
             newShape.init(this);
             firstShape.updateFrame();
             if(firstShape.img)
@@ -457,51 +452,6 @@ export class Canvas {
         }
         return false;
     }
-    // renderRecordFetchingForm(){
-    //     let container = document.createElement('DIV');
-    //     // container.className = 'panel-section float-container';
-    //     container.className = 'panel-section float-container hide';
-    //     let form = document.createElement('form');
-    //     form.setAttribute('method', 'POST');
-    //     form.setAttribute('flex', 'full');
-    //     form.className = 'flex-item';
-    //     let label = document.createElement('LABEL');
-    //     label.setAttribute('for', 'recordName');
-    //     label.innerText = 'Record';
-    //     let input = document.createElement('INPUT');
-    //     input.id = 'recordName';
-    //     input.name = 'recordName';
-    //     input.type = 'text';
-    //     input.setAttribute('placeholder', '[record 1][record 2] . . .');
-    //     input.setAttribute('required', true);
-    //     let input_action = document.createElement('INPUT');
-    //     input_action.value = 'fetchRecordByName';
-    //     input_action.name = 'action';
-    //     input_action.type = 'hidden';
-    //     let button = document.createElement('INPUT');
-    //     button.type = 'submit';
-    //     button.value = 'fetch';
-    //     // form.appendChild(label);
-    //     form.appendChild(input);
-    //     form.appendChild(input_action);
-    //     form.appendChild(button);
-    //     let temp_right = document.createElement('div');
-    //     temp_right.className = 'half-right flex-container';
-    //     temp_right.append(form);
-    //     container.appendChild(label);
-    //     container.appendChild(temp_right);
-    //     this.fields['recordName'] = input;
-    //     this.fields['record'] = form;
-    //     this.fields['fetch'] = button;
-    //     this.fields['fetch'].addEventListener('click', function(event){
-    //         event.preventDefault();
-    //         this.updateAutoRecordingQueue();
-    //         let name = this.fields['recordName'].value;
-    //         // this.requestRecordByName(event);
-    //     }.bind(this));
-    //     this.fields['recordName'] = input;
-    //     return container;
-    // }
     generateFrame(centerX, centerY, canvasW, canvasH, shapeAmount, isThree = false)
     {
         let output = {};
@@ -568,20 +518,9 @@ export class Canvas {
             this.canvas.style.height = size.height + 'px';
         }
         if(!this.wrapper.offsetHeight || ! updated) return;
-        // this.setRenderer()
+
         if(this.isThree)
             this.initThree();
-        // if(this.renderer)
-        //     this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
-        // if(size.width > this.wrapper.offsetWidth) {
-        //     let style = window.getComputedStyle(this.canvas);
-        //     if(style.getPropertyValue('position') === 'absolute') {
-        //         let r = this.toFix(this.canvas.height / this.canvas.width * 100);
-        //         this.wrapper.style.paddingTop = r + '%';
-        //     }
-        //     let s = this.toFix(this.wrapper.offsetWidth / size.width);
-        //     this.canvas.style.transform = 'scale('+s+')';
-        // }
         if(typeof callback === 'function') {
             callback(size);
         }
@@ -593,20 +532,13 @@ export class Canvas {
                 if(this.isThree)
                     this.shapes[shape_id].drawShape();
             }
-            // setTimeout(this.draw.bind(this), 2000);
             this.draw();
         }
+
+        let event = new CustomEvent('resize');
+        this.canvas.dispatchEvent(event);
         return updated;
     }
-    // updateReadyState(){
-    //     this.readyState++;
-    //     setTimeout(function(){
-    //         this.startRecording();
-    //     }.bind(this), 0);
-    //     // if(this.readyState == this.textAmount || this.textAmount == 0){
-            
-    //     // }
-    // }
     toFix(val, digits=2){
         let output = parseFloat(val).toFixed(digits);
         return parseFloat(output);
