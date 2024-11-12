@@ -774,96 +774,127 @@ export class ShapeStatic extends Shape {
 	drawRectangle(){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-        let paddingX = this.padding;
-        let paddingY = this.padding;
-        let side_x = this.frame.w - this.padding * 2;
-		let side_y = this.frame.h - this.padding * 2;
-		this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
-		if(this.shape.base === 'rectangle')
-			this.textBoxWidth = this.textBoxWidth * 0.9;
+        // let paddingX = this.padding;
+        // let paddingY = this.padding;
+
+		// let w, h;
+		// if(this.shape.base === 'fill') {
+		// 	w = this.frame.w
+		// 	h = this.frame.h
+		// } else {
+		// 	let side = Math.min(this.frame.w, this.frame.h);
+		// 	w = side - paddingX * 2;
+		// 	h = side - paddingY * 2;
+		// }
+		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+		// this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
+		// if(this.shape.base === 'rectangle')
+			// this.textBoxWidth = this.textBoxWidth * 0.9;
         this.context.fillStyle = this.color;
-        this.context.beginPath();
-        this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-        this.context.arc(this.frame.x + side_x + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-        this.context.arc(this.frame.x + side_x + paddingX - this.cornerRadius, this.frame.y + side_y + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-        this.context.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side_y + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
-        this.context.closePath();
+        // this.context.beginPath();
+        // this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
+        // this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
+        // this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
+        // this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
+        // this.context.closePath();
+		this.drawRectanglePath();
         this.context.fill();
 	}
 	clipRectangle(ctx = null){
 		ctx = ctx ? ctx : this.context;
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-        let paddingX = this.padding;
-        let paddingY = this.padding;
-        let side = this.frame.w - this.padding * 2;
+        // let paddingX = this.padding;
+        // let paddingY = this.padding;
+        // let side = this.frame.w - this.padding * 2;
         this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
 		// this.context.save();
-        ctx.beginPath();
-        ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-        ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-        ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-        ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
-        ctx.closePath();
+        // ctx.beginPath();
+        // ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
+        // ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
+        // ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
+        // ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
+        // ctx.closePath();
+		this.drawRectanglePath();
         ctx.clip();
 		// this.context.restore();
 	}
+	drawRectanglePath(ctx = null){
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+        let paddingX = this.padding;
+        let paddingY = this.padding;
+
+		let w, h;
+		if(this.shape.base === 'fill') {
+			w = this.frame.w
+			h = this.frame.h
+		} else {
+			let side = Math.min(this.frame.w, this.frame.h);
+			w = side - paddingX * 2;
+			h = side - paddingY * 2;
+		}
+		ctx = ctx ? ctx : this.context;
+		this.context.beginPath();
+        this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
+        this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
+        this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
+        this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
+        this.context.closePath();
+	}
 	drawCircle(){
-	    let r = (this.frame.w - (this.padding * 2)) / 2;
+	    // let r = (this.frame.w - (this.padding * 2)) / 2;
 		
-	    this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
+	    // this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 	    this.context.fillStyle = this.color;
 	    this.context.beginPath();
-	    this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
+	    // this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
+		this.drawCirclePath()
 	    this.context.closePath();
 	    this.context.fill();
 	}
 	clipCircle(){
-		let r = (this.frame.w - (this.padding * 2)) / 2;
 	    this.context.beginPath();
-	    this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
-	    this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
+	    this.drawCirclePath();
 	    this.context.clip();
+	}
+	drawCirclePath(){
+		let r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
+		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
+		// let r = (this.frame.w - (this.padding * 2)) / 2;
+		this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
 	}
 	drawTriangle(){
         this.context.fillStyle = this.color;
-        let this_padding = this.padding;
-        let width = this.frame.w - this_padding * 2;
-        let height = width / 2 * 1.732;
-        let y_dev = 120;
-        let trangleCenter = {
-        	x: this.shapeCenter.x,
-        	y: this.shapeCenter.y + y_dev
-        }
-        let side = this.frame.w - this_padding * 2;
-        this.textBoxWidth = (side - this.innerPadding.x * 2) * 0.6;
-
-        this.context.beginPath();
-        this.context.arc(this.frame.x + this_padding + this.cornerRadius * 1.732 / 2, trangleCenter.y + height / 3 - this.cornerRadius / 2, this.cornerRadius / 2, Math.PI / 2, 7 * Math.PI / 6);
-        this.context.arc(this.frame.x + this.frame.w / 2, trangleCenter.y - height * 2 / 3 + this.cornerRadius, this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
-        this.context.arc(this.frame.x + this.frame.w - (this_padding + this.cornerRadius * 1.732 / 2), trangleCenter.y + height / 3 - this.cornerRadius / 2, this.cornerRadius / 2, 11 * Math.PI / 6, Math.PI / 2);
-        this.context.closePath();
+        
+        // let side = this.frame.w - this_padding * 2;
+        
+		this.drawTrianglePath();
+        
         this.context.fill();
     }
     clipTriangle(){
-        this.padding = this.padding;
-        let width = this.frame.w - this.padding * 2;
+        
+        // this.context.beginPath();
+        this.drawTrianglePath();
+        this.context.clip();
+    }
+	drawTrianglePath(){
+		let this_padding = this.padding;
+		let width = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
         let height = width / 2 * 1.732;
         let y_dev = 120;
         let trangleCenter = {
         	x: this.shapeCenter.x,
         	y: this.shapeCenter.y + y_dev
         }
-        let side = this.frame.w - this.padding * 2;
-        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.6;
-
-        this.context.beginPath();
-        this.context.arc(this.frame.x + this.padding + this.cornerRadius * 1.732 / 2, trangleCenter.y + height / 3 - this.cornerRadius / 2, this.cornerRadius / 2, Math.PI / 2, 7 * Math.PI / 6);
-        this.context.arc(this.frame.x + this.frame.w / 2, trangleCenter.y - height * 2 / 3 + this.cornerRadius, this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
-        this.context.arc(this.frame.x + this.frame.w - (this.padding + this.cornerRadius * 1.732 / 2), trangleCenter.y + height / 3 - this.cornerRadius / 2, this.cornerRadius / 2, 11 * Math.PI / 6, Math.PI / 2);
+		this.textBoxWidth = (width - this.innerPadding.x * 2) * 0.6;
+		this.context.beginPath();
+        this.context.arc(trangleCenter.x - width / 2 + this.cornerRadius * 1.732 / 2, trangleCenter.y + height / 3 - this.cornerRadius / 2, this.cornerRadius / 2, Math.PI / 2, 7 * Math.PI / 6);
+        this.context.arc(trangleCenter.x, trangleCenter.y - height * 2 / 3 + this.cornerRadius, this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
+        this.context.arc(trangleCenter.x - width / 2 + width - (this_padding + this.cornerRadius * 1.732 / 2), trangleCenter.y + height / 3 - this.cornerRadius / 2, this.cornerRadius / 2, 11 * Math.PI / 6, Math.PI / 2);
         this.context.closePath();
-        this.context.clip();
-    }
+	}
 	drawHeart() {
 		this.context.fillStyle = this.color;
 		let arcs = [
@@ -891,30 +922,19 @@ export class ShapeStatic extends Shape {
 	}
     drawHexagon(){
         this.context.fillStyle = this.color;
-        this.padding = this.padding;
-        let width = this.frame.w - this.padding * 2;
-        let height = width / 2 * 1.732;
-        let y_dev = 120;
-        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
-
-        this.context.beginPath();
-        this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / 1.732, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius , 7 * Math.PI / 6, 3 * Math.PI / 2);
-        this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / 1.732, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 11 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x + width / 2 - 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 11 * Math.PI / 6, 13 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / 1.732, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius, Math.PI / 6, 3 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / 1.732, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius , 3 * Math.PI / 6, 5 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x - width / 2 + 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 5 * Math.PI / 6, 7 * Math.PI / 6);
-        this.context.closePath();
+		this.drawHexagonPath();
         this.context.fill();
     }
     clipHexagon(){
-    	this.padding = this.padding;
-        let width = this.frame.w - this.padding * 2;
+    	this.drawHexagonPath();
+        this.context.clip();
+    }
+	drawHexagonPath(){
+		this.padding = this.padding;
+        let width = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
         let height = width / 2 * 1.732;
-        let y_dev = 120;
-        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
- 
-        this.context.beginPath();
+        this.textBoxWidth = (width - this.innerPadding.x * 2) * 0.8;
+		this.context.beginPath();
         this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / 1.732, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius , 7 * Math.PI / 6, 3 * Math.PI / 2);
         this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / 1.732, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 11 * Math.PI / 6);
         this.context.arc(this.shapeCenter.x + width / 2 - 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 11 * Math.PI / 6, 13 * Math.PI / 6);
@@ -922,8 +942,7 @@ export class ShapeStatic extends Shape {
         this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / 1.732, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius , 3 * Math.PI / 6, 5 * Math.PI / 6);
         this.context.arc(this.shapeCenter.x - width / 2 + 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 5 * Math.PI / 6, 7 * Math.PI / 6);
         this.context.closePath();
-        this.context.clip();
-    }
+	}
     recordCanvas(){
         this.context.fillStyle = this.color;
         this.padding = this.padding - 60;
@@ -1248,12 +1267,12 @@ export class ShapeStatic extends Shape {
 		frame = frame ? frame : this.frame;
 		console.log(frame);
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
-		let canvas_w = this.canvasObj.canvas.width;
-		let canvas_h = this.canvasObj.canvas.height;
-		let min = Math.min(frame.w, frame.h);
+		// let canvas_w = this.canvasObj.canvas.width;
+		// let canvas_h = this.canvasObj.canvas.height;
+		// let min = Math.min(frame.w, frame.h);
 		let output = {
-			x: (frame.w - min) / 2 + this.shapeShiftX * this.canvasObj.scale,
-			y: (frame.h - min) / 2 + this.shapeShiftY * this.canvasObj.scale
+			x: frame.x + frame.w / 2 + this.shapeShiftX,
+			y: frame.y + frame.h / 2 + this.shapeShiftY
 		};
 		
 		
@@ -1306,13 +1325,15 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftX(x, silent = false){
-        this.shapeShiftX = x * this.canvasObj.scale;
+        // this.shapeShiftX = x * this.canvasObj.scale;
+		this.shapeShiftX = x;
 		// console.log('updateTextShiftX',this.textShiftX, silent);
 		this.updateFrame();
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftY(y, silent = false){
-        this.shapeShiftY = y * this.canvasObj.scale;
+        // this.shapeShiftY = y * this.canvasObj.scale;
+		this.shapeShiftY = y;
 		this.updateFrame();
         if(!silent) this.canvasObj.draw();
     }
