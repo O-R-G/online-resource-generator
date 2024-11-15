@@ -6,4 +6,3 @@ export function getDefaultOption(options, returnKey = false){
     }
     return returnKey ? Object.keys(options)[0] : options[Object.keys(options)[0]];
 }
-

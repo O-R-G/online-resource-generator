@@ -29,9 +29,7 @@ export class ShapeStatic extends Shape {
 		this.initRecording = false;
 	}
 	init(canvasObj) {
-		console.log('init');
 		super.init(canvasObj);
-		console.log(this.frame);
 		this.canvas = canvasObj.canvas;
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();
@@ -42,7 +40,6 @@ export class ShapeStatic extends Shape {
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
-		// this.setFieldCounterparts();
 	}
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
@@ -52,7 +49,6 @@ export class ShapeStatic extends Shape {
 				this.updateMedia(idx);
 			}
 		}
-			
 	}
 	addCounterpart(obj) {
 		super.addCounterpart(obj);
@@ -397,6 +393,10 @@ export class ShapeStatic extends Shape {
 		this.typography = this.options.typographyOptions[typographyKey];
 		if(!silent) this.canvasObj.draw();
 	}
+	updateFont(key, silent = false){
+		this.font = this.options.fontOptions[key];
+		if(!silent) this.canvasObj.draw();
+	}
 	updateText(str, silent = false){
 		this.str = str;
 		if(str) this.fields.text.value = this.str;
@@ -418,9 +418,10 @@ export class ShapeStatic extends Shape {
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)
     		typography = this.typography;
-		let fontStyle = typography.size + 'px ' + typography['font']['static']['family'];
+		let font = this.font ? this.font['static'] : typography['font']['static'];
+		let fontStyle = typography.size + 'px ' + font['family'];
 		
-		if(typography['font']['static']['weight']) fontStyle = typography['font']['static']['weight'] + ' ' + fontStyle;
+		if(font['weight']) fontStyle = font['weight'] + ' ' + fontStyle;
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
@@ -804,20 +805,9 @@ export class ShapeStatic extends Shape {
 		ctx = ctx ? ctx : this.context;
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-        // let paddingX = this.padding;
-        // let paddingY = this.padding;
-        // let side = this.frame.w - this.padding * 2;
         this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
-		// this.context.save();
-        // ctx.beginPath();
-        // ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-        // ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-        // ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-        // ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
-        // ctx.closePath();
 		this.drawRectanglePath();
         ctx.clip();
-		// this.context.restore();
 	}
 	drawRectanglePath(ctx = null){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
@@ -843,12 +833,8 @@ export class ShapeStatic extends Shape {
         this.context.closePath();
 	}
 	drawCircle(){
-	    // let r = (this.frame.w - (this.padding * 2)) / 2;
-		
-	    // this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 	    this.context.fillStyle = this.color;
 	    this.context.beginPath();
-	    // this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
 		this.drawCirclePath()
 	    this.context.closePath();
 	    this.context.fill();
@@ -861,21 +847,14 @@ export class ShapeStatic extends Shape {
 	drawCirclePath(){
 		let r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
-		// let r = (this.frame.w - (this.padding * 2)) / 2;
 		this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
 	}
 	drawTriangle(){
         this.context.fillStyle = this.color;
-        
-        // let side = this.frame.w - this_padding * 2;
-        
-		this.drawTrianglePath();
-        
+        this.drawTrianglePath();
         this.context.fill();
     }
     clipTriangle(){
-        
-        // this.context.beginPath();
         this.drawTrianglePath();
         this.context.clip();
     }
@@ -1007,17 +986,7 @@ export class ShapeStatic extends Shape {
 		this.drawCustomGraphic();
 		console.log('?');
 	}
-	// clip(){
-	// 	this.context.save();
-	// 	// this.context.fillStyle = this.base;
-	// 	// this.context.fillRect(0, 0, this.canvasW, this.canvasH);
-	// 	if(this.shape.base == 'rectangle')
-	// 		this.clipRectangle();
-	// 	else if(this.shape.base == 'circle')
-	// 		this.clipCircle();
-	// }
-    
-
+	
 	renderControl(){
 		super.renderControl();
 		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
@@ -1101,6 +1070,12 @@ export class ShapeStatic extends Shape {
 				this.updateTypography(e.target.value, isSilent);
 			}.bind(this);
 		}
+		if(this.fields['text-font']) {
+			this.fields['text-font'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateFont(e.target.value, isSilent);
+			}.bind(this);
+		}
 		if(this.fields['text-color']) {
 			this.fields['text-color'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
@@ -1145,13 +1120,9 @@ export class ShapeStatic extends Shape {
 				this.unfocusInputs([this.fields['text-shift-x'], this.fields['text-shift-y']]);
 			}
 		}
-	    // let sShape_color = this.fields['shape-color'];
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
-				// console.log('shape-color on change')
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				// console.log(isSilent);
-				
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';

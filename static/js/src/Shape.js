@@ -18,7 +18,7 @@ export class Shape {
         this.innerPadding = {};
         this.shapeShiftX = 0;
         this.shapeShiftY = 0;
-        // this.setShape();
+        this.font = this.options['fontOptions'] ? this.getDefaultOption(this.options['fontOptions']) : null;
 
 		this.framerate = 120;
 		this.watermarks = [];
@@ -161,6 +161,7 @@ export class Shape {
         return output;
     }
     renderSelect(id, options, extraClass='', attrs=null){
+        if(!options) return null;
         let output = document.createElement('select');
         output.className = 'field-id-' + id + ' ' + extraClass;
         output.id = this.id + '-field-id-' + id;
@@ -246,7 +247,7 @@ export class Shape {
                 'id': id + '-position',
                 'input-type': 'select',
                 'options': this.options['textPositionOptions'],
-                'attr': {'flex': 'one-third'},
+                'attr': {'flex': 'half'},
                 'class': ''
             },
             { 
@@ -254,7 +255,7 @@ export class Shape {
                 'id': id + '-color',
                 'input-type': 'select',
                 'options': this.options['textColorOptions'],
-                'attr': {'flex': 'one-third'},
+                'attr': {'flex': 'half'},
                 'class': ''
             },
             { 
@@ -262,7 +263,15 @@ export class Shape {
                 'id': id + '-typography',
                 'input-type': 'select',
                 'options': this.options['typographyOptions'],
-                'attr': {'flex': 'one-third'},
+                'attr': {'flex': 'half'},
+                'class': ''
+            },
+            { 
+                'name': 'font',
+                'id': id + '-font',
+                'input-type': 'select',
+                'options': this.options['fontOptions'],
+                'attr': {'flex': 'half'},
                 'class': ''
             },
             { 
@@ -295,6 +304,7 @@ export class Shape {
                 let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
                 item['el'] = this.renderInput(item['id'], item['value'], item['attr'], cls);
             }
+            if(!item['el']) continue;
             container.appendChild(item['el']);
             this.fields[item['id']] = item['el'];
         }
@@ -302,9 +312,45 @@ export class Shape {
             cb(items);
         }
     }
-    // addText(btn, id) {
-    //     let type_control = this.field[id].parentNode;
-    // }
+    renderMediaField(id, displayName, extraClass='')
+    {
+
+        let panel_section = document.createElement('div');
+        panel_section.className  = "panel-section float-container " + extraClass;
+        let label = document.createElement('LABEL');
+        label.setAttribute('for', id);
+        label.innerText = displayName;
+        let right = document.createElement('div');
+        right.className = 'half-right flex-container';
+        let upload_input = this.renderFileField(id, {}, {'wrapper': {'flex': 'full'}});
+        // temp_textarea.className = 'flex-item field-id-' + id + ' ' + extraClass;
+        // temp_textarea.id = this.id + '-field-id-' + id;
+        // temp_textarea.setAttribute('rows', 3);
+        // temp_textarea.setAttribute('flex', 'full');
+        right.appendChild(upload_input);
+
+        let controls = [
+            { 
+                'name': 'shift-x',
+                'id': id + '-shift-x',
+                'input-type': 'text',
+                'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
+                'class': ''
+            },{ 
+                'name': 'shift-y',
+                'id': id + '-shift-y',
+                'input-type': 'text',
+                'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
+                'class': ''
+            }
+        ]
+        this.renderTextControls(id, right, controls);
+        panel_section.appendChild(label);
+        panel_section.appendChild(right);
+        this.fields[id] = upload_input;
+
+        return panel_section;
+    }
     divToNl(nodes){
         let output = '';
         [].forEach.call(nodes, function(el){
