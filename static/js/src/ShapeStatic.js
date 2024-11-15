@@ -769,35 +769,13 @@ export class ShapeStatic extends Shape {
 	}
 	checkWatermarkPosition(position, label){
     	super.checkWatermarkPosition(position, label);
-		// this.canvasObj.saveCanvasAsVideo();
     }
 
 	drawRectangle(){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-        // let paddingX = this.padding;
-        // let paddingY = this.padding;
-
-		// let w, h;
-		// if(this.shape.base === 'fill') {
-		// 	w = this.frame.w
-		// 	h = this.frame.h
-		// } else {
-		// 	let side = Math.min(this.frame.w, this.frame.h);
-		// 	w = side - paddingX * 2;
-		// 	h = side - paddingY * 2;
-		// }
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
-		// this.textBoxWidth = this.frame.w - this.padding * 2 - this.innerPadding.x * 2;
-		// if(this.shape.base === 'rectangle')
-			// this.textBoxWidth = this.textBoxWidth * 0.9;
         this.context.fillStyle = this.color;
-        // this.context.beginPath();
-        // this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-        // this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-        // this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-        // this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
-        // this.context.closePath();
 		this.drawRectanglePath();
         this.context.fill();
 	}
@@ -999,6 +977,7 @@ export class ShapeStatic extends Shape {
 		
 		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
+		this.control.appendChild(super.renderAddMedia());
 	}
 
 	addListeners(){
@@ -1017,7 +996,7 @@ export class ShapeStatic extends Shape {
 				}.bind(this));
 			}.bind(this);
 		}
-		console.log(this.fields['shape-shift-x']);
+
 		if(this.fields['shape-shift-x']) {
 			this.fields['shape-shift-x'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
@@ -1137,47 +1116,58 @@ export class ShapeStatic extends Shape {
 				// console.log(this.options.colorOptions[e.target.value].color);
 			}.bind(this);
 		}
-
+		
 		for(let idx in this.fields.media) {
-			let input = this.fields.media[idx];
-			input.onclick = function (e) {
-				e.target.value = null;
+			this.addMediaListener(idx);
+		}
+	}
+	addMediaListener(idx){
+		if(!idx) return;
+		let input = this.fields.media[idx];
+		if(!input) console.error('media field doesnt exist: ', idx);
+		input.onclick = function (e) {
+			e.target.value = null;
+		}.bind(this);
+		input.onchange = function(e){
+			this.readImageUploaded(e, this.updateMedia.bind(this));
+		}.bind(this);
+		input.addEventListener('applySavedFile', (e)=>{
+			let idx = input.getAttribute('image-idx');
+			let src = input.getAttribute('data-file-src');
+			this.readImage(idx, src, this.updateMedia.bind(this));
+		});
+		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+		if(scale_input) {
+			scale_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				e.preventDefault();
+				let scale = e.target.value >= 1 ? e.target.value : 1;
+				this.updateMediaScale(scale, idx, isSilent);
 			}.bind(this);
-			input.onchange = function(e){
-				// let isSilent = e && e.detail ? e.detail.isSilent : false;
-				
-				this.readImageUploaded(e, this.updateMedia.bind(this));
-			}.bind(this);
-			input.addEventListener('applySavedFile', (e)=>{
-				let idx = input.getAttribute('image-idx');
-				let src = input.getAttribute('data-file-src');
-				this.readImage(idx, src, this.updateMedia.bind(this));
-				// this.updateMedia();
-			});
-			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-			if(scale_input) {
-				scale_input.oninput = function(e){
-					let isSilent = e && e.detail ? e.detail.isSilent : false;
-					
-				    e.preventDefault();
-				    let scale = e.target.value >= 1 ? e.target.value : 1;
-				    this.updateMediaScale(scale, idx, isSilent);
-				}.bind(this);
-			}	
-			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		}	
+		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		if(shift_x_input) {
 			shift_x_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				
 				this.updateMediaPositionX(e.target.value, idx, isSilent);
 			}.bind(this);
-			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+		}
+		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+		if(shift_y_input) {
 			shift_y_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateMediaPositionY(e.target.value, idx, isSilent);
 			}.bind(this);
 		}
+		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+		if(blend_mode_input) {
+			blend_mode_input.onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaBlendMode(e.target.value, idx, isSilent);
+			}.bind(this);
+		}
 	}
-	
     updateMedia(idx, image, silent = false){
 		super.updateMedia(idx, image, silent);
         if(idx === 'background-image') {
@@ -1341,8 +1331,12 @@ export class ShapeStatic extends Shape {
 	drawImages(){
 		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
+			console.log('drawing image--');
+			console.log(this.media[idx]);
+			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
 			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX) * this.canvasObj.scale, (this.media[idx].y + this.media[idx].shiftY) *  this.canvasObj.scale, this.media[idx].obj.width * this.canvasObj.scale * this.media[idx].scale, this.media[idx].obj.height * this.canvasObj.scale * this.media[idx].scale);
 		}
+		this.context.globalCompositeOperation = 'normal';
 	}
 	syncMedia(){
 		super.syncMedia();

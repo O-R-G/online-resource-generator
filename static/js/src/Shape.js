@@ -38,6 +38,7 @@ export class Shape {
 				scale: 1
 			}
 		};
+        this.mediaIndex = 1;
         this.text = {
 			'text': {
 				obj: null,
@@ -288,14 +289,14 @@ export class Shape {
                 'class': ''
             }
         ]
-        this.renderTextControls(id, temp_right, text_controls);
+        this.renderCustomControls(id, temp_right, text_controls);
         temp_panel_section.appendChild(temp_label);
         temp_panel_section.appendChild(temp_right);
         this.fields[id] = temp_textarea;
 
         return temp_panel_section;
     }
-    renderTextControls(id, container, items=[], cb){
+    renderCustomControls(id, container, items=[], cb){
         for (let item of items) {
             if(item['input-type'] === 'select') {
                 let cls = item['class'] ? 'flex-item typography-flex-item ' + item['class'] :  'flex-item typography-flex-item';
@@ -303,6 +304,9 @@ export class Shape {
             } else if(item['input-type'] === 'text') {
                 let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
                 item['el'] = this.renderInput(item['id'], item['value'], item['attr'], cls);
+            } else if(item['input-type'] === 'number') {
+                let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
+                item['el'] = this.renderNumeralInput(item['id'], 1.0, 0.1, false, cls, item['attr']);
             }
             if(!item['el']) continue;
             container.appendChild(item['el']);
@@ -312,9 +316,27 @@ export class Shape {
             cb(items);
         }
     }
+    renderAddMedia(){
+    	let container = document.createElement('div');
+    	container.className = 'media-container';
+    	let btn = document.createElement('div');
+    	btn.className = 'btn-add-media btn-add';
+        this.addMediaButton = btn;
+    	btn.addEventListener('click', function(){
+    		this.addMedia();
+    	}.bind(this));
+    	btn.innerText = 'Add an image';
+    	container.appendChild(btn);
+        if(!this.fields['media-container']) this.fields['media-container'] = container;
+    	return container;
+    }
     renderMediaField(id, displayName, extraClass='')
     {
-
+        if(!id) {
+            id = 'media-' + this.mediaIndex;
+            displayName = 'Upload ' + this.mediaIndex;
+            this.mediaIndex++;
+        }
         let panel_section = document.createElement('div');
         panel_section.className  = "panel-section float-container " + extraClass;
         let label = document.createElement('LABEL');
@@ -322,11 +344,8 @@ export class Shape {
         label.innerText = displayName;
         let right = document.createElement('div');
         right.className = 'half-right flex-container';
-        let upload_input = this.renderFileField(id, {}, {'wrapper': {'flex': 'full'}});
-        // temp_textarea.className = 'flex-item field-id-' + id + ' ' + extraClass;
-        // temp_textarea.id = this.id + '-field-id-' + id;
-        // temp_textarea.setAttribute('rows', 3);
-        // temp_textarea.setAttribute('flex', 'full');
+        let upload_input = this.renderFileField(id, {'wrapper':['flex-item']}, {'wrapper': {'flex': 'full'}});
+        
         right.appendChild(upload_input);
 
         let controls = [
@@ -335,21 +354,55 @@ export class Shape {
                 'id': id + '-shift-x',
                 'input-type': 'text',
                 'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
-                'class': ''
+                'class': 'img-control-shift-x'
             },{ 
                 'name': 'shift-y',
                 'id': id + '-shift-y',
                 'input-type': 'text',
                 'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
-                'class': ''
+                'class': 'img-control-shift-y'
+            },{ 
+                'name': 'scale',
+                'id': id + '-scale',
+                'input-type': 'number',
+                'attr': {'flex': 'half', 'placeholder' : 'Scale (1)'},
+                'class': 'img-control-scale flex-item'
+            },{ 
+                'name': 'blend-mode',
+                'id': id + '-blend-mode',
+                'input-type': 'select',
+                'attr': {'flex': 'half', 'placeholder' : 'Blend Mode'},
+                'class': 'img-control-blend-mode flex-item',
+                'options': this.options['blendModeOptions']
             }
         ]
-        this.renderTextControls(id, right, controls);
+        this.renderCustomControls(id, right, controls);
         panel_section.appendChild(label);
         panel_section.appendChild(right);
         this.fields[id] = upload_input;
 
         return panel_section;
+    }
+    addMedia(id, displayName, extraClass){
+        if(!id) {
+            id = 'media-' + this.mediaIndex;
+            displayName = 'Upload ' + this.mediaIndex;
+            this.mediaIndex++;
+        }
+        let newMedia = this.renderMediaField(id, displayName); 
+        
+        // const availables = this.shape.watermarkPositions;
+        this.addMediaButton.parentNode.insertBefore(newMedia, this.addMediaButton);
+        this.media[id] = {
+            obj: null,
+            x: 0,
+            y: 0,
+            shiftY: 0,
+            shiftX: 0,
+            scale: 1,
+            'blend-mode': 'normal'
+        };
+        this.addMediaListener(id);
     }
     divToNl(nodes){
         let output = '';
@@ -448,7 +501,7 @@ export class Shape {
                 'class': 'watermark-shift-y'
             }
         ]
-        this.renderTextControls(id, temp_right, text_controls, (items)=>{
+        this.renderCustomControls(id, temp_right, text_controls, (items)=>{
             let self = this;
             for(let item of items) {
                 if(item['name'].indexOf('shift-') === -1) {
@@ -570,7 +623,6 @@ export class Shape {
             'typography': this.getDefaultOption(this.options.watermarkTypographyOptions)
         };
         this.watermarkidx++;
-        
     }
     checkWatermarkPosition(position, label){
         let availables = this.shape.watermarkPositions;
@@ -612,44 +664,14 @@ export class Shape {
         input.type = 'file';
 		input.setAttribute('image-idx', id);
         label.setAttribute('for', input_id);
-		label.className = 'panel-section pseudo-upload';
+		label.className = 'pseudo-upload';
         label.innerText = 'Choose file';
         output.appendChild(input);
         output.appendChild(label);
         this.fields.media[id] = input
         return output;
     }
-    // renderFileField(id, idx, displayName, extraClass='')
-    // {
-    //     let input_id = this.id + '-field-id-' + id;
-    //     let temp_panel_section = document.createElement('div');
-    //     temp_panel_section.className  = "panel-section float-container " + extraClass;
-    //     let temp_pseudo_label = document.createElement('div');
-    //     temp_pseudo_label.className = 'pseudo-label';
-    //     temp_pseudo_label.innerText = displayName;
-    //     let temp_label = document.createElement('label');
-    //     temp_label.setAttribute('for', input_id);
-	// 	temp_label.className = 'panel-section pseudo-upload';
-    //     temp_label.innerText = 'Choose file';
-    //     let temp_input = document.createElement('input');
-    //     temp_input.className = 'field-id-' + id + ' ' + extraClass + ' ' + this.id;
-    //     temp_input.id = input_id;
-    //     temp_input.type = 'file';
-	// 	temp_input.setAttribute('image-idx', idx);
-	// 	let backgroundImageControls = this.renderImageControls(input_id);
-	// 	let temp_right = document.createElement('div');
-	// 	temp_right.className = 'half-right flex-container';
-	// 	temp_right.appendChild(temp_input);
-	// 	temp_right.appendChild(temp_label);
-	// 	temp_right.appendChild(backgroundImageControls);
-
-    //     temp_panel_section.appendChild(temp_pseudo_label);
-    //     temp_panel_section.appendChild(temp_right);
-	// 	temp_panel_section.id = id + '-panel-section';
-
-	// 	this.fields.media[idx] = temp_input;
-    //     return temp_panel_section;
-    // }
+    
     renderImageControls(id=''){
 		let container = document.createElement('div');
 		container.className = 'field-id-image-controls float-container flex-item';
@@ -667,17 +689,11 @@ export class Shape {
     renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
         let temp_panel_section = document.createElement('div');
-        temp_panel_section.className  = "panel-section float-container " + extraWrapperClass;
+        temp_panel_section.className  = "float-container " + extraWrapperClass;
         let temp_label = document.createElement('LABEL');
         temp_label.setAttribute('for', id);
         temp_label.innerText = displayName;
-        let temp_input = document.createElement('INPUT');
-        temp_input.className = 'field-id-' + id + ' ' + extraClass;
-        temp_input.type = 'number';
-        temp_input.value = begin;
-        temp_input.setAttribute('step', step);
-        temp_input.setAttribute('min', min);
-		temp_input.id = this.id + '-field-id-' + id;
+        let temp_input = this.renderNumeralInput(id, begin, step, min, extraClass);
 		let temp_right = document.createElement('div');
 		temp_right.className = 'half-right flex-container';
 		temp_right.appendChild(temp_input);
@@ -685,6 +701,21 @@ export class Shape {
         temp_panel_section.appendChild(temp_right);
         this.fields[id] = temp_input;
         return temp_panel_section;
+    }
+    renderNumeralInput(id, begin, step, min=false, extraClass='', attrs=null){
+        let output = document.createElement('INPUT');
+        output.className = 'field-id-' + id + ' flex-item ' + extraClass;
+        output.type = 'number';
+        output.value = begin;
+        output.setAttribute('step', step);
+        output.setAttribute('min', min);
+        if(attrs) {
+            for(let attr in attrs) {
+                output.setAttribute(attr, attrs[attr]);
+            }
+        }
+		output.id = this.id + '-field-id-' + id;
+        return output;
     }
     readImage(idx, src, cb) {
         let image = new Image();
@@ -720,8 +751,10 @@ export class Shape {
             cb(idx, videoElement);	
     }
     readImageUploaded(event, cb){
+        console.log('uploaded');
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
+        console.log('idx');
 		if (input.files && input.files[0]) {
         	var FR = new FileReader();
             FR.onload = function (e) {
@@ -750,6 +783,12 @@ export class Shape {
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
+    updateMediaBlendMode(mode, idx, silent=false){
+        if(!this.media[idx]) return;
+    	this.media[idx]['blend-mode'] = mode;
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    }
     updateMedia(idx, obj, silent = false){
         obj = obj ? obj : (this.media[idx] ? this.media[idx].obj : null);
         if(!obj) return false;

@@ -145,6 +145,8 @@ option:after {
     width: 500px;
     padding-right: 20px;
     padding-bottom: 60px;
+    max-height: 100vh;
+    overflow: scroll;;
     /* position: sticky; */
     position: fixed;
     top: 20px;
@@ -635,6 +637,7 @@ input[value="fetch"]
     .control-panel {
         position: static;
         width: 540px;
+        max-height: none;
     }
     .generator-container {
         margin-left: 0;
