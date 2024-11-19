@@ -24,3 +24,4 @@ x add textbox position dropdown
   - media fields
 + make media fields savable
 - update default config files
+- sort out workflows related to the canvas resolution

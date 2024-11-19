@@ -481,6 +481,7 @@ label[for^='watermark']
     display: inline-block;
     /* width: 50%; */
     padding-right: 10px;
+    margin-left: 8px;
 }
 label[for^='watermark'].not-supported:after
 {
@@ -620,6 +621,37 @@ input[value="fetch"]
 }
 #custom-height-input {
     margin-left: calc( var(--flex-item-margin) * 2 );
+}
+.delete-button,
+.delete-button.btn  {
+    float: left;
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    position: relative;
+}
+.delete-button:before,
+.delete-button:after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    /* height: 3px; */
+    color: inherit;
+    border-top: 3px solid;
+    top: 50%;
+    left: 50%;
+    
+}
+.delete-button:before {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+.delete-button:after {
+    transform: translate(-50%, -50%) rotate(45deg);
 }
 @media screen and (max-width: 1080px)
 {

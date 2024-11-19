@@ -335,14 +335,7 @@ export class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
-                console.log(shape_control.querySelectorAll('.media-container'));
-                console.log(media);
-                let media_num = 0;
-                for (let m of media) {
-                    // if (!m.value) continue;
-                    media_num++;
-                }
-                console.log('media_num', media_num);
+                let media_num = media.length;
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {
                     'id': shape_control.id,
