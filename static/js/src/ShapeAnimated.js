@@ -60,6 +60,8 @@ export class ShapeAnimated extends Shape {
 		
 		this.frontTypography = this.getDefaultOption(this.options.typographyOptions);
 		this.backTypography = this.getDefaultOption(this.options.typographyOptions);
+		this.frontFont = this.getDefaultOption(this.options.fontOptions);
+		this.backFont = this.getDefaultOption(this.options.fontOptions);
 		this.timer = null;
 		this.watermarkTimer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
@@ -372,12 +374,13 @@ export class ShapeAnimated extends Shape {
 	getValueByPixelRatio(input){
 		return input * (this.devicePixelRatio / 2);
 	}
-	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, rad=0, sync = false){
+	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
+		console.log('write()', str, font);
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
 		
-		let fontData = this.processFontData(typography, isBack);
+		// let fontData = this.processFontData(typography, font, isBack);
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
@@ -389,7 +392,7 @@ export class ShapeAnimated extends Shape {
 				this.canvasObj.updateReadyState();
 			}.bind(this));
 		}
-		this.applyTypographyToTextMesh(output, typography, isBack);
+		this.applyTypographyAndFontToTextMesh(output, typography, font, isBack);
 		output.text = str;
 		output.material = material;
 		output.position.z = 0.5;
@@ -609,21 +612,23 @@ export class ShapeAnimated extends Shape {
 		output.sync();
 		return output;
 	}
-	applyTypographyToTextMesh(text_mesh, typography, isBack=false){
+	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
 		if(!text_mesh) return;
-		let fontData = this.processFontData(typography, isBack);
+		let fontData = this.processFontData(typography, font, isBack);
 		text_mesh.fontSize = fontData.size;
 		text_mesh.font = fontData.path;
 		text_mesh.lineHeight = fontData.lineHeight;
 		text_mesh.letterSpacing = fontData.letterSpacing;
 		text_mesh.needsUpdate = true;
 	}
-	processFontData(typography, isBack){
+	processFontData(typography, font, isBack){
 		let output = {};
 		let size = typography['size'];
-		let fontData = this.fonts[typography['font']['animated']['name']] ? this.fonts[typography['font']['animated']['name']] : '';
+		font = font ? font['animated'] : typography['font']['animated'];
+		typography = typography ? typography : isBack ? this.backTypography : this.frontTypography;
+		let fontData = this.fonts[font['name']] ? this.fonts[font['name']] : '';
 		output.font = fontData['font'];
-		output.path = typography['font']['animated']['path'];
+		output.path = font['path'];
 		output.size = this.getValueByPixelRatio(size);
 		output.lineHeight = typography['lineHeight'] / size;
 		output.letterSpacing = typography['letterSpacing'] / size;
@@ -631,16 +636,25 @@ export class ShapeAnimated extends Shape {
 	}
 	updateFrontTypography(key, silent = false){
 		this.frontTypography = this.options.typographyOptions[key];
-		this.applyTypographyToTextMesh(this.mesh_frontText, this.frontTypography);
+		this.applyTypographyAndFontToTextMesh(this.mesh_frontText, this.frontTypography, this.frontFont);
 		
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTypography(key, silent = false){
 		this.backTypography = this.options.typographyOptions[key];
-		this.applyTypographyToTextMesh(this.mesh_backText, this.backTypography, true);
+		this.applyTypographyAndFontToTextMesh(this.mesh_backText, this.backTypography, this.backFont, true);
 		if(!silent) this.canvasObj.draw();
 	}
-	
+	updateFrontFont(key, silent = false){
+		this.frontFont = this.options.fontOptions[key];
+		this.applyTypographyAndFontToTextMesh(this.mesh_frontText, this.frontTypography, this.frontFont);
+		if(!silent) this.canvasObj.draw();
+	}
+	updateBackFont(key, silent = false){
+		this.backFont = this.options.fontOptions[key];
+		this.applyTypographyAndFontToTextMesh(this.mesh_backText, this.backTypography, this.backFont, true);
+		if(!silent) this.canvasObj.draw();
+	}
 	updateFrontText(str, silent = false){
 		this.frontText = str;
 		this.fields['text-front'].value = this.frontText;
@@ -676,6 +690,7 @@ export class ShapeAnimated extends Shape {
 		}
         if(!silent) this.canvasObj.draw();
     }
+	
 	updateFrontTextShiftX(x, silent = false){
         this.frontTextShiftX = x * this.canvasObj.scale;
 		this.mesh_frontText.position.x = x;
@@ -1014,13 +1029,16 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front.add(this.frontWatermarkGroup);
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
 			this.mesh_back.add(this.backWatermarkGroup);
+		console.log('this.mesh_frontText?', this.mesh_frontText);
 		if(!this.mesh_frontText) {
-			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, 0, sync );
+			console.log('?')
+			console.log(this.frontFont);
+			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 			if(this.mesh_frontText)
 				this.mesh_front.add(this.mesh_frontText);
 		}
 		if(!this.mesh_backText) {
-			this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, 0, sync );
+			this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
 			if(this.mesh_backText)
 				this.mesh_back.add(this.mesh_backText);
 		}
@@ -1046,9 +1064,9 @@ export class ShapeAnimated extends Shape {
 				{
 					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
-					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
-					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.rotate, sync);
+					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
 					if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
 				}
 			}.bind(this));
@@ -1549,7 +1567,14 @@ export class ShapeAnimated extends Shape {
 				this.updateFrontText(e.target.value, isSilent);
 			}.bind(this);
 		}
-	    
+	    if(this.fields['text-front-font']) {
+			console.log('has text-front-font');
+			this.fields['text-front-font'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				console.log('text-front-font onchange', e.target.value);
+				this.updateFrontFont(e.target.value, isSilent);
+			}.bind(this);
+		}
 
 	    let sText_front_typography = this.control.querySelector('.field-id-text-front-typography');
 	    sText_front_typography.onchange = function(e){
