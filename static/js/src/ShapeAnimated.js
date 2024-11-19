@@ -1522,8 +1522,8 @@ export class ShapeAnimated extends Shape {
 			this.control.appendChild(section);
 		}
 		this.fields['shape-back-color'].selectedIndex = 1;
-		this.control.appendChild(this.renderTextField('text-front', 'Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
-		this.control.appendChild(this.renderTextField('text-back', 'Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
+		this.control.appendChild(this.renderTextField('text-front', 'Main Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
+		this.control.appendChild(this.renderTextField('text-back', 'Main Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control_wrapper.appendChild(this.control);
 	}

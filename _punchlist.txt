@@ -22,5 +22,5 @@ x add textbox position dropdown
 - add to animated shape
   - font dropdown
   - media fields
-- make media fields savable
++ make media fields savable
 - update default config files

@@ -226,7 +226,7 @@ textarea + select
 .half-right.flex-container {
     width: calc(50% + var(--flex-item-margin) * 2);
     position: relative;
-    left: calc(-1 * var(--flex-item-margin));
+    left: var(--flex-item-margin);
 }
 .clear-float {
     clear: both;
@@ -479,7 +479,7 @@ label[for^='watermark']
 {
     position: relative;
     display: inline-block;
-    width: 50%;
+    /* width: 50%; */
     padding-right: 10px;
 }
 label[for^='watermark'].not-supported:after

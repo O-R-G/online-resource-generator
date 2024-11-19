@@ -99,7 +99,6 @@ export class Shape {
         this.shapeShiftY = 0;
     }
 	updateShape(shape){
-        console.log('updateShape original');
 		this.shape = shape;
 		this.cornerRadius = shape.cornerRadius;
 		this.padding = shape.padding;
@@ -122,6 +121,7 @@ export class Shape {
     			'position': values['position'],
     			'color': values['color'],
     			'typography': values['typography'],
+                'font': values['font'],
                 'shift': values['shift'],
                 'rotate': values['rad']
     		};
@@ -168,13 +168,24 @@ export class Shape {
         output.id = this.id + '-field-id-' + id;
         if(typeof options === 'object' && options !== null)
         {
+            let idx = 0;
             for (const [key, value] of Object.entries(options)) {
+                
                 let opt = document.createElement('option');
                 opt.value = key;
                 opt.innerText = value['name'];
-                if(value['default']) opt.selected=true;
+                if(key === 'medium-small') console.log(value);
+                if(value['default']) {
+                    opt.selected=true;
+                    console.log('selectedIndex should be', idx);
+                    output.selectedIndex = idx; 
+                }
                 output.appendChild(opt);
+                idx++;
             }
+            console.log(output.id);
+            console.log(output.selectedIndex);
+            if(!output.selectedIndex) output.selectedIndex = 0;
         }
         if(attrs) {
             for(let attr in attrs) {
@@ -325,7 +336,7 @@ export class Shape {
     	btn.addEventListener('click', function(){
     		this.addMedia();
     	}.bind(this));
-    	btn.innerText = 'Add an image';
+    	btn.innerText = 'Add media';
     	container.appendChild(btn);
         if(!this.fields['media-container']) this.fields['media-container'] = container;
     	return container;
@@ -334,7 +345,7 @@ export class Shape {
     {
         if(!id) {
             id = 'media-' + this.mediaIndex;
-            displayName = 'Upload ' + this.mediaIndex;
+            displayName = 'Media ' + this.mediaIndex;
             this.mediaIndex++;
         }
         let panel_section = document.createElement('div');
@@ -386,10 +397,10 @@ export class Shape {
     addMedia(id, displayName, extraClass){
         if(!id) {
             id = 'media-' + this.mediaIndex;
-            displayName = 'Upload ' + this.mediaIndex;
+            displayName = 'Media ' + this.mediaIndex;
             this.mediaIndex++;
         }
-        let newMedia = this.renderMediaField(id, displayName); 
+        let newMedia = this.renderMediaField(id, displayName, 'media-section'); 
         
         // const availables = this.shape.watermarkPositions;
         this.addMediaButton.parentNode.insertBefore(newMedia, this.addMediaButton);
@@ -430,8 +441,9 @@ export class Shape {
     // var this.watermarkidx = 0;
     renderWatermark(idx, extraClass='')
     {
+        console.log('renderWatermark()');
         let id = 'watermark-' + idx;
-        let displayName = 'Watermark';
+        let displayName = 'Text ' + (idx + 1);
         let temp_panel_section = document.createElement('div');
         temp_panel_section.className  = "panel-section float-container " + extraClass;
         let temp_label = document.createElement('LABEL');
@@ -478,9 +490,16 @@ export class Shape {
                 'name': 'typography',
                 'id': 'watermark-typography-' + idx,
                 'input-type': 'select',
-                'options': this.options['typographyOptions'],
+                'options': this.options['watermarkTypographyOptions'],
                 'attr': {'flex': 'one-third'},
                 'class': 'watermark-typography'
+            },{ 
+                'name': 'font',
+                'id': 'watermark-font-' + idx,
+                'input-type': 'select',
+                'options': this.options['fontOptions'],
+                'attr': {'flex': 'one-third'},
+                'class': 'watermark-font'
             },{ 
                 'name': 'rotate',
                 'id': 'watermark-rotate-' + idx,
@@ -509,7 +528,14 @@ export class Shape {
                     item['el'].onchange = function(e){
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, temp_label);
                         let param = {};
-                        param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
+                        if(item['name'] === 'rotate') {
+                            param[item['name']] = (2 * Math.PI) * e.target.value / 360;
+                        } else if(item['name'] === 'font') {
+                            param[item['name']] = self.options['fontOptions'][e.target.value];
+                        } else {
+                            param[item['name']] = e.target.value;
+                        }
+                        // param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
                         self.updateWatermark(idx, param);
                     }
                     if(item['name'] === 'rotate') {
@@ -599,7 +625,7 @@ export class Shape {
     	btn.addEventListener('click', function(){
     		this.addWatermark();
     	}.bind(this));
-    	btn.innerText = 'Add a watermark';
+    	btn.innerText = 'Add text';
     	container.appendChild(btn);
         if(!this.fields['watermark-container']) this.fields['watermark-container'] = container;
     	return container;
@@ -620,7 +646,8 @@ export class Shape {
             'str': str,
             'position': Object.keys(this.options.watermarkPositionOptions)[0],
             'color': Object.keys(this.options.watermarkColorOptions)[0],
-            'typography': this.getDefaultOption(this.options.watermarkTypographyOptions)
+            'typography': this.getDefaultOption(this.options.watermarkTypographyOptions),
+            'font': this.getDefaultOption(this.options.fontOptions),
         };
         this.watermarkidx++;
     }
@@ -720,9 +747,12 @@ export class Shape {
     readImage(idx, src, cb) {
         let image = new Image();
         image.onload = function (e) {
-            if(typeof cb === 'function')
+            if(typeof cb === 'function') {
                 cb(idx, image);	
+            }
+                
         };
+        // console.log('readImage', idx, src);
         image.src = src;
     }
     async readVideo(idx, src, cb){
@@ -751,14 +781,17 @@ export class Shape {
             cb(idx, videoElement);	
     }
     readImageUploaded(event, cb){
-        console.log('uploaded');
+        // console.log('uploaded');
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
-        console.log('idx');
+        // console.log('idx');
 		if (input.files && input.files[0]) {
         	var FR = new FileReader();
             FR.onload = function (e) {
-                this.readImage(idx, e.target.result, cb);
+                this.readImage(idx, e.target.result, (idx, image)=>{
+                    input.classList.add('not-empty');
+                    if(typeof cb === 'function') cb(idx, image);
+                });
             }.bind(this);
             FR.readAsDataURL(input.files[0]);
             input.parentNode.parentNode.classList.add('viewing-image-control');
@@ -766,7 +799,6 @@ export class Shape {
     }
     updateMediaScale(imgScale, idx, silent = false){
         if(!this.media[idx]) return;
-        
     	this.media[idx].scale = imgScale;
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)
@@ -865,9 +897,7 @@ export class Shape {
                         this.updateCounterpartField(field[prop], counterField[prop]);
                     }
                 }
-                
             }
-            
         }.bind(this));
     }
 

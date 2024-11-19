@@ -214,6 +214,10 @@ export class Record {
                 for(let i = 0 ; i < data['watermarks_num']; i++) {
                     this.canvasObjs[canvas_id].shapes[shape_id].addWatermark();
                 }
+                console.log('media_num', data['media_num']);
+                for(let i = 0 ; i < data['media_num']; i++) {
+                    this.canvasObjs[canvas_id].shapes[shape_id].addMedia();
+                }
                 let fields = data['fields'];
                 for (let field of fields) {
                     
@@ -252,6 +256,7 @@ export class Record {
         }
         for(let field_id in this.record_body['images'] ){
             let el = document.getElementById(field_id);
+            console.log(el)
             if(!el) continue;
             this.applySavedFile(el);
 
@@ -329,6 +334,15 @@ export class Record {
                     if (!watermark.value) continue;
                     watermarks_num++;
                 }
+                let media = shape_control.querySelectorAll('.media-container input.not-empty');
+                console.log(shape_control.querySelectorAll('.media-container'));
+                console.log(media);
+                let media_num = 0;
+                for (let m of media) {
+                    // if (!m.value) continue;
+                    media_num++;
+                }
+                console.log('media_num', media_num);
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {
                     'id': shape_control.id,
@@ -336,6 +350,7 @@ export class Record {
                     'type': 'shape_control',
                     'fields': [],
                     'watermarks_num': watermarks_num,
+                    'media_num': media_num,
                     'isThree': shape_control.classList.contains('animated-shape-control')
                 }
                 let fields = shape_control.querySelectorAll('select, input, textarea');
@@ -387,7 +402,7 @@ export class Record {
         formData.append('record_body', record_body);
         formData.append('record_name', record_name);
         formData.append('record_id', this.record_id);
-        // console.log(formData.get('static-shape-0-field-id-background-image'));
+
         // return;
         fetch(this.request_url, {
             method: 'POST',

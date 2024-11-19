@@ -413,12 +413,13 @@ export class ShapeStatic extends Shape {
 		
 		this.write('');
 	}
-    write(str = '', align='center', color='default', typography = false, shift=null, rad=0){
+    write(str = '', align='center', color='default', typography = false, font=null, shift=null, rad=0){
     	this.context.fillStyle = color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)
     		typography = this.typography;
-		let font = this.font ? this.font['static'] : typography['font']['static'];
+		console.log(font);
+		font = font ? font['static'] : typography['font']['static'];
 		let fontStyle = typography.size + 'px ' + font['family'];
 		
 		if(font['weight']) fontStyle = font['weight'] + ' ' + fontStyle;
@@ -762,7 +763,7 @@ export class ShapeStatic extends Shape {
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position)) {
-				this.write(el.str, el.position, el.color, el.typography, el.shift, el.rotate);
+				this.write(el.str, el.position, el.color, el.typography, el.font, el.shift, el.rotate);
 			}
 				
 		}.bind(this));
@@ -958,11 +959,11 @@ export class ShapeStatic extends Shape {
 			this.context.restore();
 		}
 		this.drawImages();
-		this.write(this.str, this.textPosition, 'default', this.typography, {x: this.textShiftX, y: this.textShiftY});
+		this.write(this.str, this.textPosition, 'default', this.typography, this.font, {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
 		this.drawCustomGraphic();
-		console.log('?');
+		// console.log('?');
 	}
 	
 	renderControl(){
@@ -975,7 +976,7 @@ export class ShapeStatic extends Shape {
 			this.control.appendChild(section);
 		}
 		
-		this.control.appendChild(this.renderTextField('text', 'Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
+		this.control.appendChild(this.renderTextField('text', 'Main Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control.appendChild(super.renderAddMedia());
 	}
@@ -1132,16 +1133,22 @@ export class ShapeStatic extends Shape {
 			this.readImageUploaded(e, this.updateMedia.bind(this));
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
+			
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
-			this.readImage(idx, src, this.updateMedia.bind(this));
+			// console.log('applySavedFile', idx);
+			this.readImage(idx, src, (idx, image)=>{
+				input.classList.add('not-empty');
+				this.updateMedia(idx, image);
+			});
 		});
 		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 		if(scale_input) {
 			scale_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				e.preventDefault();
-				let scale = e.target.value >= 1 ? e.target.value : 1;
+				// let scale = e.target.value >= 1 ? e.target.value : 1;
+				let scale = e.target.value;
 				this.updateMediaScale(scale, idx, isSilent);
 			}.bind(this);
 		}	
@@ -1169,6 +1176,7 @@ export class ShapeStatic extends Shape {
 		}
 	}
     updateMedia(idx, image, silent = false){
+		
 		super.updateMedia(idx, image, silent);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
@@ -1331,8 +1339,9 @@ export class ShapeStatic extends Shape {
 	drawImages(){
 		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
-			console.log('drawing image--');
-			console.log(this.media[idx]);
+			if(!this.media[idx].obj) continue;
+			// console.log('drawing image--');
+			// console.log(this.media[idx]);
 			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
 			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX) * this.canvasObj.scale, (this.media[idx].y + this.media[idx].shiftY) *  this.canvasObj.scale, this.media[idx].obj.width * this.canvasObj.scale * this.media[idx].scale, this.media[idx].obj.height * this.canvasObj.scale * this.media[idx].scale);
 		}
