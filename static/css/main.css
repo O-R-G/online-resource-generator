@@ -475,11 +475,11 @@ input#restart-animation
 {
     cursor:pointer;
 }
-label[for^='watermark']
+label[for^='watermark'],
+label[for^='media']
 {
     position: relative;
     display: inline-block;
-    /* width: 50%; */
     padding-right: 10px;
     margin-left: 8px;
 }

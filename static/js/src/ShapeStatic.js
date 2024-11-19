@@ -414,7 +414,6 @@ export class ShapeStatic extends Shape {
 		this.write('');
 	}
     write(str = '', align='center', color='default', typography = false, font=null, shift=null, rad=0){
-		console.log('shift',shift);
     	this.context.fillStyle = color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)

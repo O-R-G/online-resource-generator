@@ -349,6 +349,11 @@ export class Shape {
         let label = document.createElement('LABEL');
         label.setAttribute('for', id);
         label.innerText = displayName;
+        let delete_button = document.createElement('div');
+        delete_button.className='delete-button media-delete-button btn small-btn';
+        delete_button.addEventListener('click', ()=>{ 
+            this.deleteItem('media', id, panel_section); 
+        });
         let right = document.createElement('div');
         right.className = 'half-right flex-container';
         let upload_input = this.renderFileField(id, {'wrapper':['flex-item']}, {'wrapper': {'flex': 'full'}});
@@ -384,6 +389,7 @@ export class Shape {
             }
         ]
         this.renderCustomControls(id, right, controls);
+        panel_section.appendChild(delete_button);
         panel_section.appendChild(label);
         panel_section.appendChild(right);
         this.fields[id] = upload_input;
@@ -397,18 +403,19 @@ export class Shape {
             this.mediaIndex++;
         }
         let newMedia = this.renderMediaField(id, displayName, 'media-section'); 
-        
-        // const availables = this.shape.watermarkPositions;
         this.addMediaButton.parentNode.insertBefore(newMedia, this.addMediaButton);
-        this.media[id] = {
-            obj: null,
-            x: 0,
-            y: 0,
-            shiftY: 0,
-            shiftX: 0,
-            scale: 1,
-            'blend-mode': 'normal'
-        };
+        if(!this.media[id]) {
+            this.media[id] = {
+                obj: null,
+                x: 0,
+                y: 0,
+                shiftY: 0,
+                shiftX: 0,
+                scale: 1,
+                'blend-mode': 'normal'
+            };
+        }
+        
         this.addMediaListener(id);
     }
     divToNl(nodes){
@@ -776,7 +783,7 @@ export class Shape {
             if(this.watermarks[idx]) {
                 this.watermarks.splice(idx, 1);
                 this.resetWatermarks(true);
-                console.log(this.watermarks);
+
                 for(let i = 0 ; i < this.watermarks.length; i++) {
                     this.addWatermarkButton.parentNode.insertBefore(this.renderWatermark(i), this.addWatermarkButton);
                 }
@@ -784,6 +791,19 @@ export class Shape {
                 
             if(panel_section)
                 panel_section.parentNode.removeChild(panel_section);
+        } else if(type === 'media') {
+            if(this.media[idx]) {
+                delete this.media[idx];
+                this.resetMedia(true);
+                for(let id in this.media) {
+                    // console.log(id);
+                    if(id.indexOf('media-') === 0) {
+                        this.addMedia(id, id.replace('media-', 'Media '));
+                    }
+                    
+                }
+            }
+            console.log(this.media);
         }
         if(!silent)
             this.canvasObj.draw();
@@ -959,13 +979,41 @@ export class Shape {
 
         // this.watermarks[idx].str = text;
     }
-
     trimWatermark(idx){
         this.watermarkidx = idx;
         this.watermarks = this.watermarks.slice(0, idx+1);
         this.fields.watermarks = this.fields.watermarks.slice(0, idx+1);
     }
-    
+    resetMedia(fieldOnly=false){
+        if(fieldOnly) {
+            // this.mediaIndex = Object.keys(this.media).filter((item)=>item.indexOf('media') === 0).length;
+            this.reindexMedia();
+        } else {
+            this.media = {};
+            this.mediaIndex = 0;
+        }
+        console.log(this.mediaIndex);
+        console.log(this.media);
+        this.fields.media = {};
+        let container = this.renderAddMedia();
+        this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
+        this.fields['media-container'] = container;
+    }
+    reindexMedia(){
+        console.log('reindex--');
+        this.mediaIndex = 1;
+        let reindexed = {};
+        for(let key in this.media) {
+            if(key.indexOf('media') === 0) {
+                reindexed['media-' + this.mediaIndex] = this.media[key];
+                this.mediaIndex++;
+            } else {
+                reindexed[key] = this.media[key];
+            }
+        }
+        console.log(reindexed);
+        this.media = reindexed;
+    }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
     }
