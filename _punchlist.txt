@@ -20,7 +20,7 @@ x add textbox position dropdown
 + watermarks are distorted when there are two shapes
 - new animation: fade-in, fade-out
 - add to animated shape
-  - font dropdown
+  + font dropdown
   - media fields
 + make media fields savable
 - update default config files

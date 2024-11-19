@@ -375,12 +375,10 @@ export class ShapeAnimated extends Shape {
 		return input * (this.devicePixelRatio / 2);
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
-		console.log('write()', str, font);
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
 		
-		// let fontData = this.processFontData(typography, font, isBack);
 		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? shift.x : 0;
 		shift.y = shift.y ? -shift.y : 0;
@@ -613,7 +611,10 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
+		console.log('cc');
 		if(!text_mesh) return;
+		console.log('dd');
+		// if(isBack) console.log(typography, font);
 		let fontData = this.processFontData(typography, font, isBack);
 		text_mesh.fontSize = fontData.size;
 		text_mesh.font = fontData.path;
@@ -625,7 +626,7 @@ export class ShapeAnimated extends Shape {
 		let output = {};
 		let size = typography['size'];
 		font = font ? font['animated'] : typography['font']['animated'];
-		typography = typography ? typography : isBack ? this.backTypography : this.frontTypography;
+		typography = typography ? typography : (isBack ? this.backTypography : this.frontTypography);
 		let fontData = this.fonts[font['name']] ? this.fonts[font['name']] : '';
 		output.font = fontData['font'];
 		output.path = font['path'];
@@ -663,6 +664,7 @@ export class ShapeAnimated extends Shape {
 			this.mesh_frontText.needsUpdate = true;
 		}
 		this.renderer.renderLists.dispose();
+		console.log('updateFrontText', silent);
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackText(str, silent = false){
@@ -672,6 +674,7 @@ export class ShapeAnimated extends Shape {
 			this.mesh_backText.text = this.backText;
 			this.mesh_backText.needsUpdate = true;
 		}
+		this.renderer.renderLists.dispose();
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPosition(position, silent = false){
@@ -1029,18 +1032,18 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front.add(this.frontWatermarkGroup);
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
 			this.mesh_back.add(this.backWatermarkGroup);
-		console.log('this.mesh_frontText?', this.mesh_frontText);
+
 		if(!this.mesh_frontText) {
-			console.log('?')
-			console.log(this.frontFont);
 			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
-			if(this.mesh_frontText)
+			if(this.mesh_frontText) {
 				this.mesh_front.add(this.mesh_frontText);
+			}
 		}
 		if(!this.mesh_backText) {
 			this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
-			if(this.mesh_backText)
+			if(this.mesh_backText) {
 				this.mesh_back.add(this.mesh_backText);
+			}
 		}
 		if( this.shape.watermarkPositions !== undefined)
 		{
@@ -1071,11 +1074,15 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this));
 		}
-		if(this.mesh_front.parent !== this.group) 
-			this.group.add(this.mesh_front);
+		
 		
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
+		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group) {
+			this.group.add(this.mesh_back);
+		}
+		else if(this.mesh_front.parent !== this.group) 
+			this.group.add(this.mesh_front);
 		this.animate(animationName);
 		 
 	}
@@ -1223,6 +1230,7 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	resetAnimation(){
+		console.log('resetAnimation', this.isForward);
 		if(this.isForward)
             this.group.remove( this.mesh_front );
         else
@@ -1330,6 +1338,7 @@ export class ShapeAnimated extends Shape {
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
+				  this.rest();
 			}
 			else if(animationName == 'rest-back-flip')
 			{
@@ -1339,6 +1348,7 @@ export class ShapeAnimated extends Shape {
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
+				  this.rest();
 			}
 			else {
 				if(this.mesh_front.parent !== this.group) {
@@ -1568,11 +1578,15 @@ export class ShapeAnimated extends Shape {
 			}.bind(this);
 		}
 	    if(this.fields['text-front-font']) {
-			console.log('has text-front-font');
 			this.fields['text-front-font'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				console.log('text-front-font onchange', e.target.value);
 				this.updateFrontFont(e.target.value, isSilent);
+			}.bind(this);
+		}
+		if(this.fields['text-back-font']) {
+			this.fields['text-back-font'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateBackFont(e.target.value, isSilent);
 			}.bind(this);
 		}
 
@@ -1709,8 +1723,6 @@ export class ShapeAnimated extends Shape {
 					this.options.colorOptions[shape_color]['color']['type'] == 'special')
 				{
 					this.updateBackColor(this.options.colorOptions[shape_color]['color']);
-					// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-					// this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
 					if(this.options.colorOptions[shape_color] !== undefined){
 						// this.updateCounterpartSelect(sShape_color, shape_color);
 						// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
@@ -1834,6 +1846,7 @@ export class ShapeAnimated extends Shape {
 		silent = false;
 		this.updateCanvasSize();
 		frame = frame ? frame : this.generateFrame();
+		console.log(frame)
     	super.updateFrame(frame);
 		if(this.group) {
 			this.group.remove(this.mesh_front);
