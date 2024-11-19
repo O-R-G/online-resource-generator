@@ -109,6 +109,7 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){
+        console.log(idx, values_obj);
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
         if(typeof this.watermarks[idx] == 'undefined')
     	{
@@ -545,6 +546,7 @@ export class Shape {
                 if(item['name'].indexOf('shift-') === -1) {
                     self.fields['watermarks'][idx][item['name']] = item['el'];
                     item['el'].onchange = function(e){
+                        console.log('change--');
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, label);
                         let param = {};
                         if(item['name'] === 'rotate') {
@@ -554,7 +556,7 @@ export class Shape {
                         } else {
                             param[item['name']] = e.target.value;
                         }
-                        if(item['name'] === 'shift')
+                        // if(item['name'] === 'shift')
 
                         // param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
                         self.updateWatermark(idx, param);
@@ -655,7 +657,7 @@ export class Shape {
     }
 
     addWatermark(str = ''){
-        let sBtn_add_watermark = document.getElementById('btn-add-watermark');
+        // let sBtn_add_watermark = document.getElementById('btn-add-watermark');
         let newWatermark = this.renderWatermark(this.watermarkidx); 
         
         const availables = this.shape.watermarkPositions;
