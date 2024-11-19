@@ -174,17 +174,13 @@ export class Shape {
                 let opt = document.createElement('option');
                 opt.value = key;
                 opt.innerText = value['name'];
-                if(key === 'medium-small') console.log(value);
                 if(value['default']) {
                     opt.selected=true;
-                    console.log('selectedIndex should be', idx);
                     output.selectedIndex = idx; 
                 }
                 output.appendChild(opt);
                 idx++;
             }
-            console.log(output.id);
-            console.log(output.selectedIndex);
             if(!output.selectedIndex) output.selectedIndex = 0;
         }
         if(attrs) {
@@ -535,6 +531,8 @@ export class Shape {
                         } else {
                             param[item['name']] = e.target.value;
                         }
+                        if(item['name'] === 'shift')
+
                         // param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
                         self.updateWatermark(idx, param);
                     }
@@ -604,7 +602,7 @@ export class Shape {
         }
         inputs.x.classList.add('pseudo-focused');
         inputs.y.classList.add('pseudo-focused');
-        if(typeof cb === 'function') cb({x: inputs.x.value * this.canvasObj.scale, y: inputs.y.value * this.canvasObj.scale});
+        if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
     }
     toFix(val, digits=2){
         let output = parseFloat(val).toFixed(digits);
@@ -799,19 +797,23 @@ export class Shape {
     }
     updateMediaScale(imgScale, idx, silent = false){
         if(!this.media[idx]) return;
+        if(!imgScale) imgScale = 1;
     	this.media[idx].scale = imgScale;
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
         if(!this.media[idx]) return;
-    	this.media[idx].shiftX = parseFloat(imgShiftX) * this.canvasObj.scale;
+        if(!imgShiftX) imgShiftX = 0;
+        console.log('imgShiftX', imgShiftX);
+    	this.media[idx].shiftX = parseFloat(imgShiftX);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
     updateMediaPositionY(imgShiftY, idx, silent = false){
         if(!this.media[idx]) return;
-    	this.media[idx].shiftY = parseFloat(imgShiftY) * this.canvasObj.scale;
+        if(!imgShiftY) imgShiftY = 0;
+    	this.media[idx].shiftY = parseFloat(imgShiftY);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };

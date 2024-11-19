@@ -418,7 +418,6 @@ export class ShapeStatic extends Shape {
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)
     		typography = this.typography;
-		console.log(font);
 		font = font ? font['static'] : typography['font']['static'];
 		let fontStyle = typography.size + 'px ' + font['family'];
 		
@@ -461,10 +460,10 @@ export class ShapeStatic extends Shape {
 			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
 			y += this.shapeCenter.y;
 			let ln;
-	        
+	        console.log(x);
 			let lines = text.lines;
-	        // x += align == 'align-left' ? this.shapeCenter.x - text['max-width'] / 2 : this.shapeCenter.x;
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x * 2 : this.shapeCenter.x;
+			console.log(x);
 			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			for(let i = 0; i < lines.length; i++) { 
@@ -473,7 +472,6 @@ export class ShapeStatic extends Shape {
 				let ln_y = y + i * lineHeight + text_dev_y;
 				this.writeLine(ln, seg_x, ln_y, addStroke);
 			}
-
 			return;
         }
 
@@ -636,6 +634,8 @@ export class ShapeStatic extends Shape {
     	}
 		x += shift && shift.x ? parseInt(shift.x) : 0, 
 		y += shift && shift.y ? parseInt(shift.y) : 0;
+		if(shift && shift.x) console.log(shift.x);
+		console.log(x);
 		this.context.save();
     	if(align.indexOf('middle') !== -1 && (this.shape.base == 'rectangle' || this.shape.base == 'fill')) {
 			this.context.textAlign = 'center';
@@ -763,6 +763,7 @@ export class ShapeStatic extends Shape {
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position)) {
+				console.log(el.shift);
 				this.write(el.str, el.position, el.color, el.typography, el.font, el.shift, el.rotate);
 			}
 				
@@ -1136,7 +1137,6 @@ export class ShapeStatic extends Shape {
 			
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
-			// console.log('applySavedFile', idx);
 			this.readImage(idx, src, (idx, image)=>{
 				input.classList.add('not-empty');
 				this.updateMedia(idx, image);
@@ -1153,19 +1153,28 @@ export class ShapeStatic extends Shape {
 			}.bind(this);
 		}	
 		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 		if(shift_x_input) {
 			shift_x_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				
 				this.updateMediaPositionX(e.target.value, idx, isSilent);
 			}.bind(this);
+			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				console.log(shift);
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(shift.x, idx, isSilent)
+				this.updateMediaPositionY(shift.y, idx, isSilent)
+			});
 		}
-		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
 		if(shift_y_input) {
 			shift_y_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateMediaPositionY(e.target.value, idx, isSilent);
 			}.bind(this);
+			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				this.updateMediaPositionX(shift.x, idx, isSilent)
+				this.updateMediaPositionY(shift.y, idx, isSilent)
+			});
 		}
 		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
 		if(blend_mode_input) {
@@ -1231,33 +1240,16 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	generateShapeCenter(frame){
-		// this.shapeCenter.x = this.frame.x + this.frame.w / 2 + this.shapeShiftX;
-	    // this.shapeCenter.y = this.frame.y + this.frame.h / 2 + this.shapeShiftY;
 		frame = frame ? frame : this.frame;
-		console.log(frame);
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
-		// let canvas_w = this.canvasObj.canvas.width;
-		// let canvas_h = this.canvasObj.canvas.height;
-		// let min = Math.min(frame.w, frame.h);
 		let output = {
 			x: frame.x + frame.w / 2 + this.shapeShiftX,
 			y: frame.y + frame.h / 2 + this.shapeShiftY
 		};
-		
-		
-		// if(shape_num === 1) {
-		// 	output.x = canvas_w / 2 + this.shapeShiftX * this.canvasObj.scale;
-		// 	output.y = canvas_h / 2 + this.shapeShiftY * this.canvasObj.scale;
-		// } else if(shape_num === 2) {
-		// 	output.x = canvas_w / 2 + this.shapeShiftX * this.canvasObj.scale;
-		// 	output.y = this.shape_index == 0 ? canvas_h / 4 : 3 * canvas_h / 4;
-		// 	output.y +=  this.shapeShiftY * this.canvasObj.scale;
-		// }		
 		return output;
 	}
 	generateFrame()
     {
-		console.log('generateFrame');
 		let canvas_w = this.canvasObj.canvas.width;
 		let canvas_h = this.canvasObj.canvas.height;
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
@@ -1285,11 +1277,15 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftX(x, silent = false){
+		if(!x) x = 0;
+		console.log(x);
         this.textShiftX = x * this.canvasObj.scale;
-		// console.log('updateTextShiftX',this.textShiftX, silent);
+		console.log(x, this.textShiftX);
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftY(y, silent = false){
+		if(!y) y = 0;
+		
         this.textShiftY = y * this.canvasObj.scale;
         if(!silent) this.canvasObj.draw();
     }
