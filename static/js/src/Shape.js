@@ -109,7 +109,7 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){
-        console.log(idx, values_obj);
+        // console.log(idx, values_obj);
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
         if(typeof this.watermarks[idx] == 'undefined')
     	{
@@ -546,7 +546,7 @@ export class Shape {
                 if(item['name'].indexOf('shift-') === -1) {
                     self.fields['watermarks'][idx][item['name']] = item['el'];
                     item['el'].onchange = function(e){
-                        console.log('change--');
+                        // console.log('change--');
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, label);
                         let param = {};
                         if(item['name'] === 'rotate') {
@@ -805,7 +805,7 @@ export class Shape {
                     
                 }
             }
-            console.log(this.media);
+            // console.log(this.media);
         }
         if(!silent)
             this.canvasObj.draw();
@@ -860,9 +860,10 @@ export class Shape {
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
+        // if(idx ==='background') console.log(imgShiftX);
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
-        console.log('imgShiftX', imgShiftX);
+        // console.log('imgShiftX', imgShiftX);
     	this.media[idx].shiftX = parseFloat(imgShiftX);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)
@@ -994,15 +995,15 @@ export class Shape {
             this.media = {};
             this.mediaIndex = 0;
         }
-        console.log(this.mediaIndex);
-        console.log(this.media);
+        // console.log(this.mediaIndex);
+        // console.log(this.media);
         this.fields.media = {};
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
         this.fields['media-container'] = container;
     }
     reindexMedia(){
-        console.log('reindex--');
+        // console.log('reindex--');
         this.mediaIndex = 1;
         let reindexed = {};
         for(let key in this.media) {
@@ -1013,7 +1014,7 @@ export class Shape {
                 reindexed[key] = this.media[key];
             }
         }
-        console.log(reindexed);
+        // console.log(reindexed);
         this.media = reindexed;
     }
     getDefaultOption(options, returnKey = false){

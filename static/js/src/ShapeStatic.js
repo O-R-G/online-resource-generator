@@ -1160,7 +1160,6 @@ export class ShapeStatic extends Shape {
 				this.updateMediaPositionX(e.target.value, idx, isSilent);
 			}.bind(this);
 			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				console.log(shift);
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateMediaPositionX(shift.x, idx, isSilent)
 				this.updateMediaPositionY(shift.y, idx, isSilent)
@@ -1172,6 +1171,7 @@ export class ShapeStatic extends Shape {
 				this.updateMediaPositionY(e.target.value, idx, isSilent);
 			}.bind(this);
 			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateMediaPositionX(shift.x, idx, isSilent)
 				this.updateMediaPositionY(shift.y, idx, isSilent)
 			});
