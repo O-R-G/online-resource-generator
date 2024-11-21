@@ -18,6 +18,8 @@ x add textbox position dropdown
 + canvasAnimated
 + saving for stories not working as expected (sophia, 23 sep 2024 email)
 + watermarks are distorted when there are two shapes
+- resolution custom field should match download file size
+- sort out workflows related to the canvas resolution
 - new animation: fade-in, fade-out
 - add to animated shape
   + font dropdown
@@ -26,7 +28,6 @@ x add textbox position dropdown
 - update default config files
 - frame is weird when the shape is square at first, then change of 
   canvas, then change of shape.
-- sort out workflows related to the canvas resolution
 - when generate from existing open record with custom image preview does 
   not respect scale, x, or y. if you change any of these values, then 
   preview updates
