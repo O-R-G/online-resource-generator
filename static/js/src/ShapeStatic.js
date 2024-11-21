@@ -455,15 +455,13 @@ export class ShapeStatic extends Shape {
         	this.context.textBaseline = 'middle';
 			this.context.textAlign='left';
 			
-			let x = shift && shift.x ? shift.x * this.canvasObj.scale : 0, 
-				y = shift && shift.y ? shift.y * this.canvasObj.scale : 0;
+			let x = shift && shift.x ? shift.x : 0, 
+				y = shift && shift.y ? shift.y : 0;
 			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
 			y += this.shapeCenter.y;
 			let ln;
-	        // console.log(x);
 			let lines = text.lines;
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x * 2 : this.shapeCenter.x;
-			// console.log(x);
 			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			for(let i = 0; i < lines.length; i++) { 
@@ -632,8 +630,8 @@ export class ShapeStatic extends Shape {
     		}
     		else return;
     	}
-		x += shift && shift.x ? parseInt(shift.x * this.canvasObj.scale) : 0, 
-		y += shift && shift.y ? parseInt(shift.y * this.canvasObj.scale) : 0;
+		x += shift && shift.x ? parseInt(shift.x) : 0, 
+		y += shift && shift.y ? parseInt(shift.y) : 0;
 		// if(shift && shift.x) console.log(shift.x);
 		// console.log(x);
 		this.context.save();
@@ -1337,7 +1335,7 @@ export class ShapeStatic extends Shape {
 			if(idx === 'background-image') continue;
 			if(!this.media[idx].obj) continue;
 			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
-			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX) * this.canvasObj.scale, (this.media[idx].y + this.media[idx].shiftY) *  this.canvasObj.scale, this.media[idx].obj.width * this.canvasObj.scale * this.media[idx].scale, this.media[idx].obj.height * this.canvasObj.scale * this.media[idx].scale);
+			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX), (this.media[idx].y + this.media[idx].shiftY), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}
@@ -1348,5 +1346,8 @@ export class ShapeStatic extends Shape {
 			this.counterpart.updateMedia(idx, this.media['background-image'].img);
 		}
 	}
+	// getDisplayValue(input){
+	// 	return input / this.canvasObj.scale;
+	// }
 }
 

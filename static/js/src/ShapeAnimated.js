@@ -372,7 +372,9 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 	}
 	getValueByPixelRatio(input){
-		return input * (this.devicePixelRatio / 2);
+		console.log(this.devicePixelRatio);
+		// return input * (this.devicePixelRatio / 2);
+		return input;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
 		if(str == '') return false;
@@ -630,7 +632,8 @@ export class ShapeAnimated extends Shape {
 		let fontData = this.fonts[font['name']] ? this.fonts[font['name']] : '';
 		output.font = fontData['font'];
 		output.path = font['path'];
-		output.size = this.getValueByPixelRatio(size);
+		// output.size = this.getValueByPixelRatio(size);
+		output.size = size;
 		output.lineHeight = typography['lineHeight'] / size;
 		output.letterSpacing = typography['letterSpacing'] / size;
 		return output;

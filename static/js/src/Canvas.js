@@ -25,7 +25,8 @@ export class Canvas {
 	    this.isRecording = false;
         this.fields = {};
         this.isdebug = false;
-        this.scale = this.isThree ? 1 : 2;
+        // this.scale = this.isThree ? 1 : 2;
+        this.scale = 2;
         this.framerate = 60;
 	}
 	init(){
@@ -85,14 +86,14 @@ export class Canvas {
             'preserveDrawingBuffer': true 
 		});
         this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
+        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio, false);
 		this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
         let z = this.canvas.width * 5.72 * window.devicePixelRatio;
-		this.near = z - this.canvas.width / 2 * window.devicePixelRatio;
-		this.far = z + this.canvas.width / 2 * window.devicePixelRatio;
+		this.near = z - this.canvas.width / this.scale * window.devicePixelRatio;
+		this.far = z + this.canvas.width / this.scale * window.devicePixelRatio;
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
 		this.camera.position.set(0, 0, z);
 
@@ -509,13 +510,13 @@ export class Canvas {
         let updated = false;
         if(size.width) {
             updated = true;
-            this.canvas.width = size.width * this.scale;
-            this.canvas.style.width = size.width + 'px';
+            this.canvas.width = size.width;
+            this.canvas.style.width = size.width / this.scale + 'px';
         }
         if(size.height) {
             updated = true;
-            this.canvas.height = size.height *  this.scale;
-            this.canvas.style.height = size.height + 'px';
+            this.canvas.height = size.height;
+            this.canvas.style.height = size.height / this.scale + 'px';
         }
         if(!this.wrapper.offsetHeight || ! updated) return;
 
