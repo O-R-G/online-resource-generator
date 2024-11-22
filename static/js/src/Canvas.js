@@ -116,7 +116,6 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
-        // console.log('initRecording');
         this.downloadVideoButton.innerText = 'Loading . . .';
         this.autoRecordingQueueIdx = 0;
         this.readyState = 0;
@@ -131,12 +130,9 @@ export class Canvas {
                 console.log('error-0');
             }
             this.downloadVideoButton.innerText = 'Recording . . .';
-            
             document.body.classList.add('recording');
-            // this.animate(false, true);
             this.startRecording();
-            // if(!this.isThree) this.startRecording();
-        }, 2000)
+        }, 100)
         
     }
     initSavingImage(){

@@ -21,8 +21,8 @@ export class ShapeAnimated extends Shape {
 		this.isForward = true;
 		this.animationSpeed = this.getDefaultOption(this.options.animationSpeedOptions);
 		let speed_value = this.animationSpeed.value;
-		// this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
-		this.recordingBreakPoint = speed_value * Math.PI * 1;
+		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
+		// this.recordingBreakPoint = speed_value * Math.PI * 1;
 		this.flipAngleInterval_base = 0.01;     // aka, speed
         this.spinAngleInterval_base = 0.01;
 		this.rotateAngleInterval_base = 0.01;
@@ -1238,10 +1238,10 @@ export class ShapeAnimated extends Shape {
 	}
 	resetAnimation(){
 		// console.log('resetAnimation', this.isForward);
-		// if(this.isForward)
-        //     this.group.remove( this.mesh_front );
-        // else
-        //     this.group.remove( this.mesh_back );
+		if(this.isForward)
+            this.group.remove( this.mesh_front );
+        else
+            this.group.remove( this.mesh_back );
 		if(this.mesh_front) {
 			this.mesh_front.rotation.x = 0;
 			this.mesh_front.rotation.y = 0;
@@ -1293,16 +1293,6 @@ export class ShapeAnimated extends Shape {
 	}
 	animate(animationName, isSilent = false){
 		this.startTime = null;
-		// if(this.initRecording && !this.canvasObj.isRecording) {
-		// 	setTimeout(()=>{
-		// 		this.canvasObj.startRecording();
-		// 		setTimeout(()=>{
-		// 			this.animate(this.animationName);
-		// 		}, 100)
-				
-		// 	}, 100);
-		// 	return;
-		// }
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
 			this.backWatermarkGroup.scale.copy(this.scale);
@@ -1554,11 +1544,13 @@ export class ShapeAnimated extends Shape {
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeOut(){
+		// console.log('fadeOut');
 		this.timer = requestAnimationFrame( ()=>this.fadeOut() );
 		if(this.initRecording) {
 			this.initRecording = false;
 		}
 		this.frontMaterial.opacity -= this.fadeInterval;
+		console.log(this.frontMaterial.transparent);
 		if(this.canvasObj.isRecording && this.frontMaterial.opacity <= 0) {
 			setTimeout(()=>{ this.canvasObj.saveCanvasAsVideo(); }, 1000);
 		}
