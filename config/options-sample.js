@@ -561,6 +561,18 @@ let typographyOptions = {
     
 };
 
+const fontOptions = {};
+const defaultFont = 'standard'
+for(const key in fonts) {
+	const font = fonts[key];
+	fontOptions[key] = {
+		'name': font.displayName,
+		'static': font['style'],
+		'animated': {...font['style'], path: font['troika-font-file']},
+		'default': key === defaultFont
+	}
+}
+
 let baseOptions = {
 	'#000000': {
     	name: 'black',
@@ -781,6 +793,7 @@ const resources_data = {
 			'shapeOptions': shapeOptions,
 			'colorOptions': colorOptions,
 			'typographyOptions': typographyOptions,
+			'fontOptions': fontOptions,
 			'textColorOptions': textColorOptions,
 			'textPositionOptions': textPositionOptions,
 			'watermarkTypographyOptions': watermarkTypographyOptions,
@@ -797,6 +810,7 @@ const resources_data = {
 			'shapeOptions': shapeOptions,
 			'colorOptions': threeColorOptions,
 			'typographyOptions': typographyOptions,
+			'fontOptions': fontOptions,
 			'textColorOptions': textColorOptions,
 			'textPositionOptions': textPositionOptions,
 			'watermarkTypographyOptions': watermarkTypographyOptions,
