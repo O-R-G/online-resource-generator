@@ -282,47 +282,57 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 	}
 	drawCircle(){
-		let this_p = this.padding;
-		let this_r = (this.frame.w - this_p * 2) / 2;
+		let this_r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
-
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
 		this.geometry_back = new THREE.CircleGeometry( this_r, 64);
 		this.geometry_front_uvs = this.geometry_front.attributes.uv.array;
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
+		console.log('drawRectangle');
+		console.log(this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
-		var a = this.frame.w / 2 - this_r - this_p;
-		path_front.moveTo(this.shapeCenter.x - a, 0 + a + this_r);
-		path_front.lineTo(this.shapeCenter.x + a, 0 + a + this_r);
+		// var a = this.frame.w / 2 - this_r - this_p;
+		let w, h;
+		if(this.shape.base === 'fill') {
+			w = this.frame.w
+			h = this.frame.h
+		} else {
+			let side = Math.min(this.frame.w, this.frame.h);
+			// console.log(this.frame);
+			w = side - this_p * 2 - this_r * 2;
+			h = side - this_p * 2 - this_r * 2;
+		}
+		path_front.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
+		path_front.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
 		path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		path_front.lineTo( this.shapeCenter.x + a + this_r, 0 + a);
-		path_front.lineTo( this.shapeCenter.x + a + this_r, 0 - a);
+		path_front.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 + h / 2);
+		path_front.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 - h / 2);
 		path_front.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		path_front.lineTo(this.shapeCenter.x + a, 0 - (a + this_r));
-		path_front.lineTo(this.shapeCenter.x - a, 0 - (a + this_r));
+		path_front.lineTo(this.shapeCenter.x + w / 2, 0 - (h / 2 + this_r));
+		path_front.lineTo(this.shapeCenter.x - w / 2, 0 - (h / 2 + this_r));
 		path_front.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		path_front.lineTo(this.shapeCenter.x -(a + this_r), 0 - a);
-		path_front.lineTo(this.shapeCenter.x -(a + this_r), 0 + a);
+		path_front.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 - h / 2);
+		path_front.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 + h / 2);
 		path_front.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
 		path_front.closePath();
 
 		var path_back = new THREE.Shape();
-		path_back.moveTo(this.shapeCenter.x - a, 0 + a + this_r);
-		path_back.lineTo(this.shapeCenter.x + a, 0 + a + this_r);
+		path_back.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
+		path_back.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
 		path_back.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		path_back.lineTo(this.shapeCenter.x + a + this_r, 0 + a);
-		path_back.lineTo(this.shapeCenter.x + a + this_r, 0 - a);
+		path_back.lineTo(this.shapeCenter.x + w / 2 + this_r, 0 + h / 2);
+		path_back.lineTo(this.shapeCenter.x + w / 2 + this_r, 0 - h / 2);
 		path_back.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		path_back.lineTo(this.shapeCenter.x + a, 0 - (a + this_r));
-		path_back.lineTo(this.shapeCenter.x - a, 0 - (a + this_r));
+		path_back.lineTo(this.shapeCenter.x + w / 2, 0 - (h / 2 + this_r));
+		path_back.lineTo(this.shapeCenter.x - w / 2, 0 - (h / 2 + this_r));
 		path_back.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		path_back.lineTo(this.shapeCenter.x - (a + this_r), 0 - a);
-		path_back.lineTo(this.shapeCenter.x - (a + this_r), 0 + a);
+		path_back.lineTo(this.shapeCenter.x - (w / 2 + this_r), 0 - h / 2);
+		path_back.lineTo(this.shapeCenter.x - (w / 2 + this_r), 0 + h / 2);
 		path_back.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
 		path_back.closePath();
 
@@ -346,6 +356,39 @@ export class ShapeAnimated extends Shape {
         ctx.closePath();
         ctx.clip();
 		// this.context.restore();
+	}
+	drawRectanglePath(){
+		const output = new THREE.Shape();
+		let this_r = this.cornerRadius;
+		let this_p = this.padding;
+		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
+
+		let w, h;
+		if(this.shape.base === 'fill') {
+			w = this.frame.w
+			h = this.frame.h
+		} else {
+			console.log(this.frame);
+			let side = Math.min(this.frame.w, this.frame.h);
+			w = side - this_p * 2;
+			h = side - this_p * 2;
+		}
+		console.log(w);
+		output.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
+		output.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
+		output.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
+		output.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 + h / 2);
+		output.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 - h / 2);
+		output.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
+		output.lineTo(this.shapeCenter.x + w / 2, 0 - (h / 2 + this_r));
+		output.lineTo(this.shapeCenter.x - w / 2, 0 - (h / 2 + this_r));
+		output.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
+		output.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 - h / 2);
+		output.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 + h / 2);
+		output.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
+		output.closePath();
+
+		return output;
 	}
 	drawTriangle(){
 		var path_front = new THREE.Shape();

@@ -20,7 +20,7 @@ x add textbox position dropdown
 + watermarks are distorted when there are two shapes
 + resolution custom field should match download file size
 + sort out workflows related to the canvas resolution
-- new animation: fade-in, fade-out
++ new animation: fade-in, fade-out
 - add to animated shape
   + font dropdown
   - media fields
