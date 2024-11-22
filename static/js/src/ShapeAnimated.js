@@ -78,6 +78,12 @@ export class ShapeAnimated extends Shape {
 		this.frontTextShiftY = 0;
 		this.backTextShiftX = 0;
 		this.backTextShiftY = 0;
+
+		this.shapeShiftX = 0;
+		this.shapeShiftY = 0;
+		// this.backShapeShiftX = 0;
+		// this.backShapeShiftY = 0;
+
 		this.text = {
 			front: {
 				str: false,
@@ -118,7 +124,7 @@ export class ShapeAnimated extends Shape {
 		this.backWatermarkGroup.scale.copy(this.scale);
 
 		this.group = new THREE.Group();
-		this.updateGroupTranslateY();
+		this.updateGroupPositionY();
 		
 		this.drawShape();
 		this.renderControl();
@@ -291,19 +297,18 @@ export class ShapeAnimated extends Shape {
 	}
 	drawRectangle(){
 		console.log('drawRectangle');
-		console.log(this.frame);
+		console.log(this.shapeCenter);
+		// console.log(this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
-		// var a = this.frame.w / 2 - this_r - this_p;
 		let w, h;
 		if(this.shape.base === 'fill') {
 			w = this.frame.w
 			h = this.frame.h
 		} else {
 			let side = Math.min(this.frame.w, this.frame.h);
-			// console.log(this.frame);
 			w = side - this_p * 2 - this_r * 2;
 			h = side - this_p * 2 - this_r * 2;
 		}
@@ -773,6 +778,17 @@ export class ShapeAnimated extends Shape {
 		this.mesh_backText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
+	updateShapeShiftX(x, silent = false){
+		this.shapeShiftX = x;
+		this.group.position.x = this.shapeShiftX;
+		this.group.needsUpdate = true;
+        if(!silent) this.canvasObj.draw();
+    }
+	updateShapeShiftY(y, silent = false){
+		this.shapeShiftY = y;
+		this.updateGroupPositionY();
+        if(!silent) this.canvasObj.draw();
+    }
 	processColor(color)
 	{
 		let output;
@@ -1147,11 +1163,6 @@ export class ShapeAnimated extends Shape {
 		this.isForward = true;
 		this.actualDraw(animate);
 	}
-	
-	// drawForRecording(){
-	// 	if(this.animationName == 'none') return;
-	// 	this.draw(false);
-	// }
 	
 	generateThreeColorsGradient(uniforms, angle){
 		uniforms.measure = Math.abs(uniforms.bboxMax.value.x * 2);
@@ -1742,6 +1753,34 @@ export class ShapeAnimated extends Shape {
 				this.unfocusInputs([this.fields['text-back-shift-x'], this.fields['text-back-shift-y']]);
 			}
 		}
+		console.log(this.fields['shape-shift-x']);
+		if(this.fields['shape-shift-x']) {
+			this.fields['shape-shift-x'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateShapeShiftX(parseInt(e.target.value), isSilent);
+			}.bind(this);
+			this.fields['shape-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+				this.updateShapeShiftX(shift.x)
+				this.updateShapeShiftY(shift.y)
+			});
+			this.fields['shape-shift-x'].onblur = () => {
+				this.unfocusInputs([this.fields['shape-shift-x'], this.fields['shape-shift-y']]);
+			}
+		}
+		if(this.fields['shape-shift-y']) {
+			this.fields['shape-shift-y'].onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateShapeShiftY(parseInt(e.target.value), isSilent);
+			}.bind(this);
+			this.fields['shape-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+				this.updateShapeShiftX(shift.x)
+				this.updateShapeShiftY(shift.y)
+			});
+			this.fields['shape-shift-y'].onblur = () => {
+				this.unfocusInputs([this.fields['shape-shift-x'], this.fields['shape-shift-y']]);
+			}
+		}
+
 	    let sText_back = this.control.querySelector('.field-id-text-back');
 	    this.fields['text-back'] = sText_back;
 	    sText_back.onchange = function(e){
@@ -1927,34 +1966,34 @@ export class ShapeAnimated extends Shape {
 		silent = false;
 		this.updateCanvasSize();
 		frame = frame ? frame : this.generateFrame();
-		console.log(frame)
+		// console.log(frame)
     	super.updateFrame(frame);
 		if(this.group) {
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
 			this.scene.remove(this.group);
 			this.group = new THREE.Group();
-			this.updateGroupTranslateY();
+			this.updateGroupPositionY();
 		}
     	if(!silent) this.canvasObj.draw();
     }
-	updateGroupTranslateY(){
+	updateGroupPositionY(){
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			this.group.translateY(0);
+			this.group.position.y(-this.shapeShiftY);
 		} else {
-			this.group.translateY(this.frame.y * this.scale.y);
+			this.group.position.y(-this.shapeShiftY + this.frame.y * this.scale.y);
 		}
 	}
 	generateShapeCenter(){
-		let output = {x: 0, y: 0};
+		let output = {x: this.shapeShiftX, y: this.shapeShiftY};
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		
 		if(shape_num === 1) {
 			return output;
 		} else if(shape_num === 2) {
 			let canvas_h = this.canvasObj.canvas.height;
-			output.x = 0;
-			output.y = this.shape_index == 0 ? canvas_h / 4 : - canvas_h / 4;
+			output.x = 0 + this.shapeShiftX;
+			output.y = this.shape_index == 0 ? canvas_h / 4 + this.shapeShiftY : - canvas_h / 4 + this.shapeShiftY;
 		}
 		
 		return output;

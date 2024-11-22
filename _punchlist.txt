@@ -26,10 +26,10 @@ x add textbox position dropdown
   - media fields
 + make media fields savable
 - update default config files
-- frame is weird when the shape is square at first, then change of 
++ frame is weird when the shape is square at first, then change of 
   canvas, then change of shape.
-- when generate from existing open record with custom image preview does 
++ when generate from existing open record with custom image preview does 
   not respect scale, x, or y. if you change any of these values, then 
   preview updates
 + the update of back typography/font is behind by one step
-- the value of shape position is not consistent with others
++ the value of shape position is not consistent with others
