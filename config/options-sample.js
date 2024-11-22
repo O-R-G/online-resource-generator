@@ -2,14 +2,14 @@
 let formatOptions = {
 	'post': {
 		'name': 'post',
-		'w': 540,
-		'h': 540,
+		'w': 1080,
+		'h': 1080,
 		'shape_capacity': 1
 	},
 	'story': {
 		'name': 'story',
-		'w': 540,
-		'h': 960,
+		'w': 1080,
+		'h': 1920,
 		'shape_capacity': 2
 	}
 }
