@@ -21,13 +21,16 @@ export class ShapeAnimated extends Shape {
 		this.isForward = true;
 		this.animationSpeed = this.getDefaultOption(this.options.animationSpeedOptions);
 		let speed_value = this.animationSpeed.value;
-		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
+		// this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
+		this.recordingBreakPoint = speed_value * Math.PI * 1;
 		this.flipAngleInterval_base = 0.01;     // aka, speed
         this.spinAngleInterval_base = 0.01;
 		this.rotateAngleInterval_base = 0.01;
+		this.fadeInterval_base = 0.005;
 		this.flipAngleInterval = this.flipAngleInterval_base * speed_value;     // aka, speed
         this.spinAngleInterval = this.spinAngleInterval_base * speed_value;
 		this.rotateAngleInterval = this.rotateAngleInterval_base * speed_value;
+		this.fadeInterval = this.fadeInterval_base  * speed_value;
 		this.watermarkAngleInterval = 0.005;
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
@@ -96,6 +99,7 @@ export class ShapeAnimated extends Shape {
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
 		this.initRecording = false;
+		this.startTime = null
 	}
 	init(canvasObj){
 		super.init(canvasObj);
@@ -613,9 +617,9 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
-		console.log('cc');
+		// console.log('cc');
 		if(!text_mesh) return;
-		console.log('dd');
+		// console.log('dd');
 		// if(isBack) console.log(typography, font);
 		let fontData = this.processFontData(typography, font, isBack);
 		text_mesh.fontSize = fontData.size;
@@ -744,7 +748,7 @@ export class ShapeAnimated extends Shape {
 
 		return output;
 	}
-	updateFrontColor(color, silent = false){
+	updateFrontColor(color, silent = false, transparent=false){
 		let sec = this.fields['shape-front-color'].parentNode.parentNode;
 		if(color === 'upload') {
 			sec.classList.add('viewing-background-upload');
@@ -1233,11 +1237,11 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	resetAnimation(){
-		console.log('resetAnimation', this.isForward);
-		if(this.isForward)
-            this.group.remove( this.mesh_front );
-        else
-            this.group.remove( this.mesh_back );
+		// console.log('resetAnimation', this.isForward);
+		// if(this.isForward)
+        //     this.group.remove( this.mesh_front );
+        // else
+        //     this.group.remove( this.mesh_back );
 		if(this.mesh_front) {
 			this.mesh_front.rotation.x = 0;
 			this.mesh_front.rotation.y = 0;
@@ -1288,16 +1292,17 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	animate(animationName, isSilent = false){
-		if(this.initRecording && !this.canvasObj.isRecording) {
-			setTimeout(()=>{
-				this.canvasObj.startRecording();
-				setTimeout(()=>{
-					this.animate(this.animationName);
-				}, 100)
+		this.startTime = null;
+		// if(this.initRecording && !this.canvasObj.isRecording) {
+		// 	setTimeout(()=>{
+		// 		this.canvasObj.startRecording();
+		// 		setTimeout(()=>{
+		// 			this.animate(this.animationName);
+		// 		}, 100)
 				
-			}, 100);
-			return;
-		}
+		// 	}, 100);
+		// 	return;
+		// }
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
 			this.backWatermarkGroup.scale.copy(this.scale);
@@ -1365,6 +1370,16 @@ export class ShapeAnimated extends Shape {
 						
 			this.renderer.render( this.scene, this.camera );
 		}
+		else if(animationName == 'fade-in'){
+			this.frontMaterial.transparent = true;
+			this.frontMaterial.opacity = 0;
+			if(!isSilent) this.fadeIn();
+		}
+		else if(animationName == 'fade-out'){
+			this.frontMaterial.transparent = true;
+			this.frontMaterial.opacity = 1;
+			if(!isSilent) this.fadeOut();
+		}
 		else
 			this.resetAnimation();
 
@@ -1379,14 +1394,9 @@ export class ShapeAnimated extends Shape {
 	}
 	spin(){
 		this.timer = requestAnimationFrame( this.spin.bind(this) );
-		if(this.initRecording) {
-			this.mesh_front.rotation.y -= 2 * this.spinAngleInterval;
-			this.mesh_back.rotation.y  -= 2 * this.spinAngleInterval;
-			this.initRecording = false;
-		}
 	    this.mesh_front.rotation.y += this.spinAngleInterval;
 	    this.mesh_back.rotation.y  += this.spinAngleInterval;
-	    if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
+		if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
 	  		if(this.isForward)
 	  		{
@@ -1444,11 +1454,11 @@ export class ShapeAnimated extends Shape {
 	flip(){
 		
 		this.timer = requestAnimationFrame( this.flip.bind(this) );
-		if(this.initRecording) {
-			this.mesh_front.rotation.x -= 2 * this.flipAngleInterval;
-			this.mesh_back.rotation.x  -= 2 * this.flipAngleInterval;
-			this.initRecording = false;
-		}
+		// if(this.initRecording) {
+		// 	this.mesh_front.rotation.x -= 2 * this.flipAngleInterval;
+		// 	this.mesh_back.rotation.x  -= 2 * this.flipAngleInterval;
+		// 	this.initRecording = false;
+		// }
 	    this.mesh_front.rotation.x += this.flipAngleInterval;
 	    this.mesh_back.rotation.x  += this.flipAngleInterval;
 		
@@ -1470,6 +1480,7 @@ export class ShapeAnimated extends Shape {
 	  			this.group.remove( this.mesh_back );
 	  		}
 	  	}
+		// console.log(this.canvasObj.isRecording);
 	  	// if( this.canvasObj.isRecording && this.mesh_front.rotation.x >= this.recordingBreakPoint) this.canvasObj.saveCanvasAsVideo();
 	  	if( this.canvasObj.isRecording && this.mesh_front.rotation.x > this.recordingBreakPoint) this.canvasObj.saveCanvasAsVideo();
 
@@ -1529,6 +1540,30 @@ export class ShapeAnimated extends Shape {
 		if( this.canvasObj.isRecording && Math.abs(this.mesh_front.rotation.z) > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
 
 	    this.renderer.render( this.scene, this.camera );
+	}
+	fadeIn(){
+		this.timer = requestAnimationFrame( ()=>this.fadeIn() );
+		if(this.initRecording) {
+			this.initRecording = false;
+		}
+		this.frontMaterial.opacity += this.fadeInterval;
+		if(this.canvasObj.isRecording && this.frontMaterial.opacity >= 1 ) {
+			setTimeout(()=>{ this.canvasObj.saveCanvasAsVideo(); }, 5000);
+		}
+		this.mesh_front.needsUpdate = true;
+		this.renderer.render( this.scene, this.camera );
+	}
+	fadeOut(){
+		this.timer = requestAnimationFrame( ()=>this.fadeOut() );
+		if(this.initRecording) {
+			this.initRecording = false;
+		}
+		this.frontMaterial.opacity -= this.fadeInterval;
+		if(this.canvasObj.isRecording && this.frontMaterial.opacity <= 0) {
+			setTimeout(()=>{ this.canvasObj.saveCanvasAsVideo(); }, 1000);
+		}
+		this.mesh_front.needsUpdate = true;
+		this.renderer.render( this.scene, this.camera );
 	}
     checkWatermarkPosition(position, label){
     	super.checkWatermarkPosition(position, label);

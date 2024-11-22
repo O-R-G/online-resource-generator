@@ -116,13 +116,28 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
+        // console.log('initRecording');
+        this.downloadVideoButton.innerText = 'Loading . . .';
         this.autoRecordingQueueIdx = 0;
         this.readyState = 0;
-        this.downloadVideoButton.innerText = 'Recording . . .';
-    	this.chunks = [];
-        document.body.classList.add('recording');
-        this.animate(false, true);
-        // if(!this.isThree) this.startRecording();
+        this.chunks = [];
+        this.resetAnimation();
+        setTimeout(()=>{
+            this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
+            try{
+                this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
+                this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
+            } catch{
+                console.log('error-0');
+            }
+            this.downloadVideoButton.innerText = 'Recording . . .';
+            
+            document.body.classList.add('recording');
+            // this.animate(false, true);
+            this.startRecording();
+            // if(!this.isThree) this.startRecording();
+        }, 2000)
+        
     }
     initSavingImage(){
         this.autoRecordingQueueIdx = 0;
@@ -132,6 +147,8 @@ export class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(){
+        // console.log('startRecording--');
+        // console.log(this.isRecording);
         if(this.isRecording) return;
         this.isRecording = true;
     	/* 
@@ -140,9 +157,11 @@ export class Canvas {
             so adjust grey value in advance
             arrived at color by test outputs
         */
-        this.media_recorder.addEventListener('start', ()=>{console.log('start')})
+        // this.media_recorder.addEventListener('start', ()=>{ 
+        //     console.log('start recording . . .');
+        // })
         this.media_recorder.start(1); 
-
+        this.animate();
     }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
@@ -403,12 +422,19 @@ export class Canvas {
         }
     }
     animate(isSilent = false, initRecording = false){
+        // if(initRecording) this.startRecording();
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
-            // el.resetAnimation();
-            if(initRecording) el.initRecording = true;
             if(this.isThree) el.updateAnimation(el.animationName, isSilent);
             else el.animate(el.colorData);
+        }
+    }
+    resetAnimation(){
+        for(let shape_id in this.shapes) {
+            let el = this.shapes[shape_id];
+            if(this.isThree) {
+                el.resetAnimation();
+            }
         }
     }
     addCounterpart(obj)
