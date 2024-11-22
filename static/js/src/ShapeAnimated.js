@@ -1979,9 +1979,9 @@ export class ShapeAnimated extends Shape {
     }
 	updateGroupPositionY(){
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			this.group.position.y(-this.shapeShiftY);
+			this.group.position.y = -this.shapeShiftY;
 		} else {
-			this.group.position.y(-this.shapeShiftY + this.frame.y * this.scale.y);
+			this.group.position.y = -this.shapeShiftY + this.frame.y * this.scale.y;
 		}
 	}
 	generateShapeCenter(){
