@@ -66,6 +66,7 @@ export class ShapeAnimated extends Shape {
 		this.frontFont = this.getDefaultOption(this.options.fontOptions);
 		this.backFont = this.getDefaultOption(this.options.fontOptions);
 		this.timer = null;
+		this.timer_delaySaveVideo = null;
 		this.watermarkTimer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
@@ -98,7 +99,7 @@ export class ShapeAnimated extends Shape {
 		this.path = new THREE.Curve();
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
-		this.initRecording = false;
+		// this.initRecording = false;
 		this.startTime = null
 	}
 	init(canvasObj){
@@ -376,8 +377,12 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 	}
 	getValueByPixelRatio(input){
-		console.log(this.devicePixelRatio);
-		// return input * (this.devicePixelRatio / 2);
+		/* 
+			retina        : 2 
+			regular screen: 1 
+			seems it doesn't matter though
+		*/
+		
 		return input;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
@@ -1254,6 +1259,7 @@ export class ShapeAnimated extends Shape {
 		}
         cancelAnimationFrame(this.timer);
         this.timer = null;
+		this.timer_delaySaveVideo = null;
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
 	}
@@ -1510,19 +1516,19 @@ export class ShapeAnimated extends Shape {
 	rotate (backward=false){
 		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
 		if(!backward) {
-			if(this.initRecording) {
-				this.mesh_front.rotation.z += 2 * this.rotateAngleInterval;
-	    		this.mesh_back.rotation.z  += 2 * this.rotateAngleInterval;
-				this.initRecording = false;
-			}
+			// if(this.initRecording) {
+			// 	this.mesh_front.rotation.z += 2 * this.rotateAngleInterval;
+	    	// 	this.mesh_back.rotation.z  += 2 * this.rotateAngleInterval;
+			// 	this.initRecording = false;
+			// }
 			this.mesh_front.rotation.z -= this.rotateAngleInterval;
 	    	this.mesh_back.rotation.z  -= this.rotateAngleInterval;
 		} else {
-			if(this.initRecording) {
-				this.mesh_front.rotation.z -= 2 * this.rotateAngleInterval;
-	    		this.mesh_back.rotation.z  -= 2 * this.rotateAngleInterval;
-				this.initRecording = false;
-			}
+			// if(this.initRecording) {
+			// 	this.mesh_front.rotation.z -= 2 * this.rotateAngleInterval;
+	    	// 	this.mesh_back.rotation.z  -= 2 * this.rotateAngleInterval;
+			// 	this.initRecording = false;
+			// }
 			this.mesh_front.rotation.z += this.rotateAngleInterval;
 	    	this.mesh_back.rotation.z  += this.rotateAngleInterval;
 		}
@@ -1533,28 +1539,30 @@ export class ShapeAnimated extends Shape {
 	}
 	fadeIn(){
 		this.timer = requestAnimationFrame( ()=>this.fadeIn() );
-		if(this.initRecording) {
-			this.initRecording = false;
-		}
 		this.frontMaterial.opacity += this.fadeInterval;
-		if(this.canvasObj.isRecording && this.frontMaterial.opacity >= 1 ) {
-			setTimeout(()=>{ this.canvasObj.saveCanvasAsVideo(); }, 5000);
-		}
+		if(this.frontMaterial.opacity >= 1) {
+			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+				console.log('settimeout--');
+				this.timer_delaySaveVideo = setTimeout(()=>{ 
+					this.canvasObj.saveCanvasAsVideo(); 
+				}, 5000);
+			}
+		} else 
+			this.mesh_front.needsUpdate = true;
 		this.mesh_front.needsUpdate = true;
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeOut(){
-		// console.log('fadeOut');
 		this.timer = requestAnimationFrame( ()=>this.fadeOut() );
-		if(this.initRecording) {
-			this.initRecording = false;
-		}
 		this.frontMaterial.opacity -= this.fadeInterval;
-		console.log(this.frontMaterial.transparent);
-		if(this.canvasObj.isRecording && this.frontMaterial.opacity <= 0) {
-			setTimeout(()=>{ this.canvasObj.saveCanvasAsVideo(); }, 1000);
-		}
-		this.mesh_front.needsUpdate = true;
+		if(this.frontMaterial.opacity <= 0) {
+			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+				this.timer_delaySaveVideo = setTimeout(()=>{ 
+					this.canvasObj.saveCanvasAsVideo(); 
+				}, 5000);
+			}
+		} else 
+			this.mesh_front.needsUpdate = true;
 		this.renderer.render( this.scene, this.camera );
 	}
     checkWatermarkPosition(position, label){
