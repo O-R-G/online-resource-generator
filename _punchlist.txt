@@ -33,3 +33,7 @@ x add textbox position dropdown
   preview updates
 + the update of back typography/font is behind by one step
 + the value of shape position is not consistent with others
+- arrow keys doesn't work for main text shift fields
+- sync fields
+  - font
+  - shape shift
