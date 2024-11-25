@@ -755,36 +755,48 @@ export class ShapeAnimated extends Shape {
     }
 	
 	updateFrontTextShiftX(x, silent = false){
+		x = x === '' ? 0 : parseFloat(x);
+		if(isNaN(x)) return;
         this.frontTextShiftX = x * this.canvasObj.scale;
 		this.mesh_frontText.position.x = x;
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateFrontTextShiftY(y, silent = false){
+		y = y === '' ? 0 : parseFloat(y);
+		if(isNaN(y)) return;
         this.frontTextShiftY = y * this.canvasObj.scale;
 		this.mesh_frontText.position.y = -y;
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateBackTextShiftX(x, silent = false){
+		x = x === '' ? 0 : parseFloat(x);
+		if(isNaN(x)) return;
         this.backTextShiftX = x * this.canvasObj.scale;
 		this.mesh_backText.position.x = x;
 		this.mesh_backText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateBackTextShiftY(y, silent = false){
+		y = y === '' ? 0 : parseFloat(y);
+		if(isNaN(y)) return;
         this.backTextShiftY = y * this.canvasObj.scale;
 		this.mesh_backText.position.y = y;
 		this.mesh_backText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftX(x, silent = false){
+		x = x === '' ? 0 : parseFloat(x);
+		if(isNaN(x)) return;
 		this.shapeShiftX = x;
 		this.group.position.x = this.shapeShiftX;
 		this.group.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftY(y, silent = false){
+		y = y === '' ? 0 : parseFloat(y);
+		if(isNaN(y)) return;
 		this.shapeShiftY = y;
 		this.updateGroupPositionY();
         if(!silent) this.canvasObj.draw();

@@ -1275,27 +1275,28 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftX(x, silent = false){
-		if(!x) x = 0;
-		// console.log(x);
-        this.textShiftX = x;
-		// console.log(x, this.textShiftX);
+		x = x === '' ? 0 : parseFloat(x);
+		if(isNaN(x)) return;
+
+		this.textShiftX = x;
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftY(y, silent = false){
-		if(!y) y = 0;
-		
+		y = y === '' ? 0 : parseFloat(y);
+		if(isNaN(y)) return;
         this.textShiftY = y;
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftX(x, silent = false){
-        // this.shapeShiftX = x * this.canvasObj.scale;
+		x = x === '' ? 0 : parseFloat(x);
+		if(isNaN(x)) return;
 		this.shapeShiftX = x;
-		// console.log('updateTextShiftX',this.textShiftX, silent);
 		this.updateFrame();
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftY(y, silent = false){
-        // this.shapeShiftY = y * this.canvasObj.scale;
+		y = y === '' ? 0 : parseFloat(y);
+		if(isNaN(y)) return;
 		this.shapeShiftY = y;
 		this.updateFrame();
         if(!silent) this.canvasObj.draw();

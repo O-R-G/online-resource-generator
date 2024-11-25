@@ -556,9 +556,6 @@ export class Shape {
                         } else {
                             param[item['name']] = e.target.value;
                         }
-                        // if(item['name'] === 'shift')
-
-                        // param[item['name']] = item['name'] === 'rotate' ? (2 * Math.PI) * e.target.value / 360 : e.target.value;
                         self.updateWatermark(idx, param);
                     }
                     if(item['name'] === 'rotate') {
@@ -572,11 +569,13 @@ export class Shape {
                     let shift_direction = item['name'].replace('shift-', '');
                     self.fields['watermarks'][idx]['shift'][shift_direction] = item['el'];
                     item['el'].onchange = function(e){
+                        let val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        if(isNaN(val)) return;
                         let params = {
                             'shift': {}
                         };
                         for(let d in self.fields['watermarks'][idx]['shift']) {
-                            params['shift'][d] = parseFloat( self.fields['watermarks'][idx]['shift'][d].value);
+                            params['shift'][d] = d === shift_direction ? val : parseFloat( self.fields['watermarks'][idx]['shift'][d].value);
                         }
                         self.updateWatermark(idx, params);
                     }

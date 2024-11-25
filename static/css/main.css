@@ -608,6 +608,7 @@ input[value="fetch"]
     justify-content: center;
     align-items: center;
     font-size: 1rem;
+    border: 2px solid #000;
 }
 /* .record-form-button.half-right {
     margin-left: 3px;
