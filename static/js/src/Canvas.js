@@ -290,6 +290,8 @@ export class Canvas {
             temp_right.appendChild(customWidth);
             temp_right.appendChild(cross);
             temp_right.appendChild(customHeight);
+            this.fields['custom-width-input'] = customWidth;
+            this.fields['custom-height-input'] = customHeight;
         }
         let options = formatField.querySelectorAll('option');
         [].forEach.call(options, function(el, i){
@@ -537,6 +539,10 @@ export class Canvas {
     sync(){
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
+        if(this.format === 'custom') {
+            this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;
+            this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
+        }
         for(let shape_id in this.shapes) {
             let shape = this.shapes[shape_id];
             shape.sync();

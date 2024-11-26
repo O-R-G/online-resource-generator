@@ -59,6 +59,8 @@ export class ShapeStatic extends Shape {
 			the prop names are static field names 
 			the values are animated field names
 		*/
+		console.log(this.fields);
+		console.log(this.counterpart.fields);
 		this.fieldCounterparts['shape'] = 'shape';
 		this.fieldCounterparts['animation'] = 'animation';
 		this.fieldCounterparts['text'] = 'text-front';
@@ -775,6 +777,7 @@ export class ShapeStatic extends Shape {
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+		console.log('textBoxWidth', this.textBoxWidth);
         this.context.fillStyle = this.color;
 		this.drawRectanglePath();
         this.context.fill();

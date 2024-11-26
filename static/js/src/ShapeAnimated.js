@@ -243,7 +243,7 @@ export class ShapeAnimated extends Shape {
 				arc[prop] = this.getValueByPixelRatio(arc[prop]);
 			}
 		}
-		console.log(arcs[0]);
+		// console.log(arcs[0]);
 		// let dev_y = 206;
 		path_front.arc(this.shapeCenter.x + arcs[0].x, this.shapeCenter.y + arcs[0].y, arcs[0].r, arcs[0].from,arcs[0].to, true);
 		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
@@ -326,7 +326,8 @@ export class ShapeAnimated extends Shape {
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
+		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) ;
+		// console.log('textBoxWidth', this.textBoxWidth);
 		let w, h;
 		if(this.shape.base === 'fill') {
 			w = this.frame.w;
@@ -375,7 +376,7 @@ export class ShapeAnimated extends Shape {
         let paddingX = this.padding;
         let paddingY = this.padding;
         let side = this.frame.w - this.padding * 2;
-        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2);
 		// this.context.save();
         ctx.beginPath();
         ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
@@ -390,7 +391,7 @@ export class ShapeAnimated extends Shape {
 		const output = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
+		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
 
 		let w, h;
 		if(this.shape.base === 'fill') {
@@ -484,11 +485,13 @@ export class ShapeAnimated extends Shape {
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		output.position.y += text_dev_y;
+		
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
 			output.position.x += shift.x;
 			output.position.y += shift.y;
 			output.sync();
+			console.log(output);
 			return output;
 		}
 		output.lineHeight = 1;
@@ -694,6 +697,9 @@ export class ShapeAnimated extends Shape {
 		output.sync();
 		return output;
 	}
+	// setTextLeftByAlign(){
+
+	// }
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
 		if(!text_mesh) return;
 		let fontData = this.processFontData(typography, font, isBack);
@@ -745,7 +751,6 @@ export class ShapeAnimated extends Shape {
 			this.mesh_frontText.needsUpdate = true;
 		}
 		this.renderer.renderLists.dispose();
-		console.log('updateFrontText', silent);
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackText(str, silent = false){
@@ -759,9 +764,13 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPosition(position, silent = false){
+		// console.log('updateFrontTextPosition', position);
         this.frontTextPosition = position;
 		if(this.mesh_frontText) {
 			this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
+			this.mesh_frontText.anchorX = position == 'align-left' ? 'left' : 'center';
+			let dev_x = this.getValueByPixelRatio(-3);
+			this.mesh_frontText.position.x = position === 'align-left' ? - this.textBoxWidth / 2 + dev_x : 0;
 			this.mesh_frontText.needsUpdate = true;
 		}
         if(!silent) this.canvasObj.draw();
@@ -770,6 +779,9 @@ export class ShapeAnimated extends Shape {
         this.backTextPosition = position;
 		if(this.mesh_backText) {
 			this.mesh_backText.textAlign = position == 'align-left' ? 'left' : 'center';
+			this.mesh_backText.anchorX = position == 'align-left' ? 'left' : 'center';
+			let dev_x = this.getValueByPixelRatio(-3);
+			this.mesh_backText.position.x = position === 'align-left' ? - this.textBoxWidth / 2 + dev_x : 0;
 			this.mesh_backText.needsUpdate = true;
 		}
         if(!silent) this.canvasObj.draw();
@@ -1911,6 +1923,7 @@ export class ShapeAnimated extends Shape {
 
 	    this.fields['text-front-position'].onchange = function(e){
 	    	let position = e.target.value;
+			console.log('text-front-position onchange', position);
 	    	this.updateFrontTextPosition(position);
 	    }.bind(this);
 

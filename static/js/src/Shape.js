@@ -900,6 +900,11 @@ export class Shape {
         this.frame = frame;
     }
     updateCounterpartField(field, counter_field){
+        console.log('updateCounterpartField');
+        if(field.id === 'custom-width-input') {
+            console.log('huh?');
+        }
+       
         let tagName = field.tagName.toLowerCase();
         if(tagName === 'select') {
             let val = field.value;
