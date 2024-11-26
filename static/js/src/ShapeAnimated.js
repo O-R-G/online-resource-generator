@@ -81,9 +81,7 @@ export class ShapeAnimated extends Shape {
 
 		this.shapeShiftX = 0;
 		this.shapeShiftY = 0;
-		// this.backShapeShiftX = 0;
-		// this.backShapeShiftY = 0;
-
+		
 		this.text = {
 			front: {
 				str: false,
@@ -109,8 +107,10 @@ export class ShapeAnimated extends Shape {
 		this.startTime = null
 	}
 	init(canvasObj){
+		// console.log(canvasObj.canvas.width, canvasObj.canvas.height)
 		super.init(canvasObj);
 		this.canvas = canvasObj.canvas;
+		
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();		
 		this.control.classList.add('animated-shape-control');
@@ -132,6 +132,7 @@ export class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
+
 		this.context = this.canvas.getContext("2d");
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
 		this.renderer = this.canvasObj.renderer;
@@ -202,33 +203,58 @@ export class ShapeAnimated extends Shape {
 	drawHeart() {
 		var path_front = new THREE.Shape();
 		var path_back = new THREE.Shape();
+		// let arcs = [
+		// 	{
+		// 		x: -192,
+		// 		y: 143.56,
+		// 		r: 280,
+		// 		from: 3 * Math.PI / 4,
+		// 		to: 7 * Math.PI / 4
+		// 	},
+		// 	{
+		// 		x: 192,
+		// 		y: 143.56,
+		// 		r: 280,
+		// 		from: 5 * Math.PI / 4,
+		// 		to: Math.PI / 4
+		// 	}
+		// ];
 		let arcs = [
 			{
-				x: -96,
-				y: 71.78,
-				r: 140,
+				x: -192,
+				y: 143.56,
+				r: 280,
 				from: 5 * Math.PI / 4,
 				to: Math.PI / 4
 			},
 			{
-				x: 96,
-				y: 71.78,
-				r: 140,
+				x: 192,
+				y: 143.56,
+				r: 280,
 				from: 3 * Math.PI / 4,
 				to: 7 * Math.PI / 4
 			}
 		];
-	
-		path_front.arc(this.shapeCenter.x + arcs[0].x * this.canvasObj.scale, this.shapeCenter.y + arcs[0].y * this.canvasObj.scale, arcs[0].r * this.canvasObj.scale, arcs[0].from,arcs[0].to, true);
+		// let dev_y = 412;
+		let dev_y = this.getValueByPixelRatio(412);
+		for(let arc of arcs) {
+			for(let prop in arc) {
+				if(prop === 'from' || prop === 'to') continue;
+				arc[prop] = this.getValueByPixelRatio(arc[prop]);
+			}
+		}
+		console.log(arcs[0]);
+		// let dev_y = 206;
+		path_front.arc(this.shapeCenter.x + arcs[0].x, this.shapeCenter.y + arcs[0].y, arcs[0].r, arcs[0].from,arcs[0].to, true);
 		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
-		path_front.arc(this.shapeCenter.x + arcs[1].x * this.canvasObj.scale, this.shapeCenter.y + arcs[1].y * this.canvasObj.scale, arcs[1].r * this.canvasObj.scale, arcs[1].from,arcs[1].to, true);
-		path_front.lineTo(this.shapeCenter.x, this.shapeCenter.y - 206 * this.canvasObj.scale);
+		path_front.arc(this.shapeCenter.x + arcs[1].x, this.shapeCenter.y + arcs[1].y, arcs[1].r, arcs[1].from,arcs[1].to, true);
+		path_front.lineTo(this.shapeCenter.x, this.shapeCenter.y - dev_y);
 		path_front.closePath();
 
-		path_back.arc(this.shapeCenter.x + arcs[0].x * this.canvasObj.scale, this.shapeCenter.y + arcs[0].y * this.canvasObj.scale, arcs[0].r * this.canvasObj.scale, arcs[0].from,arcs[0].to, true);
+		path_back.arc(this.shapeCenter.x + arcs[0].x, this.shapeCenter.y + arcs[0].y, arcs[0].r, arcs[0].from,arcs[0].to, true);
 		path_back.moveTo(this.shapeCenter.x, this.shapeCenter.y);
-		path_back.arc(this.shapeCenter.x + arcs[1].x * this.canvasObj.scale, this.shapeCenter.y + arcs[1].y * this.canvasObj.scale, arcs[1].r * this.canvasObj.scale, arcs[1].from,arcs[1].to, true);
-		path_back.lineTo(this.shapeCenter.x, this.shapeCenter.y - 206 * this.canvasObj.scale);
+		path_back.arc(this.shapeCenter.x + arcs[1].x, this.shapeCenter.y + arcs[1].y, arcs[1].r, arcs[1].from,arcs[1].to, true);
+		path_back.lineTo(this.shapeCenter.x, this.shapeCenter.y - dev_y);
 		path_back.closePath();
 
 		this.geometry_front = new THREE.ShapeGeometry(path_front);
@@ -289,6 +315,7 @@ export class ShapeAnimated extends Shape {
 	}
 	drawCircle(){
 		let this_r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
+		this_r = this_r;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
 		this.geometry_back = new THREE.CircleGeometry( this_r, 64);
@@ -296,17 +323,14 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
-		console.log('drawRectangle');
-		console.log(this.shapeCenter);
-		// console.log(this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) * 0.9;
 		let w, h;
 		if(this.shape.base === 'fill') {
-			w = this.frame.w
-			h = this.frame.h
+			w = this.frame.w;
+			h = this.frame.h;
 		} else {
 			let side = Math.min(this.frame.w, this.frame.h);
 			w = side - this_p * 2 - this_r * 2;
@@ -430,8 +454,9 @@ export class ShapeAnimated extends Shape {
 			regular screen: 1 
 			seems it doesn't matter though
 		*/
-		
-		return input;
+		// console.log(this.devicePixelRatio);
+		// return input;
+		return input * this.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
 		if(str == '') return false;
@@ -670,10 +695,7 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
-		// console.log('cc');
 		if(!text_mesh) return;
-		// console.log('dd');
-		// if(isBack) console.log(typography, font);
 		let fontData = this.processFontData(typography, font, isBack);
 		text_mesh.fontSize = fontData.size;
 		text_mesh.font = fontData.path;
@@ -689,8 +711,7 @@ export class ShapeAnimated extends Shape {
 		let fontData = this.fonts[font['name']] ? this.fonts[font['name']] : '';
 		output.font = fontData['font'];
 		output.path = font['path'];
-		// output.size = this.getValueByPixelRatio(size);
-		output.size = size;
+		output.size = this.getValueByPixelRatio(size);
 		output.lineHeight = typography['lineHeight'] / size;
 		output.letterSpacing = typography['letterSpacing'] / size;
 		return output;
@@ -757,7 +778,8 @@ export class ShapeAnimated extends Shape {
 	updateFrontTextShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
-        this.frontTextShiftX = x * this.canvasObj.scale;
+		x = this.getValueByPixelRatio(x);
+        this.frontTextShiftX = x;
 		this.mesh_frontText.position.x = x;
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
@@ -765,7 +787,8 @@ export class ShapeAnimated extends Shape {
 	updateFrontTextShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
-        this.frontTextShiftY = y * this.canvasObj.scale;
+		y = this.getValueByPixelRatio(y);
+        this.frontTextShiftY = y;
 		this.mesh_frontText.position.y = -y;
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
@@ -773,7 +796,8 @@ export class ShapeAnimated extends Shape {
 	updateBackTextShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
-        this.backTextShiftX = x * this.canvasObj.scale;
+		x = this.getValueByPixelRatio(x);
+        this.backTextShiftX = x;
 		this.mesh_backText.position.x = x;
 		this.mesh_backText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
@@ -781,7 +805,9 @@ export class ShapeAnimated extends Shape {
 	updateBackTextShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
-        this.backTextShiftY = y * this.canvasObj.scale;
+		y = this.getValueByPixelRatio(y);
+        // this.backTextShiftY = y * this.canvasObj.scale;
+		this.backTextShiftY = y;
 		this.mesh_backText.position.y = y;
 		this.mesh_backText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
@@ -789,6 +815,7 @@ export class ShapeAnimated extends Shape {
 	updateShapeShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
+		x = this.getValueByPixelRatio(x);
 		this.shapeShiftX = x;
 		this.group.position.x = this.shapeShiftX;
 		this.group.needsUpdate = true;
@@ -797,6 +824,7 @@ export class ShapeAnimated extends Shape {
 	updateShapeShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
+		y = this.getValueByPixelRatio(y);
 		this.shapeShiftY = y;
 		this.updateGroupPositionY();
         if(!silent) this.canvasObj.draw();
@@ -1978,8 +2006,10 @@ export class ShapeAnimated extends Shape {
 		silent = false;
 		this.updateCanvasSize();
 		frame = frame ? frame : this.generateFrame();
-		// console.log(frame)
     	super.updateFrame(frame);
+		// for(let prop in this.frame) {
+		// 	this.frame[prop] = this.getValueByPixelRatio(this.frame[prop]);
+		// }
 		if(this.group) {
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
@@ -2013,8 +2043,8 @@ export class ShapeAnimated extends Shape {
 	generateFrame(){
 		// super.generateFrame();
 		let output = {};
-        let unit_w = this.canvasObj.canvas.width;
-        let unit_h = this.canvasObj.canvas.height / (Object.keys(this.canvasObj.shapes).length || 1);
+        let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
+        let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
         if(this.shape.base == 'fill') {
             output.w = unit_w;
             output.h = unit_h;

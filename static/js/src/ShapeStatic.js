@@ -856,24 +856,25 @@ export class ShapeStatic extends Shape {
 		this.context.fillStyle = this.color;
 		let arcs = [
 			{
-				x: -96,
-				y: -71.78,
-				r: 140,
+				x: -192,
+				y: -143.56,
+				r: 280,
 				from: 3 * Math.PI / 4,
 				to: 7 * Math.PI / 4
 			},
 			{
-				x: 96,
-				y: -71.78,
-				r: 140,
+				x: 192,
+				y: -143.56,
+				r: 280,
 				from: 5 * Math.PI / 4,
 				to: Math.PI / 4
 			}
 		];
+		let dev_y = 412;
 		this.context.beginPath();
-		this.context.arc(this.shapeCenter.x + arcs[0].x * this.canvasObj.scale, this.shapeCenter.y + arcs[0].y * this.canvasObj.scale, arcs[0].r * this.canvasObj.scale, arcs[0].from,arcs[0].to);
-		this.context.arc(this.shapeCenter.x + arcs[1].x * this.canvasObj.scale, this.shapeCenter.y + arcs[1].y * this.canvasObj.scale, arcs[1].r * this.canvasObj.scale, arcs[1].from,arcs[1].to);
-		this.context.lineTo(this.shapeCenter.x, this.shapeCenter.y + 206 * this.canvasObj.scale);
+		this.context.arc(this.shapeCenter.x + arcs[0].x, this.shapeCenter.y + arcs[0].y, arcs[0].r, arcs[0].from,arcs[0].to);
+		this.context.arc(this.shapeCenter.x + arcs[1].x, this.shapeCenter.y + arcs[1].y, arcs[1].r, arcs[1].from,arcs[1].to);
+		this.context.lineTo(this.shapeCenter.x, this.shapeCenter.y + dev_y);
 		this.context.closePath();
         this.context.fill();
 	}

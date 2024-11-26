@@ -25,8 +25,8 @@ export class Canvas {
 	    this.isRecording = false;
         this.fields = {};
         this.isdebug = false;
-        // this.scale = this.isThree ? 1 : 2;
-        this.scale = 2;
+        this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
+        // this.scale = 2;
         this.framerate = 60;
 	}
 	init(){
@@ -38,24 +38,26 @@ export class Canvas {
 		  this.context = this.canvas.getContext('2d');
 		
 		this.canvas.id = this.id;
-        
         this.canvas.className = "org-main-canvas";
         this.wrapper.appendChild(this.canvas);
-        if(this.format !== 'custom') {
-            this.setCanvasSize(
-                {
-                    'width': this.formatOptions[this.format].w,
-                    'height': this.formatOptions[this.format].h
-                }
-            );
-        } else {
-            this.setCanvasSize(
-                {
-                    'width': this.formatOptions[this.format].w,
-                    'height': this.formatOptions[this.format].h
-                }
-            );
+        if(!this.isThree) {
+            if(this.format !== 'custom') {
+                this.setCanvasSize(
+                    {
+                        'width': this.formatOptions[this.format].w,
+                        'height': this.formatOptions[this.format].h
+                    }
+                );
+            } else {
+                this.setCanvasSize(
+                    {
+                        'width': this.formatOptions[this.format].w,
+                        'height': this.formatOptions[this.format].h
+                    }
+                );
+            }
         }
+        
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
         this.isRecording = false;
@@ -63,6 +65,7 @@ export class Canvas {
         this.readyState = 0;
         this.textAmount = 0;
 		if(this.isThree) this.initThree();
+        // console.log(this.canvas.height)
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
@@ -76,18 +79,29 @@ export class Canvas {
         for(let shape_id in this.shapes) {
             if(!this.shapes[shape_id].initialized) this.shapes[shape_id].init(this);
         }
-        this.draw();
+        // this.draw();
 	}
     
 	initThree(){
+        // console.log('initThree', this.canvas.height);
+        // console.log(this.getDefaultOption(this.format));
+        let width =  this.formatOptions[this.format].w / window.devicePixelRatio;
+        let height =  this.formatOptions[this.format].h / window.devicePixelRatio;
+        console.log(width, height)
+        // this.canvas.width = width;
+        // this.canvas.height = height;
+        this.canvas.style.width = `${width * window.devicePixelRatio}px`;
+        this.canvas.style.height = `${height * window.devicePixelRatio}px`;
+        this.canvas.style.transform = `scale(${1 / 2})`;
+        this.canvas.style.transformOrigin = `0 0`;
 		this.renderer = new THREE.WebGLRenderer({
 			'canvas': this.canvas, 
 			'antialias': true,
             'preserveDrawingBuffer': true 
 		});
         this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio, false);
-		this.scene = new THREE.Scene();
+        this.renderer.setSize( width, height, false);
+        this.scene = new THREE.Scene();
         
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
@@ -530,6 +544,7 @@ export class Canvas {
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
         let updated = false;
+        // console.log(size);
         if(size.width) {
             updated = true;
             this.canvas.width = size.width;
@@ -540,6 +555,7 @@ export class Canvas {
             this.canvas.height = size.height;
             this.canvas.style.height = size.height / this.scale + 'px';
         }
+        // console.log(size.height, this.canvas.height)
         if(!this.wrapper.offsetHeight || ! updated) return;
 
         if(this.isThree)
