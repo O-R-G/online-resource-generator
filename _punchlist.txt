@@ -41,3 +41,4 @@ x add textbox position dropdown
 + from static to animated canvas. everything becomes half the size on retina screen.
 - fade in/out watermarks
 - clean up setCanvasSize for three.js canvas
+- unify text-handling (main texts and watermarks)

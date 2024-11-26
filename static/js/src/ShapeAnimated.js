@@ -460,13 +460,15 @@ export class ShapeAnimated extends Shape {
 		return input * this.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
+		// console.log('write', str, shift);
+		// console.log('write', str);
+		console.log(this.fields);
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		
-		shift = shift ? shift : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
-		shift.x = shift.x ? shift.x : 0;
-		shift.y = shift.y ? -shift.y : 0;
+		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
+		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
+		shift.y = shift.y ? this.getValueByPixelRatio(-shift.y) : 0;
 		rad = rad ? -rad : 0;
 		let output = new Text();
 		if(sync)
@@ -480,18 +482,22 @@ export class ShapeAnimated extends Shape {
 		output.material = material;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
-		output.anchorX = 'center';
+		output.anchorX = align == 'align-left' ? 'left' : 'center';
 		output.anchorY = '50%';
+		let dev_x = this.getValueByPixelRatio(-3);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
-		output.position.y += text_dev_y;
 		
+		output.position.y += text_dev_y;
+		output.position.x = align === 'align-left' ? - this.textBoxWidth / 2 + dev_x : 0;
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
+
 			output.position.x += shift.x;
 			output.position.y += shift.y;
+			console.log('align = ' + align);
+			console.log(output.position.x);
 			output.sync();
-			console.log(output);
 			return output;
 		}
 		output.lineHeight = 1;
@@ -693,8 +699,9 @@ export class ShapeAnimated extends Shape {
 		}
 		if(animationName)
 			output.position.z = 0.1;
-
+		// console.log('write end', this.watermarks[0].shift);
 		output.sync();
+		// console.log('write end2', this.watermarks[0].shift);
 		return output;
 	}
 	// setTextLeftByAlign(){
@@ -764,7 +771,6 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPosition(position, silent = false){
-		// console.log('updateFrontTextPosition', position);
         this.frontTextPosition = position;
 		if(this.mesh_frontText) {
 			this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
@@ -790,25 +796,25 @@ export class ShapeAnimated extends Shape {
 	updateFrontTextShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
-		x = this.getValueByPixelRatio(x);
+		// x = this.getValueByPixelRatio(x);
         this.frontTextShiftX = x;
-		this.mesh_frontText.position.x = x;
+		this.mesh_frontText.position.x = this.getValueByPixelRatio(x);
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateFrontTextShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
-		y = this.getValueByPixelRatio(y);
+		// y = this.getValueByPixelRatio(y);
         this.frontTextShiftY = y;
-		this.mesh_frontText.position.y = -y;
+		this.mesh_frontText.position.y = this.getValueByPixelRatio(-y);
 		this.mesh_frontText.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateBackTextShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
-		x = this.getValueByPixelRatio(x);
+		// x = this.getValueByPixelRatio(x);
         this.backTextShiftX = x;
 		this.mesh_backText.position.x = x;
 		this.mesh_backText.needsUpdate = true;
@@ -817,8 +823,7 @@ export class ShapeAnimated extends Shape {
 	updateBackTextShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
-		y = this.getValueByPixelRatio(y);
-        // this.backTextShiftY = y * this.canvasObj.scale;
+		// y = this.getValueByPixelRatio(y);
 		this.backTextShiftY = y;
 		this.mesh_backText.position.y = y;
 		this.mesh_backText.needsUpdate = true;
@@ -827,16 +832,16 @@ export class ShapeAnimated extends Shape {
 	updateShapeShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
-		x = this.getValueByPixelRatio(x);
+		// x = this.getValueByPixelRatio(x);
 		this.shapeShiftX = x;
-		this.group.position.x = this.shapeShiftX;
+		this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
 		this.group.needsUpdate = true;
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
-		y = this.getValueByPixelRatio(y);
+		// y = this.getValueByPixelRatio(y);
 		this.shapeShiftY = y;
 		this.updateGroupPositionY();
         if(!silent) this.canvasObj.draw();
@@ -918,7 +923,9 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateWatermark(idx, values_obj = {}, silent=false){
-    	super.updateWatermark(idx, values_obj);
+		
+		super.updateWatermark(idx, values_obj);
+
 		let mesh_data = [{
 				mesh: this.watermarks[idx].mesh_front,
 				group: this.frontWatermarkGroup
@@ -937,13 +944,6 @@ export class ShapeAnimated extends Shape {
 			} else if(mesh instanceof THREE.Group) {
 				group.remove(mesh);
 				this.disposeGroup(mesh);
-				// mesh.children.forEach(child => {
-				// 	if (child instanceof THREE.Mesh) {
-				// 		child.dispose();
-				// 	}
-				// 	mesh.remove(child);
-				// });
-				// mesh.children = [];
 			}
 		}
 		this.frontWatermarkGroup.remove(this.watermarks[idx].mesh_front);
@@ -1157,6 +1157,7 @@ export class ShapeAnimated extends Shape {
 			this.mesh_back.add(this.backWatermarkGroup);
 
 		if(!this.mesh_frontText) {
+			// console.log('actual write: ', this.frontTextPosition);
 			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 			if(this.mesh_frontText) {
 				this.mesh_front.add(this.mesh_frontText);
@@ -1190,10 +1191,11 @@ export class ShapeAnimated extends Shape {
 				{
 					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
+
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
-					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
-					if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
+					// el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
+					// if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
 				}
 			}.bind(this));
 		}
@@ -2034,21 +2036,21 @@ export class ShapeAnimated extends Shape {
     }
 	updateGroupPositionY(){
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			this.group.position.y = -this.shapeShiftY;
+			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY);
 		} else {
-			this.group.position.y = -this.shapeShiftY + this.frame.y * this.scale.y;
+			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
 		}
 	}
 	generateShapeCenter(){
-		let output = {x: this.shapeShiftX, y: this.shapeShiftY};
+		let output = {x: this.getValueByPixelRatio(this.shapeShiftX), y: this.getValueByPixelRatio(this.shapeShiftY)};
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		
 		if(shape_num === 1) {
 			return output;
 		} else if(shape_num === 2) {
 			let canvas_h = this.canvasObj.canvas.height;
-			output.x = 0 + this.shapeShiftX;
-			output.y = this.shape_index == 0 ? canvas_h / 4 + this.shapeShiftY : - canvas_h / 4 + this.shapeShiftY;
+			// output.x = 0 + this.shapeShiftX;
+			output.y = this.shape_index == 0 ? this.getValueByPixelRatio(canvas_h / 4 + this.shapeShiftY) : this.getValueByPixelRatio(- canvas_h / 4 + this.shapeShiftY);
 		}
 		
 		return output;

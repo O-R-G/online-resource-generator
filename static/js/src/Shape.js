@@ -109,11 +109,9 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){
-        // console.log(idx, values_obj);
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
         if(typeof this.watermarks[idx] == 'undefined')
     	{
-            // let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
             if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
             let values = {...values_obj, typography:typography};
             values['position'] = values['position'] ? values['position'] : this.getDefaultOption(this.options.watermarkPositionOptions, true);
@@ -131,6 +129,9 @@ export class Shape {
     	{
             if(!typography) typography = this.watermarks[idx]['typography'];
             let values = {...values_obj, typography:typography};
+            if(this.isThree) {
+                console.log(values);
+            }
             for(let name in values) {
                 if(!values[name] && values[name] !== 0) continue;
                 this.watermarks[idx][name] = values[name];
@@ -900,11 +901,6 @@ export class Shape {
         this.frame = frame;
     }
     updateCounterpartField(field, counter_field){
-        console.log('updateCounterpartField');
-        if(field.id === 'custom-width-input') {
-            console.log('huh?');
-        }
-       
         let tagName = field.tagName.toLowerCase();
         if(tagName === 'select') {
             let val = field.value;
@@ -946,6 +942,7 @@ export class Shape {
     }
 
     updateCounterpartWatermarks(silent=false){
+        // console.log('updateCounterpartWatermarks');
         this.fields.watermarks.forEach(function(this_watermark, i){
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();

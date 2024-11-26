@@ -59,12 +59,13 @@ export class ShapeStatic extends Shape {
 			the prop names are static field names 
 			the values are animated field names
 		*/
-		console.log(this.fields);
-		console.log(this.counterpart.fields);
 		this.fieldCounterparts['shape'] = 'shape';
+		this.fieldCounterparts['shape-shift-x'] = 'shape-shift-x';
+		this.fieldCounterparts['shape-shift-y'] = 'shape-shift-y';
 		this.fieldCounterparts['animation'] = 'animation';
 		this.fieldCounterparts['text'] = 'text-front';
 		this.fieldCounterparts['text-position'] = 'text-front-position';
+		this.fieldCounterparts['text-font'] = 'text-front-font';
 		this.fieldCounterparts['text-color'] = 'text-front-color';
 		this.fieldCounterparts['text-typography'] = 'text-front-typography';
 		this.fieldCounterparts['text-shift-x'] = 'text-front-shift-x';
@@ -634,8 +635,6 @@ export class ShapeStatic extends Shape {
     	}
 		x += shift && shift.x ? parseInt(shift.x) : 0, 
 		y += shift && shift.y ? parseInt(shift.y) : 0;
-		// if(shift && shift.x) console.log(shift.x);
-		// console.log(x);
 		this.context.save();
     	if(align.indexOf('middle') !== -1 && (this.shape.base == 'rectangle' || this.shape.base == 'fill')) {
 			this.context.textAlign = 'center';
@@ -757,13 +756,14 @@ export class ShapeStatic extends Shape {
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
+		console.log('static updatewatermark');
+		console.log(values_raw);
 		super.updateWatermark(idx, values_raw);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position)) {
-				// console.log(el.shift);
 				this.write(el.str, el.position, el.color, el.typography, el.font, el.shift, el.rotate);
 			}
 				
@@ -777,7 +777,7 @@ export class ShapeStatic extends Shape {
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
-		console.log('textBoxWidth', this.textBoxWidth);
+		// console.log('textBoxWidth', this.textBoxWidth);
         this.context.fillStyle = this.color;
 		this.drawRectanglePath();
         this.context.fill();
