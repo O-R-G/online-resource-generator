@@ -918,8 +918,11 @@ export class Shape {
             if(!val) return;
             counter_field.value = val;
         }
-        counter_field.dispatchEvent(new Event('change'));
-        counter_field.dispatchEvent(new Event('input'));
+        // counter_field.dispatchEvent(new Event('change', {detail: {isSilent: true}}));
+        // counter_field.dispatchEvent(new Event('input', {detail: {isSilent: true}}));
+        counter_field.dispatchEvent(new CustomEvent('change', {detail: {isSilent: true}}));
+        counter_field.dispatchEvent(new CustomEvent('input',  {detail: {isSilent: true}}));
+        // counter_field.dispatchEvent(new Event('input', {detail: {isSilent: true}}));
     }
     updateCounterpartSelectField(field, index)
     {
