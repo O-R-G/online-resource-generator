@@ -1028,19 +1028,18 @@ export class ShapeAnimated extends Shape {
 			texture.magFilter = THREE.LinearFilter;
 			texture.minFilter = THREE.LinearFilter;
 			texture.colorSpace = THREE.SRGBColorSpace;
-			texture.wrapS = THREE.ClampToEdgeWrapping;
-			texture.wrapT = THREE.ClampToEdgeWrapping;
-  			let mesh = isBack ? this.mesh_back : this.mesh_front;
-			if(!isBack) {
-				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture });
+			
+			let mesh = isBack ? this.mesh_back : this.mesh_front;
+			  if(!isBack) {
+				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
 				mesh.material = this.frontMaterial;
 			} else {
-				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture });
+				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
 				mesh.material = this.backMaterial;
 			}
 			mesh.needsUpdate = true;
 			let geometry = isBack ? this.geometry_back : this.geometry_front;
-			// let original_uv_array = isBack ? this.geometry_back_uvs : this.geometry_front_uvs;
+
 			const imageAspect = texture.image.width / texture.image.height;
 			geometry.computeBoundingBox();
 			const bbox = geometry.boundingBox;
@@ -1070,15 +1069,24 @@ export class ShapeAnimated extends Shape {
 				const y = position.getY(i);
 		
 				let u = (x - min.x) / (max.x - min.x);
+				console.log(x,y);
+				console.log(u);
 				let v = (y - min.y) / (max.y - min.y);
 				u = u * scaleX + (1 - scaleX) / 2 - dev_x;
 				v = v * scaleY + (1 - scaleY) / 2 + dev_y;
+
+				// if (u < 0 || u > 1 || v < 0 || v > 1) {
+				// 	u = Math.max(Math.min(u, 1), 0);
+				// 	v = Math.max(Math.min(v, 1), 0);
+				// }
+				console.log(u, v);
 				uvArray.push(u, v);
 			}
-		
+			
+
 			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
 			geometry.attributes.uv.needsUpdate = true;
-
+			
 			if(!silent) this.canvasObj.draw();
 			// return true;
 		});
@@ -1123,8 +1131,7 @@ export class ShapeAnimated extends Shape {
 			this.drawHexagon();
 		else if(this.shape.base == 'heart')
 			this.drawHeart();
-		// this.geometry_front.needsUpdate = true;
-		// this.geometry_back.needsUpdate = true;
+		
 		if(this.mesh_front) {
 			this.mesh_front.geometry = this.geometry_front;
 			this.mesh_front.needsUpdate = true;
@@ -1963,7 +1970,6 @@ export class ShapeAnimated extends Shape {
 					this.readVideoUploaded(e, (video)=>{
 						let isBack = idx.indexOf('back-') !== -1;
 						this.updateMedia(idx, video, false, isBack, true);
-						// this.applyVideoAsMaterial();
 					});
 				} else {
 					this.readImageUploaded(e, (idx, image)=> {
