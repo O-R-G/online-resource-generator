@@ -756,8 +756,6 @@ export class ShapeStatic extends Shape {
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
-		console.log('static updatewatermark');
-		console.log(values_raw);
 		super.updateWatermark(idx, values_raw);
 		if(!silent) this.canvasObj.draw();
 	}
@@ -1345,10 +1343,24 @@ export class ShapeStatic extends Shape {
 		this.context.globalCompositeOperation = 'normal';
 	}
 	syncMedia(){
+		// console.log('syncMedia')
 		super.syncMedia();
-		if(this.color instanceof CanvasPattern && this.media['background-image']) {
-			let idx = this.fieldCounterparts['background-image'];
-			this.counterpart.updateMedia(idx, this.media['background-image'].img);
+		let idx = 'background-image';
+		if(this.color instanceof CanvasPattern && this.media[idx]) {
+			console.log('syncMedia?')
+			let c_idx = this.fieldCounterparts[idx];
+			this.counterpart.updateMedia(c_idx, this.media[idx].img);
+			console.log(c_idx);
+			// console.log(this.counterpart.fields)
+			console.log(this.fields.media)
+			console.log(this.counterpart.fields.media)
+			if(this.counterpart.fields.media[c_idx]) {
+				
+				if(this.fields.media[idx].getAttribute('data-file-src')) {
+					this.counterpart.fields.media[c_idx].setAttribute('data-file-src', this.fields.media[idx].getAttribute('data-file-src'));
+				}
+			}
+				
 		}
 	}
 	// getDisplayValue(input){

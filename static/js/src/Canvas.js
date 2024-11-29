@@ -83,13 +83,8 @@ export class Canvas {
 	}
     
 	initThree(){
-        // console.log('initThree', this.canvas.height);
-        // console.log(this.getDefaultOption(this.format));
         let width =  this.formatOptions[this.format].w / window.devicePixelRatio;
         let height =  this.formatOptions[this.format].h / window.devicePixelRatio;
-        console.log(width, height)
-        // this.canvas.width = width;
-        // this.canvas.height = height;
         this.canvas.style.width = `${width * window.devicePixelRatio}px`;
         this.canvas.style.height = `${height * window.devicePixelRatio}px`;
         this.canvas.style.transform = `scale(${1 / 2})`;

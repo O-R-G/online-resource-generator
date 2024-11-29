@@ -205,16 +205,12 @@ export class Record {
                 let shape_id = data['shape_id'];
                 if (!shape_control) continue;
                 let shapeObj = this.canvasObjs[canvas_id].shapes[shape_id];
-                // for(let shape of this.canvasObjs[canvas_id].shapes) {
-                //     if(shape.id === shape_id) {
-                //         shapeObj = shape;
-                //     }
-                // }
+                
                 if(!shapeObj) continue;
                 for(let i = 0 ; i < data['watermarks_num']; i++) {
                     this.canvasObjs[canvas_id].shapes[shape_id].addWatermark();
                 }
-                console.log('media_num', data['media_num']);
+
                 for(let i = 0 ; i < data['media_num']; i++) {
                     this.canvasObjs[canvas_id].shapes[shape_id].addMedia();
                 }
@@ -256,7 +252,7 @@ export class Record {
         }
         for(let field_id in this.record_body['images'] ){
             let el = document.getElementById(field_id);
-            console.log(el)
+            // console.log(el)
             if(!el) continue;
             this.applySavedFile(el);
 
@@ -276,6 +272,7 @@ export class Record {
         avtive_canvas.draw();
     }
     applySavedFile(field, shapeObj){
+        console.log('applySavedFile', field.id);
         let idx = field.getAttribute('image-idx');
         let id = field.id;
         let src = this.record_body['images'][id];
@@ -283,17 +280,6 @@ export class Record {
         src = media_relative_root + src;
         let el = document.getElementById(id);
         if(!el) return false;
-        // if(shapeObj) {
-        //     if(!shapeObj.imgs[idx])
-        //         shapeObj.imgs[idx] = {
-        //             img: null,
-        //             x: 0,
-        //             y: 0,				
-        //             shiftY: 0,
-        //             shiftX: 0,
-        //             scale: 1
-        //         };
-        // }
         el.setAttribute('data-file-src', src);
         el.dispatchEvent(new Event('applySavedFile'));
         // shapeObj.readImage(idx, src, shapeObj.updateImg.bind(shapeObj));

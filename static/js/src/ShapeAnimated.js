@@ -332,7 +332,9 @@ export class ShapeAnimated extends Shape {
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) ;
 		// console.log('textBoxWidth', this.textBoxWidth);
 		let w, h;
+		
 		if(this.shape.base === 'fill') {
+			// let dev = this.getValueByPixelRatio(10);
 			w = this.frame.w;
 			h = this.frame.h;
 		} else {
@@ -463,7 +465,7 @@ export class ShapeAnimated extends Shape {
 		return input * this.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
-		console.log('write', align, str);
+		// console.log('write', align, str);
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
@@ -496,8 +498,6 @@ export class ShapeAnimated extends Shape {
 
 			output.position.x += shift.x;
 			output.position.y += shift.y;
-			console.log('align = ' + align);
-			console.log(output.position.x);
 			output.sync();
 			return output;
 		}
@@ -700,9 +700,7 @@ export class ShapeAnimated extends Shape {
 		}
 		if(animationName)
 			output.position.z = 0.1;
-		// console.log('write end', this.watermarks[0].shift);
 		output.sync();
-		// console.log('write end2', this.watermarks[0].shift);
 		return output;
 	}
 	// setTextLeftByAlign(){
@@ -790,7 +788,6 @@ export class ShapeAnimated extends Shape {
 	
 	updateFrontTextShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
-		console.log('updateFrontTextShiftX', x);
 		if(isNaN(x)) return;
         this.frontTextShiftX = x;
 		this.updateFrontTextPositionX(silent);
@@ -799,7 +796,8 @@ export class ShapeAnimated extends Shape {
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
         this.frontTextShiftY = y;
-		this.updateFrontTextPositionY(silent);
+		if(this.mesh_frontText)
+			this.updateFrontTextPositionY(silent);
     }
 	updateBackTextShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
@@ -1011,7 +1009,9 @@ export class ShapeAnimated extends Shape {
 		mesh.needsUpdate = true;
 	}
 	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
+		console.log('animated updateMeida');
 		super.updateMedia(idx, obj, silent);
+		console.log(isVideo);
 		if(isVideo) {
 			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
@@ -1022,6 +1022,8 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	applyImageAsMaterial(idx, silent, isBack){
+		console.log('applyImageAsMaterial')
+		console.log(this.media[idx])
 		const textureLoader = new THREE.TextureLoader();
 		return textureLoader.load(this.media[idx].obj.src, (texture) => {
 			// Set texture filtering
@@ -1069,8 +1071,6 @@ export class ShapeAnimated extends Shape {
 				const y = position.getY(i);
 		
 				let u = (x - min.x) / (max.x - min.x);
-				console.log(x,y);
-				console.log(u);
 				let v = (y - min.y) / (max.y - min.y);
 				u = u * scaleX + (1 - scaleX) / 2 - dev_x;
 				v = v * scaleY + (1 - scaleY) / 2 + dev_y;
@@ -1079,7 +1079,6 @@ export class ShapeAnimated extends Shape {
 				// 	u = Math.max(Math.min(u, 1), 0);
 				// 	v = Math.max(Math.min(v, 1), 0);
 				// }
-				console.log(u, v);
 				uvArray.push(u, v);
 			}
 			
@@ -1154,7 +1153,6 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	actualDraw (animate = true){
-		console.log('actualDraw');
 		let sync = !animate;
 		this.scene.add( this.group );
 		if(this.frontIsGridColor){
@@ -1178,14 +1176,12 @@ export class ShapeAnimated extends Shape {
 			this.mesh_back.add(this.backWatermarkGroup);
 
 		if(!this.mesh_frontText && this.frontText) {
-			console.log('write front text');
 			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 			if(this.mesh_frontText) {
 				this.mesh_front.add(this.mesh_frontText);
 			}
 		}
 		if(!this.mesh_backText && this.backText) {
-			console.log('write back text');
 			this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
 			if(this.mesh_backText) {
 				this.mesh_back.add(this.mesh_backText);
@@ -1194,7 +1190,6 @@ export class ShapeAnimated extends Shape {
 		if( this.shape.watermarkPositions !== undefined)
 		{
 			this.watermarks.forEach(function(el, i){
-				console.log('?');
 				if(el.mesh_front) {
 					this.frontWatermarkGroup.remove(el.mesh_front);
 					if(el.mesh_front instanceof Text)
@@ -1374,7 +1369,6 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	resetAnimation(){
-		// console.log('resetAnimation', this.isForward);
 		if(this.isForward)
             this.group.remove( this.mesh_front );
         else
@@ -1674,7 +1668,6 @@ export class ShapeAnimated extends Shape {
 		this.frontMaterial.opacity += this.fadeInterval;
 		if(this.frontMaterial.opacity >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
-				console.log('settimeout--');
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
 					this.canvasObj.saveCanvasAsVideo(); 
 				}, 5000);
@@ -1832,7 +1825,6 @@ export class ShapeAnimated extends Shape {
 				this.unfocusInputs([this.fields['text-back-shift-x'], this.fields['text-back-shift-y']]);
 			}
 		}
-		console.log(this.fields['shape-shift-x']);
 		if(this.fields['shape-shift-x']) {
 			this.fields['shape-shift-x'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
@@ -1950,7 +1942,6 @@ export class ShapeAnimated extends Shape {
 
 	    this.fields['text-front-position'].onchange = function(e){
 	    	let position = e.target.value;
-			console.log('text-front-position onchange', position);
 	    	this.updateFrontTextPosition(position);
 	    }.bind(this);
 
@@ -1979,18 +1970,20 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
+				console.log('animated applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				let ext = src.substring(src.lastIndexOf('.') + 1);
 				if(this.supported_ext['video'].includes(ext)) {
 					this.readVideo(idx, src, (idx, video, silent)=>{
 						let isBack = idx.indexOf('back-') !== -1;
-						this.updateMedia(idx, video, silent, isBack, 'applySavedFile');
+						this.updateMedia(idx, video, silent, isBack, true);
 					});
 				}else {
 					this.readImage(idx, src, (idx, image, silent)=>{
+						console.log('read image done');
 						let isBack = idx.indexOf('back-') !== -1;
-						this.updateMedia(idx, image, silent, isBack, 'applySavedFile');
+						this.updateMedia(idx, image, silent, isBack);
 					});
 				}
 			});
@@ -1998,7 +1991,7 @@ export class ShapeAnimated extends Shape {
 			if(scale_input) {
 				scale_input.oninput = function(e){
 				    e.preventDefault();
-				    let scale = e.target.value >= 1 ? e.target.value : 1;
+				    let scale = e.target.value;
 				    this.updateMediaScale(scale, idx);
 				}.bind(this);
 				scale_input.addEventListener('initImg', ()=>{
