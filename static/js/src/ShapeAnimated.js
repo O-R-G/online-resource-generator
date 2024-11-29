@@ -329,7 +329,7 @@ export class ShapeAnimated extends Shape {
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2) ;
+		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
 		// console.log('textBoxWidth', this.textBoxWidth);
 		let w, h;
 		
@@ -469,8 +469,11 @@ export class ShapeAnimated extends Shape {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
+		// console.log('shift.x', this.frontTextShiftX);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
+		
+		
 		shift.y = shift.y ? this.getValueByPixelRatio(-shift.y) : 0;
 		rad = rad ? -rad : 0;
 		let output = new Text();
@@ -487,15 +490,18 @@ export class ShapeAnimated extends Shape {
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
 		output.anchorY = '50%';
-		let dev_x = this.getValueByPixelRatio(-3);
+		let dev_x = this.getValueByPixelRatio(0);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		
 		output.position.y += text_dev_y;
-		output.position.x = align === 'align-left' ? - this.textBoxWidth / 2 + dev_x : 0;
+		output.position.x = align === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
+		// console.log(this.frame.w, this.innerPadding);
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
-
+			// console.log('shift.x', shift.x);
+			console.log('main side:', - this.frame.w / 2 + this.padding + this.innerPadding.x)
+			console.log('main shift x:', shift.x)
 			output.position.x += shift.x;
 			output.position.y += shift.y;
 			output.sync();
@@ -539,6 +545,8 @@ export class ShapeAnimated extends Shape {
 				output.anchorY = 'bottom-baseline';
 				y = - side / 2 + inner_p_y;
 			}
+			console.log('watermark side:', side/2 - inner_p_x )
+			console.log('watermark shift x:', shift.x)
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
@@ -816,6 +824,7 @@ export class ShapeAnimated extends Shape {
 		let dev = this.getValueByPixelRatio(-3);
 		let x = this.frontTextPosition === 'align-left' ? - this.textBoxWidth / 2 + dev : 0;
 		x += parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) ? parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) : 0;
+		// console.log(this.getValueByPixelRatio(this.frontTextShiftX));
 		this.mesh_frontText.position.x = x;
 		this.mesh_frontText.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
@@ -1058,8 +1067,8 @@ export class ShapeAnimated extends Shape {
 				scaleY *= imageAspect / geometryAspect;
 			}
 
-			const dev_x = this.media[idx].shiftX ? this.media[idx].shiftX * scaleX / geomWidth : 0;
-			const dev_y = this.media[idx].shiftY ? this.media[idx].shiftY * scaleY / geomHeight : 0;
+			const dev_x = this.media[idx].shiftX ? this.getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
+			const dev_y = this.media[idx].shiftY ? this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
 			
 			const uvArray = [];
 			const position = geometry.attributes.position;

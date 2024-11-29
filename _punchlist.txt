@@ -35,10 +35,11 @@ x add textbox position dropdown
 + the value of shape position is not consistent with others
 + arrow keys doesn't work for main text shift fields
 + add fallback when the number fields don't receive a number
-- sync fields
-  - font
-  - shape shift
++ sync fields
+  + font
+  + shape shift
 + from static to animated canvas. everything becomes half the size on retina screen.
 - fade in/out watermarks
+- text shift of animated and static shapes are inconsistent on retina screen
 - clean up setCanvasSize for three.js canvas
 - unify text-handling (main texts and watermarks)
