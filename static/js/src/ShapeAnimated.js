@@ -174,9 +174,13 @@ export class ShapeAnimated extends Shape {
 	}
 	updateShape(shape, silent = false){
 		super.updateShape(shape);
+		console.log('pre', this.padding);
 		this.padding = this.getValueByPixelRatio(this.padding);
+		console.log('post', this.padding);
+		console.log('pre', this.innerPadding);
 		for(const prop in this.innerPadding)
 			this.innerPadding[prop] = this.getValueByPixelRatio(this.innerPadding[prop]);
+		console.log('post', this.innerPadding);
 		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
 		this.drawShape();
 		this.updateTextMeshByShape(shape);
@@ -455,13 +459,6 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 	}
 	getValueByPixelRatio(input){
-		/* 
-			retina        : 2 
-			regular screen: 1 
-			seems it doesn't matter though
-		*/
-		// console.log(this.devicePixelRatio);
-		// return input;
 		return input * this.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
@@ -490,18 +487,15 @@ export class ShapeAnimated extends Shape {
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
 		output.anchorY = '50%';
-		let dev_x = this.getValueByPixelRatio(0);
+		// let dev_x = this.getValueByPixelRatio(0);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
 		
 		output.position.y += text_dev_y;
 		output.position.x = align === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
-		// console.log(this.frame.w, this.innerPadding);
+
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
 		if(align == 'align-left' || align == 'center') {
-			// console.log('shift.x', shift.x);
-			console.log('main side:', - this.frame.w / 2 + this.padding + this.innerPadding.x)
-			console.log('main shift x:', shift.x)
 			output.position.x += shift.x;
 			output.position.y += shift.y;
 			output.sync();
@@ -534,7 +528,9 @@ export class ShapeAnimated extends Shape {
 
 			if(align.indexOf('top') !== -1){
 				output.anchorY = 'top';
+				
 				y = side / 2 - inner_p_y;
+				console.log('animated side / 2 - inner_p_y: ', side / 2 - inner_p_y);
 			}
 			else if(align.indexOf('middle') !== -1){
 				output.anchorY = 'middle';
@@ -545,8 +541,8 @@ export class ShapeAnimated extends Shape {
 				output.anchorY = 'bottom-baseline';
 				y = - side / 2 + inner_p_y;
 			}
-			console.log('watermark side:', side/2 - inner_p_x )
-			console.log('watermark shift x:', shift.x)
+			console.log('animated y:', y)
+			console.log('animated shift y:', shift.y);
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
@@ -821,10 +817,10 @@ export class ShapeAnimated extends Shape {
     }
 	updateFrontTextPositionX(silent=false){
 		if(!this.mesh_frontText) return;
-		let dev = this.getValueByPixelRatio(-3);
-		let x = this.frontTextPosition === 'align-left' ? - this.textBoxWidth / 2 + dev : 0;
+		// let dev = this.getValueByPixelRatio(-3);
+		let x = this.frontTextPosition === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
 		x += parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) ? parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) : 0;
-		// console.log(this.getValueByPixelRatio(this.frontTextShiftX));
+
 		this.mesh_frontText.position.x = x;
 		this.mesh_frontText.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
@@ -2085,6 +2081,8 @@ export class ShapeAnimated extends Shape {
 		// super.generateFrame();
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
+		console.log('this.canvasObj.canvas.width', this.canvasObj.canvas.width);
+		console.log('unit_w', unit_w);
         let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
         if(this.shape.base == 'fill') {
             output.w = unit_w;

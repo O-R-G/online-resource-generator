@@ -464,9 +464,15 @@ export class ShapeStatic extends Shape {
 			y += this.shapeCenter.y;
 			let ln;
 			let lines = text.lines;
-			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x * 2 : this.shapeCenter.x;
+			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
 			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
+			// if(align == 'align-left') {
+			// 	console.log(this.frame.w / 2, this.innerPadding.x, this.padding);
+			// 	console.log('static shift x', shift.x);
+			// 	console.log('static write x: ', x);
+			// }
+			
 			for(let i = 0; i < lines.length; i++) { 
 				ln = lines[i];
 				let seg_x = align == 'align-left' ? x : x - ln['width'] / 2;
@@ -483,7 +489,8 @@ export class ShapeStatic extends Shape {
 		this.context.textBaseline = 'alphabetic';
     	let lines = text.lines;
     	let metrics = this.context.measureText(str);
-		let actualAscent = metrics.actualBoundingBoxAscent;
+		// let actualAscent = metrics.actualBoundingBoxAscent;
+		let actualAscent = metrics.fontBoundingBoxAscent;
 		
 		let x, y;
 		this.context.fillStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
@@ -506,7 +513,12 @@ export class ShapeStatic extends Shape {
     			x = this.shapeCenter.x;
     		}
     		if(align.indexOf('top') !== -1){
+				// this.context.textBaseline = 'alphabetic';
+				console.log(actualAscent);
     			y = this.shapeCenter.y - side_y / 2 + inner_p_y + actualAscent;
+				// y = 0;
+				console.log('static side_y / 2 - inner_p_y: ', side_y / 2 - inner_p_y)
+				console.log(actualAscent)
     		}
     		else if(align.indexOf('middle') !== -1){
     			this.context.textBaseline = 'middle';
@@ -597,14 +609,8 @@ export class ShapeStatic extends Shape {
 				for (let j = 0; j < str.length; j++) {
 					this.context.save();
 					const char = str[j];
-					// if (char === ' ') {
-					// 	currentAngle -= spaceWidth / (2 * radius);
-					// 	currentAngle -= spaceWidth / (2 * radius);
-					// 	continue;
-					// }
 					const charWidth = charWidths[j];
 					const angleOffset = charWidth / (2 * radius);
-					// currentAngle += angleOffset;
 					const x = radius * Math.cos(currentAngle) + this.canvasW / 2;
 					const y = radius * Math.sin(currentAngle) + this.frame.h / 2;
 					const rad = currentAngle + Math.PI / 2;
@@ -633,8 +639,10 @@ export class ShapeStatic extends Shape {
     		}
     		else return;
     	}
-		x += shift && shift.x ? parseInt(shift.x) : 0, 
-		y += shift && shift.y ? parseInt(shift.y) : 0;
+		// console.log('static y:', y)
+		// console.log('static shift y:', shift.y);
+		x += shift && shift.x ? parseFloat(shift.x) : 0, 
+		y += shift && shift.y ? parseFloat(shift.y) : 0;
 		this.context.save();
     	if(align.indexOf('middle') !== -1 && (this.shape.base == 'rectangle' || this.shape.base == 'fill')) {
 			this.context.textAlign = 'center';
@@ -1076,7 +1084,7 @@ export class ShapeStatic extends Shape {
 		if(this.fields['text-shift-x']) {	
 			this.fields['text-shift-x'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateTextShiftX(parseInt(e.target.value), isSilent);
+				this.updateTextShiftX(e.target.value, isSilent);
 			}.bind(this);
 			this.fields['text-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
 				this.updateTextShiftX(shift.x)
@@ -1277,6 +1285,7 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftX(x, silent = false){
+		console.log('updateTextShiftX', x);
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
 
