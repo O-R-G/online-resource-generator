@@ -860,10 +860,8 @@ export class Shape {
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
-        // if(idx ==='background') console.log(imgShiftX);
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
-        // console.log('imgShiftX', imgShiftX);
     	this.media[idx].shiftX = parseFloat(imgShiftX);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, this.media[idx].obj, silent)

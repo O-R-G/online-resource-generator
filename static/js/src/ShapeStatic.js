@@ -417,7 +417,8 @@ export class ShapeStatic extends Shape {
 		this.write('');
 	}
     write(str = '', align='center', color='default', typography = false, font=null, shift=null, rad=0){
-    	this.context.fillStyle = color === 'default' ? this.textColor : color;
+		// console.log('static write', color);
+    	color === 'default' ? this.textColor : color;
 		this.context.strokeStyle = color === 'default' ? this.textColor : color;
     	if(typography === false)
     		typography = this.typography;
@@ -429,7 +430,7 @@ export class ShapeStatic extends Shape {
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = fontStyle;
-		let text = this.getText(str);
+		let text = this.getText(str, color);
 		this.context.textBaseline = 'middle';
 		/*
 			lines = {
@@ -478,8 +479,8 @@ export class ShapeStatic extends Shape {
 		let actualAscent = metrics.actualBoundingBoxAscent;
 		
 		let x, y;
-		this.context.fillStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
-		this.context.strokeStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
+		// console.log(this.processStaticColorData(this.options.watermarkColorOptions[color]['color']));
+		
     	if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
     		let side_x = this.frame.w - this.padding * 2;
 			let side_y = this.frame.h - this.padding * 2;
@@ -629,7 +630,6 @@ export class ShapeStatic extends Shape {
 			else if(align.indexOf('right') !== -1) 
 				rad += Math.PI/2;
 		}
-   		
 		this.context.translate(x, y);
 		this.context.rotate(rad);
 		
@@ -646,7 +646,6 @@ export class ShapeStatic extends Shape {
 	}
 	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
 		let ln;
-		// let lines = text.lines;
 		
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
@@ -665,7 +664,7 @@ export class ShapeStatic extends Shape {
             
         }
     }
-	getText(str){
+	getText(str, color){
 		// console.log(str);
 		let output = {
 			'lines': [],
@@ -686,7 +685,7 @@ export class ShapeStatic extends Shape {
 				
 				line.segs.push( {
 					content: seg.match(p) ? seg.substring(1, seg.length - 1) : seg,
-					color: seg.match(p) ?  '#ffffff' : 'default'
+					color: seg.match(p) ?  '#ffffff' : color
 				});
 			}
 			output['lines'].push(line);
@@ -1211,7 +1210,9 @@ export class ShapeStatic extends Shape {
 			}
 
 			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
-			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 + this.media[idx].shiftY + this.frame.y;
+			
+			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[idx].shiftY + this.frame.y;
+			console.log(this.frame.h / 2, temp_scaledH / 2, this.media[idx].shiftY);
 			if(this.timer_color != null)
 			{
 				clearInterval(this.timer_color);

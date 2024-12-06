@@ -1060,7 +1060,7 @@ export class ShapeAnimated extends Shape {
 			}
 
 			const dev_x = this.media[idx].shiftX ? this.getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
-			const dev_y = this.media[idx].shiftY ? this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
+			const dev_y = this.media[idx].shiftY ? - this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
 			
 			const uvArray = [];
 			const position = geometry.attributes.position;
