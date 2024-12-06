@@ -423,15 +423,14 @@ export class ShapeStatic extends Shape {
     		typography = this.typography;
 		font = font ? font['static'] : typography['font']['static'];
 		let fontStyle = typography.size + 'px ' + font['family'];
-		
 		if(font['weight']) fontStyle = font['weight'] + ' ' + fontStyle;
+		let lineHeight = parseFloat(typography['lineHeight']);
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = fontStyle;
-
 		let text = this.getText(str);
-		// console.log(text);
+		this.context.textBaseline = 'middle';
 		/*
 			lines = {
 				'max-width': ...,
@@ -455,30 +454,18 @@ export class ShapeStatic extends Shape {
 				write main text
 			*/
 			this.str = str;
-        	this.context.textBaseline = 'middle';
 			this.context.textAlign='left';
 			
 			let x = shift && shift.x ? shift.x : 0, 
-				y = shift && shift.y ? shift.y : 0;
+				y = shift && shift.y ? -shift.y : 0; // positive value means going up
 			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
 			y += this.shapeCenter.y;
-			let ln;
 			let lines = text.lines;
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
-			let lineHeight = typography['lineHeight'];
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
-			// if(align == 'align-left') {
-			// 	console.log(this.frame.w / 2, this.innerPadding.x, this.padding);
-			// 	console.log('static shift x', shift.x);
-			// 	console.log('static write x: ', x);
-			// }
+			y += text_dev_y;
+			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, addStroke);
 			
-			for(let i = 0; i < lines.length; i++) { 
-				ln = lines[i];
-				let seg_x = align == 'align-left' ? x : x - ln['width'] / 2;
-				let ln_y = y + i * lineHeight + text_dev_y;
-				this.writeLine(ln, seg_x, ln_y, addStroke);
-			}
 			return;
         }
 
@@ -486,11 +473,9 @@ export class ShapeStatic extends Shape {
             write watermarks
         */
 
-		this.context.textBaseline = 'alphabetic';
-    	let lines = text.lines;
+		let lines = text.lines;	
     	let metrics = this.context.measureText(str);
-		// let actualAscent = metrics.actualBoundingBoxAscent;
-		let actualAscent = metrics.fontBoundingBoxAscent;
+		let actualAscent = metrics.actualBoundingBoxAscent;
 		
 		let x, y;
 		this.context.fillStyle = this.processStaticColorData(this.options.watermarkColorOptions[color]['color']);
@@ -513,15 +498,10 @@ export class ShapeStatic extends Shape {
     			x = this.shapeCenter.x;
     		}
     		if(align.indexOf('top') !== -1){
-				// this.context.textBaseline = 'alphabetic';
-				console.log(actualAscent);
-    			y = this.shapeCenter.y - side_y / 2 + inner_p_y + actualAscent;
-				// y = 0;
-				console.log('static side_y / 2 - inner_p_y: ', side_y / 2 - inner_p_y)
-				console.log(actualAscent)
+				y = this.shapeCenter.y - side_y / 2 + inner_p_y;
+				
     		}
     		else if(align.indexOf('middle') !== -1){
-    			this.context.textBaseline = 'middle';
     			metrics = this.context.measureText(str);
     			actualAscent = metrics.actualBoundingBoxAscent;
     			y = this.shapeCenter.y;
@@ -551,7 +531,7 @@ export class ShapeStatic extends Shape {
     			y = this.shapeCenter.y - a * 1.732 / 2 + inner_p_y + actualAscent;
     		}
     		else if(align.indexOf('middle') !== -1){
-    			this.context.textBaseline = 'middle';
+    			// this.context.textBaseline = 'middle';
     			y = this.shapeCenter.y;
     		}
     		else if(align.indexOf('bottom') !== -1){
@@ -570,7 +550,6 @@ export class ShapeStatic extends Shape {
 	        }
     		
 	        let side = this.frame.w - this_padding * 2;
-	        // let y_dev = 100;
     		if(align.indexOf('left') !== -1){
     			this.context.textAlign = 'left';
     			x = this.shapeCenter.x - side / 2 + inner_p_x;
@@ -588,17 +567,12 @@ export class ShapeStatic extends Shape {
     		}
     	}
     	else if(this.shape.base == 'circle'){
-    		// if(align.indexOf('middle') == -1) return;
-
     		let inner_p_x = this.innerPadding.x;
 			if(align === 'surrounding') {
-				
-				this.context.textBaseline = 'middle';
 				const spaceWidth = this.typography.size * 0.35 ; // Define a fixed width for spaces
 				const charWidths = [];
 				let currentAngle = -Math.PI / 2;
 				let radius = (this.frame.w - (this.padding * 2)) / 2 - this.innerPadding.x;
-				// let synced = 0;
 				
 				for (let i = 0; i < str.length; i++) {
 					const char = str[i];
@@ -622,7 +596,6 @@ export class ShapeStatic extends Shape {
 					this.context.restore();
 					
 				}
-				
 				return;
 				// synced = 0;
 			}
@@ -639,10 +612,15 @@ export class ShapeStatic extends Shape {
     		}
     		else return;
     	}
-		// console.log('static y:', y)
-		// console.log('static shift y:', shift.y);
-		x += shift && shift.x ? parseFloat(shift.x) : 0, 
-		y += shift && shift.y ? parseFloat(shift.y) : 0;
+
+		y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
+		if(align.indexOf('top') !== -1)
+			y += lines.length / 2 * lineHeight;
+		else if(align.indexOf('bottom') !== -1)
+			y -= lines.length / 2 * lineHeight - (lineHeight - typography['size']);
+
+		x += shift && shift.x ? parseFloat(shift.x) : 0;
+		y -= shift && shift.y ? parseFloat(shift.y) : 0;
 		this.context.save();
     	if(align.indexOf('middle') !== -1 && (this.shape.base == 'rectangle' || this.shape.base == 'fill')) {
 			this.context.textAlign = 'center';
@@ -651,13 +629,11 @@ export class ShapeStatic extends Shape {
 			else if(align.indexOf('right') !== -1) 
 				rad += Math.PI/2;
 		}
-   		// else
-		//    this.context.textAlign = 'left';
-
+   		
 		this.context.translate(x, y);
 		this.context.rotate(rad);
 		
-		this.drawMultipleLinesFromTop(lines, 0, 0, typography['lineHeight'], addStroke);
+		this.writeLines(lines, 0, 0, parseFloat(typography['lineHeight']), '', addStroke);
 		this.context.restore();
     }
 	writeLine(line, initial_x, y, addStroke=false){
@@ -665,12 +641,21 @@ export class ShapeStatic extends Shape {
 			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
 			this.context.fillText(seg.content, initial_x, y);
 			if(addStroke) this.context.strokeText(seg.content, initial_x, y);
-			
 			initial_x += this.context.measureText(seg.content).width;
 		}
 	}
-
-    drawMultipleLinesFromTop(lines, x, y, lineHeight, addStroke = false) {
+	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
+		let ln;
+		// let lines = text.lines;
+		
+		for(let i = 0; i < lines.length; i++) { 
+			ln = lines[i];
+			let seg_x = align == 'center' ? x - ln['width'] / 2 : x;
+			let ln_y = y + i * lineHeight;
+			this.writeLine(ln, seg_x, ln_y, addStroke);
+		}
+	}
+    drawMultipleLinesFromTopKeep(lines, x, y, lineHeight, addStroke = false) {
         for (var i = 0, len = lines.length; i < len; i++) {
             let offset = lineHeight * (i);
 			for(let j = 0; j < lines[i].segs.length; j++ ){
@@ -1285,7 +1270,7 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftX(x, silent = false){
-		console.log('updateTextShiftX', x);
+		// console.log('updateTextShiftX', x);
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
 
@@ -1356,13 +1341,13 @@ export class ShapeStatic extends Shape {
 		super.syncMedia();
 		let idx = 'background-image';
 		if(this.color instanceof CanvasPattern && this.media[idx]) {
-			console.log('syncMedia?')
+			// console.log('syncMedia?')
 			let c_idx = this.fieldCounterparts[idx];
 			this.counterpart.updateMedia(c_idx, this.media[idx].img);
-			console.log(c_idx);
+			// console.log(c_idx);
 			// console.log(this.counterpart.fields)
-			console.log(this.fields.media)
-			console.log(this.counterpart.fields.media)
+			// console.log(this.fields.media)
+			// console.log(this.counterpart.fields.media)
 			if(this.counterpart.fields.media[c_idx]) {
 				
 				if(this.fields.media[idx].getAttribute('data-file-src')) {

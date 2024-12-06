@@ -71,6 +71,7 @@ export class ShapeAnimated extends Shape {
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
 		this.devicePixelRatio = window.devicePixelRatio;
+		console.log('devicePixelRatio', this.devicePixelRatio)
 		this.frontTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		this.backTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		
@@ -103,7 +104,6 @@ export class ShapeAnimated extends Shape {
 		this.path = new THREE.Curve();
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
-		// this.initRecording = false;
 		this.startTime = null
 	}
 	init(canvasObj){
@@ -174,19 +174,14 @@ export class ShapeAnimated extends Shape {
 	}
 	updateShape(shape, silent = false){
 		super.updateShape(shape);
-		console.log('pre', this.padding);
 		this.padding = this.getValueByPixelRatio(this.padding);
-		console.log('post', this.padding);
-		console.log('pre', this.innerPadding);
 		for(const prop in this.innerPadding)
 			this.innerPadding[prop] = this.getValueByPixelRatio(this.innerPadding[prop]);
-		console.log('post', this.innerPadding);
 		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
 		this.drawShape();
 		this.updateTextMeshByShape(shape);
 		let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
 		[].forEach.call(sWatermark_panels, function(el, i){
-			// let availables = this.options.shapeOptions[shape_name]['shape'].watermarkPositions;
 			let position = el.querySelector('.watermark-position').value;
 			let label = el.querySelector('label[for^="watermark"]');
 			this.checkWatermarkPosition(position, label);
@@ -469,9 +464,9 @@ export class ShapeAnimated extends Shape {
 		// console.log('shift.x', this.frontTextShiftX);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
-		
-		
-		shift.y = shift.y ? this.getValueByPixelRatio(-shift.y) : 0;
+		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
+		let lineHeight = this.getValueByPixelRatio(parseFloat(typography['lineHeight']));
+		let line_num = str.split("\n").length;
 		rad = rad ? -rad : 0;
 		let output = new Text();
 		if(sync)
@@ -486,12 +481,12 @@ export class ShapeAnimated extends Shape {
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
-		output.anchorY = '50%';
+		output.anchorY = 'middle';
 		// let dev_x = this.getValueByPixelRatio(0);
 		output.maxWidth = this.textBoxWidth;
-		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( -110 ) : 0;
+		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( 110 ) : 0;
 		
-		output.position.y += text_dev_y;
+		output.position.y -= text_dev_y;
 		output.position.x = align === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
 
 		if(animationName && animationName.indexOf('spin') !== -1) output.position.x = - output.position.x;
@@ -501,7 +496,7 @@ export class ShapeAnimated extends Shape {
 			output.sync();
 			return output;
 		}
-		output.lineHeight = 1;
+		output.lineHeight = parseFloat(typography['lineHeight']) / parseFloat(typography['size']);
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
@@ -527,22 +522,19 @@ export class ShapeAnimated extends Shape {
 			}
 
 			if(align.indexOf('top') !== -1){
-				output.anchorY = 'top';
 				
+				// output.anchorY = 'middle';
 				y = side / 2 - inner_p_y;
-				console.log('animated side / 2 - inner_p_y: ', side / 2 - inner_p_y);
 			}
 			else if(align.indexOf('middle') !== -1){
-				output.anchorY = 'middle';
-				y = 0;
+				// output.anchorY = 'middle';
 				output.rotation.z = align.indexOf('left') !== -1 ? Math.PI / 2 : -Math.PI / 2;
 			}
 			else if(align.indexOf('bottom') !== -1){
-				output.anchorY = 'bottom-baseline';
+				// output.anchorY = 'middle';
 				y = - side / 2 + inner_p_y;
 			}
-			console.log('animated y:', y)
-			console.log('animated shift y:', shift.y);
+			
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
@@ -572,17 +564,17 @@ export class ShapeAnimated extends Shape {
 			}
 
 			if(align.indexOf('top') !== -1){
-				output.anchorY = 'top';
 				y = 1.732 * a / 2 - inner_p_y;
 			}
 			else if(align.indexOf('middle') !== -1){
-				output.anchorY = 'middle';
 				y = 0;
 			}
 			else if(align.indexOf('bottom') !== -1){
-				output.anchorY = 'bottom-baseline';
 				y = -1.732 * a / 2 + inner_p_y;
 			}
+
+			
+
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
@@ -615,7 +607,7 @@ export class ShapeAnimated extends Shape {
     			x = 0;
     		}
     		if(align.indexOf('bottom') !== -1){
-    			output.anchorY = 'bottom-baseline';
+    			// output.anchorY = 'bottom-baseline';
     			y = y_dev - side * 1.732 / 2 / 3 + inner_p_y;
     		}
 			output.rotation.z += rad;
@@ -695,13 +687,16 @@ export class ShapeAnimated extends Shape {
 				output.anchorX = 'right';
     			x = length / 2 - inner_p_x;
     		}
-    		output.anchorY = 'middle';
 			if(align.indexOf('middle') !== -1)
 				y = 0;
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
 		}
+		if(align.indexOf('top') !== -1)
+			output.position.y -= line_num / 2 * lineHeight;
+		else if(align.indexOf('bottom') !== -1)
+			output.position.y += (line_num / 2 * lineHeight - (lineHeight - this.getValueByPixelRatio(parseFloat(typography['size']))));
 		if(animationName)
 			output.position.z = 0.1;
 		output.sync();
@@ -716,6 +711,7 @@ export class ShapeAnimated extends Shape {
 		text_mesh.fontSize = fontData.size;
 		text_mesh.font = fontData.path;
 		text_mesh.lineHeight = fontData.lineHeight;
+		console.log(fontData.letterSpacing);
 		text_mesh.letterSpacing = fontData.letterSpacing;
 		text_mesh.needsUpdate = true;
 	}
@@ -827,7 +823,7 @@ export class ShapeAnimated extends Shape {
 	}
 	updateFrontTextPositionY(silent=false){
 		let y = parseFloat(this.frontTextShiftY) ? parseFloat(this.frontTextShiftY) : 0;
-		this.mesh_frontText.position.y = this.getValueByPixelRatio(-y);
+		this.mesh_frontText.position.y = this.getValueByPixelRatio(y);
 		this.mesh_frontText.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
@@ -1014,9 +1010,9 @@ export class ShapeAnimated extends Shape {
 		mesh.needsUpdate = true;
 	}
 	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
-		console.log('animated updateMeida');
+		// console.log('animated updateMeida');
 		super.updateMedia(idx, obj, silent);
-		console.log(isVideo);
+		// console.log(isVideo);
 		if(isVideo) {
 			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
@@ -1027,8 +1023,8 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	applyImageAsMaterial(idx, silent, isBack){
-		console.log('applyImageAsMaterial')
-		console.log(this.media[idx])
+		// console.log('applyImageAsMaterial')
+		// console.log(this.media[idx])
 		const textureLoader = new THREE.TextureLoader();
 		return textureLoader.load(this.media[idx].obj.src, (texture) => {
 			// Set texture filtering
@@ -1212,11 +1208,10 @@ export class ShapeAnimated extends Shape {
 
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
-					
 					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
-
-					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
+					let shift = el.shift ? el.shift : {x: 0, y: 0};
+					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
 					// el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
 					// if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
@@ -1975,7 +1970,7 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
-				console.log('animated applySavedFile');
+				// console.log('animated applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				let ext = src.substring(src.lastIndexOf('.') + 1);
@@ -2081,8 +2076,8 @@ export class ShapeAnimated extends Shape {
 		// super.generateFrame();
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
-		console.log('this.canvasObj.canvas.width', this.canvasObj.canvas.width);
-		console.log('unit_w', unit_w);
+		// console.log('this.canvasObj.canvas.width', this.canvasObj.canvas.width);
+		// console.log('unit_w', unit_w);
         let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
         if(this.shape.base == 'fill') {
             output.w = unit_w;

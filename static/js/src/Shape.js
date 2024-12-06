@@ -618,7 +618,7 @@ export class Shape {
     updatePositionByKey(e, inputs, cb){
         if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
         e.preventDefault();
-        let val = e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
+        let val = e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
         val *= e.shiftKey ? 10 : 1;
         if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             if(!inputs.y.value) inputs.y.value = 0;

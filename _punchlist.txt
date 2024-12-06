@@ -39,9 +39,10 @@ x add textbox position dropdown
   + font
   + shape shift
 + from static to animated canvas. everything becomes half the size on retina screen.
-- text shift of animated and static shapes are inconsistent on retina screen
++ text shift of animated and static shapes are inconsistent on retina screen
   + main text
-  - watermarks
+  + watermarks
++ on static canvas, main text shift and some typography settings affects watermarks
 - fade in/out watermarks
 - clean up setCanvasSize for three.js canvas
 - unify text-handling (main texts and watermarks)
