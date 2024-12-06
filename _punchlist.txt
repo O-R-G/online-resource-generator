@@ -43,6 +43,7 @@ x add textbox position dropdown
   + main text
   + watermarks
 + on static canvas, main text shift and some typography settings affects watermarks
+- custom canvas size doesn't work for three canvas
 - fade in/out watermarks
 - clean up setCanvasSize for three.js canvas
 - unify text-handling (main texts and watermarks)
