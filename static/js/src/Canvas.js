@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 import { getDefaultOption } from './lib.js'
+import { GifWriter } from 'omggif'
 
 export class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
@@ -23,6 +24,8 @@ export class Canvas {
         }
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
 	    this.isRecording = false;
+        this.isRecordingGif = false;
+        this.isInitRecording = false;
         this.fields = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
@@ -69,7 +72,11 @@ export class Canvas {
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
-	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
+	    	this.media_recorder.ondataavailable = (evt) => { console.log('b'); this.chunks.push(evt.data); };
+            this.media_recorder.addEventListener('start', ()=>{
+                console.log('media_recorder start--');
+                this.animate(); 
+            });
 	    }
 	    catch(err){
 	    	this.media_recorder = null;
@@ -125,23 +132,42 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
+        this.isInitRecording = true;
         this.downloadVideoButton.innerText = 'Loading . . .';
-        this.autoRecordingQueueIdx = 0;
+        // this.autoRecordingQueueIdx = 0;
         this.readyState = 0;
-        this.chunks = [];
+        // this.chunks = [];
         this.resetAnimation();
         setTimeout(()=>{
             this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
             try{
                 this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
-                this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
+                this.media_recorder.ondataavailable = (evt) => { 
+                    // console.log('pupu');
+                    this.chunks.push(evt.data); };
+                this.media_recorder.addEventListener('start', ()=>{
+                    console.log('media_recorder start--', performance.now());
+                    this.isRecording = true;
+                    this.animate(); 
+                });
+                this.media_recorder.addEventListener('stop', ()=>{
+                    console.log('recorder stop--');
+                    // console.log('media_recorder start--', performance.now());
+                    this.isRecording = false;
+                    this.saveCanvasAsVideo(); 
+                });
             } catch{
                 console.log('error-0');
             }
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
+            // this.animate();
+            // setTimeout(
+            //     this.startRecording.bind(this),
+            //     1000
+            // )
             this.startRecording();
-        }, 100)
+        }, 0)
         
     }
     initSavingImage(){
@@ -154,8 +180,7 @@ export class Canvas {
 	startRecording(){
         // console.log('startRecording--');
         // console.log(this.isRecording);
-        if(this.isRecording) return;
-        this.isRecording = true;
+        // console.log(this.isRecording);
     	/* 
             mediaRecorder safari only supports mp4
             but mp4 compression shifts colors
@@ -166,7 +191,7 @@ export class Canvas {
         //     console.log('start recording . . .');
         // })
         this.media_recorder.start(1); 
-        this.animate();
+        this.animate(); 
     }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
@@ -185,8 +210,6 @@ export class Canvas {
         this.downloadA.click();
         this.downloadA.delete;
         URL.revokeObjectURL(this.recording_url);
-        
-        this.stopRecording();
     }
     saveCanvasAsImage(){
         const link = document.createElement('a');
@@ -208,12 +231,112 @@ export class Canvas {
             }.bind(this), 0);
         }
     }
+    async initDownloadGif(){
+        this.isRecordingGif = true;
+        
+        // Generate
+        const renderFunctions = [];
+        for(const s_id in this.shapes) {
+            let shape = this.shapes[s_id];
+            shape.initAnimate('', true);
+            renderFunctions.push(shape[shape.animationName].bind(shape));
+        }
+        const buffer = await this.saveCanvasAsGif( this.canvas, renderFunctions, 7);
+
+        // Download
+
+        const blob = new Blob( [ buffer ], { type: 'image/gif' } );
+
+        const link = document.createElement( 'a' );
+        link.href = URL.createObjectURL( blob );
+        link.download = 'animation.gif';
+        link.dispatchEvent( new MouseEvent( 'click' ) );
+        this.isRecordingGif = false;
+    }
+    saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 48 ){
+        const frames = duration * fps;
+        // console.log(renderFunctions[0]);
+
+        const canvas = document.createElement( 'canvas' );
+        canvas.width = element.width;
+        canvas.height = element.height;
+
+        const context = canvas.getContext( '2d' );
+        context.willReadFrequently = true;
+
+        const buffer = new Uint8Array( canvas.width * canvas.height * frames * 5 );
+        const pixels = new Uint8Array( canvas.width * canvas.height );
+        const writer = new GifWriter( buffer, canvas.width, canvas.height, { loop: 0 } );
+
+        let current = 0;
+
+        return new Promise( async function addFrame( resolve ) {
+            
+            if(Array.isArray(renderFunctions)) {
+                for(const fn of renderFunctions) {
+                    fn( current / frames );
+                }
+            } else renderFunctions( current / frames)
+
+            context.drawImage( element, 0, 0 );
+
+            const data = context.getImageData( 0, 0, canvas.width, canvas.height ).data;
+
+            const palette = [];
+
+            for ( var j = 0, k = 0, jl = data.length; j < jl; j += 4, k ++ ) {
+
+                const r = Math.floor( data[ j + 0 ] * 0.1 ) * 10;
+                const g = Math.floor( data[ j + 1 ] * 0.1 ) * 10;
+                const b = Math.floor( data[ j + 2 ] * 0.1 ) * 10;
+                const color = r << 16 | g << 8 | b << 0;
+
+                const index = palette.indexOf( color );
+
+                if ( index === -1 ) {
+
+                    pixels[ k ] = palette.length;
+                    palette.push( color );
+
+                } else {
+
+                    pixels[ k ] = index;
+
+                }
+
+            }
+
+            // Force palette to be power of 2
+
+            let powof2 = 1;
+            while ( powof2 < palette.length ) powof2 <<= 1;
+            // console.log(powof2);
+            palette.length = Math.pow(2, powof2)
+            const delay = 100 / fps; // Delay in hundredths of a sec (100 = 1s)
+            const options = { palette: new Uint32Array( palette ), delay: delay };
+            writer.addFrame( 0, 0, canvas.width, canvas.height, pixels, options );
+
+            current ++;
+
+            // progress.value = current / frames;
+
+            if ( current < frames ) {
+                setTimeout( addFrame, 0, resolve );
+
+            } else {
+
+                resolve( buffer.subarray( 0, writer.end() ) );
+
+            }
+
+        } );
+    }
     stopRecording(){
         // this.autoRecordingQueueIdx = 0;
         // this.autoRecordingQueue = [];
-        this.isAutoRecording = false;
-        this.isRecording = false;
-        this.readyState = 0;
+        // this.isAutoRecording = false;
+        // this.isRecording = false;
+        // this.readyState = 0;
 
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
         document.body.classList.remove('recording');
@@ -223,7 +346,7 @@ export class Canvas {
     stopSaving(){
         this.autoRecordingQueueIdx = 0;
         this.isSaving = false;
-        this.readyState = 0;
+        // this.readyState = 0;
         document.body.classList.remove('saving');
     }
     
@@ -341,6 +464,13 @@ export class Canvas {
         this.downloadVideoButton = button;
         return button;
     }
+    renderDownloadGifButton(){
+        let button = document.createElement('BUTTON');
+        button.className = 'download-gif-button btn';
+        button.innerText = 'Record (gif)';
+        this.downloadGifButton = button;
+        return button;
+    }
     addShape(shapeObj){
         this.shapes[shapeObj.id] = shapeObj;
     }
@@ -376,8 +506,12 @@ export class Canvas {
         buttons_container.className = 'buttons-container';
         buttons_container.appendChild(this.renderDownloadImageButton());
         buttons_container.appendChild(this.renderDownloadVideoButton());
+        buttons_container.appendChild(this.renderDownloadGifButton());
         this.control_bottom.appendChild(buttons_container);
-        if(!this.isThree) this.downloadVideoButton.style.display = 'none';
+        if(!this.isThree) {
+            this.downloadVideoButton.style.display = 'none';
+            this.downloadGifButton.style.display = 'none';
+        }
         if(this.isThree) {
             
             // this.control_bottom.appendChild(this.renderAutoRecordingField());
@@ -400,12 +534,13 @@ export class Canvas {
         };
         let sCustomHeight = this.control_top.querySelector('#custom-height-input');
         if(sCustomHeight) sCustomHeight.onchange = () => {
-            this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
+            this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);``
         };
     }
     addListenersBottom(){
         if(this.downloadImageButton) this.downloadImageButton.onclick = this.saveCanvasAsImage.bind(this);
         if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
+        if(this.downloadGifButton) this.downloadGifButton.onclick = this.initDownloadGif.bind(this);
     }
     updateBase(base){
     	this.base = base;
@@ -429,10 +564,10 @@ export class Canvas {
         }
     }
     animate(isSilent = false, initRecording = false){
-        // if(initRecording) this.startRecording();
+        // console.log('canvas animate');
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
-            if(this.isThree) el.updateAnimation(el.animationName, isSilent);
+            if(this.isThree) el.initAnimate(el.animationName, isSilent);
             else el.animate(el.colorData);
         }
     }

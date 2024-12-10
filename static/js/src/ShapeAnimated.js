@@ -20,7 +20,7 @@ export class ShapeAnimated extends Shape {
 		this.mesh_backText = null;
 		this.isForward = true;
 		this.animationSpeed = this.getDefaultOption(this.options.animationSpeedOptions);
-		let speed_value = this.animationSpeed.value;
+		let speed_value = parseFloat( this.animationSpeed.value );
 		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
 		// this.recordingBreakPoint = speed_value * Math.PI * 1;
 		this.flipAngleInterval_base = 0.01;     // aka, speed
@@ -31,6 +31,7 @@ export class ShapeAnimated extends Shape {
         this.spinAngleInterval = this.spinAngleInterval_base * speed_value;
 		this.rotateAngleInterval = this.rotateAngleInterval_base * speed_value;
 		this.fadeInterval = this.fadeInterval_base  * speed_value;
+		this.animationDurationBase = 7000;
 		this.watermarkAngleInterval = 0.005;
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
@@ -1227,11 +1228,12 @@ export class ShapeAnimated extends Shape {
 		}
 		else if(this.mesh_front.parent !== this.group) 
 			this.group.add(this.mesh_front);
-		this.animate(animationName);
+		this.initAnimate(animationName);
 		 
 	}
 	
 	draw (animate = true){
+		this.resetMesh();
 		this.resetAnimation();
 		this.isForward = true;
 		this.actualDraw(animate);
@@ -1369,6 +1371,14 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	resetAnimation(){
+		cancelAnimationFrame(this.timer);
+		this.timer = null;
+		this.startTime = null;
+		this.timer_delaySaveVideo = null;
+        this.easeAngleInterval = this.easeAngleInitial;
+        this.renderer.render( this.scene, this.camera );
+	}
+	resetMesh(){
 		if(this.isForward)
             this.group.remove( this.mesh_front );
         else
@@ -1383,14 +1393,8 @@ export class ShapeAnimated extends Shape {
 			this.mesh_back.rotation.y = 0;
 			this.mesh_back.rotation.z = 0;
 		}
-        cancelAnimationFrame(this.timer);
-        this.timer = null;
-		this.timer_delaySaveVideo = null;
-        this.easeAngleInterval = this.easeAngleInitial;
-        this.renderer.render( this.scene, this.camera );
 	}
-
-	updateAnimation(animationData, syncing = false, silent = false, initRecording = false){
+	updateAnimation(animationData, syncing = false, silent = false){
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1423,54 +1427,53 @@ export class ShapeAnimated extends Shape {
 		this.recordingBreakPoint = value * Math.PI * 2;
 		if(!silent) this.canvasObj.draw();
 	}
-	animate(animationName, isSilent = false){
-		this.startTime = null;
+	
+	initAnimate(animationName, isSilent = false){
+		this.resetAnimation();
+		if(!animationName) animationName = this.animationName;
+		this.animationDuration = this.animationDurationBase / this.animationSpeed.value;
+		
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
 			this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
-			if(!isSilent) this.spin();
 		}
 		else if(animationName == 'flip'){
 			this.mesh_back.rotation.x = Math.PI;
 			this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
-			if(!isSilent) this.flip();
 		}
 		else if(animationName == 'rotate'){
-			if(!isSilent) this.rotate();
 		}
-		else if(animationName == 'rotate-counter'){
-			if(!isSilent) this.rotate(true);
+		else if(animationName == 'rotateBackward'){
 		}
-		else if(animationName == 'spin-ease')
-		{
-			this.mesh_back.rotation.y = Math.PI;
-			// this.mesh_back.scale.copy(this.scale);
-			this.backWatermarkGroup.scale.copy(this.scale);
-			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
-			if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
-			if(!isSilent) this.spinEase();
-		}
-		else if(animationName == 'flip-ease')
-		{
-			this.mesh_back.rotation.x = Math.PI;
-			this.backWatermarkGroup.scale.copy(this.scale);
-			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
-			if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
-			if(!isSilent) this.flipEase();
-		}
+		// else if(animationName == 'spin-ease')
+		// {
+		// 	this.mesh_back.rotation.y = Math.PI;
+		// 	// this.mesh_back.scale.copy(this.scale);
+		// 	this.backWatermarkGroup.scale.copy(this.scale);
+		// 	this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
+		// 	if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
+		// 	if(!isSilent) this.spinEase();
+		// }
+		// else if(animationName == 'flip-ease')
+		// {
+		// 	this.mesh_back.rotation.x = Math.PI;
+		// 	this.backWatermarkGroup.scale.copy(this.scale);
+		// 	this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
+		// 	if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
+		// 	if(!isSilent) this.flipEase();
+		// }
 		else if(animationName.indexOf('rest') !== -1)
 		{
-			if(animationName == 'rest-back-spin'){
+			if(animationName == 'restBackSpin'){
 				this.isForward = false;
 				this.backWatermarkGroup.scale.copy(this.scale);
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
-				  this.rest();
 			}
-			else if(animationName == 'rest-back-flip')
+			else if(animationName == 'restBackFlip')
 			{
 				this.isForward = false;
 				// this.mesh_back.scale.copy(this.scale);
@@ -1478,7 +1481,7 @@ export class ShapeAnimated extends Shape {
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
-				  this.rest();
+				// this.rest();
 			}
 			else {
 				if(this.mesh_front.parent !== this.group) {
@@ -1487,9 +1490,9 @@ export class ShapeAnimated extends Shape {
 				
 				this.isForward = true;
 				this.mesh_front.rotation.y += this.spinAngleInterval;
-				this.rest();
+				// this.rest();
 			}
-						
+			this.animationName = 'rest';
 			this.renderer.render( this.scene, this.camera );
 		}
 		else if(animationName == 'fade-in'){
@@ -1502,9 +1505,30 @@ export class ShapeAnimated extends Shape {
 			this.frontMaterial.opacity = 1;
 			if(!isSilent) this.fadeOut();
 		}
-		else
-			this.resetAnimation();
-
+		else {
+			this.resetMesh();
+			// this.resetAnimation();
+		}
+		// if(this.canvasObj.isInitRecording) {
+		// 	this.canvasObj.isInitRecording = false;
+		// 	this.canvasObj.startRecording();
+		// }
+		// console.log('initAnimate end', performance.now());
+		if(!isSilent) this.animate(performance.now());
+	}
+	animate(timestamp){
+		if(!this.startTime) {
+			this.startTime = timestamp;
+		}
+		let fn = this[this.animationName].bind(this);
+		const progress = ((timestamp - this.startTime) / this.animationDuration );
+		fn( progress );
+		this.timer = requestAnimationFrame( this.animate.bind(this) );
+		if(this.canvasObj.isRecording && ((timestamp - this.startTime) / this.animationDuration >= 1)) {
+			setTimeout(()=>{
+				this.canvasObj.stopRecording();
+			}, 0)
+		}
 	}
 	rest(move=true){
 		if(move)
@@ -1514,10 +1538,9 @@ export class ShapeAnimated extends Shape {
 		
 		this.renderer.render( this.scene, this.camera );
 	}
-	spin(){
-		this.timer = requestAnimationFrame( this.spin.bind(this) );
-	    this.mesh_front.rotation.y += this.spinAngleInterval;
-	    this.mesh_back.rotation.y  += this.spinAngleInterval;
+	spin(progress=false){
+		this.mesh_front.rotation.y = progress * Math.PI * 2;
+		this.mesh_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
 		if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
 	  		if(this.isForward)
@@ -1537,52 +1560,43 @@ export class ShapeAnimated extends Shape {
 	  		}
 	  	}
 
-		if( this.canvasObj.isRecording && this.mesh_front.rotation.y > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
-
-	    this.renderer.render( this.scene, this.camera );
+		this.renderer.render( this.scene, this.camera );
 	}
-	spinEase(){
-		this.timer = requestAnimationFrame( this.spinEase.bind(this) );
-		if(this.mesh_front.rotation.y < 3.25 * Math.PI)
-			this.easeAngleInterval = this.easeAngleInterval * this.easeAngleRate;
-		else if(this.mesh_front.rotation.y >= 4 * Math.PI){
-			cancelAnimationFrame(this.timer);
-			this.mesh_front.rotation.y = 0;
-			this.mesh_back.rotation.y = Math.PI;
-		}
-		this.mesh_front.rotation.y += this.easeAngleInterval;
-	    this.mesh_back.rotation.y  += this.easeAngleInterval;
-	    if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
-	  	{
-	  		if(this.isForward)
-	  		{
-	  			this.isForward = false;
-	  			this.group.remove( this.mesh_front );
-	  			this.group.add( this.mesh_back );
-	  		}
-	  	}
-	    else
-	  	{
-	  		if(!this.isForward)
-	  		{
-	  			this.isForward = true;
-	  			this.group.add( this.mesh_front );
-	  			this.group.remove( this.mesh_back );
-	  		}
-	  	}
+	// spinEase(){
+	// 	this.timer = requestAnimationFrame( this.spinEase.bind(this) );
+	// 	if(this.mesh_front.rotation.y < 3.25 * Math.PI)
+	// 		this.easeAngleInterval = this.easeAngleInterval * this.easeAngleRate;
+	// 	else if(this.mesh_front.rotation.y >= 4 * Math.PI){
+	// 		cancelAnimationFrame(this.timer);
+	// 		this.mesh_front.rotation.y = 0;
+	// 		this.mesh_back.rotation.y = Math.PI;
+	// 	}
+	// 	this.mesh_front.rotation.y += this.easeAngleInterval;
+	//     this.mesh_back.rotation.y  += this.easeAngleInterval;
+	//     if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
+	//   	{
+	//   		if(this.isForward)
+	//   		{
+	//   			this.isForward = false;
+	//   			this.group.remove( this.mesh_front );
+	//   			this.group.add( this.mesh_back );
+	//   		}
+	//   	}
+	//     else
+	//   	{
+	//   		if(!this.isForward)
+	//   		{
+	//   			this.isForward = true;
+	//   			this.group.add( this.mesh_front );
+	//   			this.group.remove( this.mesh_back );
+	//   		}
+	//   	}
 
-	    this.renderer.render( this.scene, this.camera );
-	}
-	flip(){
-		
-		this.timer = requestAnimationFrame( this.flip.bind(this) );
-		// if(this.initRecording) {
-		// 	this.mesh_front.rotation.x -= 2 * this.flipAngleInterval;
-		// 	this.mesh_back.rotation.x  -= 2 * this.flipAngleInterval;
-		// 	this.initRecording = false;
-		// }
-	    this.mesh_front.rotation.x += this.flipAngleInterval;
-	    this.mesh_back.rotation.x  += this.flipAngleInterval;
+	//     this.renderer.render( this.scene, this.camera );
+	// }
+	flip(progress){
+		this.mesh_front.rotation.x = progress * Math.PI * 2;
+		this.mesh_back.rotation.x  = progress * Math.PI * 2 + Math.PI;
 		
 	    if(this.mesh_front.rotation.x % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.x % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
@@ -1602,11 +1616,7 @@ export class ShapeAnimated extends Shape {
 	  			this.group.remove( this.mesh_back );
 	  		}
 	  	}
-		// console.log(this.canvasObj.isRecording);
-	  	// if( this.canvasObj.isRecording && this.mesh_front.rotation.x >= this.recordingBreakPoint) this.canvasObj.saveCanvasAsVideo();
-	  	if( this.canvasObj.isRecording && this.mesh_front.rotation.x > this.recordingBreakPoint) this.canvasObj.saveCanvasAsVideo();
-
-	    this.renderer.render( this.scene, this.camera );
+		this.renderer.render( this.scene, this.camera );
 	}
 	flipEase(){
 		this.timer = requestAnimationFrame( this.flipEase.bind(this) );
@@ -1639,29 +1649,15 @@ export class ShapeAnimated extends Shape {
 	  	}
 	    this.renderer.render( this.scene, this.camera );
 	}
-	rotate (backward=false){
-		this.timer = requestAnimationFrame( ()=>this.rotate(backward) );
-		if(!backward) {
-			// if(this.initRecording) {
-			// 	this.mesh_front.rotation.z += 2 * this.rotateAngleInterval;
-	    	// 	this.mesh_back.rotation.z  += 2 * this.rotateAngleInterval;
-			// 	this.initRecording = false;
-			// }
-			this.mesh_front.rotation.z -= this.rotateAngleInterval;
-	    	this.mesh_back.rotation.z  -= this.rotateAngleInterval;
-		} else {
-			// if(this.initRecording) {
-			// 	this.mesh_front.rotation.z -= 2 * this.rotateAngleInterval;
-	    	// 	this.mesh_back.rotation.z  -= 2 * this.rotateAngleInterval;
-			// 	this.initRecording = false;
-			// }
-			this.mesh_front.rotation.z += this.rotateAngleInterval;
-	    	this.mesh_back.rotation.z  += this.rotateAngleInterval;
-		}
-		
-		if( this.canvasObj.isRecording && Math.abs(this.mesh_front.rotation.z) > this.recordingBreakPoint ) this.canvasObj.saveCanvasAsVideo();
-
-	    this.renderer.render( this.scene, this.camera );
+	rotate (progress){
+		this.mesh_front.rotation.z = -progress * Math.PI * 2;
+		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
+		this.renderer.render( this.scene, this.camera );
+	}
+	rotateBackward(progress){
+		this.mesh_front.rotation.z = progress * Math.PI * 2;
+		this.mesh_back.rotation.z  = progress * Math.PI * 2;
+		this.renderer.render( this.scene, this.camera );
 	}
 	fadeIn(){
 		this.timer = requestAnimationFrame( ()=>this.fadeIn() );

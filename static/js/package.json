@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "omggif": "^1.0.10",
     "paper": "^0.12.15",
     "path": "^0.12.7",
     "pdfmake": "^0.2.2",
