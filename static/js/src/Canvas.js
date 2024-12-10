@@ -252,6 +252,7 @@ export class Canvas {
         link.download = 'animation.gif';
         link.dispatchEvent( new MouseEvent( 'click' ) );
         this.isRecordingGif = false;
+        this.animate();
     }
     saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 48 ){
         const frames = duration * fps;
