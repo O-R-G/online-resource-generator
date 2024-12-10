@@ -624,16 +624,16 @@ let animationOptions = {
 	'rotate': {
 		name: 'rotate'
 	},
-	'rotate-counter': {
+	'rotateBackward': {
 		name: 'rotate (counter)'
 	},
-	'rest-front': {
+	'restFront': {
 		name: 'rest (front)'
 	},
-	'rest-back-flip': {
+	'restBackFlip': {
 		name: 'rest (back, flip)'
 	},
-	'rest-back-spin': {
+	'restBackSpin': {
 		name: 'rest (back, spin)'
 	}
 };
