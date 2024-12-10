@@ -311,10 +311,12 @@ export class Canvas {
             let powof2 = 1;
             while ( powof2 < palette.length ) powof2 <<= 1;
             // console.log(powof2);
+            powof2 = powof2 > 8 ? 8 : powof2;
             try {
                 palette.length = Math.pow(2, powof2)
             } catch{
                 console.log('powof2', powof2)
+                console.log(Math.pow(2, powof2));
             }
             
             const delay = 100 / fps; // Delay in hundredths of a sec (100 = 1s)
