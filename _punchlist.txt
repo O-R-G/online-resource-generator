@@ -45,5 +45,6 @@ x add textbox position dropdown
 + on static canvas, main text shift and some typography settings affects watermarks
 - custom canvas size doesn't work for three canvas
 - fade in/out watermarks
+- add exceptions to initDownloadGif() to handle the delay of fadeIn and fadeOut
 - clean up setCanvasSize for three.js canvas
 - unify text-handling (main texts and watermarks)

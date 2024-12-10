@@ -1378,6 +1378,12 @@ export class ShapeAnimated extends Shape {
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
 	}
+	resetMaterial(){
+		if(this.frontMaterial) { 
+			this.frontMaterial.opacity = 1;
+			this.frontMaterial.needsUpdate = true;
+		}
+	}
 	resetMesh(){
 		if(this.isForward)
             this.group.remove( this.mesh_front );
@@ -1387,11 +1393,13 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front.rotation.x = 0;
 			this.mesh_front.rotation.y = 0;
 			this.mesh_front.rotation.z = 0;
+			this.mesh_front.needsUpdate = true;
 		}
 		if(this.mesh_back) {
 			this.mesh_back.rotation.x = 0;
 			this.mesh_back.rotation.y = 0;
 			this.mesh_back.rotation.z = 0;
+			this.mesh_back.needsUpdate = true;
 		}
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
@@ -1430,6 +1438,7 @@ export class ShapeAnimated extends Shape {
 	
 	initAnimate(animationName, isSilent = false){
 		this.resetAnimation();
+		this.resetMaterial();
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed.value;
 		
@@ -1495,15 +1504,19 @@ export class ShapeAnimated extends Shape {
 			this.animationName = 'rest';
 			this.renderer.render( this.scene, this.camera );
 		}
-		else if(animationName == 'fade-in'){
+		else if(animationName == 'fadeIn'){
 			this.frontMaterial.transparent = true;
 			this.frontMaterial.opacity = 0;
-			if(!isSilent) this.fadeIn();
+			this.animationDuration = this.animationDurationBase / this.animationSpeed.value / 7;
+			this.frontMaterial.needsUpdate = true;
+			
 		}
-		else if(animationName == 'fade-out'){
+		else if(animationName == 'fadeOut'){
 			this.frontMaterial.transparent = true;
 			this.frontMaterial.opacity = 1;
-			if(!isSilent) this.fadeOut();
+			this.animationDuration = this.animationDurationBase / this.animationSpeed.value / 7;
+			this.frontMaterial.needsUpdate = true;
+			// if(!isSilent) this.fadeOut();
 		}
 		else {
 			this.resetMesh();
@@ -1517,6 +1530,7 @@ export class ShapeAnimated extends Shape {
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
+		// console.log('c');
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
@@ -1659,9 +1673,9 @@ export class ShapeAnimated extends Shape {
 		this.mesh_back.rotation.z  = progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
 	}
-	fadeIn(){
-		this.timer = requestAnimationFrame( ()=>this.fadeIn() );
-		this.frontMaterial.opacity += this.fadeInterval;
+	fadeIn(progress){
+		// this.timer = requestAnimationFrame( ()=>this.fadeIn() );
+		this.frontMaterial.opacity = progress;
 		if(this.frontMaterial.opacity >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
@@ -1669,13 +1683,13 @@ export class ShapeAnimated extends Shape {
 				}, 5000);
 			}
 		} else 
-			this.mesh_front.needsUpdate = true;
-		this.mesh_front.needsUpdate = true;
+			this.frontMaterial.needsUpdate = true;
+		
 		this.renderer.render( this.scene, this.camera );
 	}
-	fadeOut(){
-		this.timer = requestAnimationFrame( ()=>this.fadeOut() );
-		this.frontMaterial.opacity -= this.fadeInterval;
+	fadeOut(progress){
+
+		this.frontMaterial.opacity = 1 - progress;
 		if(this.frontMaterial.opacity <= 0) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
@@ -1684,6 +1698,7 @@ export class ShapeAnimated extends Shape {
 			}
 		} else 
 			this.mesh_front.needsUpdate = true;
+
 		this.renderer.render( this.scene, this.camera );
 	}
     checkWatermarkPosition(position, label){
