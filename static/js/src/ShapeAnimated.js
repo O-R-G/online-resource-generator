@@ -326,6 +326,7 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
+		console.log('animated drawRectangle', this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
@@ -429,7 +430,8 @@ export class ShapeAnimated extends Shape {
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius / 2;
 		let this_p = this.padding;
-		var dev =  this.getValueByPixelRatio( -120 );
+		var dev =  this.getValueByPixelRatio( -120 / 1080 * this.frame.h );
+		// var dev =  this.getValueByPixelRatio( -120);
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.6;
 		
 		path_front.lineTo(- (this.frame.w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (this.frame.w / 2 - this_p)) / 3 + dev );
@@ -1530,7 +1532,6 @@ export class ShapeAnimated extends Shape {
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
-		// console.log('c');
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
@@ -1544,15 +1545,10 @@ export class ShapeAnimated extends Shape {
 			}, 0)
 		}
 	}
-	rest(move=true){
-		if(move)
-			this.timer = requestAnimationFrame( ()=>{ this.rest(move) } );
-		else 
-			this.timer = null
-		
+	rest(progress){
 		this.renderer.render( this.scene, this.camera );
 	}
-	spin(progress=false){
+	spin(progress){
 		this.mesh_front.rotation.y = progress * Math.PI * 2;
 		this.mesh_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
 		if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
@@ -1674,17 +1670,24 @@ export class ShapeAnimated extends Shape {
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeIn(progress){
-		// this.timer = requestAnimationFrame( ()=>this.fadeIn() );
-		this.frontMaterial.opacity = progress;
-		if(this.frontMaterial.opacity >= 1) {
+		if(progress >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
 					this.canvasObj.saveCanvasAsVideo(); 
 				}, 5000);
 			}
-		} else 
+		} else {
+			this.frontMaterial.opacity = progress;
 			this.frontMaterial.needsUpdate = true;
-		
+			this.frontTextMaterial.opacity = progress;
+			this.frontTextMaterial.needsUpdate = true;
+			this.frontWatermarkGroup.traverse((child) => {
+				if (child.isMesh && child.material) {
+					child.material.opacity = progress;
+					child.material.transparent = true;
+				}
+			});
+		}
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeOut(progress){
@@ -2084,21 +2087,25 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	generateFrame(){
+		console.log('animated generateFrame', this.shape.base);
 		// super.generateFrame();
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
 		// console.log('this.canvasObj.canvas.width', this.canvasObj.canvas.width);
 		// console.log('unit_w', unit_w);
         let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
-        if(this.shape.base == 'fill') {
-            output.w = unit_w;
-            output.h = unit_h;
-        }
-        else {
-            let length = unit_w > unit_h ? unit_h : unit_w;
-            output.w = length;
-            output.h = length;
-        }
+        // if(this.shape.base == 'fill') {
+			
+        //     output.w = unit_w;
+        //     output.h = unit_h;
+        // }
+        // else {
+        //     let length = unit_w > unit_h ? unit_h : unit_w;
+        //     output.w = length;
+        //     output.h = length;
+        // }
+		output.w = unit_w;
+		output.h = unit_h;
         this.shapeCenter = this.generateShapeCenter();
         output.x = this.shapeCenter.x;
         output.y = this.shapeCenter.y;

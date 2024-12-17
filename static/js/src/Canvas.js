@@ -34,7 +34,7 @@ export class Canvas {
 	}
 	init(){
         if(this.initialized) return;
-        this.initialized = true;
+        
 		this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('format', this.format);
 		if(!this.isThree)
@@ -86,6 +86,7 @@ export class Canvas {
         for(let shape_id in this.shapes) {
             if(!this.shapes[shape_id].initialized) this.shapes[shape_id].init(this);
         }
+        this.initialized = true;
         // this.draw();
 	}
     
@@ -96,26 +97,25 @@ export class Canvas {
         this.canvas.style.height = `${height * window.devicePixelRatio}px`;
         this.canvas.style.transform = `scale(${1 / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
-		this.renderer = new THREE.WebGLRenderer({
-			'canvas': this.canvas, 
-			'antialias': true,
-            'preserveDrawingBuffer': true 
-		});
-        this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize( width, height, false);
+		// this.renderer = new THREE.WebGLRenderer({
+		// 	'canvas': this.canvas, 
+		// 	'antialias': true,
+        //     'preserveDrawingBuffer': true 
+		// });
+        // this.renderer.setPixelRatio( window.devicePixelRatio );
+        // this.renderer.setSize( width, height, false);
+        this.setRenderer();
         this.scene = new THREE.Scene();
-        
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
-        let z = this.canvas.width * 5.72 * window.devicePixelRatio;
-		this.near = z - this.canvas.width / this.scale * window.devicePixelRatio;
-		this.far = z + this.canvas.width / this.scale * window.devicePixelRatio;
-		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
-		this.camera.position.set(0, 0, z);
-
+        this.setCamera();
+        console.log('initThree');
 	}
     setRenderer(){
+        console.log(this.initialized);
+        // let updateStyle = true;
         if(!this.initialized) {
+            // updateStyle = false;
             this.renderer = new THREE.WebGLRenderer({
                 'canvas': this.canvas, 
                 'antialias': true,
@@ -123,7 +123,14 @@ export class Canvas {
             });
             this.renderer.setPixelRatio( window.devicePixelRatio );
         }
-        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio );
+        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio);
+    }
+    setCamera(){
+        let z = this.canvas.width * 5.72 * window.devicePixelRatio;
+		this.near = z - this.canvas.width / this.scale * window.devicePixelRatio;
+		this.far = z + this.canvas.width / this.scale * window.devicePixelRatio;
+		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+		this.camera.position.set(0, 0, z);
     }
     updateAutoRecordingQueue()
     {
@@ -520,11 +527,7 @@ export class Canvas {
             this.downloadVideoButton.style.display = 'none';
             this.downloadGifButton.style.display = 'none';
         }
-        if(this.isThree) {
-            
-            // this.control_bottom.appendChild(this.renderAutoRecordingField());
-            // this.control_bottom.appendChild(this.renderAutoRecordingButton());
-        }
+        
         this.addListenersBottom();
     }
     addListenersTop(){
@@ -675,11 +678,13 @@ export class Canvas {
     }
 
     sync(){
+        console.log('canvas sync()');
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         if(this.format === 'custom') {
             this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;
             this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
+            this.counterpart.setCanvasSize({'width': this.fields['custom-width-input'].value, 'height': this.fields['custom-height-input'].value}, null, false);
         }
         for(let shape_id in this.shapes) {
             let shape = this.shapes[shape_id];
@@ -687,12 +692,14 @@ export class Canvas {
         }
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
+        console.log('setCanvasSize', size);
         let updated = false;
         // console.log(size);
         if(size.width) {
             updated = true;
             this.canvas.width = size.width;
             this.canvas.style.width = size.width / this.scale + 'px';
+            console.log(this.canvas.width);
         }
         if(size.height) {
             updated = true;
@@ -703,13 +710,17 @@ export class Canvas {
         if(!this.wrapper.offsetHeight || ! updated) return;
 
         if(this.isThree)
-            this.initThree();
+        {
+            this.setRenderer();
+            this.setCamera();
+        }
         if(typeof callback === 'function') {
             callback(size);
         }
         
         if(updated && !silent) {
             for(let shape_id in this.shapes) {
+                console.log(this.canvas.width);
                 this.shapes[shape_id].updateCanvasSize();
                 this.shapes[shape_id].updateFrame(null, true);
                 if(this.isThree)
