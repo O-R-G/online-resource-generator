@@ -19,21 +19,29 @@ export class ShapeAnimated extends Shape {
 		this.mesh_front = null;
 		this.mesh_backText = null;
 		this.isForward = true;
-		this.animationSpeed = this.getDefaultOption(this.options.animationSpeedOptions);
-		let speed_value = parseFloat( this.animationSpeed.value );
-		this.recordingBreakPoint = speed_value * Math.PI * 2;     // aka, spins
-		// this.recordingBreakPoint = speed_value * Math.PI * 1;
+		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);
+		// let speed_value = parseFloat( this.animationSpeed );
+		
 		this.flipAngleInterval_base = 0.01;     // aka, speed
         this.spinAngleInterval_base = 0.01;
 		this.rotateAngleInterval_base = 0.01;
 		// this.fadeInterval_base = 0.005;
-		this.flipAngleInterval = this.flipAngleInterval_base * speed_value;     // aka, speed
-        this.spinAngleInterval = this.spinAngleInterval_base * speed_value;
-		this.rotateAngleInterval = this.rotateAngleInterval_base * speed_value;
-		// this.fadeInterval = this.fadeInterval_base  * speed_value;
-		this.animationDurationBase = 7000;
-		this.fadeInDelay = 2000;
-		this.fadeOutDelay = 2000;
+		this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;     // aka, speed
+        this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
+		this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
+		console.log('this.animationSpeed', this.animationSpeed);
+
+		this.animationDurationBase = 5000;
+
+		/* 
+			durations of fade effects have nothing to do with animationDurationBase 
+			they use their own durationBase and delayBase to calculate animationDuration 
+		*/
+		this.fadeInDurationBase = 2000;
+		this.fadeInDelayBase = 5000;
+		this.fadeOutDurationBase = 1000;
+		this.fadeOutDelayBase = 1000;
+		
 		this.watermarkAngleInterval = 0.005;
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
@@ -1368,12 +1376,12 @@ export class ShapeAnimated extends Shape {
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
 	}
-	resetMaterial(){
-		if(this.frontMaterial) { 
-			this.frontMaterial.opacity = 1;
-			this.frontMaterial.needsUpdate = true;
-		}
-	}
+	// resetMaterials(){
+	// 	if(this.frontMaterial) { 
+	// 		this.frontMaterial.opacity = 1;
+	// 		this.frontMaterial.needsUpdate = true;
+	// 	}
+	// }
 	resetMesh(){
 		if(this.isForward)
             this.group.remove( this.mesh_front );
@@ -1385,12 +1393,60 @@ export class ShapeAnimated extends Shape {
 			this.mesh_front.rotation.z = 0;
 			this.mesh_front.needsUpdate = true;
 		}
+		
+
 		if(this.mesh_back) {
 			this.mesh_back.rotation.x = 0;
 			this.mesh_back.rotation.y = 0;
 			this.mesh_back.rotation.z = 0;
 			this.mesh_back.needsUpdate = true;
 		}
+	}
+	resetMaterials(){
+		if(this.frontMaterial) {
+			if(this.frontMaterial.opacity !== 1) {
+				this.frontMaterial.opacity = 1;
+				this.frontMaterial.needsUpdate = true;
+			}
+		}
+		if(this.frontTextMaterial) {
+			if(this.frontTextMaterial.opacity !== 1) {
+				this.frontTextMaterial.opacity = 1;
+				this.frontTextMaterial.needsUpdate = true;
+			}
+			
+		}
+		if(this.frontWatermarkGroup && this.frontWatermarkGroup.length) {
+			this.frontWatermarkGroup.traverse((child) => {
+				if (child.isMesh && child.material && child.material.opacity !== 1) {
+					child.material.opacity = 1;
+					child.needsUpdate = true;
+				}
+			});
+		}
+		if(this.backMaterial) {
+			if(this.backMaterial.opacity !== 1) {
+				this.backMaterial.opacity = 1;
+				this.backMaterial.needsUpdate = true;
+			}
+
+		}
+		if(this.backTextMaterial) {
+			if(this.backTextMaterial.opacity !== 1) {
+				this.backTextMaterial.opacity = 1;
+				this.backTextMaterial.needsUpdate = true;
+			}
+			
+		}
+		if(this.backWatermarkGroup && this.backWatermarkGroup.length) {
+			this.backWatermarkGroup.traverse((child) => {
+				if (child.isMesh && child.material && child.material.opacity !== 1) {
+					child.material.opacity = 1;
+					child.needsUpdate = true;
+				}
+			});
+		}
+		
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
 		this.animationName = animationData;
@@ -1417,20 +1473,18 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	updateAnimationSpeed(speed, silent = false){
-		this.animationSpeed = this.options.animationSpeedOptions[speed];
-		let value = parseFloat(this.animationSpeed.value);
-		this.flipAngleInterval = this.flipAngleInterval_base * value;
-        this.spinAngleInterval = this.spinAngleInterval_base * value;
-		this.rotateAngleInterval = this.rotateAngleInterval_base * value;
-		this.recordingBreakPoint = value * Math.PI * 2;
+		this.animationSpeed = parseFloat(this.options.animationSpeedOptions[speed].value);
+		this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;
+        this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
+		this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
 		if(!silent) this.canvasObj.draw();
 	}
 	
 	initAnimate(animationName, isSilent = false){
 		this.resetAnimation();
-		this.resetMaterial();
+		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
-		this.animationDuration = this.animationDurationBase / this.animationSpeed.value;
+		this.animationDuration = this.animationDurationBase / this.animationSpeed;
 		
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
@@ -1495,27 +1549,53 @@ export class ShapeAnimated extends Shape {
 			this.renderer.render( this.scene, this.camera );
 		}
 		else if(animationName == 'fadeIn'){
+			// if(this.fadeInDelay > this.animationDurationBase) {
+			// 	alert('fade-in delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
+			// 	return;
+			// }
 			this.frontMaterial.transparent = true;
 			this.frontMaterial.opacity = 0;
-			this.animationDuration = this.animationDurationBase / this.animationSpeed.value / 7;
+			this.frontMaterial.needsUpdate = true;
+			this.frontTextMaterial.opacity = 0;
+			this.frontTextMaterial.needsUpdate = true;
+			this.frontWatermarkGroup.traverse((child) => {
+				if (child.isMesh && child.material) {
+					child.material.opacity = 0;
+					child.material.transparent = true;
+				}
+			});
+
+			this.animationDuration = (this.fadeInDurationBase + this.fadeInDelayBase) / this.animationSpeed;
+			// console.log(this.animationDuration);
 			this.frontMaterial.needsUpdate = true;
 			
 		}
 		else if(animationName == 'fadeOut'){
+			// if(this.fadeOutDelay > this.animationDurationBase) {
+			// 	alert('fade-out delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
+			// 	return;
+			// }
 			this.frontMaterial.transparent = true;
 			this.frontMaterial.opacity = 1;
-			this.animationDuration = this.animationDurationBase / this.animationSpeed.value / 7;
 			this.frontMaterial.needsUpdate = true;
+			this.frontTextMaterial.opacity = 1;
+			this.frontTextMaterial.needsUpdate = true;
+			this.frontWatermarkGroup.traverse((child) => {
+				if (child.isMesh && child.material) {
+					child.material.opacity = 1;
+					child.material.transparent = true;
+				}
+			});
+			this.animationDuration = (this.fadeOutDurationBase + this.fadeOutDelayBase) / this.animationSpeed;
+			// console.log(this.animationDuration);
+			
 			// if(!isSilent) this.fadeOut();
 		}
 		else {
 			this.resetMesh();
-			// this.resetAnimation();
+
 		}
-		// if(this.canvasObj.isInitRecording) {
-		// 	this.canvasObj.isInitRecording = false;
-		// 	this.canvasObj.startRecording();
-		// }
+		
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
@@ -1657,24 +1737,27 @@ export class ShapeAnimated extends Shape {
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeIn(progress){
+		// let fade_finish = this.fadeInDelay / this.animationSpeed / this.animationDuration;
 		if(progress >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
 					this.canvasObj.saveCanvasAsVideo(); 
 					this.initAnimate();
-				}, this.fadeInDelay);
+				}, 0);
 			} 
-			else if(progress - 1 >= this.fadeInDelay / this.animationDuration) {
+			else {
 				this.initAnimate();
 			}
 		} else {
-			this.frontMaterial.opacity = progress;
+			let opacity = progress / (this.fadeInDurationBase / this.animationSpeed / this.animationDuration);
+			// console.log(opacity);
+			this.frontMaterial.opacity = opacity;
 			this.frontMaterial.needsUpdate = true;
-			this.frontTextMaterial.opacity = progress;
+			this.frontTextMaterial.opacity = opacity;
 			this.frontTextMaterial.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
 				if (child.isMesh && child.material) {
-					child.material.opacity = progress;
+					child.material.opacity = opacity;
 					child.material.transparent = true;
 				}
 			});
@@ -1682,23 +1765,23 @@ export class ShapeAnimated extends Shape {
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeOut(progress){
-		// this.frontMaterial.opacity = 1 - progress;
-		let delayed_progress = progress - this.fadeInDelay / this.animationDuration;
-		// console.log(delayed_progress);
-		if(delayed_progress >= 1) {
+		let delay_progress = this.fadeOutDelayBase / this.animationSpeed / this.animationDuration;
+		// console.log('delay_progress', delay_progress);
+		if(progress >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.canvasObj.saveCanvasAsVideo(); 
 			} 
 			this.initAnimate();
 				
-		} else {
-			this.frontMaterial.opacity = 1 - delayed_progress;
+		} else if(progress > delay_progress){
+			let opacity = (1 - progress)  / (1 - delay_progress);
+			this.frontMaterial.opacity = opacity;
 			this.frontMaterial.needsUpdate = true;
-			this.frontTextMaterial.opacity = 1 - delayed_progress;
+			this.frontTextMaterial.opacity = 1 - (progress - delay_progress)  / (1 - delay_progress);
 			this.frontTextMaterial.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
 				if (child.isMesh && child.material) {
-					child.material.opacity = 1 - delayed_progress;
+					child.material.opacity = 1 - (progress - delay_progress)  / (1 - delay_progress);
 					child.material.transparent = true;
 				}
 			});

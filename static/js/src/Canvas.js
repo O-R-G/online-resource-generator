@@ -30,7 +30,7 @@ export class Canvas {
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
         // this.scale = 2;
-        this.gitRecordingDuration = 7; // sec
+        this.gifRecordingDuration = 7; // sec
         this.framerate = 60;
 	}
 	init(){
@@ -253,7 +253,7 @@ export class Canvas {
             shape.initAnimate('', true);
             renderFunctions.push(shape[shape.animationName].bind(shape));
         }
-        const buffer = await this.saveCanvasAsGif( this.canvas, renderFunctions, this.gitRecordingDuration);
+        const buffer = await this.saveCanvasAsGif( this.canvas, renderFunctions, this.gifRecordingDuration);
 
         // Download
 
