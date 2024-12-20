@@ -781,7 +781,7 @@ export class ShapeStatic extends Shape {
         ctx.clip();
 	}
 	drawRectanglePath(ctx = null){
-		console.log('static drawRectanglePath', this.frame);
+		// console.log('static drawRectanglePath', this.frame);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -1259,13 +1259,14 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		console.log('sync');
+		// console.log('sync');
+		// console.log(this.canvasObj.counterpart.canvas.style.width);
 		if(!this.counterpart) return;
 
 		let isSilent = true;
 		super.sync();
     	super.updateCounterpartWatermarks(isSilent);
-
+		console.log(this.canvasObj.counterpart.canvas.style.width);
 		this.canvasObj.counterpart.draw();
     }
     updateTextPosition(position, silent = false){

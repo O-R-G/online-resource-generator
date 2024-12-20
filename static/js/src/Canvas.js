@@ -30,6 +30,7 @@ export class Canvas {
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
         // this.scale = 2;
+        this.gitRecordingDuration = 7; // sec
         this.framerate = 60;
 	}
 	init(){
@@ -91,12 +92,16 @@ export class Canvas {
 	}
     
 	initThree(){
+        console.log('initThree', this.scale)
         let width =  this.formatOptions[this.format].w / window.devicePixelRatio;
         let height =  this.formatOptions[this.format].h / window.devicePixelRatio;
+        // console.log(window.devicePixelRatio);
         this.canvas.style.width = `${width * window.devicePixelRatio}px`;
         this.canvas.style.height = `${height * window.devicePixelRatio}px`;
+        console.log(width*window.devicePixelRatio);
         this.canvas.style.transform = `scale(${1 / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
+        console.log(this.canvas.style.width);
 		// this.renderer = new THREE.WebGLRenderer({
 		// 	'canvas': this.canvas, 
 		// 	'antialias': true,
@@ -112,7 +117,7 @@ export class Canvas {
         console.log('initThree');
 	}
     setRenderer(){
-        console.log(this.initialized);
+        // console.log(this.initialized);
         // let updateStyle = true;
         if(!this.initialized) {
             // updateStyle = false;
@@ -123,7 +128,7 @@ export class Canvas {
             });
             this.renderer.setPixelRatio( window.devicePixelRatio );
         }
-        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio);
+        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio, false);
     }
     setCamera(){
         let z = this.canvas.width * 5.72 * window.devicePixelRatio;
@@ -248,7 +253,7 @@ export class Canvas {
             shape.initAnimate('', true);
             renderFunctions.push(shape[shape.animationName].bind(shape));
         }
-        const buffer = await this.saveCanvasAsGif( this.canvas, renderFunctions, 7);
+        const buffer = await this.saveCanvasAsGif( this.canvas, renderFunctions, this.gitRecordingDuration);
 
         // Download
 
@@ -263,7 +268,6 @@ export class Canvas {
     }
     saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 48 ){
         const frames = duration * fps;
-        // console.log(renderFunctions[0]);
 
         const canvas = document.createElement( 'canvas' );
         canvas.width = element.width;
@@ -682,24 +686,34 @@ export class Canvas {
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         if(this.format === 'custom') {
+            if(!this.isThree) {
+                console.log(this.counterpart.canvas.style.width);
+            }
             this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;
             this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
+            console.log(this.isThree, 'counterpart input value', this.counterpart.fields['custom-width-input'].value);
             this.counterpart.setCanvasSize({'width': this.fields['custom-width-input'].value, 'height': this.fields['custom-height-input'].value}, null, false);
+        }
+        if(!this.isThree) {
+            console.log(this.counterpart.canvas.style.width);
         }
         for(let shape_id in this.shapes) {
             let shape = this.shapes[shape_id];
             shape.sync();
         }
+        if(!this.isThree) {
+            console.log(this.counterpart.canvas.style.width);
+        }
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
-        console.log('setCanvasSize', size);
+        if(this.isThree)
+            console.log('three setting canvas size');
         let updated = false;
-        // console.log(size);
         if(size.width) {
             updated = true;
             this.canvas.width = size.width;
             this.canvas.style.width = size.width / this.scale + 'px';
-            console.log(this.canvas.width);
+            // console.log(this.canvas.width);
         }
         if(size.height) {
             updated = true;
@@ -707,6 +721,7 @@ export class Canvas {
             this.canvas.style.height = size.height / this.scale + 'px';
         }
         // console.log(size.height, this.canvas.height)
+        console.log(this.isThree, this.canvas.style.width);
         if(!this.wrapper.offsetHeight || ! updated) return;
 
         if(this.isThree)
@@ -717,10 +732,10 @@ export class Canvas {
         if(typeof callback === 'function') {
             callback(size);
         }
-        
+        console.log('post set camera', this.isThree, this.canvas.style.width);
         if(updated && !silent) {
             for(let shape_id in this.shapes) {
-                console.log(this.canvas.width);
+                // console.log(this.canvas.width);
                 this.shapes[shape_id].updateCanvasSize();
                 this.shapes[shape_id].updateFrame(null, true);
                 if(this.isThree)

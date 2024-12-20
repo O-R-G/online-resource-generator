@@ -272,7 +272,7 @@ export class Record {
         avtive_canvas.draw();
     }
     applySavedFile(field, shapeObj){
-        console.log('applySavedFile', field.id);
+        // console.log('applySavedFile', field.id);
         let idx = field.getAttribute('image-idx');
         let id = field.id;
         let src = this.record_body['images'][id];

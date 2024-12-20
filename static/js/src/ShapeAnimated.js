@@ -26,12 +26,14 @@ export class ShapeAnimated extends Shape {
 		this.flipAngleInterval_base = 0.01;     // aka, speed
         this.spinAngleInterval_base = 0.01;
 		this.rotateAngleInterval_base = 0.01;
-		this.fadeInterval_base = 0.005;
+		// this.fadeInterval_base = 0.005;
 		this.flipAngleInterval = this.flipAngleInterval_base * speed_value;     // aka, speed
         this.spinAngleInterval = this.spinAngleInterval_base * speed_value;
 		this.rotateAngleInterval = this.rotateAngleInterval_base * speed_value;
-		this.fadeInterval = this.fadeInterval_base  * speed_value;
+		// this.fadeInterval = this.fadeInterval_base  * speed_value;
 		this.animationDurationBase = 7000;
+		this.fadeInDelay = 2000;
+		this.fadeOutDelay = 2000;
 		this.watermarkAngleInterval = 0.005;
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
@@ -72,7 +74,6 @@ export class ShapeAnimated extends Shape {
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
 		this.devicePixelRatio = window.devicePixelRatio;
-		console.log('devicePixelRatio', this.devicePixelRatio)
 		this.frontTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		this.backTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		
@@ -108,7 +109,6 @@ export class ShapeAnimated extends Shape {
 		this.startTime = null
 	}
 	init(canvasObj){
-		// console.log(canvasObj.canvas.width, canvasObj.canvas.height)
 		super.init(canvasObj);
 		this.canvas = canvasObj.canvas;
 		
@@ -246,7 +246,6 @@ export class ShapeAnimated extends Shape {
 				arc[prop] = this.getValueByPixelRatio(arc[prop]);
 			}
 		}
-		// console.log(arcs[0]);
 		// let dev_y = 206;
 		path_front.arc(this.shapeCenter.x + arcs[0].x, this.shapeCenter.y + arcs[0].y, arcs[0].r, arcs[0].from,arcs[0].to, true);
 		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
@@ -326,12 +325,10 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
-		console.log('animated drawRectangle', this.frame);
 		var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
-		// console.log('textBoxWidth', this.textBoxWidth);
 		let w, h;
 		
 		if(this.shape.base === 'fill') {
@@ -404,12 +401,10 @@ export class ShapeAnimated extends Shape {
 			w = this.frame.w
 			h = this.frame.h
 		} else {
-			console.log(this.frame);
 			let side = Math.min(this.frame.w, this.frame.h);
 			w = side - this_p * 2;
 			h = side - this_p * 2;
 		}
-		console.log(w);
 		output.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
 		output.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
 		output.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
@@ -460,11 +455,9 @@ export class ShapeAnimated extends Shape {
 		return input * this.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
-		// console.log('write', align, str);
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		// console.log('shift.x', this.frontTextShiftX);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
@@ -714,7 +707,6 @@ export class ShapeAnimated extends Shape {
 		text_mesh.fontSize = fontData.size;
 		text_mesh.font = fontData.path;
 		text_mesh.lineHeight = fontData.lineHeight;
-		console.log(fontData.letterSpacing);
 		text_mesh.letterSpacing = fontData.letterSpacing;
 		text_mesh.needsUpdate = true;
 	}
@@ -1013,9 +1005,7 @@ export class ShapeAnimated extends Shape {
 		mesh.needsUpdate = true;
 	}
 	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
-		// console.log('animated updateMeida');
 		super.updateMedia(idx, obj, silent);
-		// console.log(isVideo);
 		if(isVideo) {
 			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
@@ -1026,8 +1016,6 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	applyImageAsMaterial(idx, silent, isBack){
-		// console.log('applyImageAsMaterial')
-		// console.log(this.media[idx])
 		const textureLoader = new THREE.TextureLoader();
 		return textureLoader.load(this.media[idx].obj.src, (texture) => {
 			// Set texture filtering
@@ -1528,7 +1516,6 @@ export class ShapeAnimated extends Shape {
 		// 	this.canvasObj.isInitRecording = false;
 		// 	this.canvasObj.startRecording();
 		// }
-		// console.log('initAnimate end', performance.now());
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
@@ -1674,7 +1661,11 @@ export class ShapeAnimated extends Shape {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
 					this.canvasObj.saveCanvasAsVideo(); 
-				}, 5000);
+					this.initAnimate();
+				}, this.fadeInDelay);
+			} 
+			else if(progress - 1 >= this.fadeInDelay / this.animationDuration) {
+				this.initAnimate();
 			}
 		} else {
 			this.frontMaterial.opacity = progress;
@@ -1691,16 +1682,27 @@ export class ShapeAnimated extends Shape {
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeOut(progress){
-
-		this.frontMaterial.opacity = 1 - progress;
-		if(this.frontMaterial.opacity <= 0) {
+		// this.frontMaterial.opacity = 1 - progress;
+		let delayed_progress = progress - this.fadeInDelay / this.animationDuration;
+		// console.log(delayed_progress);
+		if(delayed_progress >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
-				this.timer_delaySaveVideo = setTimeout(()=>{ 
-					this.canvasObj.saveCanvasAsVideo(); 
-				}, 5000);
-			}
-		} else 
-			this.mesh_front.needsUpdate = true;
+				this.canvasObj.saveCanvasAsVideo(); 
+			} 
+			this.initAnimate();
+				
+		} else {
+			this.frontMaterial.opacity = 1 - delayed_progress;
+			this.frontMaterial.needsUpdate = true;
+			this.frontTextMaterial.opacity = 1 - delayed_progress;
+			this.frontTextMaterial.needsUpdate = true;
+			this.frontWatermarkGroup.traverse((child) => {
+				if (child.isMesh && child.material) {
+					child.material.opacity = 1 - delayed_progress;
+					child.material.transparent = true;
+				}
+			});
+		}
 
 		this.renderer.render( this.scene, this.camera );
 	}
@@ -1751,7 +1753,6 @@ export class ShapeAnimated extends Shape {
 		if(this.fields['text-front']) {
 			this.fields['text-front'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				// console.log(e.detail);
 				this.updateFrontText(e.target.value, isSilent);
 			}.bind(this);
 		}
@@ -1984,7 +1985,6 @@ export class ShapeAnimated extends Shape {
 				}
 			}.bind(this);
 			input.addEventListener('applySavedFile', (e)=>{
-				// console.log('animated applySavedFile');
 				let idx = input.getAttribute('image-idx');
 				let src = input.getAttribute('data-file-src');
 				let ext = src.substring(src.lastIndexOf('.') + 1);
@@ -1995,7 +1995,6 @@ export class ShapeAnimated extends Shape {
 					});
 				}else {
 					this.readImage(idx, src, (idx, image, silent)=>{
-						console.log('read image done');
 						let isBack = idx.indexOf('back-') !== -1;
 						this.updateMedia(idx, image, silent, isBack);
 					});
@@ -2087,23 +2086,10 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	generateFrame(){
-		console.log('animated generateFrame', this.shape.base);
 		// super.generateFrame();
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
-		// console.log('this.canvasObj.canvas.width', this.canvasObj.canvas.width);
-		// console.log('unit_w', unit_w);
-        let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
-        // if(this.shape.base == 'fill') {
-			
-        //     output.w = unit_w;
-        //     output.h = unit_h;
-        // }
-        // else {
-        //     let length = unit_w > unit_h ? unit_h : unit_w;
-        //     output.w = length;
-        //     output.h = length;
-        // }
+		let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
 		output.w = unit_w;
 		output.h = unit_h;
         this.shapeCenter = this.generateShapeCenter();
