@@ -47,7 +47,8 @@ x add textbox position dropdown
 + square doesn't work when switch to animated from static
 + rest-front makes the browser super slow
 + fade in/out watermarks
-- add exceptions to initDownloadGif() to handle the delay of fadeIn and fadeOut
++ add exceptions to initDownloadGif() to handle the delay of fadeIn and fadeOut
 - save static canvas as pdf
+  - consider pdf size proportion when saving canvas as a pdf
 - clean up setCanvasSize for three.js canvas
 - unify text-handling (main texts and watermarks)

@@ -3,6 +3,7 @@ import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 import { getDefaultOption } from './lib.js'
 import { GifWriter } from 'omggif'
+import { jsPDF } from "jspdf";
 
 export class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
@@ -29,7 +30,18 @@ export class Canvas {
         this.fields = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
-        // this.scale = 2;
+        this.pdfSize = {
+            'a4': {
+                orientation: 'portrait',
+                unit: 'cm',
+                format: [21, 29.7]
+            },
+            // 'letter': {
+            //     orientation: 'portrait',
+            //     unit: 'in',
+            //     format: [8.5, 11]
+            // }
+        }
         this.gifRecordingDuration = 7; // sec
         this.framerate = 60;
 	}
@@ -90,7 +102,6 @@ export class Canvas {
         this.initialized = true;
         // this.draw();
 	}
-    
 	initThree(){
         console.log('initThree', this.scale)
         let width =  this.formatOptions[this.format].w / window.devicePixelRatio;
@@ -350,6 +361,34 @@ export class Canvas {
 
         } );
     }
+    toPixel(val, source_unit) {
+        var n = 1;
+        var cpi = 2.54; // centimeters per inch
+        var dpi = 96; // dots per inch
+        var ppd = window.devicePixelRatio; // pixels per dot
+       
+        return source_unit === 'cm' ? (val * (dpi * ppd) / cpi).toFixed(n) : (val * (dpi * ppd)).toFixed(n);
+    }
+    saveCanvasAsPdf(){
+        // 1px = 0.026458 cm;
+        let size = {...this.pdfSize['a4']};
+        // let r = size['unit'] === 'cm' ? 0.026458 : 96: 
+        let pdf_width = this.toPixel(size['format'][0], size['unit']);
+        let pdf_height = this.toPixel(size['format'][1], size['unit']);
+        if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
+        // let pdf_width = size['orientation'] === 'portrait' ? size['format'][0] : size['format'][1];
+        // let pdf_height = size['orientation'] === 'portrait' ? size['format'][1] : size['format'][0];
+        // pdf_width = this.toPixel(pdf_width, size['unit']);
+        // pdf_height = this.toPixel(pdf_height, size['unit']);
+        let r = size['orientation'] === 'portrait' ? pdf_width / window.devicePixelRatio / this.canvas.width : pdf_height / window.devicePixelRatio / this.canvas.height;
+        console.log(r);
+        this.setCanvasSize({width: this.canvas.width * r, height: this.canvas.height * r}, null, false);
+
+        var imgData = this.canvas.toDataURL("image/jpeg", 1.0);
+        var pdf = new jsPDF(size);
+        pdf.addImage(imgData, 'JPEG', 0, 0);
+        pdf.save("download.pdf");
+    }
     stopRecording(){
         // this.autoRecordingQueueIdx = 0;
         // this.autoRecordingQueue = [];
@@ -490,6 +529,13 @@ export class Canvas {
         this.downloadGifButton = button;
         return button;
     }
+    renderDownloadPdfButton(){
+        let button = document.createElement('BUTTON');
+        button.className = 'download-pdf-button btn';
+        button.innerText = 'Download PDF';
+        this.downloadPdfButton = button;
+        return button;
+    }
     addShape(shapeObj){
         this.shapes[shapeObj.id] = shapeObj;
     }
@@ -524,12 +570,16 @@ export class Canvas {
         let buttons_container = document.createElement('div');
         buttons_container.className = 'buttons-container';
         buttons_container.appendChild(this.renderDownloadImageButton());
+        buttons_container.appendChild(this.renderDownloadPdfButton());
         buttons_container.appendChild(this.renderDownloadVideoButton());
         buttons_container.appendChild(this.renderDownloadGifButton());
+        
         this.control_bottom.appendChild(buttons_container);
         if(!this.isThree) {
             this.downloadVideoButton.style.display = 'none';
             this.downloadGifButton.style.display = 'none';
+        } else {
+            this.downloadPdfButton.style.display = 'none';
         }
         
         this.addListenersBottom();
@@ -556,6 +606,7 @@ export class Canvas {
         if(this.downloadImageButton) this.downloadImageButton.onclick = this.saveCanvasAsImage.bind(this);
         if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
         if(this.downloadGifButton) this.downloadGifButton.onclick = this.initDownloadGif.bind(this);
+        if(this.downloadPdfButton) this.downloadPdfButton.onclick = this.saveCanvasAsPdf.bind(this);
     }
     updateBase(base){
     	this.base = base;
