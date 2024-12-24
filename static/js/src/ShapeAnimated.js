@@ -205,22 +205,8 @@ export class ShapeAnimated extends Shape {
 	drawHeart() {
 		var path_front = new THREE.Shape();
 		var path_back = new THREE.Shape();
-		// let arcs = [
-		// 	{
-		// 		x: -192,
-		// 		y: 143.56,
-		// 		r: 280,
-		// 		from: 3 * Math.PI / 4,
-		// 		to: 7 * Math.PI / 4
-		// 	},
-		// 	{
-		// 		x: 192,
-		// 		y: 143.56,
-		// 		r: 280,
-		// 		from: 5 * Math.PI / 4,
-		// 		to: Math.PI / 4
-		// 	}
-		// ];
+		let this_padding = this.padding;
+		let side = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
 		let arcs = [
 			{
 				x: -192,
@@ -238,17 +224,22 @@ export class ShapeAnimated extends Shape {
 			}
 		];
 		// let dev_y = 412;
-		let dev_y = this.getValueByPixelRatio(412);
+		
+		
+		// console.log(m);
 		for(let arc of arcs) {
 			for(let prop in arc) {
 				if(prop === 'from' || prop === 'to') continue;
 				arc[prop] = this.getValueByPixelRatio(arc[prop]);
 			}
 		}
+		let m = side / ((Math.abs(arcs[0]['x']) + arcs[0]['r']) * 2);
+		let dev_y = this.getValueByPixelRatio(412) * m;
+		console.log('animated m', m);
 		// let dev_y = 206;
-		path_front.arc(this.shapeCenter.x + arcs[0].x, this.shapeCenter.y + arcs[0].y, arcs[0].r, arcs[0].from,arcs[0].to, true);
+		path_front.arc(this.shapeCenter.x + arcs[0].x * m, this.shapeCenter.y + arcs[0].y * m, arcs[0].r * m, arcs[0].from,arcs[0].to, true);
 		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
-		path_front.arc(this.shapeCenter.x + arcs[1].x, this.shapeCenter.y + arcs[1].y, arcs[1].r, arcs[1].from,arcs[1].to, true);
+		path_front.arc(this.shapeCenter.x + arcs[1].x * m, this.shapeCenter.y + arcs[1].y * m, arcs[1].r * m, arcs[1].from,arcs[1].to, true);
 		path_front.lineTo(this.shapeCenter.x, this.shapeCenter.y - dev_y);
 		path_front.closePath();
 
@@ -457,9 +448,8 @@ export class ShapeAnimated extends Shape {
 		let this_r = this.cornerRadius / 2;
 		let this_p = this.padding;
 		const w = Math.min(this.frame.w, this.frame.h);
-		const h = w * 1.732 / 2;
 		
-		var dev =  - ((w - this_p * 2) * 1.732 / 2) / 12;
+		var dev =  - ((w - this_p * 2) * 1.732 / 2) / 12; // h / 12
 		this.textBoxWidth = (w - this.padding * 2 - this.innerPadding.x * 2) * 0.6;
 		output.lineTo(- (w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (w / 2 - this_p)) / 3 + dev );
 		output.arc( 0, this_r, this_r, 3 * Math.PI / 2, 5 / 6 * Math.PI, true);
