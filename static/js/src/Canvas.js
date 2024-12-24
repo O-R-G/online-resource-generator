@@ -87,7 +87,7 @@ export class Canvas {
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
 	    	this.media_recorder.ondataavailable = (evt) => { console.log('b'); this.chunks.push(evt.data); };
             this.media_recorder.addEventListener('start', ()=>{
-                console.log('media_recorder start--');
+                // console.log('media_recorder start--');
                 this.animate(); 
             });
 	    }
@@ -103,16 +103,16 @@ export class Canvas {
         // this.draw();
 	}
 	initThree(){
-        console.log('initThree', this.scale)
+        // console.log('initThree', this.scale)
         let width =  this.formatOptions[this.format].w / window.devicePixelRatio;
         let height =  this.formatOptions[this.format].h / window.devicePixelRatio;
         // console.log(window.devicePixelRatio);
         this.canvas.style.width = `${width * window.devicePixelRatio}px`;
         this.canvas.style.height = `${height * window.devicePixelRatio}px`;
-        console.log(width*window.devicePixelRatio);
+        // console.log(width*window.devicePixelRatio);
         this.canvas.style.transform = `scale(${1 / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
-        console.log(this.canvas.style.width);
+        // console.log(this.canvas.style.width);
 		// this.renderer = new THREE.WebGLRenderer({
 		// 	'canvas': this.canvas, 
 		// 	'antialias': true,
@@ -125,7 +125,7 @@ export class Canvas {
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
         this.setCamera();
-        console.log('initThree');
+        // console.log('initThree');
 	}
     setRenderer(){
         // console.log(this.initialized);
@@ -367,27 +367,28 @@ export class Canvas {
         var dpi = 96; // dots per inch
         var ppd = window.devicePixelRatio; // pixels per dot
        
-        return source_unit === 'cm' ? (val * (dpi * ppd) / cpi).toFixed(n) : (val * (dpi * ppd)).toFixed(n);
+        return source_unit === 'cm' ? parseFloat((val * (dpi * ppd) / cpi).toFixed(n)) : parseFloat((val * (dpi * ppd)).toFixed(n));
     }
     saveCanvasAsPdf(){
-        // 1px = 0.026458 cm;
         let size = {...this.pdfSize['a4']};
-        // let r = size['unit'] === 'cm' ? 0.026458 : 96: 
-        let pdf_width = this.toPixel(size['format'][0], size['unit']);
-        let pdf_height = this.toPixel(size['format'][1], size['unit']);
         if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
-        // let pdf_width = size['orientation'] === 'portrait' ? size['format'][0] : size['format'][1];
-        // let pdf_height = size['orientation'] === 'portrait' ? size['format'][1] : size['format'][0];
-        // pdf_width = this.toPixel(pdf_width, size['unit']);
-        // pdf_height = this.toPixel(pdf_height, size['unit']);
-        let r = size['orientation'] === 'portrait' ? pdf_width / window.devicePixelRatio / this.canvas.width : pdf_height / window.devicePixelRatio / this.canvas.height;
-        console.log(r);
-        this.setCanvasSize({width: this.canvas.width * r, height: this.canvas.height * r}, null, false);
+        let pdf_width = size['orientation'] === 'portrait' ? this.toPixel(size['format'][0], size['unit']) : this.toPixel(size['format'][1], size['unit']);
+        let pdf_height = size['orientation'] === 'portrait' ? this.toPixel(size['format'][1], size['unit']) : this.toPixel(size['format'][0], size['unit']);
+        let canvas_original_width = this.canvas.width,
+            canvas_original_height = this.canvas.height;
+        let pdf_proportion = pdf_height / pdf_width;
+        let canvas_proportion = this.canvas.height / this.canvas.width;
+        let r = pdf_proportion > canvas_proportion ? pdf_width / this.canvas.width : pdf_height / this.canvas.height; 
+        r = r / window.devicePixelRatio;
 
+        this.setCanvasSize({width: canvas_original_width * r, height: canvas_original_height * r}, null, false);
         var imgData = this.canvas.toDataURL("image/jpeg", 1.0);
         var pdf = new jsPDF(size);
         pdf.addImage(imgData, 'JPEG', 0, 0);
         pdf.save("download.pdf");
+        setTimeout(()=>{
+            this.setCanvasSize({width: canvas_original_width, height: canvas_original_height}, null, false);
+        }, 100);
     }
     stopRecording(){
         // this.autoRecordingQueueIdx = 0;
@@ -733,32 +734,32 @@ export class Canvas {
     }
 
     sync(){
-        console.log('canvas sync()');
+        // console.log('canvas sync()');
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         if(this.format === 'custom') {
-            if(!this.isThree) {
-                console.log(this.counterpart.canvas.style.width);
-            }
+            // if(!this.isThree) {
+            //     console.log(this.counterpart.canvas.style.width);
+            // }
             this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;
             this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
-            console.log(this.isThree, 'counterpart input value', this.counterpart.fields['custom-width-input'].value);
+            // console.log(this.isThree, 'counterpart input value', this.counterpart.fields['custom-width-input'].value);
             this.counterpart.setCanvasSize({'width': this.fields['custom-width-input'].value, 'height': this.fields['custom-height-input'].value}, null, false);
         }
-        if(!this.isThree) {
-            console.log(this.counterpart.canvas.style.width);
-        }
+        // if(!this.isThree) {
+        //     console.log(this.counterpart.canvas.style.width);
+        // }
         for(let shape_id in this.shapes) {
             let shape = this.shapes[shape_id];
             shape.sync();
         }
-        if(!this.isThree) {
-            console.log(this.counterpart.canvas.style.width);
-        }
+        // if(!this.isThree) {
+        //     console.log(this.counterpart.canvas.style.width);
+        // }
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
-        if(this.isThree)
-            console.log('three setting canvas size');
+        // if(this.isThree)
+        //     console.log('three setting canvas size');
         let updated = false;
         if(size.width) {
             updated = true;
@@ -772,7 +773,7 @@ export class Canvas {
             this.canvas.style.height = size.height / this.scale + 'px';
         }
         // console.log(size.height, this.canvas.height)
-        console.log(this.isThree, this.canvas.style.width);
+        // console.log(this.isThree, this.canvas.style.width);
         if(!this.wrapper.offsetHeight || ! updated) return;
 
         if(this.isThree)
@@ -783,7 +784,7 @@ export class Canvas {
         if(typeof callback === 'function') {
             callback(size);
         }
-        console.log('post set camera', this.isThree, this.canvas.style.width);
+        // console.log('post set camera', this.isThree, this.canvas.style.width);
         if(updated && !silent) {
             for(let shape_id in this.shapes) {
                 // console.log(this.canvas.width);

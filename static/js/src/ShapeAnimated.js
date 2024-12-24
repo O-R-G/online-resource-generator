@@ -119,22 +119,15 @@ export class ShapeAnimated extends Shape {
 	init(canvasObj){
 		super.init(canvasObj);
 		this.canvas = canvasObj.canvas;
-		
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();		
 		this.control.classList.add('animated-shape-control');
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
-		// let scale = 540 / 960;
-		// this.scale = Object.keys(this.canvasObj.shapes).length === 1 ? new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1) : new THREE.Vector3(1, scale, 1);
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
-		this.frontWatermarkGroup.scale.copy(this.scale);
-		this.backWatermarkGroup.scale.copy(this.scale);
-
 		this.group = new THREE.Group();
 		this.updateGroupPositionY();
-		
 		this.drawShape();
 		this.renderControl();
 	    this.addListeners();
@@ -147,8 +140,6 @@ export class ShapeAnimated extends Shape {
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
-		this.frontWatermarkGroup.scale.copy(this.scale);
-		this.backWatermarkGroup.scale.copy(this.scale);
 		if(this.mesh_front) {
 			this.mesh_front.scale.copy(this.scale);
 			this.mesh_front.needsUpdate = true;
@@ -340,7 +331,6 @@ export class ShapeAnimated extends Shape {
 		let w, h;
 		
 		if(this.shape.base === 'fill') {
-			// let dev = this.getValueByPixelRatio(10);
 			w = this.frame.w;
 			h = this.frame.h;
 		} else {
@@ -379,6 +369,7 @@ export class ShapeAnimated extends Shape {
 
 		this.geometry_front = new THREE.ShapeGeometry(path_front);
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	clipRectangle(ctx = null){
 		ctx = ctx ? ctx : this.context;
@@ -506,9 +497,11 @@ export class ShapeAnimated extends Shape {
 			let inner_p_y = this.innerPadding.y;
 			
 			let this_p = this.padding;
-			let side = this.frame.w - this_p * 2;
+			let side = this.size.width;
+			// console.log(this.frame.w - this_p * 2, side);
 			let x = 0;
 			let y = 0;
+			console.log(this.frontWatermarkGroup.scale);
 			if(align.indexOf('left') !== -1){
 				output.textAlign = align.indexOf('middle') !== -1 ? 'center' : 'left';
 				output.anchorX = align.indexOf('middle') !== -1 ? 'center' : 'left';
@@ -576,9 +569,6 @@ export class ShapeAnimated extends Shape {
 			else if(align.indexOf('bottom') !== -1){
 				y = -1.732 * a / 2 + inner_p_y;
 			}
-
-			
-
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
@@ -948,6 +938,8 @@ export class ShapeAnimated extends Shape {
 				mesh: this.watermarks[idx].mesh_back,
 				group: this.backWatermarkGroup
 			}];
+		// mesh_data[0].mesh.scale.copy(this.scale);
+		// mesh_data[1].mesh.scale.copy(this.scale);
 		for(let key in mesh_data) {
 			if(!mesh_data[key].mesh) continue;
 			let mesh = mesh_data[key].mesh;
@@ -1212,8 +1204,10 @@ export class ShapeAnimated extends Shape {
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
-					// el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
-					// if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
+					// el.mesh_front.scale.copy(this.scale);
+					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
+					if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
+					// el.mesh_back.scale.copy(this.scale);
 				}
 			}.bind(this));
 		}
@@ -1488,12 +1482,12 @@ export class ShapeAnimated extends Shape {
 		
 		if(animationName == 'spin'){
 			this.mesh_back.rotation.y = Math.PI;
-			this.backWatermarkGroup.scale.copy(this.scale);
+			// this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 		}
 		else if(animationName == 'flip'){
 			this.mesh_back.rotation.x = Math.PI;
-			this.backWatermarkGroup.scale.copy(this.scale);
+			// this.backWatermarkGroup.scale.copy(this.scale);
 			this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 		}
 		else if(animationName == 'rotate'){
@@ -1521,7 +1515,7 @@ export class ShapeAnimated extends Shape {
 		{
 			if(animationName == 'restBackSpin'){
 				this.isForward = false;
-				this.backWatermarkGroup.scale.copy(this.scale);
+				// this.backWatermarkGroup.scale.copy(this.scale);
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
@@ -1530,7 +1524,7 @@ export class ShapeAnimated extends Shape {
 			{
 				this.isForward = false;
 				// this.mesh_back.scale.copy(this.scale);
-				this.backWatermarkGroup.scale.copy(this.scale);
+				// this.backWatermarkGroup.scale.copy(this.scale);
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
@@ -2162,14 +2156,12 @@ export class ShapeAnimated extends Shape {
 			return output;
 		} else if(shape_num === 2) {
 			let canvas_h = this.canvasObj.canvas.height;
-			// output.x = 0 + this.shapeShiftX;
 			output.y = this.shape_index == 0 ? this.getValueByPixelRatio(canvas_h / 4 + this.shapeShiftY) : this.getValueByPixelRatio(- canvas_h / 4 + this.shapeShiftY);
 		}
 		
 		return output;
 	}
 	generateFrame(){
-		// super.generateFrame();
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
 		let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);

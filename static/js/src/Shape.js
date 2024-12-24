@@ -77,6 +77,10 @@ export class Shape {
         else
             this.control_wrapper.appendChild(this.control);
         this.frame = this.generateFrame();
+        this.size = {
+            'width': false,
+            'height': false
+        };
     }
     getShapeIndex(){
         for(const index of Object.keys(this.canvasObj.shapes)) {
@@ -89,6 +93,10 @@ export class Shape {
 	{
 		this.counterpart = obj;
 	}
+    updateSize(width, height){
+        this.size.width = width;
+        this.size.height = height;
+    }
     setShape(){
         for(let prop in this.options.shapeOptions) {
             if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
