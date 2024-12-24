@@ -836,7 +836,7 @@ export class ShapeStatic extends Shape {
 	drawTrianglePath(){
 		let this_padding = this.padding;
 		let w = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
-        let h = w / 2 * 1.732;
+        let h = w * 1.732 / 2 ;
         let trangleCenter = {
         	x: this.shapeCenter.x,
         	y: this.shapeCenter.y + h / 12
@@ -844,9 +844,19 @@ export class ShapeStatic extends Shape {
 		this.updateSize(w, h);
 		this.textBoxWidth = (w - this.innerPadding.x * 2) * 0.6;
 		this.context.beginPath();
-        this.context.arc(trangleCenter.x - w / 2 + this.cornerRadius * 1.732 / 2, trangleCenter.y + h / 3 - this.cornerRadius / 2, this.cornerRadius / 2, Math.PI / 2, 7 * Math.PI / 6);
+        this.context.arc(
+			trangleCenter.x - w / 2 + this.cornerRadius * 1.732 / 2, 
+			trangleCenter.y + h / 3 - this.cornerRadius / 2, 
+			this.cornerRadius / 2, 
+			Math.PI / 2, 7 * Math.PI / 6
+		);
         this.context.arc(trangleCenter.x, trangleCenter.y - h * 2 / 3 + this.cornerRadius, this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
-        this.context.arc(trangleCenter.x - w / 2 + w - (this_padding + this.cornerRadius * 1.732 / 2), trangleCenter.y + h / 3 - this.cornerRadius / 2, this.cornerRadius / 2, 11 * Math.PI / 6, Math.PI / 2);
+        this.context.arc(
+			trangleCenter.x + w / 2 - this.cornerRadius * 1.732 / 2, 
+			trangleCenter.y + h / 3 - this.cornerRadius / 2, 
+			this.cornerRadius / 2, 
+			11 * Math.PI / 6, Math.PI / 2
+		);
         this.context.closePath();
 	}
 	drawHeart() {
@@ -871,7 +881,7 @@ export class ShapeStatic extends Shape {
 		];
 		let dev_y = 412;
 		let m = side / ((Math.abs(arcs[0]['x']) + arcs[0]['r']) * 2);
-		console.log(side, (Math.abs(arcs[0]['x']) + arcs[0]['r']));
+		// console.log(side, (Math.abs(arcs[0]['x']) + arcs[0]['r']));
 		this.context.beginPath();
 		this.context.arc(this.shapeCenter.x + arcs[0].x * m, this.shapeCenter.y + arcs[0].y * m, arcs[0].r * m, arcs[0].from,arcs[0].to);
 		this.context.arc(this.shapeCenter.x + arcs[1].x * m, this.shapeCenter.y + arcs[1].y * m, arcs[1].r * m, arcs[1].from,arcs[1].to);
