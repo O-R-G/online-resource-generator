@@ -481,7 +481,7 @@ export class ShapeStatic extends Shape {
     	if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
     		let side_x = this.size.width;
 			let side_y = this.size.height;
-			console.log(this.size);
+			// console.log(this.size);
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
     		if(align.indexOf('left') !== -1){
@@ -777,7 +777,7 @@ export class ShapeStatic extends Shape {
         ctx.clip();
 	}
 	drawRectanglePath(ctx = null){
-		console.log(this.size);
+		// console.log(this.size);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -1230,7 +1230,7 @@ export class ShapeStatic extends Shape {
 			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
 			
 			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[idx].shiftY + this.frame.y;
-			console.log(this.frame.h / 2, temp_scaledH / 2, this.media[idx].shiftY);
+			// console.log(this.frame.h / 2, temp_scaledH / 2, this.media[idx].shiftY);
 			if(this.timer_color != null)
 			{
 				clearInterval(this.timer_color);

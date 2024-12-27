@@ -50,6 +50,7 @@ x add textbox position dropdown
 + add exceptions to initDownloadGif() to handle the delay of fadeIn and fadeOut
 + save static canvas as pdf
   + consider pdf size proportion when saving canvas as a pdf
+  - resize text and images
 + make watermark positions relative to shape area, especially when the canvas is not square
 + adjust y-position of triangle when the size is different.
 - clean up setCanvasSize for three.js canvas

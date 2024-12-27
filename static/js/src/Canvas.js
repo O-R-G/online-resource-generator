@@ -110,7 +110,7 @@ export class Canvas {
         this.canvas.style.width = `${width * window.devicePixelRatio}px`;
         this.canvas.style.height = `${height * window.devicePixelRatio}px`;
         // console.log(width*window.devicePixelRatio);
-        this.canvas.style.transform = `scale(${1 / 2})`;
+        this.canvas.style.transform = `scale(${this.scale / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
         // console.log(this.canvas.style.width);
 		// this.renderer = new THREE.WebGLRenderer({
@@ -372,31 +372,24 @@ export class Canvas {
     saveCanvasAsPdf(){
         let size = {...this.pdfSize['a4']};
         if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
-        let pdf_width = size['orientation'] === 'portrait' ? this.toPixel(size['format'][0], size['unit']) : this.toPixel(size['format'][1], size['unit']);
-        let pdf_height = size['orientation'] === 'portrait' ? this.toPixel(size['format'][1], size['unit']) : this.toPixel(size['format'][0], size['unit']);
-        let canvas_original_width = this.canvas.width,
-            canvas_original_height = this.canvas.height;
+        let width_index = size['orientation'] === 'portrait' ? 0 : 1;
+        let pdf_width = size['format'][width_index];
+        // let pdf_height = size['orientation'] === 'portrait' ? size['format'][1] : size['format'][2];
+        let pdf_height = size['format'][ (width_index+1) % 2];
+        // let pdf_width = size['orientation'] === 'portrait' ? this.toPixel(size['format'][0], size['unit']) : this.toPixel(size['format'][1], size['unit']);
+        // let pdf_height = size['orientation'] === 'portrait' ? this.toPixel(size['format'][1], size['unit']) : this.toPixel(size['format'][0], size['unit']);
         let pdf_proportion = pdf_height / pdf_width;
         let canvas_proportion = this.canvas.height / this.canvas.width;
-        let r = pdf_proportion > canvas_proportion ? pdf_width / this.canvas.width : pdf_height / this.canvas.height; 
-        r = r / window.devicePixelRatio;
-
-        this.setCanvasSize({width: canvas_original_width * r, height: canvas_original_height * r}, null, false);
+        let resized_width = pdf_proportion > canvas_proportion ? pdf_width : pdf_height / canvas_proportion;
+        let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
+        // let r = pdf_proportion > canvas_proportion ? pdf_width / this.canvas.width : pdf_height / this.canvas.height; 
+        // r = r / window.devicePixelRatio;
         var imgData = this.canvas.toDataURL("image/jpeg", 1.0);
         var pdf = new jsPDF(size);
-        pdf.addImage(imgData, 'JPEG', 0, 0);
+        pdf.addImage(imgData, 'JPEG', 0, 0, resized_width, resized_height);
         pdf.save("download.pdf");
-        setTimeout(()=>{
-            this.setCanvasSize({width: canvas_original_width, height: canvas_original_height}, null, false);
-        }, 100);
     }
     stopRecording(){
-        // this.autoRecordingQueueIdx = 0;
-        // this.autoRecordingQueue = [];
-        // this.isAutoRecording = false;
-        // this.isRecording = false;
-        // this.readyState = 0;
-
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
         document.body.classList.remove('recording');
         this.downloadVideoButton.innerText = 'Record video';
