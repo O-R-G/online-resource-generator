@@ -458,7 +458,14 @@ export class ShapeStatic extends Shape {
 			
 			let x = shift && shift.x ? shift.x : 0, 
 				y = shift && shift.y ? -shift.y : 0; // positive value means going up
-			let text_dev_y = this.shape.base == 'triangle' ? 110 : 0;
+			let text_dev_y = 0;
+
+			if(this.shape.base === 'triangle') {
+				let w = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
+				let h = w * 1.732 / 2 ;
+				text_dev_y += h / 8;
+			}
+			
 			y += this.shapeCenter.y;
 			let lines = text.lines;
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
@@ -468,7 +475,6 @@ export class ShapeStatic extends Shape {
 			
 			return;
         }
-
         /*
             write watermarks
         */
@@ -839,7 +845,7 @@ export class ShapeStatic extends Shape {
         let h = w * 1.732 / 2 ;
         let trangleCenter = {
         	x: this.shapeCenter.x,
-        	y: this.shapeCenter.y + h / 12
+        	y: this.shapeCenter.y + h / 8 // not sure why it's h/8... should be h/6?
         }
 		this.updateSize(w, h);
 		this.textBoxWidth = (w - this.innerPadding.x * 2) * 0.6;
@@ -850,7 +856,10 @@ export class ShapeStatic extends Shape {
 			this.cornerRadius / 2, 
 			Math.PI / 2, 7 * Math.PI / 6
 		);
-        this.context.arc(trangleCenter.x, trangleCenter.y - h * 2 / 3 + this.cornerRadius, this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
+        this.context.arc(
+			trangleCenter.x, 
+			trangleCenter.y - h * 2 / 3 + this.cornerRadius, 
+			this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
         this.context.arc(
 			trangleCenter.x + w / 2 - this.cornerRadius * 1.732 / 2, 
 			trangleCenter.y + h / 3 - this.cornerRadius / 2, 

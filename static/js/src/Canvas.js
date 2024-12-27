@@ -279,7 +279,10 @@ export class Canvas {
 
         const link = document.createElement( 'a' );
         link.href = URL.createObjectURL( blob );
-        link.download = 'animation.gif';
+        let filename = document.getElementById('main').getAttribute('filename');
+        if(!filename) filename = 'video';
+        filename += '.gif';
+        link.download = filename;
         link.dispatchEvent( new MouseEvent( 'click' ) );
         this.isRecordingGif = false;
         this.animate();

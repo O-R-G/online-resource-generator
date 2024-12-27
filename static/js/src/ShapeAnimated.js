@@ -447,7 +447,7 @@ export class ShapeAnimated extends Shape {
 		let this_p = this.padding;
 		const w = Math.min(this.frame.w, this.frame.h);
 		
-		var dev =  - ((w - this_p * 2) * 1.732 / 2) / 12; // h / 12
+		var dev =  - ((w - this_p * 2) * 1.732 / 2) / 8; // h / 12
 		this.textBoxWidth = (w - this.padding * 2 - this.innerPadding.x * 2) * 0.6;
 		output.lineTo(- (w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (w / 2 - this_p)) / 3 + dev );
 		output.arc( 0, this_r, this_r, 3 * Math.PI / 2, 5 / 6 * Math.PI, true);
@@ -489,7 +489,12 @@ export class ShapeAnimated extends Shape {
 		output.anchorY = 'middle';
 		// let dev_x = this.getValueByPixelRatio(0);
 		output.maxWidth = this.textBoxWidth;
-		let text_dev_y = this.shape.base == 'triangle' ? this.getValueByPixelRatio( 110 ) : 0;
+		let text_dev_y = 0;
+		if(this.shape.base === 'triangle') {
+			let w = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
+			let h = w * 1.732 / 2 ;
+			text_dev_y += h / 8;
+		}
 		
 		output.position.y -= text_dev_y;
 		output.position.x = align === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
@@ -511,7 +516,7 @@ export class ShapeAnimated extends Shape {
 			// console.log(this.frame.w - this_p * 2, side);
 			let x = 0;
 			let y = 0;
-			console.log(this.frontWatermarkGroup.scale);
+			// console.log(this.frontWatermarkGroup.scale);
 			if(align.indexOf('left') !== -1){
 				output.textAlign = align.indexOf('middle') !== -1 ? 'center' : 'left';
 				output.anchorX = align.indexOf('middle') !== -1 ? 'center' : 'left';
