@@ -48,13 +48,12 @@ export class Canvas {
 	init(){
         if(this.initialized) return;
         
-		this.canvas = document.createElement('canvas');
-        this.canvas.setAttribute('format', this.format);
-		if(!this.isThree)
-		  this.context = this.canvas.getContext('2d');
-		
-		this.canvas.id = this.id;
-        this.canvas.className = "org-main-canvas";
+		this.canvas = this.createCanvas();
+        // this.canvas.setAttribute('format', this.format);
+		// this.canvas.id = this.id;
+        // this.canvas.className = "org-main-canvas";
+        if(!this.isThree)
+            this.context = this.canvas.getContext('2d');
         this.wrapper.appendChild(this.canvas);
         if(!this.isThree) {
             if(this.format !== 'custom') {
@@ -103,33 +102,41 @@ export class Canvas {
         // this.draw();
 	}
 	initThree(){
+        this.devicePixelRatio = window.devicePixelRatio;
         // console.log('initThree', this.scale)
-        let width =  this.formatOptions[this.format].w / window.devicePixelRatio;
-        let height =  this.formatOptions[this.format].h / window.devicePixelRatio;
-        // console.log(window.devicePixelRatio);
-        this.canvas.style.width = `${width * window.devicePixelRatio}px`;
-        this.canvas.style.height = `${height * window.devicePixelRatio}px`;
-        // console.log(width*window.devicePixelRatio);
+        let width =  this.formatOptions[this.format].w / this.devicePixelRatio;
+        let height =  this.formatOptions[this.format].h / this.devicePixelRatio;
+        // console.log(this.devicePixelRatio);
+        this.canvas.style.width = `${width * this.devicePixelRatio}px`;
+        this.canvas.style.height = `${height * this.devicePixelRatio}px`;
+        // console.log(width*this.devicePixelRatio);
         this.canvas.style.transform = `scale(${this.scale / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
-        // console.log(this.canvas.style.width);
-		// this.renderer = new THREE.WebGLRenderer({
-		// 	'canvas': this.canvas, 
-		// 	'antialias': true,
-        //     'preserveDrawingBuffer': true 
-		// });
-        // this.renderer.setPixelRatio( window.devicePixelRatio );
-        // this.renderer.setSize( width, height, false);
         this.setRenderer();
         this.scene = new THREE.Scene();
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
         this.setCamera();
-        // console.log('initThree');
+        window.addEventListener('resize', ()=>{
+            // console.log(window.devicePixelRatio, this.devicePixelRatio);
+            if(window.devicePixelRatio !== this.devicePixelRatio) {
+                this.initialized = false;
+                this.canvas.parentNode.removeChild(this.canvas);
+                this.init();
+                for(const shape of this.shapes)
+                    shape.init(this.canvas);
+            }
+		})
 	}
+    createCanvas(){
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('format', this.format);
+		canvas.id = this.id;
+        canvas.className = "org-main-canvas";
+        
+        return canvas;
+    }
     setRenderer(){
-        // console.log(this.initialized);
-        // let updateStyle = true;
         if(!this.initialized) {
             // updateStyle = false;
             this.renderer = new THREE.WebGLRenderer({
@@ -137,14 +144,14 @@ export class Canvas {
                 'antialias': true,
                 'preserveDrawingBuffer': true 
             });
-            this.renderer.setPixelRatio( window.devicePixelRatio );
+            this.renderer.setPixelRatio( this.devicePixelRatio );
         }
-        this.renderer.setSize( this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio, false);
+        this.renderer.setSize( this.canvas.width / this.devicePixelRatio, this.canvas.height / this.devicePixelRatio, false);
     }
     setCamera(){
-        let z = this.canvas.width * 5.72 * window.devicePixelRatio;
-		this.near = z - this.canvas.width / this.scale * window.devicePixelRatio;
-		this.far = z + this.canvas.width / this.scale * window.devicePixelRatio;
+        let z = this.canvas.width * 5.72 * this.devicePixelRatio;
+		this.near = z - this.canvas.width / this.scale * this.devicePixelRatio;
+		this.far = z + this.canvas.width / this.scale * this.devicePixelRatio;
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
 		this.camera.position.set(0, 0, z);
     }
@@ -365,7 +372,7 @@ export class Canvas {
         var n = 1;
         var cpi = 2.54; // centimeters per inch
         var dpi = 96; // dots per inch
-        var ppd = window.devicePixelRatio; // pixels per dot
+        var ppd = this.devicePixelRatio; // pixels per dot
        
         return source_unit === 'cm' ? parseFloat((val * (dpi * ppd) / cpi).toFixed(n)) : parseFloat((val * (dpi * ppd)).toFixed(n));
     }
@@ -383,7 +390,7 @@ export class Canvas {
         let resized_width = pdf_proportion > canvas_proportion ? pdf_width : pdf_height / canvas_proportion;
         let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
         // let r = pdf_proportion > canvas_proportion ? pdf_width / this.canvas.width : pdf_height / this.canvas.height; 
-        // r = r / window.devicePixelRatio;
+        // r = r / this.devicePixelRatio;
         var imgData = this.canvas.toDataURL("image/jpeg", 1.0);
         var pdf = new jsPDF(size);
         pdf.addImage(imgData, 'JPEG', 0, 0, resized_width, resized_height);

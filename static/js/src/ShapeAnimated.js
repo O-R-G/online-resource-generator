@@ -29,7 +29,6 @@ export class ShapeAnimated extends Shape {
 		this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;     // aka, speed
         this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
 		this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
-		console.log('this.animationSpeed', this.animationSpeed);
 
 		this.animationDurationBase = 5000;
 
@@ -81,7 +80,6 @@ export class ShapeAnimated extends Shape {
 		this.watermarkTimer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
-		this.devicePixelRatio = window.devicePixelRatio;
 		this.frontTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		this.backTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
 		
@@ -463,7 +461,7 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	getValueByPixelRatio(input){
-		return input * this.devicePixelRatio;
+		return input * window.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
 		if(str == '') return false;
@@ -2123,7 +2121,9 @@ export class ShapeAnimated extends Shape {
 				this.updateAnimationSpeed(e.target.value);  
 			}.bind(this);
 		}
-
+		// window.addEventListener('resize', ()=>{
+			
+		// })
 	}
 	initImg(idx){
 		if(!this.media[idx]) this.media[idx] = {
