@@ -221,10 +221,6 @@ export class ShapeAnimated extends Shape {
 				to: 7 * Math.PI / 4
 			}
 		];
-		// let dev_y = 412;
-		
-		
-		// console.log(m);
 		for(let arc of arcs) {
 			for(let prop in arc) {
 				if(prop === 'from' || prop === 'to') continue;
@@ -233,8 +229,6 @@ export class ShapeAnimated extends Shape {
 		}
 		let m = side / ((Math.abs(arcs[0]['x']) + arcs[0]['r']) * 2);
 		let dev_y = this.getValueByPixelRatio(412) * m;
-		console.log('animated m', m);
-		// let dev_y = 206;
 		path_front.arc(this.shapeCenter.x + arcs[0].x * m, this.shapeCenter.y + arcs[0].y * m, arcs[0].r * m, arcs[0].from,arcs[0].to, true);
 		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
 		path_front.arc(this.shapeCenter.x + arcs[1].x * m, this.shapeCenter.y + arcs[1].y * m, arcs[1].r * m, arcs[1].from,arcs[1].to, true);
@@ -313,7 +307,6 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
-		// var path_front = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
@@ -328,39 +321,11 @@ export class ShapeAnimated extends Shape {
 			h = side - this_p * 2 - this_r * 2;
 		}
 		let path_front = this.drawRectanglePath();
-		// path_front.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
-		// path_front.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
-		// path_front.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		// path_front.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 + h / 2);
-		// path_front.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 - h / 2);
-		// path_front.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		// path_front.lineTo(this.shapeCenter.x + w / 2, 0 - (h / 2 + this_r));
-		// path_front.lineTo(this.shapeCenter.x - w / 2, 0 - (h / 2 + this_r));
-		// path_front.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		// path_front.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 - h / 2);
-		// path_front.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 + h / 2);
-		// path_front.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
-		// path_front.closePath();
-
 		let path_back = this.drawRectanglePath();
-		// var path_back = new THREE.Shape();
-		
-		// path_back.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
-		// path_back.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
-		// path_back.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		// path_back.lineTo(this.shapeCenter.x + w / 2 + this_r, 0 + h / 2);
-		// path_back.lineTo(this.shapeCenter.x + w / 2 + this_r, 0 - h / 2);
-		// path_back.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		// path_back.lineTo(this.shapeCenter.x + w / 2, 0 - (h / 2 + this_r));
-		// path_back.lineTo(this.shapeCenter.x - w / 2, 0 - (h / 2 + this_r));
-		// path_back.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		// path_back.lineTo(this.shapeCenter.x - (w / 2 + this_r), 0 - h / 2);
-		// path_back.lineTo(this.shapeCenter.x - (w / 2 + this_r), 0 + h / 2);
-		// path_back.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
-		// path_back.closePath();
 
 		this.geometry_front = new THREE.ShapeGeometry(path_front);
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		console.log()
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	// clipRectangle(ctx = null){
@@ -468,6 +433,7 @@ export class ShapeAnimated extends Shape {
 		if(typography === false)
 			typography = this.frontTypography;
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
+		console.log(shift);
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
 		let lineHeight = this.getValueByPixelRatio(parseFloat(typography['lineHeight']));
@@ -513,10 +479,8 @@ export class ShapeAnimated extends Shape {
 			
 			let this_p = this.padding;
 			let side = this.size.width;
-			// console.log(this.frame.w - this_p * 2, side);
 			let x = 0;
 			let y = 0;
-			// console.log(this.frontWatermarkGroup.scale);
 			if(align.indexOf('left') !== -1){
 				output.textAlign = align.indexOf('middle') !== -1 ? 'center' : 'left';
 				output.anchorX = align.indexOf('middle') !== -1 ? 'center' : 'left';
@@ -853,7 +817,6 @@ export class ShapeAnimated extends Shape {
 	updateShapeShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
-		// x = this.getValueByPixelRatio(x);
 		this.shapeShiftX = x;
 		this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
 		this.group.needsUpdate = true;
@@ -953,8 +916,6 @@ export class ShapeAnimated extends Shape {
 				mesh: this.watermarks[idx].mesh_back,
 				group: this.backWatermarkGroup
 			}];
-		// mesh_data[0].mesh.scale.copy(this.scale);
-		// mesh_data[1].mesh.scale.copy(this.scale);
 		for(let key in mesh_data) {
 			if(!mesh_data[key].mesh) continue;
 			let mesh = mesh_data[key].mesh;
@@ -1183,6 +1144,7 @@ export class ShapeAnimated extends Shape {
 			this.mesh_back.add(this.backWatermarkGroup);
 
 		if(!this.mesh_frontText && this.frontText) {
+			
 			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 			if(this.mesh_frontText) {
 				this.mesh_front.add(this.mesh_frontText);
@@ -1218,11 +1180,10 @@ export class ShapeAnimated extends Shape {
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync);
+					console.log(el.mesh_front.position);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
-					// el.mesh_front.scale.copy(this.scale);
 					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
 					if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
-					// el.mesh_back.scale.copy(this.scale);
 				}
 			}.bind(this));
 		}
@@ -1538,12 +1499,9 @@ export class ShapeAnimated extends Shape {
 			else if(animationName == 'restBackFlip')
 			{
 				this.isForward = false;
-				// this.mesh_back.scale.copy(this.scale);
-				// this.backWatermarkGroup.scale.copy(this.scale);
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
 				this.group.remove( this.mesh_front );
 	  			this.group.add( this.mesh_back );
-				// this.rest();
 			}
 			else {
 				if(this.mesh_front.parent !== this.group) {
@@ -1552,7 +1510,6 @@ export class ShapeAnimated extends Shape {
 				
 				this.isForward = true;
 				this.mesh_front.rotation.y += this.spinAngleInterval;
-				// this.rest();
 			}
 			this.animationName = 'rest';
 			this.renderer.render( this.scene, this.camera );
@@ -1575,7 +1532,6 @@ export class ShapeAnimated extends Shape {
 			});
 
 			this.animationDuration = (this.fadeInDurationBase + this.fadeInDelayBase) / this.animationSpeed;
-			// console.log(this.animationDuration);
 			this.frontMaterial.needsUpdate = true;
 			
 		}
@@ -1596,7 +1552,6 @@ export class ShapeAnimated extends Shape {
 				}
 			});
 			this.animationDuration = (this.fadeOutDurationBase + this.fadeOutDelayBase) / this.animationSpeed;
-			// console.log(this.animationDuration);
 			
 			// if(!isSilent) this.fadeOut();
 		}
@@ -1759,7 +1714,6 @@ export class ShapeAnimated extends Shape {
 			}
 		} else {
 			let opacity = progress / (this.fadeInDurationBase / this.animationSpeed / this.animationDuration);
-			// console.log(opacity);
 			this.frontMaterial.opacity = opacity;
 			this.frontMaterial.needsUpdate = true;
 			this.frontTextMaterial.opacity = opacity;
@@ -2034,10 +1988,12 @@ export class ShapeAnimated extends Shape {
 	    }.bind(this);
 	   
 	    this.fields['animation'].onchange = function(e){
+			let isSilent = e && e.detail ? e.detail.isSilent : false;
+			let isSyncing = e && e.detail ? e.detail.isSyncing : false;
 	        if(!document.body.classList.contains('recording'))
 	        {
 	            this.animation_selectedIndex = e.target.selectedIndex;
-	            this.updateAnimation(e.target.value);
+	            this.updateAnimation(e.target.value, isSyncing, isSilent);
 	        }
 	        else
 	        {
@@ -2166,7 +2122,9 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	generateShapeCenter(){
-		let output = {x: this.getValueByPixelRatio(this.shapeShiftX), y: this.getValueByPixelRatio(this.shapeShiftY)};
+		// console.log('generateShapeCenter()',this.shapeShiftX, this.shapeShiftY);
+		// let output = {x: this.getValueByPixelRatio(this.shapeShiftX), y: this.getValueByPixelRatio(this.shapeShiftY)};
+		let output = {x: 0, y: 0};
 		let shape_num = Object.keys(this.canvasObj.shapes).length;
 		
 		if(shape_num === 1) {

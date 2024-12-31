@@ -926,8 +926,8 @@ export class Shape {
         }
         // counter_field.dispatchEvent(new Event('change', {detail: {isSilent: true}}));
         // counter_field.dispatchEvent(new Event('input', {detail: {isSilent: true}}));
-        counter_field.dispatchEvent(new CustomEvent('change', {detail: {isSilent: true}}));
-        counter_field.dispatchEvent(new CustomEvent('input',  {detail: {isSilent: true}}));
+        counter_field.dispatchEvent(new CustomEvent('change', {detail: {isSilent: true, isSyncing: true}}));
+        counter_field.dispatchEvent(new CustomEvent('input',  {detail: {isSilent: true, isSyncing: true}}));
         // counter_field.dispatchEvent(new Event('input', {detail: {isSilent: true}}));
     }
     updateCounterpartSelectField(field, index)
@@ -1052,6 +1052,7 @@ export class Shape {
     }
     sync(){
         for(const name in this.fieldCounterparts) {
+            // console.log(name);
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
             

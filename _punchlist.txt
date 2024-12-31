@@ -53,7 +53,9 @@ x add textbox position dropdown
   + resize text and images
 + make watermark positions relative to shape area, especially when the canvas is not square
 + adjust y-position of triangle when the size is different.
-- gif is way slower than mp4
-- gif filename
++ shapeCenter is not synced correctly when the canvas size is not default
+x gif is way slower than mp4
+  it only slows down when viewed with mac preview
++ gif filename
 - clean up setCanvasSize for three.js canvas
 - unify text-handling (main texts and watermarks)

@@ -29,13 +29,11 @@ export class ORGFontLoader {
     addDummyDiv(style){
         let style_str = '';
         for(let prop in style) {
-            // console.log(prop);
             if(!style[prop]) continue;
             style_str += `font-${prop}: ${style[prop]}; `;
         }
         let temp = document.createElement('div');
         temp.innerHTML = '&nbsp;';
-        // console.log(style_str);
         temp.style = style_str;
         document.body.appendChild(temp);
     }

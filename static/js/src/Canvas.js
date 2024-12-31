@@ -1,3 +1,32 @@
+/*
+
+omggif is a JavaScript implementation of a GIF 89a encoder and decoder.
+
+https://github.com/deanm/omggif
+
+
+(c) Dean McNamee <dean@gmail.com>, 2013.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE.
+
+*/
+
 import * as THREE from "three";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
@@ -49,9 +78,6 @@ export class Canvas {
         if(this.initialized) return;
         
 		this.canvas = this.createCanvas();
-        // this.canvas.setAttribute('format', this.format);
-		// this.canvas.id = this.id;
-        // this.canvas.className = "org-main-canvas";
         if(!this.isThree)
             this.context = this.canvas.getContext('2d');
         this.wrapper.appendChild(this.canvas);
@@ -287,7 +313,8 @@ export class Canvas {
         this.isRecordingGif = false;
         this.animate();
     }
-    saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 48 ){
+    saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 24 ){
+        console.log(duration, fps);
         const frames = duration * fps;
 
         const canvas = document.createElement( 'canvas' );
@@ -312,38 +339,25 @@ export class Canvas {
             } else renderFunctions( current / frames)
 
             context.drawImage( element, 0, 0 );
-
             const data = context.getImageData( 0, 0, canvas.width, canvas.height ).data;
-
             const palette = [];
-
             for ( var j = 0, k = 0, jl = data.length; j < jl; j += 4, k ++ ) {
-
                 const r = Math.floor( data[ j + 0 ] * 0.1 ) * 10;
                 const g = Math.floor( data[ j + 1 ] * 0.1 ) * 10;
                 const b = Math.floor( data[ j + 2 ] * 0.1 ) * 10;
                 const color = r << 16 | g << 8 | b << 0;
-
                 const index = palette.indexOf( color );
-
                 if ( index === -1 ) {
-
                     pixels[ k ] = palette.length;
                     palette.push( color );
-
                 } else {
-
                     pixels[ k ] = index;
-
                 }
-
             }
 
             // Force palette to be power of 2
-
             let powof2 = 1;
             while ( powof2 < palette.length ) powof2 <<= 1;
-            // console.log(powof2);
             powof2 = powof2 > 8 ? 8 : powof2;
             try {
                 palette.length = Math.pow(2, powof2)
@@ -358,15 +372,10 @@ export class Canvas {
 
             current ++;
 
-            // progress.value = current / frames;
-
             if ( current < frames ) {
                 setTimeout( addFrame, 0, resolve );
-
             } else {
-
                 resolve( buffer.subarray( 0, writer.end() ) );
-
             }
 
         } );
@@ -384,16 +393,11 @@ export class Canvas {
         if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
         let width_index = size['orientation'] === 'portrait' ? 0 : 1;
         let pdf_width = size['format'][width_index];
-        // let pdf_height = size['orientation'] === 'portrait' ? size['format'][1] : size['format'][2];
         let pdf_height = size['format'][ (width_index+1) % 2];
-        // let pdf_width = size['orientation'] === 'portrait' ? this.toPixel(size['format'][0], size['unit']) : this.toPixel(size['format'][1], size['unit']);
-        // let pdf_height = size['orientation'] === 'portrait' ? this.toPixel(size['format'][1], size['unit']) : this.toPixel(size['format'][0], size['unit']);
         let pdf_proportion = pdf_height / pdf_width;
         let canvas_proportion = this.canvas.height / this.canvas.width;
         let resized_width = pdf_proportion > canvas_proportion ? pdf_width : pdf_height / canvas_proportion;
         let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
-        // let r = pdf_proportion > canvas_proportion ? pdf_width / this.canvas.width : pdf_height / this.canvas.height; 
-        // r = r / this.devicePixelRatio;
         var imgData = this.canvas.toDataURL("image/jpeg", 1.0);
         var pdf = new jsPDF(size);
         pdf.addImage(imgData, 'JPEG', 0, 0, resized_width, resized_height);
@@ -403,20 +407,16 @@ export class Canvas {
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
         document.body.classList.remove('recording');
         this.downloadVideoButton.innerText = 'Record video';
-
     }
     stopSaving(){
         this.autoRecordingQueueIdx = 0;
         this.isSaving = false;
-        // this.readyState = 0;
         document.body.classList.remove('saving');
     }
-    
     renderSelect(id, options, extraClass=''){
         let temp_select = document.createElement('SELECT');
         temp_select.id = id;
         temp_select.className = 'field-id-' + id + ' ' + extraClass;
-
         if(typeof options === 'object' && options !== null)
         {
             for (const [key, value] of Object.entries(options)) {
@@ -737,46 +737,30 @@ export class Canvas {
     }
 
     sync(){
-        // console.log('canvas sync()');
         this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         if(this.format === 'custom') {
-            // if(!this.isThree) {
-            //     console.log(this.counterpart.canvas.style.width);
-            // }
             this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;
             this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
-            // console.log(this.isThree, 'counterpart input value', this.counterpart.fields['custom-width-input'].value);
             this.counterpart.setCanvasSize({'width': this.fields['custom-width-input'].value, 'height': this.fields['custom-height-input'].value}, null, false);
         }
-        // if(!this.isThree) {
-        //     console.log(this.counterpart.canvas.style.width);
-        // }
         for(let shape_id in this.shapes) {
             let shape = this.shapes[shape_id];
             shape.sync();
         }
-        // if(!this.isThree) {
-        //     console.log(this.counterpart.canvas.style.width);
-        // }
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
-        // if(this.isThree)
-        //     console.log('three setting canvas size');
         let updated = false;
         if(size.width) {
             updated = true;
             this.canvas.width = size.width;
             this.canvas.style.width = size.width / this.scale + 'px';
-            // console.log(this.canvas.width);
         }
         if(size.height) {
             updated = true;
             this.canvas.height = size.height;
             this.canvas.style.height = size.height / this.scale + 'px';
         }
-        // console.log(size.height, this.canvas.height)
-        // console.log(this.isThree, this.canvas.style.width);
         if(!this.wrapper.offsetHeight || ! updated) return;
 
         if(this.isThree)
@@ -787,10 +771,8 @@ export class Canvas {
         if(typeof callback === 'function') {
             callback(size);
         }
-        // console.log('post set camera', this.isThree, this.canvas.style.width);
         if(updated && !silent) {
             for(let shape_id in this.shapes) {
-                // console.log(this.canvas.width);
                 this.shapes[shape_id].updateCanvasSize();
                 this.shapes[shape_id].updateFrame(null, true);
                 if(this.isThree)

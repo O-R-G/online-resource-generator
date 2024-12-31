@@ -346,8 +346,12 @@ export class Record {
                     } else {
                         if(!field.value) continue;
                         data['fields'].push(this.formatField(field));
-                        if (field.classList.contains('field-id-text'))
+                        if ( (!document.body.classList.contains('viewing-three') && field.classList.contains('field-id-text')) ||
+                             (document.body.classList.contains('viewing-three') && field.classList.contains('field-id-text-front')) 
+                        ) {
                             record_name = field.value;
+                        }
+                            
                     }
                     
                 }

@@ -1010,7 +1010,6 @@ export class ShapeStatic extends Shape {
 				this.updateShape(this.shape, isSilent);
 				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
 				[].forEach.call(sWatermark_panels, function(el, i){
-					let availables = shape.watermarkPositions;
 					let position = el.querySelector('.watermark-position').value;
 					let label = el.querySelector('label[for^="watermark"]');
 					this.checkWatermarkPosition(position, label);
@@ -1283,14 +1282,12 @@ export class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		// console.log('sync');
-		// console.log(this.canvasObj.counterpart.canvas.style.width);
 		if(!this.counterpart) return;
 
 		let isSilent = true;
 		super.sync();
     	super.updateCounterpartWatermarks(isSilent);
-		console.log(this.canvasObj.counterpart.canvas.style.width);
+		// return;
 		this.canvasObj.counterpart.draw();
     }
     updateTextPosition(position, silent = false){
