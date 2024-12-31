@@ -247,7 +247,7 @@ export class ShapeAnimated extends Shape {
 	drawHexagon(){
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		let this_a = (this.frame.w - this_p * 2) / 2;
+		let this_a = (Math.min(this.frame.w, this.frame.h) - this_p * 2) / 2;
 		this.textBoxWidth =  (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 
 		var path_front = new THREE.Shape();
