@@ -125,7 +125,7 @@ export class ShapeAnimated extends Shape {
 		this.camera = this.canvasObj.camera;	
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
 		this.group = new THREE.Group();
-		this.updateGroupPositionY();
+		this.setGroupPosition();
 		this.drawShape();
 		this.renderControl();
 	    this.addListeners();
@@ -816,8 +816,9 @@ export class ShapeAnimated extends Shape {
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
 		this.shapeShiftX = x;
-		this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
-		this.group.needsUpdate = true;
+		// this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
+		// this.group.needsUpdate = true;
+		this.setGroupPosition();
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftY(y, silent = false){
@@ -825,7 +826,7 @@ export class ShapeAnimated extends Shape {
 		if(isNaN(y)) return;
 		// y = this.getValueByPixelRatio(y);
 		this.shapeShiftY = y;
-		this.updateGroupPositionY();
+		this.setGroupPosition();
         if(!silent) this.canvasObj.draw();
     }
 	processColor(color)
@@ -2092,6 +2093,7 @@ export class ShapeAnimated extends Shape {
 	}
     updateFrame(frame=null, silent = false)
     {
+		console.log('updateFrame');
 		silent = false;
 		this.updateCanvasSize();
 		frame = frame ? frame : this.generateFrame();
@@ -2104,16 +2106,19 @@ export class ShapeAnimated extends Shape {
 			this.group.remove(this.mesh_back);
 			this.scene.remove(this.group);
 			this.group = new THREE.Group();
-			this.updateGroupPositionY();
+			// this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
+			this.setGroupPosition();
 		}
     	if(!silent) this.canvasObj.draw();
     }
-	updateGroupPositionY(){
+	setGroupPosition(){
+		this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
 			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
 		} else {
 			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
 		}
+		this.group.needsUpdate = true;
 	}
 	generateShapeCenter(){
 		let output = {x: 0, y: 0};
