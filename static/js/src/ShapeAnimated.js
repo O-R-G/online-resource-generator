@@ -428,6 +428,7 @@ export class ShapeAnimated extends Shape {
 		return input * window.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
+		console.log('write');
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
@@ -475,8 +476,9 @@ export class ShapeAnimated extends Shape {
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			
-			let this_p = this.padding;
-			let side = this.size.width;
+			// let this_p = this.padding;
+			let side = Math.min(this.size.width, this.size.height);
+			// console.log(side);
 			let x = 0;
 			let y = 0;
 			if(align.indexOf('left') !== -1){
@@ -518,7 +520,7 @@ export class ShapeAnimated extends Shape {
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			let this_p = this.padding;
-			let a = this.frame.w / 2 - this_p;
+			let a = Math.min(this.frame.w, this.frame.h) / 2 - this_p;
 			let x = 0;
 			let y = 0;
 
@@ -591,7 +593,7 @@ export class ShapeAnimated extends Shape {
 			let x = 0;
 			let y = 0;
 			let inner_p_x = this.innerPadding.x;
-			let length = this.frame.w - this.padding * 2;
+			let length = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
     		if(align === 'surrounding') {
 				let textObjs = [];
 				let output = new THREE.Group();
@@ -2093,7 +2095,7 @@ export class ShapeAnimated extends Shape {
 	}
     updateFrame(frame=null, silent = false)
     {
-		console.log('updateFrame');
+		// console.log('updateFrame');
 		silent = false;
 		this.updateCanvasSize();
 		frame = frame ? frame : this.generateFrame();
