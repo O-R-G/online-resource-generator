@@ -106,13 +106,11 @@ export class Canvas {
         this.readyState = 0;
         this.textAmount = 0;
 		if(this.isThree) this.initThree();
-        // console.log(this.canvas.height)
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
-	    	this.media_recorder.ondataavailable = (evt) => { console.log('b'); this.chunks.push(evt.data); };
+	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
             this.media_recorder.addEventListener('start', ()=>{
-                // console.log('media_recorder start--');
                 this.animate(); 
             });
 	    }
@@ -129,13 +127,10 @@ export class Canvas {
 	}
 	initThree(){
         this.devicePixelRatio = window.devicePixelRatio;
-        // console.log('initThree', this.scale)
         let width =  this.formatOptions[this.format].w / this.devicePixelRatio;
         let height =  this.formatOptions[this.format].h / this.devicePixelRatio;
-        // console.log(this.devicePixelRatio);
         this.canvas.style.width = `${width * this.devicePixelRatio}px`;
         this.canvas.style.height = `${height * this.devicePixelRatio}px`;
-        // console.log(width*this.devicePixelRatio);
         this.canvas.style.transform = `scale(${this.scale / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
         this.setRenderer();
@@ -144,7 +139,6 @@ export class Canvas {
 		this.fov = 10;
         this.setCamera();
         window.addEventListener('resize', ()=>{
-            // console.log(window.devicePixelRatio, this.devicePixelRatio);
             if(window.devicePixelRatio !== this.devicePixelRatio) {
                 this.initialized = false;
                 this.canvas.parentNode.removeChild(this.canvas);
@@ -190,25 +184,21 @@ export class Canvas {
     initRecording(){
         this.isInitRecording = true;
         this.downloadVideoButton.innerText = 'Loading . . .';
-        // this.autoRecordingQueueIdx = 0;
         this.readyState = 0;
-        // this.chunks = [];
         this.resetAnimation();
         setTimeout(()=>{
             this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
+            this.chunks = [];
             try{
+                
                 this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
                 this.media_recorder.ondataavailable = (evt) => { 
-                    // console.log('pupu');
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
-                    console.log('media_recorder start--', performance.now());
                     this.isRecording = true;
                     this.animate(); 
                 });
                 this.media_recorder.addEventListener('stop', ()=>{
-                    console.log('recorder stop--');
-                    // console.log('media_recorder start--', performance.now());
                     this.isRecording = false;
                     this.saveCanvasAsVideo(); 
                 });
@@ -217,11 +207,7 @@ export class Canvas {
             }
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
-            // this.animate();
-            // setTimeout(
-            //     this.startRecording.bind(this),
-            //     1000
-            // )
+            
             this.startRecording();
         }, 0)
         
@@ -234,18 +220,6 @@ export class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(){
-        // console.log('startRecording--');
-        // console.log(this.isRecording);
-        // console.log(this.isRecording);
-    	/* 
-            mediaRecorder safari only supports mp4
-            but mp4 compression shifts colors
-            so adjust grey value in advance
-            arrived at color by test outputs
-        */
-        // this.media_recorder.addEventListener('start', ()=>{ 
-        //     console.log('start recording . . .');
-        // })
         this.media_recorder.start(1); 
         this.animate(); 
     }
@@ -314,7 +288,6 @@ export class Canvas {
         this.animate();
     }
     saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 24 ){
-        console.log(duration, fps);
         const frames = duration * fps;
 
         const canvas = document.createElement( 'canvas' );
@@ -634,7 +607,6 @@ export class Canvas {
         }
     }
     animate(isSilent = false, initRecording = false){
-        // console.log('canvas animate');
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
             if(this.isThree) el.initAnimate(el.animationName, isSilent);
