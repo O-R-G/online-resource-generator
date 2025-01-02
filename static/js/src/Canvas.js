@@ -485,6 +485,13 @@ export class Canvas {
         element.querySelector('input').addEventListener('click', (event)=>{this.toggleSecondShape(event)});
         return element;
     }
+    renderDownloadButton(text, extraClass=[]){
+        const cls = ['btn'].concat(extraClass);
+        const button = document.createElement('button');
+        button.className = cls.join(' ');
+        button.innerHTML = `<span>${text}</span>`;
+        return button;
+    }
     renderDownloadImageButton(){
         let button = document.createElement('BUTTON');
         button.className = 'download-image-button btn';
@@ -546,18 +553,24 @@ export class Canvas {
         this.control_bottom.appendChild(this.renderAddShape('second-shape-button'));
         let buttons_container = document.createElement('div');
         buttons_container.className = 'buttons-container';
-        buttons_container.appendChild(this.renderDownloadImageButton());
-        buttons_container.appendChild(this.renderDownloadPdfButton());
-        buttons_container.appendChild(this.renderDownloadVideoButton());
-        buttons_container.appendChild(this.renderDownloadGifButton());
-        
-        this.control_bottom.appendChild(buttons_container);
+        this.downloadImageButton = this.renderDownloadButton('png', ['download-image-button', 'download-button']);
+        buttons_container.appendChild(this.downloadImageButton);
         if(!this.isThree) {
-            this.downloadVideoButton.style.display = 'none';
-            this.downloadGifButton.style.display = 'none';
+            this.downloadPdfButton = this.renderDownloadButton('pdf', ['download-pdf-button', 'download-button']);
+            buttons_container.appendChild(this.downloadPdfButton);
         } else {
-            this.downloadPdfButton.style.display = 'none';
+            this.downloadVideoButton = this.renderDownloadButton('mp4', ['download-video-button', 'download-button']);
+            buttons_container.appendChild(this.downloadVideoButton);
+            this.downloadGifButton = this.renderDownloadButton('gif', ['download-gif-button', 'download-button']);
+            buttons_container.appendChild(this.downloadGifButton);
         }
+        this.control_bottom.appendChild(buttons_container);
+        // if(!this.isThree) {
+        //     this.downloadVideoButton.style.display = 'none';
+        //     this.downloadGifButton.style.display = 'none';
+        // } else {
+        //     this.downloadPdfButton.style.display = 'none';
+        // }
         
         this.addListenersBottom();
     }
@@ -624,7 +637,7 @@ export class Canvas {
     addCounterpart(obj)
     {
         this.counterpart = obj;
-        if(obj.isThree) this.downloadVideoButton.style.display = 'block';
+        // if(obj.isThree) this.downloadVideoButton.style.display = 'block';
     }
     changeFormat(event, currentFormat, toConfirm=true){
         let el = event ? event.target : this.control_wrapper.querySelector('.field-id-format');

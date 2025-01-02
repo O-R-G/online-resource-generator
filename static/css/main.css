@@ -144,7 +144,7 @@ option:after {
     /* flex: 0 0 300px; */
     width: 500px;
     padding-right: 20px;
-    padding-bottom: 60px;
+    padding-bottom: 90px;
     max-height: 100vh;
     overflow: scroll;;
     /* position: sticky; */
@@ -330,6 +330,23 @@ body.recording #record + div
 {
     display: none;
 }*/
+.download-button:before {
+    content: '';
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    background-image: url('../../media/svg/arrow-down-12-white.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.download-button:hover:before {
+    background-image: url('../../media/svg/arrow-down-12-black.svg');
+}
+.download-button span {
+    display: inline-block;
+    vertical-align: middle;
+}
 body.recording .download-video-button
 {
 /*        display: inline-block;*/
@@ -577,7 +594,7 @@ input[value="fetch"]
 {
     --flex-gap: 10px;
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
     position: relative;
     width: calc(100% + var(--flex-gap));
     top: calc(-1 * var(--flex-gap) / 2);
