@@ -34,7 +34,7 @@ async function init(data, cb){
         main.appendChild( container );
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
-        let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions}, data[id]['isThree']);
+        let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions, 'formatUnitOptions': formatUnitOptions}, data[id]['isThree']);
         let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
         if (isThree) shapes['animated'].push(shape);
         else shapes['static'].push(shape);

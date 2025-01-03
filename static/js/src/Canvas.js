@@ -33,6 +33,7 @@ import { ShapeAnimated } from "./ShapeAnimated.js";
 import { getDefaultOption } from './lib.js'
 import { GifWriter } from 'omggif'
 import { jsPDF } from "jspdf";
+import { Canvg } from 'canvg';
 
 export class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
@@ -53,7 +54,14 @@ export class Canvas {
             if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
         }
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
-	    this.isRecording = false;
+        this.formatUnit = 'px';
+        if(this.format === 'custom' && this.formatUnitOptions) {
+            this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
+        } else if (this.format.unit){
+            this.formatUnit = this.format.unit;
+        }
+        this.devicePixelRatio = window.devicePixelRatio;
+        this.isRecording = false;
         this.isRecordingGif = false;
         this.isInitRecording = false;
         this.fields = {};
@@ -73,6 +81,8 @@ export class Canvas {
         }
         this.gifRecordingDuration = 7; // sec
         this.framerate = 60;
+
+        this.v = null; // canvg
 	}
 	init(){
         if(this.initialized) return;
@@ -126,7 +136,6 @@ export class Canvas {
         // this.draw();
 	}
 	initThree(){
-        this.devicePixelRatio = window.devicePixelRatio;
         let width =  this.formatOptions[this.format].w / this.devicePixelRatio;
         let height =  this.formatOptions[this.format].h / this.devicePixelRatio;
         this.canvas.style.width = `${width * this.devicePixelRatio}px`;
@@ -248,6 +257,13 @@ export class Canvas {
         filename += '.png';
         link.download = filename;
         if(this.isThree) var context = this.canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
+        // const svg = `
+        // <svg width="${this.canvas.width / 2}" height="${this.canvas.height / 2}" xmlns="http://www.w3.org/2000/svg">
+        //     <text x="50" y="100" font-size="40" font-family="Arial" fillStyle="#ffffff">Canvas Text</text>
+        // </svg>`;
+        // console.log(svg);
+        // this.v = Canvg.fromString(this.context, svg);
+        // this.v.start();
         link.href = this.canvas.toDataURL();
         link.click();
         link.delete;
@@ -358,23 +374,84 @@ export class Canvas {
         var cpi = 2.54; // centimeters per inch
         var dpi = 96; // dots per inch
         var ppd = this.devicePixelRatio; // pixels per dot
-       
-        return source_unit === 'cm' ? parseFloat((val * (dpi * ppd) / cpi).toFixed(n)) : parseFloat((val * (dpi * ppd)).toFixed(n));
+        val = parseFloat(val);
+        console.log('toPixel', val * (dpi * ppd), this.devicePixelRatio);
+        return source_unit === 'cm' ? parseInt((val * (dpi * ppd) / cpi).toFixed(n)) : parseInt((val * (dpi * ppd)).toFixed(n));
     }
-    saveCanvasAsPdf(){
-        let size = {...this.pdfSize['a4']};
-        if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
-        let width_index = size['orientation'] === 'portrait' ? 0 : 1;
-        let pdf_width = size['format'][width_index];
-        let pdf_height = size['format'][ (width_index+1) % 2];
-        let pdf_proportion = pdf_height / pdf_width;
-        let canvas_proportion = this.canvas.height / this.canvas.width;
-        let resized_width = pdf_proportion > canvas_proportion ? pdf_width : pdf_height / canvas_proportion;
-        let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
-        var imgData = this.canvas.toDataURL("image/jpeg", 1.0);
-        var pdf = new jsPDF(size);
-        pdf.addImage(imgData, 'JPEG', 0, 0, resized_width, resized_height);
+    pixelToCm(val){
+        var n = 1;
+        var cpi = 2.54; // centimeters per inch
+        var dpi = 96; // dots per inch
+        var ppd = this.devicePixelRatio; // pixels per dot
+        return parseFloat((val * cpi  / (dpi * ppd)).toFixed(n));
+    }
+    async saveCanvasAsPdf(){
+        console.log('?');
+        // let size = {...this.pdfSize['a4']};
+        let size = this.generatePdfSize();
+        console.log(size);
+        // if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
+        // let width_index = size['orientation'] === 'portrait' ? 0 : 1;
+        // let pdf_width = size['format'][width_index];
+        // let pdf_height = size['format'][ (width_index+1) % 2];
+        let pdf_width = size['format'][0];
+        let pdf_height = size['format'][1];
+        // let pdf_proportion = pdf_height / pdf_width;
+        // let canvas_proportion = this.canvas.height / this.canvas.width;
+        // let resized_width = pdf_proportion > canvas_proportion ? pdf_width : pdf_height / canvas_proportion;
+        // let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
+        let resized_width = pdf_width,
+            resized_height = pdf_height;
+        console.log(size, resized_width, resized_height);
+        let pdf = new jsPDF(size);
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" style="background:none;">
+                <text x="50" y="100" font-size="40" font-family="Arial">Canvas Text</text>
+            </svg>`;
+        
+        // this.v = Canvg.fromString(this.context, svg);
+        // await this.v.render();
+        // this.v = Canvg.fromString(this.context, svg);
+        // this.v.start();
+        // this.draw();
+        
+        let imgData = this.canvas.toDataURL("image/png", 1.0);
+            
+        pdf.addImage(imgData, 'PNG', 0, 0, resized_width, resized_height);
         pdf.save("download.pdf");
+        // setTimeout(()=>{
+        //     pdf.cc('12');
+        //     let imgData = this.canvas.toDataURL("image/png", 1.0);
+            
+        //     pdf.addImage(imgData, 'PNG', 0, 0, resized_width, resized_height);
+        //     pdf.save("download.pdf");
+        //     // this.v.stop();
+        // }, 1000);
+        // window.addEventListener('beforeunload', ()=>{
+        //     this.v.stop();
+        // })
+        
+    }
+    generatePdfSize(){
+        // 'a4': {
+        //     orientation: 'portrait',
+        //     unit: 'cm',
+        //     format: [21, 29.7]
+        // },
+        let width = this.canvas.width,
+            height = this.canvas.height,
+            unit = this.formatUnit;
+        if(this.formatUnit === 'px') {
+            width = this.pixelToCm(width);
+            height = this.pixelToCm(height);
+            unit = 'cm';
+        }
+        const output = {
+            'orientation': 'portrait',
+            'unit': unit,
+            'format': [width, height]
+        }
+        return output;
     }
     stopRecording(){
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
@@ -420,7 +497,6 @@ export class Canvas {
         return temp_panel_section;
     }
     renderFormatField(){
-        
         let formatField = this.renderSelectField('format', 'Format', this.formatOptions, '', 'field-id-format');
         formatField.querySelector('select').setAttribute('flex', 'full');
         if(this.format == 'custom') {
@@ -428,7 +504,7 @@ export class Canvas {
             customWidth.id="custom-width-input";
             customWidth.placeholder = 'W';
             customWidth.className = 'flex-item';
-            customWidth.setAttribute('flex', 1);
+            customWidth.setAttribute('flex', 3);
             customWidth.value = this.formatOptions['custom']['w'];
             let cross = document.createElement('span');
             cross.innerHTML = '&times;';
@@ -437,12 +513,20 @@ export class Canvas {
             customHeight.id="custom-height-input";
             customHeight.className = 'flex-item';
             customHeight.placeholder="H";
-            customHeight.setAttribute('flex', 1);
+            customHeight.setAttribute('flex', 3);
             customHeight.value = this.formatOptions['custom']['h'];
             let temp_right = formatField.querySelector('.half-right');
             temp_right.appendChild(customWidth);
             temp_right.appendChild(cross);
             temp_right.appendChild(customHeight);
+
+            if(this.formatUnitOptions) {
+                let id = `${this.id}-formatUnit`;
+                let customFormatUnit = this.renderSelect(id, this.formatUnitOptions)
+                customFormatUnit.className = 'flex-item';
+                customFormatUnit.setAttribute('flex', 2);
+                temp_right.appendChild(customFormatUnit);
+            }
             this.fields['custom-width-input'] = customWidth;
             this.fields['custom-height-input'] = customHeight;
         }
@@ -589,8 +673,18 @@ export class Canvas {
         };
         let sCustomHeight = this.control_top.querySelector('#custom-height-input');
         if(sCustomHeight) sCustomHeight.onchange = () => {
-            this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);``
+            this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
         };
+        let sCustomUnit = this.control_top.querySelector(`#${this.id}-formatUnit`);
+        if(sCustomUnit) {
+            sCustomUnit.onchange = ()=>{
+                console.log(sCustomUnit.value)
+                this.formatUnit = sCustomUnit.value;
+                console.log(this.formatUnit);
+                this.setCanvasSize({width: this.canvas.width, height: this.canvas.height}, null, false);
+                // this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
+            }
+        }
     }
     addListenersBottom(){
         if(this.downloadImageButton) this.downloadImageButton.onclick = this.saveCanvasAsImage.bind(this);
@@ -736,12 +830,22 @@ export class Canvas {
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
         let updated = false;
+        // console.log(this.formatUnit);
+        // if(this.formatUnit !== 'px') {
+            
+        //     size.height = this.toPixel(size.width, this.formatUnit);
+        // }
         if(size.width) {
+            if(this.formatUnit !== 'px')
+                size.width = this.toPixel(size.width, this.formatUnit);
+            console.log(size.width);
             updated = true;
             this.canvas.width = size.width;
             this.canvas.style.width = size.width / this.scale + 'px';
         }
         if(size.height) {
+            if(this.formatUnit !== 'px')
+                size.height = this.toPixel(size.height, this.formatUnit);
             updated = true;
             this.canvas.height = size.height;
             this.canvas.style.height = size.height / this.scale + 'px';

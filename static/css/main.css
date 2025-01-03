@@ -447,8 +447,17 @@ body.recording .download-video-button
 .flex-item[flex='half']:nth-child(2n+2) {
     margin-right: 0;
 } */
+.flex-item[flex='0.5'] {
+    flex: 0.5;
+}
 .flex-item[flex='1'] {
     flex: 1;
+}
+.flex-item[flex='2'] {
+    flex: 2;
+}
+.flex-item[flex='3'] {
+    flex: 3;
 }
 .flex-item:last-child
 {
