@@ -54,12 +54,14 @@ export class Canvas {
             if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
         }
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
-        this.formatUnit = 'px';
-        if(this.format === 'custom' && this.formatUnitOptions) {
-            this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
-        } else if (this.format.unit){
-            this.formatUnit = this.format.unit;
-        }
+        // this.formatUnit = 'px';
+        //  this.formatUnitOptions['px'];
+        this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
+        // if(this.format === 'custom' && this.formatUnitOptions) {
+        //     this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
+        // } else if (this.format.unit){
+        //     this.formatUnit = this.format.unit;
+        // }
         this.devicePixelRatio = window.devicePixelRatio;
         this.isRecording = false;
         this.isRecordingGif = false;
@@ -81,7 +83,7 @@ export class Canvas {
         }
         this.gifRecordingDuration = 7; // sec
         this.framerate = 60;
-
+        this.pdfWidth = null;
         this.v = null; // canvg
 	}
 	init(){
@@ -147,6 +149,8 @@ export class Canvas {
 		this.aspect = 1;  // the canvas default
 		this.fov = 10;
         this.setCamera();
+
+        /* if the window is dragged into a different screen... */
         window.addEventListener('resize', ()=>{
             if(window.devicePixelRatio !== this.devicePixelRatio) {
                 this.initialized = false;
@@ -162,7 +166,6 @@ export class Canvas {
         canvas.setAttribute('format', this.format);
 		canvas.id = this.id;
         canvas.className = "org-main-canvas";
-        
         return canvas;
     }
     setRenderer(){
@@ -385,11 +388,14 @@ export class Canvas {
         var ppd = this.devicePixelRatio; // pixels per dot
         return parseFloat((val * cpi  / (dpi * ppd)).toFixed(n));
     }
+    promptPdfSize(){
+        this.pdfSizePopup.setAttribute('data-hidden', 0);
+    }
     async saveCanvasAsPdf(){
         console.log('?');
         // let size = {...this.pdfSize['a4']};
         let size = this.generatePdfSize();
-        console.log(size);
+        // console.log(size);
         // if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
         // let width_index = size['orientation'] === 'portrait' ? 0 : 1;
         // let pdf_width = size['format'][width_index];
@@ -402,7 +408,7 @@ export class Canvas {
         // let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
         let resized_width = pdf_width,
             resized_height = pdf_height;
-        console.log(size, resized_width, resized_height);
+        // console.log(size, resized_width, resized_height);
         let pdf = new jsPDF(size);
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" style="background:none;">
@@ -438,14 +444,16 @@ export class Canvas {
         //     unit: 'cm',
         //     format: [21, 29.7]
         // },
-        let width = this.canvas.width,
-            height = this.canvas.height,
+        console.log(this.formatUnit);
+        let width = parseFloat(this.pdfWidth),
+            height = this.pdfWidth * this.canvas.height / this.canvas.width,
             unit = this.formatUnit;
-        if(this.formatUnit === 'px') {
-            width = this.pixelToCm(width);
-            height = this.pixelToCm(height);
-            unit = 'cm';
-        }
+        console.log(width, height, unit);
+        // if(this.formatUnit === 'px') {
+        //     width = this.pixelToCm(width);
+        //     height = this.pixelToCm(height);
+        //     unit = 'cm';
+        // }
         const output = {
             'orientation': 'portrait',
             'unit': unit,
@@ -520,13 +528,6 @@ export class Canvas {
             temp_right.appendChild(cross);
             temp_right.appendChild(customHeight);
 
-            if(this.formatUnitOptions) {
-                let id = `${this.id}-formatUnit`;
-                let customFormatUnit = this.renderSelect(id, this.formatUnitOptions)
-                customFormatUnit.className = 'flex-item';
-                customFormatUnit.setAttribute('flex', 2);
-                temp_right.appendChild(customFormatUnit);
-            }
             this.fields['custom-width-input'] = customWidth;
             this.fields['custom-height-input'] = customHeight;
         }
@@ -604,6 +605,48 @@ export class Canvas {
         this.downloadPdfButton = button;
         return button;
     }
+    renderPdfSizePopup(){
+        const output = document.createElement('div');
+        output.id = `${this.prefix}-pdf-size-popup`;
+        output.className = 'pdf-size-popup';
+        output.setAttribute('data-hidden', 1);
+        let flex_container = document.createElement('div');
+        flex_container.className = 'flex-container';
+        this.pdfSizeInput = document.createElement('input');
+        this.pdfSizeInput.id = `${this.prefix}-pdf-width-input`;
+        this.pdfSizeInput.className = 'flex-item';
+        this.pdfSizeInput.setAttribute('flex', 7);
+        flex_container.appendChild(this.pdfSizeInput);
+        // console.log(this.formatUnitOptions);
+        if(this.formatUnitOptions) {
+            // delete this.formatUnitOptions['px'];
+            let id = `${this.id}-formatUnit`;
+            this.pdfSizeUnitInput = this.renderSelect(id, this.formatUnitOptions)
+            this.pdfSizeUnitInput.className = 'flex-item';
+            this.pdfSizeUnitInput.setAttribute('flex', 1);
+            // console.log(customFormatUnit);
+            flex_container.appendChild(this.pdfSizeUnitInput);
+        }
+        let p = document.createElement('p');
+        p.for = this.pdfSizeInput.id;
+        p.innerText = 'Please enter the width of the generated pdf';
+        
+        let buttons_container = document.createElement('div');
+        buttons_container.className = 'buttons-container';
+        this.confirmPdfSizeButton = document.createElement('button');
+        this.confirmPdfSizeButton.className = 'btn';
+        this.confirmPdfSizeButton.innerText = 'Confirm';
+        this.cancelPdfSizeButton = document.createElement('button');
+        this.cancelPdfSizeButton.className = 'btn';
+        this.cancelPdfSizeButton.innerText = 'Cancel';
+        buttons_container.appendChild(this.confirmPdfSizeButton);
+        buttons_container.appendChild(this.cancelPdfSizeButton);
+        output.appendChild(p);
+        output.appendChild(flex_container);
+        output.appendChild(buttons_container);
+        this.addListenersPdfSizePopup();
+        return output;
+    }
     addShape(shapeObj){
         this.shapes[shapeObj.id] = shapeObj;
     }
@@ -625,6 +668,8 @@ export class Canvas {
         this.control_wrapper.appendChild(this.control_bottom);
         this.renderControlTop();
         this.renderControlBottom();
+        this.pdfSizePopup = this.renderPdfSizePopup();
+        this.control_wrapper.appendChild(this.pdfSizePopup);
     }
     renderControlTop(){
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
@@ -675,22 +720,37 @@ export class Canvas {
         if(sCustomHeight) sCustomHeight.onchange = () => {
             this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
         };
-        let sCustomUnit = this.control_top.querySelector(`#${this.id}-formatUnit`);
-        if(sCustomUnit) {
-            sCustomUnit.onchange = ()=>{
-                console.log(sCustomUnit.value)
-                this.formatUnit = sCustomUnit.value;
-                console.log(this.formatUnit);
-                this.setCanvasSize({width: this.canvas.width, height: this.canvas.height}, null, false);
-                // this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
-            }
-        }
+        
     }
+    
     addListenersBottom(){
         if(this.downloadImageButton) this.downloadImageButton.onclick = this.saveCanvasAsImage.bind(this);
         if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
         if(this.downloadGifButton) this.downloadGifButton.onclick = this.initDownloadGif.bind(this);
-        if(this.downloadPdfButton) this.downloadPdfButton.onclick = this.saveCanvasAsPdf.bind(this);
+        if(this.downloadPdfButton) this.downloadPdfButton.onclick = this.promptPdfSize.bind(this);
+    }
+    addListenersPdfSizePopup(){
+        // let sCustomUnit = this.control_top.querySelector(`#${this.id}-formatUnit`);
+        if(this.pdfSizeUnitInput) {
+            this.pdfSizeUnitInput.onchange = ()=>{
+                console.log('on change');
+                this.formatUnit = this.pdfSizeUnitInput.value;
+                // this.setCanvasSize({width: this.canvas.width, height: this.canvas.height}, null, false);
+                // this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
+            }
+        }
+        if(this.cancelPdfSizeButton) this.cancelPdfSizeButton.onclick = ()=>{
+            this.pdfSizePopup.setAttribute('data-hidden', 1);
+        }
+        if(this.confirmPdfSizeButton) this.confirmPdfSizeButton.onclick = ()=>{
+            if(isNaN(this.pdfSizeInput.value)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            this.pdfWidth = this.pdfSizeInput.value;
+            this.saveCanvasAsPdf();
+            this.pdfSizePopup.setAttribute('data-hidden', 1);
+        }
     }
     updateBase(base){
     	this.base = base;
