@@ -444,11 +444,11 @@ export class Canvas {
         //     unit: 'cm',
         //     format: [21, 29.7]
         // },
-        console.log(this.formatUnit);
+        // console.log(this.formatUnit);
         let width = parseFloat(this.pdfWidth),
             height = this.pdfWidth * this.canvas.height / this.canvas.width,
             unit = this.formatUnit;
-        console.log(width, height, unit);
+        // console.log(width, height, unit);
         // if(this.formatUnit === 'px') {
         //     width = this.pixelToCm(width);
         //     height = this.pixelToCm(height);
@@ -605,7 +605,7 @@ export class Canvas {
         this.downloadPdfButton = button;
         return button;
     }
-    renderPdfSizePopup(){
+    renderPdfSizeBlock(){
         const output = document.createElement('div');
         output.id = `${this.prefix}-pdf-size-popup`;
         output.className = 'pdf-size-popup';
@@ -624,7 +624,6 @@ export class Canvas {
             this.pdfSizeUnitInput = this.renderSelect(id, this.formatUnitOptions)
             this.pdfSizeUnitInput.className = 'flex-item';
             this.pdfSizeUnitInput.setAttribute('flex', 1);
-            // console.log(customFormatUnit);
             flex_container.appendChild(this.pdfSizeUnitInput);
         }
         let p = document.createElement('p');
@@ -639,8 +638,9 @@ export class Canvas {
         this.cancelPdfSizeButton = document.createElement('button');
         this.cancelPdfSizeButton.className = 'btn';
         this.cancelPdfSizeButton.innerText = 'Cancel';
-        buttons_container.appendChild(this.confirmPdfSizeButton);
+        
         buttons_container.appendChild(this.cancelPdfSizeButton);
+        buttons_container.appendChild(this.confirmPdfSizeButton);
         output.appendChild(p);
         output.appendChild(flex_container);
         output.appendChild(buttons_container);
@@ -668,7 +668,7 @@ export class Canvas {
         this.control_wrapper.appendChild(this.control_bottom);
         this.renderControlTop();
         this.renderControlBottom();
-        this.pdfSizePopup = this.renderPdfSizePopup();
+        this.pdfSizePopup = this.renderPdfSizeBlock();
         this.control_wrapper.appendChild(this.pdfSizePopup);
     }
     renderControlTop(){
