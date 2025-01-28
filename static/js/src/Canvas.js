@@ -392,68 +392,26 @@ export class Canvas {
         this.pdfSizePopup.setAttribute('data-hidden', 0);
     }
     async saveCanvasAsPdf(){
-        console.log('?');
-        // let size = {...this.pdfSize['a4']};
         let size = this.generatePdfSize();
-        // console.log(size);
-        // if(this.canvas.width > this.canvas.height) size['orientation'] = 'landscape';
-        // let width_index = size['orientation'] === 'portrait' ? 0 : 1;
-        // let pdf_width = size['format'][width_index];
-        // let pdf_height = size['format'][ (width_index+1) % 2];
         let pdf_width = size['format'][0];
         let pdf_height = size['format'][1];
-        // let pdf_proportion = pdf_height / pdf_width;
-        // let canvas_proportion = this.canvas.height / this.canvas.width;
-        // let resized_width = pdf_proportion > canvas_proportion ? pdf_width : pdf_height / canvas_proportion;
-        // let resized_height = pdf_proportion > canvas_proportion ? pdf_width * canvas_proportion : pdf_height;
         let resized_width = pdf_width,
             resized_height = pdf_height;
-        // console.log(size, resized_width, resized_height);
         let pdf = new jsPDF(size);
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" style="background:none;">
                 <text x="50" y="100" font-size="40" font-family="Arial">Canvas Text</text>
             </svg>`;
         
-        // this.v = Canvg.fromString(this.context, svg);
-        // await this.v.render();
-        // this.v = Canvg.fromString(this.context, svg);
-        // this.v.start();
-        // this.draw();
-        
         let imgData = this.canvas.toDataURL("image/png", 1.0);
             
         pdf.addImage(imgData, 'PNG', 0, 0, resized_width, resized_height);
         pdf.save("download.pdf");
-        // setTimeout(()=>{
-        //     pdf.cc('12');
-        //     let imgData = this.canvas.toDataURL("image/png", 1.0);
-            
-        //     pdf.addImage(imgData, 'PNG', 0, 0, resized_width, resized_height);
-        //     pdf.save("download.pdf");
-        //     // this.v.stop();
-        // }, 1000);
-        // window.addEventListener('beforeunload', ()=>{
-        //     this.v.stop();
-        // })
-        
     }
     generatePdfSize(){
-        // 'a4': {
-        //     orientation: 'portrait',
-        //     unit: 'cm',
-        //     format: [21, 29.7]
-        // },
-        // console.log(this.formatUnit);
         let width = parseFloat(this.pdfWidth),
             height = this.pdfWidth * this.canvas.height / this.canvas.width,
             unit = this.formatUnit;
-        // console.log(width, height, unit);
-        // if(this.formatUnit === 'px') {
-        //     width = this.pixelToCm(width);
-        //     height = this.pixelToCm(height);
-        //     unit = 'cm';
-        // }
         const output = {
             'orientation': 'portrait',
             'unit': unit,

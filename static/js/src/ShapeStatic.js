@@ -19,7 +19,7 @@ export class ShapeStatic extends Shape {
         if(!this.textPosition) this.textPosition = Object.values(this.options.textPositionOptions)[0].value;
 
 		this.typography = this.getDefaultOption(this.options.typographyOptions);
-
+		this.fontStyle = '';
 		this.textShiftX = 0;
 		this.textShiftY = 0;
 		this.timer_color = null;
@@ -422,13 +422,14 @@ export class ShapeStatic extends Shape {
     	if(typography === false)
     		typography = this.typography;
 		font = font ? font['static'] : typography['font']['static'];
-		let fontStyle = typography.size + 'px ' + font['family'];
-		if(font['weight']) fontStyle = font['weight'] + ' ' + fontStyle;
+		this.fontStyle = typography.size + 'px ' + font['family'];
+		if(font['weight']) this.fontStyle = font['weight'] + ' ' + this.fontStyle;
+		// this.fontStyle = 'italic ' + this.fontStyle;
 		let lineHeight = parseFloat(typography['lineHeight']);
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
-		this.context.font = fontStyle;
+		this.context.font = this.fontStyle;
 		let text = this.getText(str, color);
 		this.context.textBaseline = 'middle';
 		/*
@@ -640,22 +641,26 @@ export class ShapeStatic extends Shape {
 		this.writeLines(lines, 0, 0, parseFloat(typography['lineHeight']), '', addStroke);
 		this.context.restore();
     }
-	writeLine(line, initial_x, y, addStroke=false){
-		for(let seg of line.segs) {
-			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
-			this.context.fillText(seg.content, initial_x, y);
-			if(addStroke) this.context.strokeText(seg.content, initial_x, y);
-			initial_x += this.context.measureText(seg.content).width;
-		}
-	}
 	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
 		let ln;
-		
+		console.log(x, y, align);
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
 			let seg_x = align == 'center' ? x - ln['width'] / 2 : x;
+			console.log(ln['width']);
 			let ln_y = y + i * lineHeight;
 			this.writeLine(ln, seg_x, ln_y, addStroke);
+		}
+	}
+	writeLine(line, initial_x, y, addStroke=false){
+		console.log('writeLine', line, initial_x)
+		// console.log(initial_x);
+		for(let seg of line.segs) {
+			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
+			this.context.font = seg.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
+			this.context.fillText(seg.content, initial_x, y);
+			if(addStroke) this.context.strokeText(seg.content, initial_x, y);
+			initial_x += this.context.measureText(seg.content).width;
 		}
 	}
     drawMultipleLinesFromTopKeep(lines, x, y, lineHeight, addStroke = false) {
@@ -676,20 +681,21 @@ export class ShapeStatic extends Shape {
 		};
 		let lines = this.getLines(str);
 		// console.log(lines);
-		let p = /(\[.*?\])/g;
+		let p_all = /(\[.*?\]|\*.*?\*)/g;
+		let p_white = /(\[.*?\])/g;
+		let p_italic = /(\*.*?\*)/g;
 		for(let i = 0; i < lines.length; i++) {
 			let line = {
 				'width': lines[i].width,
 				'segs': []
 			};
 			if(line.width > output['max-width']) output['max-width'] = line.width;
-			let segs = lines[i].content.split(p);
-			
+			let segs = lines[i].content.split(p_all);
 			for(let seg of segs) {
-				
 				line.segs.push( {
-					content: seg.match(p) ? seg.substring(1, seg.length - 1) : seg,
-					color: seg.match(p) ?  '#ffffff' : color
+					content: seg.match(p_all) ? seg.substring(1, seg.length - 1) : seg,
+					color: seg.match(p_white) ?  '#ffffff' : color,
+					style: seg.match(p_italic) ? 'italic' : 'normal'
 				});
 			}
 			output['lines'].push(line);
@@ -713,7 +719,13 @@ export class ShapeStatic extends Shape {
     	let line = '';
     	let output = [];
     	let arr = str.split(' ');
-		let p = /\[(.*?)\]/g;
+		let p_all = /(?:\[(.*)\]|\*(.*?)\*)/g;
+		// let patterns = {
+		// 	'italic': /\*(.*)\*/g,
+		// 	'white': /\[(.*)\]/g
+		// }
+		let p_white = /\[(.*?)\]/g;
+		let p_italic = /\*(.*?)\*/g;
 		let unit = {
 			'content': '',
 			'width': 0
@@ -722,7 +734,9 @@ export class ShapeStatic extends Shape {
 		for(let j = 0; j < arr.length; j++)
 		{
 			temp = line ? line + ' ' + arr[j] : arr[j];
-			temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
+			this.context.font = temp.match(p_italic) ? 'italic ' + this.fontStyle : this.fontStyle;
+			if(filterBrackets)
+				temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
 			
 			let m = this.context.measureText(temp);
 
@@ -735,7 +749,8 @@ export class ShapeStatic extends Shape {
 			output.push(unit);
 			line = arr[j];
 			temp = line;
-			temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
+			if(filterBrackets)
+				temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
 			m = this.context.measureText(temp);
 			unit = {
 				'content': arr[j],
@@ -743,7 +758,9 @@ export class ShapeStatic extends Shape {
 			}
 		}
 		temp = line;
-		temp = filterBrackets ? temp.replaceAll(p, "$1") : temp;
+		if(filterBrackets)
+			temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
+		console.log('temp', temp);
 		let m = this.context.measureText(temp);
 		unit.content = line;
 		unit.width = m.width;
