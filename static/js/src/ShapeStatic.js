@@ -430,7 +430,7 @@ export class ShapeStatic extends Shape {
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = this.fontStyle;
-		console.log(color);
+		// console.log(color);
 		let text = this.getText(str, color);
 		this.context.textBaseline = 'middle';
 		/*
@@ -680,92 +680,175 @@ export class ShapeStatic extends Shape {
 			'lines': [],
 			'max-width': 0
 		};
-		let lines = this.getLines(str);
+		// let words = this.getWords(str);
+		let lines = this.getLines(str, color);
 		// console.log(lines);
 		let p_all = /(\[.*?\]|\*.*?\*)/g;
 		let p_white = /(\[.*?\])/g;
 		let p_italic = /(\*.*?\*)/g;
 		for(let i = 0; i < lines.length; i++) {
-			let line = {
-				'width': lines[i].width,
-				'segs': []
-			};
-			if(line.width > output['max-width']) output['max-width'] = line.width;
-			let segs = lines[i].content.split(p_all);
-			for(let seg of segs) {
-				line.segs.push( {
-					content: seg.match(p_all) ? seg.substring(1, seg.length - 1) : seg,
-					color: seg.match(p_white) ?  '#ffffff' : color,
-					style: seg.match(p_italic) ? 'italic' : 'normal'
-				});
-			}
-			output['lines'].push(line);
+			// let line = {
+			// 	'width': lines[i].width,
+			// 	'segs': []
+			// };
+			// if(line.width > output['max-width']) output['max-width'] = line.width;
+			// let segs = lines[i].content.split(p_all);
+			// for(let seg of segs) {
+			// 	line.segs.push( {
+			// 		content: seg.match(p_all) ? seg.substring(1, seg.length - 1) : seg,
+			// 		color: seg.match(p_white) ?  '#ffffff' : color,
+			// 		style: seg.match(p_italic) ? 'italic' : 'normal'
+			// 	});
+			// }
+			output['lines'].push(lines[i]);
 		}
 		return output;
 	}
-	getLines(str){
+	getSegments(str, color){
+		const p_all = /(\[.*?\]|\*.*?\*)/g;
+		const p_white = /\[(.*?)\]/g;
+		const p_italic = /\*(.*?)\*/g;
+		const textByPattern = str.split(p_all);
+		const output = [];
+		const segments = [];
+		for(const t of textByPattern) {
+			if(t.match(p_white)) {
+				const content = t.replaceAll(p_white, "$1");
+				if(content === '') continue;
+				segments.push(
+					{
+						'content': content,
+						// 'content': t.substring(1, t.length - 1),
+						'color': '#ffffff',
+						'style': 'normal'
+					}
+				)
+			} else if(t.match(p_italic)) {
+				const content = t.replace(p_italic, "$1");
+				if(content === '') continue;
+				segments.push(
+					{
+						'content': content,
+						'color': color,
+						'style': 'italic'
+					}
+				)
+			} else {
+				const content = t;
+				if(content === '') continue;
+				segments.push(
+					{
+						'content': content,
+						'color': color,
+						'style': 'normal'
+					}
+				)
+			}
+		}
+		return segments;
+	}
+	getLines(str, color){
 		let output = [];
 		let temp = str.split('\n');
 		// console.log(str);
 		for(let i = 0; i < temp.length; i++) {
-			let lns = this.breakLineByWidth(temp[i], this.textBoxWidth);
+			const segments = this.getSegments(temp[i], color);
+			// console.log('segments', segments);
+			let lns = this.breakSegmentsIntoLinesByWidth(segments, this.textBoxWidth);
 			// console.log(lns);
 			for(let l of lns) output.push(l);
 		}
 		return output;
 	}
-    breakLineByWidth(str, width, filterBrackets = true) {
-    	// let arr_by_linebreak = str.split("\n");
-    	
+    breakSegmentsIntoLinesByWidth(segments, width, filterBrackets = true) {
+		if(segments.length === 0) return [];
     	let line = '';
     	let output = [];
-    	let arr = str.split(' ');
-		let p_all = /(?:\[(.*)\]|\*(.*?)\*)/g;
-		// let patterns = {
-		// 	'italic': /\*(.*)\*/g,
-		// 	'white': /\[(.*)\]/g
-		// }
-		let p_white = /\[(.*?)\]/g;
-		let p_italic = /\*(.*?)\*/g;
-		let unit = {
-			'content': '',
+		
+		let temp, seg_color, seg_style;
+		let isSorting = true;
+		const words = [];
+		// console.log(segments);
+		for(let i = 0; i < segments.length; i++) {
+			let seg = segments[i];
+			// let words_temp = seg['content'].split(' ').filter((word)=>{ return word !== ''; });
+			// console.log(seg, words_temp);
+			let words_temp = seg['content'].split(' ');
+			for(let j = 0; j < words_temp.length; j++) {
+				const word_temp = words_temp[j];
+				const new_item = {...seg, 'content': word_temp};
+				words.push(new_item);
+			}
+		}
+
+		let line_unit = {
+			'segs': [],
 			'width': 0
 		}
-		let temp;
-		for(let j = 0; j < arr.length; j++)
-		{
-			temp = line ? line + ' ' + arr[j] : arr[j];
-			this.context.font = temp.match(p_italic) ? 'italic ' + this.fontStyle : this.fontStyle;
-			if(filterBrackets)
-				temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
-			
-			let m = this.context.measureText(temp);
+		let seg_unit = {
+			'content': '',
+			'style': words[0]['style'],
+			'color': words[0]['color']
+		}
 
-			if( m.width <= width) { 
-				line = line ? line + ' ' + arr[j] : arr[j];
-				unit.width = m.width;
-				unit.content = line;
+		for(let i = 0; i < words.length; i++ ) {
+			const word = words[i];
+			temp = line ? line + ' ' + word['content'] : word['content'];
+			// if(word['content'] === 'qweee') console.log(temp);
+			this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
+			let m = this.context.measureText(temp);
+			if(word['content'] === '') console.log(line);
+			if( m.width <= width ) { 
+				line = line ? line + ' ' + word['content'] : word['content'];
+				
+				seg_unit.content += word['content'] === '' ? ' ' : (seg_unit.content ? ' ' + word['content'] : word['content']);
+				// if(word === '') console.log(seg_unit.content)
+				// if(word['content'] === 'qweee') console.log('qweee', seg_unit);
+				line_unit.width = m.width;
+				if((  i !== words.length - 1 && (seg_unit['color'] != words[i+1]['color'] || seg_unit['style'] != words[i+1]['style'])  )) {
+					line_unit['segs'].push(seg_unit);
+					let next_word = words[i+1];
+					seg_unit = {
+						'content': '',
+						'style': next_word['style'],
+						'color': next_word['color']
+					}
+				}
 				continue;
 			}
-			output.push(unit);
-			line = arr[j];
+			
+			line_unit['segs'].push(seg_unit);
+			output.push(line_unit);
+			seg_unit = word;
+			
+			line = word['content'];
 			temp = line;
-			if(filterBrackets)
-				temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
 			m = this.context.measureText(temp);
-			unit = {
-				'content': arr[j],
-				'width': m.width
+			line_unit = {
+				'segs': [],
+				'width': m.width,
 			}
+			if(i != words.length - 1 && (seg_unit['color'] != words[i+1]['color'] || seg_unit['style'] != words[i+1]['style'])) {
+				line_unit['segs'].push(seg_unit);
+				let next_word = words[i+1];
+				seg_unit = {
+					'content': '',
+					'style': next_word['style'],
+					'color': next_word['color']
+				}
+			}
+			
+			// isSorting = false;
 		}
 		temp = line;
-		if(filterBrackets)
-			temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
 		let m = this.context.measureText(temp);
-		unit.content = line;
-		unit.width = m.width;
-		output.push(unit);
-    	
+		// console.log(words.length);
+		// seg_unit['content'] = line;
+		line_unit['segs'].push(seg_unit);
+		line_unit.width = m.width;
+		output.push(line_unit);
+		console.log(output);
+		
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
