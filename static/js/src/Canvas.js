@@ -834,7 +834,8 @@ export class Canvas {
     }
 
     sync(){
-        this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
+        if(this.fields['base'])
+            this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
         if(this.format === 'custom') {
             this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;

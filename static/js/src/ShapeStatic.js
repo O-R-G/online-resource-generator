@@ -417,8 +417,8 @@ export class ShapeStatic extends Shape {
 		this.write('');
 	}
     write(str = '', align='center', color='default', typography = false, font=null, shift=null, rad=0){
-		color === 'default' ? this.textColor : color;
-		this.context.strokeStyle = color === 'default' ? this.textColor : color;
+		color = color === 'default' ? this.textColor : this.processStaticColorData(this.options.textColorOptions[color]['color']);
+		this.context.strokeStyle = color;
     	if(typography === false)
     		typography = this.typography;
 		font = font ? font['static'] : typography['font']['static'];
@@ -430,6 +430,7 @@ export class ShapeStatic extends Shape {
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = this.fontStyle;
+		console.log(color);
 		let text = this.getText(str, color);
 		this.context.textBaseline = 'middle';
 		/*
@@ -643,19 +644,19 @@ export class ShapeStatic extends Shape {
     }
 	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
 		let ln;
-		console.log(x, y, align);
+
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
 			let seg_x = align == 'center' ? x - ln['width'] / 2 : x;
-			console.log(ln['width']);
 			let ln_y = y + i * lineHeight;
 			this.writeLine(ln, seg_x, ln_y, addStroke);
 		}
 	}
 	writeLine(line, initial_x, y, addStroke=false){
-		console.log('writeLine', line, initial_x)
+		// console.log('writeLine')
 		// console.log(initial_x);
 		for(let seg of line.segs) {
+			// console.log(seg.content, seg.color, seg.color === 'default' ? this.textColor : this.processStaticColorData(this.options.textColorOptions[seg.color]['color']));
 			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
 			this.context.font = seg.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
 			this.context.fillText(seg.content, initial_x, y);
@@ -760,7 +761,6 @@ export class ShapeStatic extends Shape {
 		temp = line;
 		if(filterBrackets)
 			temp = temp.replaceAll(p_white, "$1").replaceAll(p_italic, "$1");
-		console.log('temp', temp);
 		let m = this.context.measureText(temp);
 		unit.content = line;
 		unit.width = m.width;
