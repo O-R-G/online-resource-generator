@@ -121,7 +121,8 @@ export class ShapeAnimated extends Shape {
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
-		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1)
+		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
+		// console.log('scale', this.canvas.width, this.canvas.height);
 		this.group = new THREE.Group();
 		this.setGroupPosition();
 		this.drawShape();
@@ -130,9 +131,10 @@ export class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-
+		console.log('updateCanvasSize', this.canvas.width, this.canvas.height);
 		this.context = this.canvas.getContext("2d");
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
+		// console.log('scale', this.scale);
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
@@ -426,7 +428,6 @@ export class ShapeAnimated extends Shape {
 		return input * window.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
-		// console.log('write');
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
@@ -474,9 +475,7 @@ export class ShapeAnimated extends Shape {
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			
-			// let this_p = this.padding;
 			let side = Math.min(this.size.width, this.size.height);
-			// console.log(side);
 			let x = 0;
 			let y = 0;
 			if(align.indexOf('left') !== -1){
@@ -2093,20 +2092,15 @@ export class ShapeAnimated extends Shape {
 	}
     updateFrame(frame=null, silent = false)
     {
-		// console.log('updateFrame');
 		silent = false;
 		this.updateCanvasSize();
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
-		// for(let prop in this.frame) {
-		// 	this.frame[prop] = this.getValueByPixelRatio(this.frame[prop]);
-		// }
 		if(this.group) {
 			this.group.remove(this.mesh_front);
 			this.group.remove(this.mesh_back);
 			this.scene.remove(this.group);
 			this.group = new THREE.Group();
-			// this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
 			this.setGroupPosition();
 		}
     	if(!silent) this.canvasObj.draw();
@@ -2137,6 +2131,7 @@ export class ShapeAnimated extends Shape {
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
 		let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
+		console.log('generateFrame', this.canvasObj.canvas.width, unit_w);
 		output.w = unit_w;
 		output.h = unit_h;
         this.shapeCenter = this.generateShapeCenter();
