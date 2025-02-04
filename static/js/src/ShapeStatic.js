@@ -424,13 +424,13 @@ export class ShapeStatic extends Shape {
 		font = font ? font['static'] : typography['font']['static'];
 		this.fontStyle = typography.size + 'px ' + font['family'];
 		if(font['weight']) this.fontStyle = font['weight'] + ' ' + this.fontStyle;
-		// this.fontStyle = 'italic ' + this.fontStyle;
+
 		let lineHeight = parseFloat(typography['lineHeight']);
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = this.fontStyle;
-		// console.log(color);
+
 		let text = this.getText(str, color);
 		this.context.textBaseline = 'middle';
 		/*
@@ -653,10 +653,7 @@ export class ShapeStatic extends Shape {
 		}
 	}
 	writeLine(line, initial_x, y, addStroke=false){
-		// console.log('writeLine')
-		// console.log(initial_x);
 		for(let seg of line.segs) {
-			// console.log(seg.content, seg.color, seg.color === 'default' ? this.textColor : this.processStaticColorData(this.options.textColorOptions[seg.color]['color']));
 			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
 			this.context.font = seg.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
 			this.context.fillText(seg.content, initial_x, y);
@@ -687,19 +684,6 @@ export class ShapeStatic extends Shape {
 		let p_white = /(\[.*?\])/g;
 		let p_italic = /(\*.*?\*)/g;
 		for(let i = 0; i < lines.length; i++) {
-			// let line = {
-			// 	'width': lines[i].width,
-			// 	'segs': []
-			// };
-			// if(line.width > output['max-width']) output['max-width'] = line.width;
-			// let segs = lines[i].content.split(p_all);
-			// for(let seg of segs) {
-			// 	line.segs.push( {
-			// 		content: seg.match(p_all) ? seg.substring(1, seg.length - 1) : seg,
-			// 		color: seg.match(p_white) ?  '#ffffff' : color,
-			// 		style: seg.match(p_italic) ? 'italic' : 'normal'
-			// 	});
-			// }
 			output['lines'].push(lines[i]);
 		}
 		return output;
