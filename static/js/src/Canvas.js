@@ -140,7 +140,7 @@ export class Canvas {
 	    }
         for(let shape_id in this.shapes) {
             if(!this.shapes[shape_id].initialized) {
-                console.log(`${shape_id} is not intialized yet`)
+                // console.log(`${shape_id} is not intialized yet`)
                 this.shapes[shape_id].init(this);
             }
         }
@@ -152,8 +152,8 @@ export class Canvas {
         let height =  this.formatOptions[this.format].h / this.devicePixelRatio;
         this.canvas.style.width = `${width * this.devicePixelRatio}px`;
         this.canvas.style.height = `${height * this.devicePixelRatio}px`;
-        console.log('initThree()');
-        console.log(this.canvas.width);
+        // console.log('initThree()');
+        // console.log(this.canvas.width);
         this.canvas.style.transform = `scale(${this.scale / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
         this.setRenderer();
@@ -181,7 +181,7 @@ export class Canvas {
         return canvas;
     }
     setRenderer(){
-        console.log(this.canvas.width);
+        // console.log(this.canvas.width);
         if(!this.initialized) {
             this.renderer = new THREE.WebGLRenderer({
                 'canvas': this.canvas, 
@@ -192,10 +192,10 @@ export class Canvas {
             this.renderer.setPixelRatio( this.devicePixelRatio );
             this.canvas.width = this.canvas.width / this.devicePixelRatio;
             this.canvas.height = this.canvas.height / this.devicePixelRatio;
-            console.log(this.canvas.width);
+            // console.log(this.canvas.width);
         }
         this.renderer.setSize( this.canvas.width / this.devicePixelRatio, this.canvas.height / this.devicePixelRatio, false);
-        console.log(this.canvas.width);
+        // console.log(this.canvas.width);
     }
     setCamera(){
         let z = this.canvas.width * 5.72 * this.devicePixelRatio;
@@ -868,7 +868,7 @@ export class Canvas {
         }
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
-        if(this.isThree) console.log('setCanvasSize()', size);
+        // if(this.isThree) console.log('setCanvasSize()', size);
         let updated = false;
 
         if(size.width) {
@@ -885,7 +885,7 @@ export class Canvas {
             this.canvas.height = size.height;
             this.canvas.style.height = size.height / this.scale + 'px';
         }
-        if(this.isThree) console.log('post setCanvasSize()', this.canvas.width, this.canvas.height);
+        // if(this.isThree) console.log('post setCanvasSize()', this.canvas.width, this.canvas.height);
         if(!this.wrapper.offsetHeight || !updated) return;
         
         if(this.isThree)

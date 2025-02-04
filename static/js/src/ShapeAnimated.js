@@ -131,7 +131,7 @@ export class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-		console.log('updateCanvasSize', this.canvas.width, this.canvas.height);
+		// console.log('updateCanvasSize', this.canvas.width, this.canvas.height);
 		this.context = this.canvas.getContext("2d");
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
 		// console.log('scale', this.scale);
@@ -2131,7 +2131,7 @@ export class ShapeAnimated extends Shape {
 		let output = {};
         let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
 		let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
-		console.log('generateFrame', this.canvasObj.canvas.width, unit_w);
+		// console.log('generateFrame', this.canvasObj.canvas.width, unit_w);
 		output.w = unit_w;
 		output.h = unit_h;
         this.shapeCenter = this.generateShapeCenter();

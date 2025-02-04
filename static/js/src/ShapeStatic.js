@@ -680,9 +680,9 @@ export class ShapeStatic extends Shape {
 		// let words = this.getWords(str);
 		let lines = this.getLines(str, color);
 		// console.log(lines);
-		let p_all = /(\[.*?\]|\*.*?\*)/g;
-		let p_white = /(\[.*?\])/g;
-		let p_italic = /(\*.*?\*)/g;
+		// let p_all = /(\[.*?\]|\*.*?\*)/g;
+		// let p_white = /(\[.*?\])/g;
+		// let p_italic = /(\*.*?\*)/g;
 		for(let i = 0; i < lines.length; i++) {
 			output['lines'].push(lines[i]);
 		}
@@ -719,7 +719,7 @@ export class ShapeStatic extends Shape {
 				)
 			} else {
 				const content = t;
-				if(content === '') continue;
+				// if(content === '') continue;
 				segments.push(
 					{
 						'content': content,
@@ -737,6 +737,7 @@ export class ShapeStatic extends Shape {
 		// console.log(str);
 		for(let i = 0; i < temp.length; i++) {
 			const segments = this.getSegments(temp[i], color);
+			// console.log(segments);
 			// console.log('segments', segments);
 			let lns = this.breakSegmentsIntoLinesByWidth(segments, this.textBoxWidth);
 			// console.log(lns);
@@ -781,7 +782,7 @@ export class ShapeStatic extends Shape {
 			// if(word['content'] === 'qweee') console.log(temp);
 			this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
 			let m = this.context.measureText(temp);
-			if(word['content'] === '') console.log(line);
+			// if(word['content'] === '') console.log(line);
 			if( m.width <= width ) { 
 				line = line ? line + ' ' + word['content'] : word['content'];
 				
