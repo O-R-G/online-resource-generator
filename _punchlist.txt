@@ -57,5 +57,6 @@ x add textbox position dropdown
 x gif is way slower than mp4
   it only slows down when viewed with mac preview
 + gif filename
-- clean up setCanvasSize for three.js canvas
-- unify text-handling (main texts and watermarks)
+x clean up setCanvasSize for three.js canvas
+x unify text-handling (main texts and watermarks)
+- italic style for animated shapes
