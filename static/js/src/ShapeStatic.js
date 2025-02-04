@@ -842,12 +842,9 @@ export class ShapeStatic extends Shape {
 		}
 		temp = line;
 		let m = this.context.measureText(temp);
-		// console.log(words.length);
-		// seg_unit['content'] = line;
 		line_unit['segs'].push(seg_unit);
 		line_unit.width = m.width;
 		output.push(line_unit);
-		console.log(output);
 		
     	return output;
     }
@@ -923,10 +920,8 @@ export class ShapeStatic extends Shape {
 	drawCirclePath(){
 		this.context.beginPath();
 		let r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
-		console.log(r);
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 		this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
-		// this.drawCirclePath();
 		this.context.closePath();
 		this.updateSize(r, r);
 	}

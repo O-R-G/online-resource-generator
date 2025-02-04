@@ -426,7 +426,7 @@ export class ShapeAnimated extends Shape {
 		return input * window.devicePixelRatio;
 	}
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
-		console.log('write');
+		// console.log('write');
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
