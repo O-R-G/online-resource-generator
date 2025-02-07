@@ -130,7 +130,7 @@ export class Canvas {
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
 	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
             this.media_recorder.addEventListener('start', ()=>{
-                console.log('start--');
+                // console.log('start--');
                 for(const shape_id in this.shapes) {
                     this.shapes[shape_id].animate(performance.now());
                 }
@@ -214,7 +214,7 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
-        console.log('initRecording');
+        // console.log('initRecording');
         this.isInitRecording = true;
         this.downloadVideoButton.innerText = 'Loading . . .';
         this.readyState = 0;
@@ -230,14 +230,14 @@ export class Canvas {
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
                     this.isRecording = true;
-                    console.log('start--');
-                    console.log(this)
+                    // console.log('start--');
+                    // console.log(this)
                     for(const shape_id in this.shapes) {
                         this.shapes[shape_id].animate(performance.now());
                     }
                 });
                 this.media_recorder.addEventListener('stop', ()=>{
-                    console.log('stop--');
+                    // console.log('stop--');
                     this.isRecording = false;
                     this.saveCanvasAsVideo(); 
                 });
@@ -262,7 +262,7 @@ export class Canvas {
         // let now = new Date();
         // let start = now + 1000;
         // console.log('start recording--');
-        console.log('startRecording--');
+        // console.log('startRecording--');
         this.media_recorder.start(1); 
         // this.animate(true); 
         this.animate(); 
@@ -403,7 +403,7 @@ export class Canvas {
         var dpi = 96; // dots per inch
         var ppd = this.devicePixelRatio; // pixels per dot
         val = parseFloat(val);
-        console.log('toPixel', val * (dpi * ppd), this.devicePixelRatio);
+        // console.log('toPixel', val * (dpi * ppd), this.devicePixelRatio);
         return source_unit === 'cm' ? parseInt((val * (dpi * ppd) / cpi).toFixed(n)) : parseInt((val * (dpi * ppd)).toFixed(n));
     }
     pixelToCm(val){
@@ -716,7 +716,7 @@ export class Canvas {
         // let sCustomUnit = this.control_top.querySelector(`#${this.id}-formatUnit`);
         if(this.pdfSizeUnitInput) {
             this.pdfSizeUnitInput.onchange = ()=>{
-                console.log('on change');
+                // console.log('on change');
                 this.formatUnit = this.pdfSizeUnitInput.value;
                 // this.setCanvasSize({width: this.canvas.width, height: this.canvas.height}, null, false);
                 // this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);

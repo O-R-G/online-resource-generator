@@ -1448,7 +1448,7 @@ export class ShapeAnimated extends Shape {
 	}
 	
 	initAnimate(animationName, isSilent = false){
-		console.log('initAnimate');
+		// console.log('initAnimate');
 		this.resetAnimation();
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
@@ -1559,9 +1559,9 @@ export class ShapeAnimated extends Shape {
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
-		if(this.canvasObj.isRecording) {
-			console.log('a');
-		}
+		// if(this.canvasObj.isRecording) {
+		// 	console.log('a');
+		// }
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
