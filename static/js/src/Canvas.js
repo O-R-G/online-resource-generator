@@ -331,7 +331,8 @@ export class Canvas {
         this.isRecordingGif = false;
         this.animate();
     }
-    saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 24 ){
+    saveCanvasAsGif( element, renderFunctions, duration = 1, fps = 30 ){
+        // https://github.com/mrdoob/omggif-example
         const frames = duration * fps;
 
         const canvas = document.createElement( 'canvas' );
@@ -339,12 +340,12 @@ export class Canvas {
         canvas.height = element.height;
 
         const context = canvas.getContext( '2d' );
-        context.willReadFrequently = true;
+        // context.willReadFrequently = true;
 
         const buffer = new Uint8Array( canvas.width * canvas.height * frames * 5 );
         const pixels = new Uint8Array( canvas.width * canvas.height );
         const writer = new GifWriter( buffer, canvas.width, canvas.height, { loop: 0 } );
-
+        const delay = 100 / fps; // Delay in hundredths of a sec (100 = 1s)
         let current = 0;
 
         return new Promise( async function addFrame( resolve ) {
@@ -375,22 +376,25 @@ export class Canvas {
             // Force palette to be power of 2
             let powof2 = 1;
             while ( powof2 < palette.length ) powof2 <<= 1;
-            powof2 = powof2 > 8 ? 8 : powof2;
-            try {
-                palette.length = Math.pow(2, powof2)
-            } catch{
-                console.log('powof2', powof2)
-                console.log(Math.pow(2, powof2));
-            }
+            palette.length = powof2;
+            // powof2 = powof2 > 8 ? 8 : powof2;
+            // try {
+            //     palette.length = Math.pow(2, powof2)
+            // } catch{
+            //     console.log('powof2', powof2)
+            //     console.log(Math.pow(2, powof2));
+            // }
             
-            const delay = 100 / fps; // Delay in hundredths of a sec (100 = 1s)
+            
+            // const delay = Math.round(1000 / fps / 10);
             const options = { palette: new Uint32Array( palette ), delay: delay };
             writer.addFrame( 0, 0, canvas.width, canvas.height, pixels, options );
 
             current ++;
 
             if ( current < frames ) {
-                setTimeout( addFrame, 0, resolve );
+                requestAnimationFrame(() => addFrame(resolve));
+                // setTimeout( addFrame, 0, resolve );
             } else {
                 resolve( buffer.subarray( 0, writer.end() ) );
             }
