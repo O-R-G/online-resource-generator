@@ -130,7 +130,10 @@ export class Canvas {
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
 	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
             this.media_recorder.addEventListener('start', ()=>{
-                this.animate(); 
+                console.log('start--');
+                for(const shape_id in this.shapes) {
+                    this.shapes[shape_id].animate(performance.now());
+                }
             });
 	    }
 	    catch(err){
@@ -211,6 +214,7 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
+        console.log('initRecording');
         this.isInitRecording = true;
         this.downloadVideoButton.innerText = 'Loading . . .';
         this.readyState = 0;
@@ -219,15 +223,21 @@ export class Canvas {
             this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
             this.chunks = [];
             try{
-                
+                console.log('try?');
                 this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
                 this.media_recorder.ondataavailable = (evt) => { 
+                    console.log('ondataavailable--');
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
                     this.isRecording = true;
-                    this.animate(); 
+                    console.log('start--');
+                    console.log(this)
+                    for(const shape_id in this.shapes) {
+                        this.shapes[shape_id].animate(performance.now());
+                    }
                 });
                 this.media_recorder.addEventListener('stop', ()=>{
+                    console.log('stop--');
                     this.isRecording = false;
                     this.saveCanvasAsVideo(); 
                 });
@@ -249,7 +259,12 @@ export class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(){
+        // let now = new Date();
+        // let start = now + 1000;
+        // console.log('start recording--');
+        console.log('startRecording--');
         this.media_recorder.start(1); 
+        // this.animate(true); 
         this.animate(); 
     }
     getDefaultOption(options, returnKey = false){
@@ -276,14 +291,7 @@ export class Canvas {
         if(!filename) filename = 'image';
         filename += '.png';
         link.download = filename;
-        if(this.isThree) var context = this.canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-        // const svg = `
-        // <svg width="${this.canvas.width / 2}" height="${this.canvas.height / 2}" xmlns="http://www.w3.org/2000/svg">
-        //     <text x="50" y="100" font-size="40" font-family="Arial" fillStyle="#ffffff">Canvas Text</text>
-        // </svg>`;
-        // console.log(svg);
-        // this.v = Canvg.fromString(this.context, svg);
-        // this.v.start();
+        // if(this.isThree) var context = this.canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
         link.href = this.canvas.toDataURL();
         link.click();
         link.delete;
@@ -748,7 +756,7 @@ export class Canvas {
             this.shapes[shape_id].draw();
         }
     }
-    animate(isSilent = false, initRecording = false){
+    animate(isSilent = false){
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
             if(this.isThree) el.initAnimate(el.animationName, isSilent);
