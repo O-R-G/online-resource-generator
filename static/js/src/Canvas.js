@@ -217,10 +217,10 @@ export class Canvas {
             this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
             this.chunks = [];
             try{
-                console.log('try?');
+                // console.log('try?');
                 this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
                 this.media_recorder.ondataavailable = (evt) => { 
-                    console.log('ondataavailable--');
+                    // console.log('ondataavailable--');
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
                     this.isRecording = true;
@@ -420,10 +420,8 @@ export class Canvas {
         let size = this.generatePdfSize();
         const original_width = this.canvas.width;
         const original_height = this.canvas.height;
-        // this.scaleCanvasForPdf();
         let pdf_width = size['format'][0];
         let pdf_height = size['format'][1];
-        // console.log(pdf_width, pdf_height);
         let resized_width = this.toPixel(pdf_width, 'in'),
             resized_height = this.toPixel(pdf_height, 'in');
         this.canvas.width = resized_width;
@@ -442,10 +440,7 @@ export class Canvas {
             
         pdf.addImage(imgData, 'PNG', 0, 0, pdf_width, pdf_height);
         pdf.save("download.pdf");
-        // requestAnimationFrame(()=>{
-            
-        // })
-        console.log('??')
+
         this.canvas.width = original_width;
         this.canvas.height = original_height;
         this.context.restore();
@@ -455,19 +450,15 @@ export class Canvas {
         let width = parseFloat(this.pdfWidth),
             height = this.pdfWidth * this.canvas.height / this.canvas.width,
             unit = this.formatUnit;
-        // console.log(this.formatUnit);
-        const output = {
+
+            const output = {
             'orientation': 'portrait',
             'unit': unit,
             'format': [width, height]
         }
         return output;
     }
-    scaleCanvasForPdf(){
-        const width = this.formatUnit === 'in' ? this.pdfWidth * 300 : this.pdfWidth * 300 / 2.54; 
-        this.r = width / this.canvas.width;
-        this.context.scale(this.r, this.r);
-    }
+    
     stopRecording(){
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
         document.body.classList.remove('recording');
