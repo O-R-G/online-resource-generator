@@ -54,14 +54,7 @@ export class Canvas {
             if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
         }
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
-        // this.formatUnit = 'px';
-        //  this.formatUnitOptions['px'];
         this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
-        // if(this.format === 'custom' && this.formatUnitOptions) {
-        //     this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
-        // } else if (this.format.unit){
-        //     this.formatUnit = this.format.unit;
-        // }
         this.devicePixelRatio = window.devicePixelRatio;
         this.isRecording = false;
         this.isRecordingGif = false;
@@ -69,6 +62,7 @@ export class Canvas {
         this.fields = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
+        this.r = 1;
         this.pdfSize = {
             'a4': {
                 orientation: 'portrait',
@@ -404,11 +398,13 @@ export class Canvas {
     toPixel(val, source_unit) {
         var n = 1;
         var cpi = 2.54; // centimeters per inch
-        var dpi = 96; // dots per inch
+        // var dpi = 96; // dots per inch
+        var dpi = 300; // dots per inch
         var ppd = this.devicePixelRatio; // pixels per dot
         val = parseFloat(val);
         // console.log('toPixel', val * (dpi * ppd), this.devicePixelRatio);
-        return source_unit === 'cm' ? parseInt((val * (dpi * ppd) / cpi).toFixed(n)) : parseInt((val * (dpi * ppd)).toFixed(n));
+        // return source_unit === 'cm' ? parseInt((val * (dpi * ppd) / cpi).toFixed(n)) : parseInt((val * (dpi * ppd)).toFixed(n));
+        return source_unit === 'cm' ? parseInt((val * (dpi) / cpi).toFixed(n)) : parseInt((val * (dpi)).toFixed(n));
     }
     pixelToCm(val){
         var n = 1;
@@ -422,10 +418,20 @@ export class Canvas {
     }
     async saveCanvasAsPdf(){
         let size = this.generatePdfSize();
+        const original_width = this.canvas.width;
+        const original_height = this.canvas.height;
+        // this.scaleCanvasForPdf();
         let pdf_width = size['format'][0];
         let pdf_height = size['format'][1];
-        let resized_width = pdf_width,
-            resized_height = pdf_height;
+        // console.log(pdf_width, pdf_height);
+        let resized_width = this.toPixel(pdf_width, 'in'),
+            resized_height = this.toPixel(pdf_height, 'in');
+        this.canvas.width = resized_width;
+        this.canvas.height = resized_height;
+        this.context.save();
+        const scaleFactor = resized_width / original_width;
+        this.context.scale(scaleFactor, scaleFactor);
+        this.draw();
         let pdf = new jsPDF(size);
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" style="background:none;">
@@ -434,19 +440,33 @@ export class Canvas {
         
         let imgData = this.canvas.toDataURL("image/png", 1.0);
             
-        pdf.addImage(imgData, 'PNG', 0, 0, resized_width, resized_height);
+        pdf.addImage(imgData, 'PNG', 0, 0, pdf_width, pdf_height);
         pdf.save("download.pdf");
+        // requestAnimationFrame(()=>{
+            
+        // })
+        console.log('??')
+        this.canvas.width = original_width;
+        this.canvas.height = original_height;
+        this.context.restore();
+        this.draw();
     }
     generatePdfSize(){
         let width = parseFloat(this.pdfWidth),
             height = this.pdfWidth * this.canvas.height / this.canvas.width,
             unit = this.formatUnit;
+        // console.log(this.formatUnit);
         const output = {
             'orientation': 'portrait',
             'unit': unit,
             'format': [width, height]
         }
         return output;
+    }
+    scaleCanvasForPdf(){
+        const width = this.formatUnit === 'in' ? this.pdfWidth * 300 : this.pdfWidth * 300 / 2.54; 
+        this.r = width / this.canvas.width;
+        this.context.scale(this.r, this.r);
     }
     stopRecording(){
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
@@ -604,9 +624,7 @@ export class Canvas {
         this.pdfSizeInput.className = 'flex-item';
         this.pdfSizeInput.setAttribute('flex', 7);
         flex_container.appendChild(this.pdfSizeInput);
-        // console.log(this.formatUnitOptions);
         if(this.formatUnitOptions) {
-            // delete this.formatUnitOptions['px'];
             let id = `${this.id}-formatUnit`;
             this.pdfSizeUnitInput = this.renderSelect(id, this.formatUnitOptions)
             this.pdfSizeUnitInput.className = 'flex-item';
@@ -717,13 +735,9 @@ export class Canvas {
         if(this.downloadPdfButton) this.downloadPdfButton.onclick = this.promptPdfSize.bind(this);
     }
     addListenersPdfSizePopup(){
-        // let sCustomUnit = this.control_top.querySelector(`#${this.id}-formatUnit`);
         if(this.pdfSizeUnitInput) {
             this.pdfSizeUnitInput.onchange = ()=>{
-                // console.log('on change');
                 this.formatUnit = this.pdfSizeUnitInput.value;
-                // this.setCanvasSize({width: this.canvas.width, height: this.canvas.height}, null, false);
-                // this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
             }
         }
         if(this.cancelPdfSizeButton) this.cancelPdfSizeButton.onclick = ()=>{
@@ -884,15 +898,11 @@ export class Canvas {
         let updated = false;
 
         if(size.width) {
-            if(this.formatUnit !== 'px') 
-                size.width = this.toPixel(size.width, this.formatUnit);
             updated = true;
             this.canvas.width = size.width;
             this.canvas.style.width = size.width / this.scale + 'px';
         }
         if(size.height) {
-            if(this.formatUnit !== 'px')
-                size.height = this.toPixel(size.height, this.formatUnit);
             updated = true;
             this.canvas.height = size.height;
             this.canvas.style.height = size.height / this.scale + 'px';

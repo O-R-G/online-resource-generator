@@ -672,17 +672,11 @@ export class ShapeStatic extends Shape {
         }
     }
 	getText(str, color){
-		// console.log(str);
 		let output = {
 			'lines': [],
 			'max-width': 0
 		};
-		// let words = this.getWords(str);
 		let lines = this.getLines(str, color);
-		// console.log(lines);
-		// let p_all = /(\[.*?\]|\*.*?\*)/g;
-		// let p_white = /(\[.*?\])/g;
-		// let p_italic = /(\*.*?\*)/g;
 		for(let i = 0; i < lines.length; i++) {
 			output['lines'].push(lines[i]);
 		}
