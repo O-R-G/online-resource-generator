@@ -117,6 +117,8 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){
+        // console.log('updateWatermark')
+        // console.log(values_obj);
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
         if(typeof this.watermarks[idx] == 'undefined')
     	{
@@ -171,7 +173,7 @@ export class Shape {
         output.appendChild(right);
         return output;
     }
-    renderSelect(id, options, extraClass='', attrs=null){
+    renderSelect(id, options, extraClass='', attrs=null, selected_value=null){
         if(!options) return null;
         let output = document.createElement('select');
         output.className = 'field-id-' + id + ' ' + extraClass;
@@ -184,7 +186,7 @@ export class Shape {
                 let opt = document.createElement('option');
                 opt.value = key;
                 opt.innerText = value['name'];
-                if(value['default']) {
+                if(key === selected_value || (value['default'] && selected_value !== null))  {
                     opt.selected=true;
                     output.selectedIndex = idx; 
                 }
@@ -315,9 +317,14 @@ export class Shape {
     }
     renderCustomControls(id, container, items=[], cb){
         for (let item of items) {
+            // console.log(item);
+            // if(item['name'] === 'font' || item['name'] === 'typography') console.log(item);
             if(item['input-type'] === 'select') {
                 let cls = item['class'] ? 'flex-item typography-flex-item ' + item['class'] :  'flex-item typography-flex-item';
-                item['el'] = this.renderSelect(item['id'], item['options'], cls, item['attr']);
+                /* the formats of font and typography are saved differently so add exceptions here */
+                const value = (item.name === 'font' || item.name === 'typography') ? Object.keys(item['options']).find((itm)=>{ console.log(itm); return item['options'][itm] === item['value']; }) : item['value'];
+                if(item.name === 'typography') console.log(value);
+                item['el'] = this.renderSelect(item['id'], item['options'], cls, item['attr'], value);
             } else if(item['input-type'] === 'text') {
                 let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
                 item['el'] = this.renderInput(item['id'], item['value'], item['attr'], cls);
@@ -466,7 +473,7 @@ export class Shape {
         delete_button.addEventListener('click', ()=>{ 
             this.deleteItem('watermark', idx, panel_section); 
         });
-        // delete_button.innerHTML = '&times';
+
         let right = document.createElement('div');
         right.className = 'half-right flex-container typography-control';
         let textarea = document.createElement('TEXTAREA');
@@ -474,8 +481,9 @@ export class Shape {
         textarea.id = this.id + '-field-id-' +id;
         textarea.setAttribute('flex', 'full');
 
-        if(this.watermarks[idx] && this.watermarks[idx]['text']) {
-            textarea.value = this.watermarks[idx]['text'];
+        if(this.watermarks[idx] && this.watermarks[idx]['str']) {
+            textarea.value = this.watermarks[idx]['str'];
+            textarea.innerText = this.watermarks[idx]['str'];
         }
         right.appendChild(textarea);
 
@@ -492,7 +500,7 @@ export class Shape {
         textarea.onchange = function(e){
             this.updateWatermark(idx, {'str': textarea.value});
         }.bind(this);
-
+        // console.log(this.watermarks[idx]);
         let text_controls = [
             { 
                 'name': 'position',
@@ -532,21 +540,21 @@ export class Shape {
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'rotate (0)'},
                 'class': 'watermark-rotate',
-                'value': this.watermarks[idx] ? this.watermarks[idx]['rotate'] : null
+                'value': this.watermarks[idx] && this.watermarks[idx]['rotate'] ? this.watermarks[idx]['rotate'] * 360 / (2 * Math.PI) : null
             },{ 
                 'name': 'shift-x',
                 'id': 'watermark-shift-x-' + idx,
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'X (0)'},
                 'class': 'watermark-shift-x',
-                'value': this.watermarks[idx] && this.watermarks[idx]['shift']? this.watermarks[idx]['shift']['x'] : null
+                'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['x'] : null
             },{ 
                 'name': 'shift-y',
                 'id': 'watermark-shift-y-' + idx,
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'Y (0)'},
                 'class': 'watermark-shift-y',
-                'value': this.watermarks[idx] && this.watermarks[idx]['shift']? this.watermarks[idx]['shift']['y'] : null
+                'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['y'] : null
             }
         ]
         this.renderCustomControls(id, right, text_controls, (items)=>{
@@ -559,7 +567,7 @@ export class Shape {
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, label);
                         let param = {};
                         if(item['name'] === 'rotate') {
-                            param[item['name']] = (2 * Math.PI) * e.target.value / 360;
+                            param[item['name']] = e.target.value ? (2 * Math.PI) * e.target.value / 360 : '';
                         } else if(item['name'] === 'font') {
                             param[item['name']] = self.options['fontOptions'][e.target.value];
                         } else {
@@ -792,13 +800,13 @@ export class Shape {
         if(type === 'watermark') {
             if(this.watermarks[idx]) {
                 this.watermarks.splice(idx, 1);
+                
                 this.resetWatermarks(true);
-
+                // console.log(idx, this.watermarks);
                 for(let i = 0 ; i < this.watermarks.length; i++) {
                     this.addWatermarkButton.parentNode.insertBefore(this.renderWatermark(i), this.addWatermarkButton);
                 }
             }
-                
             if(panel_section)
                 panel_section.parentNode.removeChild(panel_section);
         } else if(type === 'media') {

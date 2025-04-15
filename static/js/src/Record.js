@@ -133,6 +133,7 @@ export class Record {
         })
     }
     applySavedRecord(){
+        console.log('ss');
         // return;
         // let static_fields = [], animated_fields = [];
         let active_canvas_fields = [];
