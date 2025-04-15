@@ -221,8 +221,6 @@ export class Shape {
     }
     renderShapeField(id, displayName, extraClass='')
     {
-        // let shape = this.renderSelectField('shape', 'Shape', this.options.shapeOptions);
-        // shape.querySelector('select').classList.add('flex-item');
         let panel_section = document.createElement('div');
         panel_section.className  = "panel-section float-container " + extraClass;
         let label = document.createElement('LABEL');
@@ -317,8 +315,6 @@ export class Shape {
     }
     renderCustomControls(id, container, items=[], cb){
         for (let item of items) {
-            // console.log(item);
-            // if(item['name'] === 'font' || item['name'] === 'typography') console.log(item);
             if(item['input-type'] === 'select') {
                 let cls = item['class'] ? 'flex-item typography-flex-item ' + item['class'] :  'flex-item typography-flex-item';
                 /* the formats of font and typography are saved differently so add exceptions here */
