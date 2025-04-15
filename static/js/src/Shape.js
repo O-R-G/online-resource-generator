@@ -117,8 +117,6 @@ export class Shape {
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){
-        // console.log('updateWatermark')
-        // console.log(values_obj);
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
         if(typeof this.watermarks[idx] == 'undefined')
     	{
@@ -139,9 +137,9 @@ export class Shape {
     	{
             if(!typography) typography = this.watermarks[idx]['typography'];
             let values = {...values_obj, typography:typography};
-            if(this.isThree) {
-                console.log(values);
-            }
+            // if(this.isThree) {
+            //     console.log(values);
+            // }
             for(let name in values) {
                 if(!values[name] && values[name] !== 0) continue;
                 this.watermarks[idx][name] = values[name];
@@ -318,8 +316,7 @@ export class Shape {
             if(item['input-type'] === 'select') {
                 let cls = item['class'] ? 'flex-item typography-flex-item ' + item['class'] :  'flex-item typography-flex-item';
                 /* the formats of font and typography are saved differently so add exceptions here */
-                const value = (item.name === 'font' || item.name === 'typography') ? Object.keys(item['options']).find((itm)=>{ console.log(itm); return item['options'][itm] === item['value']; }) : item['value'];
-                if(item.name === 'typography') console.log(value);
+                const value = (item.name === 'font' || item.name === 'typography') ? Object.keys(item['options']).find((itm)=>{ return item['options'][itm] === item['value']; }) : item['value'];
                 item['el'] = this.renderSelect(item['id'], item['options'], cls, item['attr'], value);
             } else if(item['input-type'] === 'text') {
                 let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
@@ -496,7 +493,6 @@ export class Shape {
         textarea.onchange = function(e){
             this.updateWatermark(idx, {'str': textarea.value});
         }.bind(this);
-        // console.log(this.watermarks[idx]);
         let text_controls = [
             { 
                 'name': 'position',
@@ -559,7 +555,6 @@ export class Shape {
                 if(item['name'].indexOf('shift-') === -1) {
                     self.fields['watermarks'][idx][item['name']] = item['el'];
                     item['el'].onchange = function(e){
-                        // console.log('change--');
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, label);
                         let param = {};
                         if(item['name'] === 'rotate') {
@@ -789,7 +784,6 @@ export class Shape {
             }
                 
         };
-        // console.log('readImage', idx, src);
         image.src = src;
     }
     deleteItem(type, idx, panel_section, silent=false){
@@ -798,7 +792,6 @@ export class Shape {
                 this.watermarks.splice(idx, 1);
                 
                 this.resetWatermarks(true);
-                // console.log(idx, this.watermarks);
                 for(let i = 0 ; i < this.watermarks.length; i++) {
                     this.addWatermarkButton.parentNode.insertBefore(this.renderWatermark(i), this.addWatermarkButton);
                 }
@@ -810,14 +803,12 @@ export class Shape {
                 delete this.media[idx];
                 this.resetMedia(true);
                 for(let id in this.media) {
-                    // console.log(id);
                     if(id.indexOf('media-') === 0) {
                         this.addMedia(id, id.replace('media-', 'Media '));
                     }
                     
                 }
             }
-            // console.log(this.media);
         }
         if(!silent)
             this.canvasObj.draw();
@@ -848,11 +839,10 @@ export class Shape {
             cb(idx, videoElement);	
     }
     readImageUploaded(event, cb){
-        // console.log('uploaded');
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
-        // console.log('idx');
-		if (input.files && input.files[0]) {
+
+        if (input.files && input.files[0]) {
         	var FR = new FileReader();
             FR.onload = function (e) {
                 this.readImage(idx, e.target.result, (idx, image)=>{
@@ -955,7 +945,7 @@ export class Shape {
     }
 
     updateCounterpartWatermarks(silent=false){
-        // console.log('updateCounterpartWatermarks');
+
         this.fields.watermarks.forEach(function(this_watermark, i){
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();
@@ -1009,15 +999,12 @@ export class Shape {
             this.media = {};
             this.mediaIndex = 0;
         }
-        // console.log(this.mediaIndex);
-        // console.log(this.media);
         this.fields.media = {};
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
         this.fields['media-container'] = container;
     }
     reindexMedia(){
-        // console.log('reindex--');
         this.mediaIndex = 1;
         let reindexed = {};
         for(let key in this.media) {
@@ -1028,7 +1015,6 @@ export class Shape {
                 reindexed[key] = this.media[key];
             }
         }
-        // console.log(reindexed);
         this.media = reindexed;
     }
     getDefaultOption(options, returnKey = false){
@@ -1056,7 +1042,6 @@ export class Shape {
     }
     sync(){
         for(const name in this.fieldCounterparts) {
-            // console.log(name);
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
             
