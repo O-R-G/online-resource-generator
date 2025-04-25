@@ -424,6 +424,80 @@ export class ShapeAnimated extends Shape {
 
 		return output;
 	}
+	drawDiamond(){
+		let this_r = this.cornerRadius;
+		let this_p = this.padding;
+		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
+		let w, h;
+		
+		let side = Math.min(this.frame.w, this.frame.h);
+		w = side - this_p * 2;
+		h = side - this_p * 2;
+
+		let path_front = this.drawDiamondPath();
+		let path_back = this.drawDiamondPath();
+
+		this.geometry_front = new THREE.ShapeGeometry(path_front);
+		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.updateSize(w + this_r * 2, h + this_r * 2);
+	}
+	drawDiamondPath(){
+		const output = new THREE.Shape();
+		const angleRad = this.rotate;
+		const sqrt2 = Math.sqrt(2);
+		let side = Math.min(this.frame.w, this.frame.h);
+		const w = (side - this.padding * 2) / sqrt2;
+		const h = (side - this.padding * 2) / sqrt2;
+
+		const hw = w / 2;
+		const hh = h / 2;
+		const cx = this.shapeCenter.x;
+		const cy = this.shapeCenter.y;
+
+		// Unrotated corner centers
+		const corners = [
+			{ x: cx - hw + this.cornerRadius, y: cy - hh + this.cornerRadius }, // top-left
+			{ x: cx + hw - this.cornerRadius, y: cy - hh + this.cornerRadius }, // top-right
+			{ x: cx + hw - this.cornerRadius, y: cy + hh - this.cornerRadius }, // bottom-right
+			{ x: cx - hw + this.cornerRadius, y: cy + hh - this.cornerRadius }  // bottom-left
+		];
+
+		// Directions: [start angle, end angle] in radians
+		const angles = [
+			[Math.PI, 1.5 * Math.PI],     // top-left
+			[1.5 * Math.PI, 0],           // top-right
+			[0, 0.5 * Math.PI],           // bottom-right
+			[0.5 * Math.PI, Math.PI],     // bottom-left
+		];
+
+		// Start point: first arc start
+		let first = this.rotatePoint(corners[0].x + Math.cos(angles[0][0]) * this.cornerRadius, corners[0].y + Math.sin(angles[0][0]) * this.cornerRadius, cx, cy, angleRad);
+		output.moveTo(first.x, first.y);
+
+		// Draw all corners
+		for (let i = 0; i < 4; i++) {
+			const corner = corners[i];
+			const rotated = this.rotatePoint(corner.x, corner.y, cx, cy, angleRad);
+			const start = angles[i][0] + angleRad;
+			const end = angles[i][1] + angleRad;
+
+			output.absarc(rotated.x, rotated.y, this.cornerRadius, start, end, false);
+		}
+
+		output.closePath();
+		return output;
+	}
+	rotatePoint(x, y, cx, cy, angleRad) {
+		const cos = Math.cos(angleRad);
+		const sin = Math.sin(angleRad);
+		const dx = x - cx;
+		const dy = y - cy;
+		return {
+			x: cx + dx * cos - dy * sin,
+			y: cy + dx * sin + dy * cos
+		};
+	}
+	
 	getValueByPixelRatio(input){
 		return input * window.devicePixelRatio;
 	}
@@ -1096,6 +1170,8 @@ export class ShapeAnimated extends Shape {
 			this.drawHexagon();
 		else if(this.shape.base == 'heart')
 			this.drawHeart();
+		else if(this.shape.base == 'diamond')
+			this.drawDiamond();
 		
 		if(this.mesh_front) {
 			this.mesh_front.geometry = this.geometry_front;

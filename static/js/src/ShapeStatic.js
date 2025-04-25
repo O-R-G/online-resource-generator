@@ -847,16 +847,8 @@ export class ShapeStatic extends Shape {
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
         this.context.fillStyle = this.color;
-		this.context.save();
-		
 		this.drawRectanglePath();
         this.context.fill();
-		if(this.rotate) {
-			console.log(this.shapeCenter);
-			this.context.translate(this.shapeCenter.x, -this.shapeCenter.y);
-			this.context.rotate(this.rotate * Math.PI / 180);
-		}
-		this.context.restore();
 	}
 	clipRectangle(ctx = null){
 		ctx = ctx ? ctx : this.context;
@@ -893,8 +885,8 @@ export class ShapeStatic extends Shape {
         this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
         this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
         this.context.closePath();
-		
 	}
+	
 	drawCircle(){
 	    this.context.fillStyle = this.color;
 		this.drawCirclePath()
@@ -1003,7 +995,79 @@ export class ShapeStatic extends Shape {
         this.context.arc(this.shapeCenter.x - width / 2 + 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 5 * Math.PI / 6, 7 * Math.PI / 6);
         this.context.closePath();
 	}
-    recordCanvas(){
+	drawDiamond(){
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+		
+		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
+        this.context.fillStyle = this.color;
+		this.drawDiamondPath();
+        this.context.fill();
+	}
+	drawDiamondPath(ctx=null){
+        let paddingX = this.padding;
+        let paddingY = this.padding;
+
+		let w, h;
+		
+		let side = Math.min(this.frame.w, this.frame.h);
+			w = side - paddingX * 2;
+			h = side - paddingY * 2;
+
+		let centerX = this.shapeCenter.x, 
+			centerY = this.shapeCenter.y, 
+			r       = this.cornerRadius;
+
+		this.updateSize(w, h);
+
+		const angle = 45 * Math.PI / 180;
+		const sqrt2 = Math.sqrt(2);
+		const rect_w = w / sqrt2;
+		const rect_h = h / sqrt2;
+		const hw = rect_w / 2;
+		const hh = rect_h / 2;
+
+		// Define arc centers (unrotated)
+		const corners = [
+			{ x: centerX - hw + r, y: centerY - hh + r }, // top-left
+			{ x: centerX + hw - r, y: centerY - hh + r }, // top-right
+			{ x: centerX + hw - r, y: centerY + hh - r }, // bottom-right
+			{ x: centerX - hw + r, y: centerY + hh - r }, // bottom-left
+		];
+
+		// Corresponding angles for each arc
+		const angles = [
+			[Math.PI, 1.5 * Math.PI],     // top-left
+			[1.5 * Math.PI, 0],           // top-right
+			[0, 0.5 * Math.PI],           // bottom-right
+			[0.5 * Math.PI, Math.PI],     // bottom-left
+		];
+
+		ctx = ctx ? ctx : this.context;
+		ctx.beginPath();
+
+		for (let i = 0; i < 4; i++) {
+			const corner = corners[i];
+			// const next = corners[(i + 1) % 4];
+			const angleStart = angles[i][0] + angle;
+			const angleEnd = angles[i][1] + angle;
+			const rotatedCorner = this.rotatePoint(corner.x, corner.y, centerX, centerY, angle);
+			ctx.arc(rotatedCorner.x, rotatedCorner.y, r, angleStart, angleEnd);
+		}
+        
+		ctx.closePath();
+	}
+	rotatePoint(x, y, cx, cy, angleRad) {
+		let cos = Math.cos(angleRad);
+		let sin = Math.sin(angleRad);
+		let dx = x - cx;
+		let dy = y - cy;
+		return {
+			x: cx + dx * cos - dy * sin,
+			y: cy + dx * sin + dy * cos
+		};
+	}
+	recordCanvas(){
         this.context.fillStyle = this.color;
         this.padding = this.padding - 60;
         let width = this.canvasW - this.padding * 2;
@@ -1045,6 +1109,8 @@ export class ShapeStatic extends Shape {
 				this.drawHexagon();
 			else if(this.shape.base == 'heart')
 				this.drawHeart();
+			else if(this.shape.base == 'diamond')
+				this.drawDiamond();
 		}
 		else if(this.shapeMethod == 'clip')
 		{
