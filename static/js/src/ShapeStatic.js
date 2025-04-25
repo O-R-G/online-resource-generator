@@ -847,8 +847,16 @@ export class ShapeStatic extends Shape {
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
         this.context.fillStyle = this.color;
+		this.context.save();
+		
 		this.drawRectanglePath();
         this.context.fill();
+		if(this.rotate) {
+			console.log(this.shapeCenter);
+			this.context.translate(this.shapeCenter.x, -this.shapeCenter.y);
+			this.context.rotate(this.rotate * Math.PI / 180);
+		}
+		this.context.restore();
 	}
 	clipRectangle(ctx = null){
 		ctx = ctx ? ctx : this.context;
