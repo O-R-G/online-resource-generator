@@ -618,7 +618,41 @@ export class ShapeStatic extends Shape {
     			y = this.frame.y + this.frame.h / 2;
     		}
     		else return;
-    	}
+    	} else if(this.shape.base === 'diamond') {
+			if(align.indexOf('center') !== -1 || align.indexOf('middle') !== -1) return;
+			let this_padding = this.padding;
+    		let inner_p_x = this.innerPadding.x;
+    		let inner_p_y = this.innerPadding.y;
+			this.context.textAlign = "center";
+		
+			let side = Math.min(this.frame.w, this.frame.h);
+			let a = (side - this_padding * 2) / 2;
+			const sqrt2 = Math.sqrt(2);
+
+			if(align.indexOf('left') !== -1){
+    			x = this.shapeCenter.x - a / 2 + inner_p_x / sqrt2;
+       		}
+    		else if(align.indexOf('right') !== -1){
+    			x = this.shapeCenter.x + a / 2 - inner_p_x / sqrt2;
+    		}
+    		
+			if(align.indexOf('top') !== -1){
+    			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
+				if(align.indexOf('left') !== -1){ 
+					rad = -45 * Math.PI / 180;
+				} else if(align.indexOf('right') !== -1){ 
+					rad = 45 * Math.PI / 180;
+				} 
+       		}
+    		else if(align.indexOf('bottom') !== -1){
+    			y = this.shapeCenter.y + a / 2 - inner_p_y / sqrt2;
+				if(align.indexOf('left') !== -1){ 
+					rad = 225 * Math.PI / 180;
+				} else if(align.indexOf('right') !== -1){ 
+					rad = 135 * Math.PI / 180;
+				}
+    		}
+		}
 
 		y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 		if(align.indexOf('top') !== -1)

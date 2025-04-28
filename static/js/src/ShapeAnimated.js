@@ -736,6 +736,32 @@ export class ShapeAnimated extends Shape {
 			output.rotation.z += rad;
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
+		} else if(this.shape.base === 'diamond') {
+			let x = 0;
+			let y = 0;
+			let this_padding = this.padding;
+    		let inner_p_x = this.innerPadding.x;
+    		let inner_p_y = this.innerPadding.y;
+			let side = Math.min(this.frame.w, this.frame.h);
+			let a = (side - this_padding * 2) / 2;
+			const sqrt2 = Math.sqrt(2);
+			if(align.indexOf('left') !== -1){
+    			x = this.shapeCenter.x - a / 2 + inner_p_x / sqrt2;
+       		}
+    		else if(align.indexOf('right') !== -1){
+    			x = this.shapeCenter.x + a / 2 - inner_p_x / sqrt2;
+    		}
+    		
+			if(align.indexOf('top') !== -1){
+				y = this.shapeCenter.y + a / 2 - inner_p_y / sqrt2;
+				output.rotation.z = align.indexOf('left') !== -1 ? 45 * Math.PI / 180 : -45 * Math.PI / 180;
+       		}
+    		else if(align.indexOf('bottom') !== -1){
+    			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
+				output.rotation.z = align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180;
+    		}
+			output.position.x = x;
+			output.position.y = y;
 		}
 		if(align.indexOf('top') !== -1)
 			output.position.y -= line_num / 2 * lineHeight;
@@ -1635,9 +1661,6 @@ export class ShapeAnimated extends Shape {
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
-		// if(this.canvasObj.isRecording) {
-		// 	console.log('a');
-		// }
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
