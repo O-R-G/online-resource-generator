@@ -177,11 +177,12 @@ export class Shape {
         let output = document.createElement('select');
         output.className = 'field-id-' + id + ' ' + extraClass;
         output.id = this.id + '-field-id-' + id;
+        const default_key = this.getDefaultOption(options, true);
+        let default_idx = 0;
         if(typeof options === 'object' && options !== null)
         {
             let idx = 0;
             for (const [key, value] of Object.entries(options)) {
-                
                 let opt = document.createElement('option');
                 opt.value = key;
                 opt.innerText = value['name'];
@@ -189,10 +190,13 @@ export class Shape {
                     opt.selected=true;
                     output.selectedIndex = idx; 
                 }
+                if(key === default_key) {
+                    default_idx = idx;
+                }
                 output.appendChild(opt);
                 idx++;
             }
-            if(!output.selectedIndex) output.selectedIndex = 0;
+            if(!output.selectedIndex) output.selectedIndex = default_idx;
         }
         if(attrs) {
             for(let attr in attrs) {

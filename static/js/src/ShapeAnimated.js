@@ -78,8 +78,8 @@ export class ShapeAnimated extends Shape {
 		this.watermarkTimer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
-		this.frontTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
-		this.backTextPosition = this.getDefaultOption(this.options.typographyOptions).value;
+		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
+		this.backTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 		
 		this.frontTextShiftX = 0;
 		this.frontTextShiftY = 0;
@@ -505,6 +505,8 @@ export class ShapeAnimated extends Shape {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
+		if(isBack)
+			console.log('align', align);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
@@ -754,11 +756,11 @@ export class ShapeAnimated extends Shape {
     		
 			if(align.indexOf('top') !== -1){
 				y = this.shapeCenter.y + a / 2 - inner_p_y / sqrt2;
-				output.rotation.z = align.indexOf('left') !== -1 ? 45 * Math.PI / 180 : -45 * Math.PI / 180;
+				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 45 * Math.PI / 180 : -45 * Math.PI / 180);
        		}
     		else if(align.indexOf('bottom') !== -1){
     			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
-				output.rotation.z = align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180;
+				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180);
     		}
 			output.position.x = x;
 			output.position.y = y;
