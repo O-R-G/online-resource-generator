@@ -444,7 +444,7 @@ export class ShapeAnimated extends Shape {
 	drawDiamondPath(){
 		const output = new THREE.Shape();
 		// const angleRad = this.rotate;
-		const angleRad = 0;
+		const angleRad = 45 * Math.PI / 180;
 		const sqrt2 = Math.sqrt(2);
 		let side = Math.min(this.frame.w, this.frame.h);
 		const w = (side - this.padding * 2) / sqrt2;
@@ -522,7 +522,9 @@ export class ShapeAnimated extends Shape {
 			}.bind(this));
 		}
 		this.applyTypographyAndFontToTextMesh(output, typography, font, isBack);
-		output.text = str;
+		output.text = str.replaceAll(' ', '\u00A0');
+		// output.whiteSpace = 'pre';
+		// output.overflowWrap: 'normal'
 		output.material = material;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
@@ -761,6 +763,7 @@ export class ShapeAnimated extends Shape {
        		}
     		else if(align.indexOf('bottom') !== -1){
     			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
+				y += (lineHeight - this.getValueByPixelRatio(parseFloat(typography['size'])));
 				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180);
     		}
 			output.position.x = x + shift.x;
