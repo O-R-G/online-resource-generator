@@ -646,6 +646,7 @@ export class ShapeStatic extends Shape {
        		}
     		else if(align.indexOf('bottom') !== -1){
     			y = this.shapeCenter.y + a / 2 - inner_p_y / sqrt2;
+				y -= (lineHeight - typography['size']);
 				if(align.indexOf('left') !== -1){ 
 					rad += 225 * Math.PI / 180;
 				} else if(align.indexOf('right') !== -1){ 

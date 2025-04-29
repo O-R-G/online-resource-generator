@@ -462,7 +462,7 @@ export class Canvas {
     stopRecording(){
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
         document.body.classList.remove('recording');
-        this.downloadVideoButton.innerText = 'Record video';
+        this.downloadVideoButton.innerText = 'mp4';
     }
     stopSaving(){
         this.autoRecordingQueueIdx = 0;
