@@ -124,7 +124,6 @@ export class Canvas {
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
 	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
             this.media_recorder.addEventListener('start', ()=>{
-                // console.log('start--');
                 for(const shape_id in this.shapes) {
                     this.shapes[shape_id].animate(performance.now());
                 }
@@ -137,7 +136,6 @@ export class Canvas {
 	    }
         for(let shape_id in this.shapes) {
             if(!this.shapes[shape_id].initialized) {
-                // console.log(`${shape_id} is not intialized yet`)
                 this.shapes[shape_id].init(this);
             }
         }
@@ -149,8 +147,6 @@ export class Canvas {
         let height =  this.formatOptions[this.format].h / this.devicePixelRatio;
         this.canvas.style.width = `${width * this.devicePixelRatio}px`;
         this.canvas.style.height = `${height * this.devicePixelRatio}px`;
-        // console.log('initThree()');
-        // console.log(this.canvas.width);
         this.canvas.style.transform = `scale(${this.scale / 2})`;
         this.canvas.style.transformOrigin = `0 0`;
         this.setRenderer();
@@ -178,7 +174,6 @@ export class Canvas {
         return canvas;
     }
     setRenderer(){
-        // console.log(this.canvas.width);
         if(!this.initialized) {
             this.renderer = new THREE.WebGLRenderer({
                 'canvas': this.canvas, 
@@ -189,10 +184,8 @@ export class Canvas {
             this.renderer.setPixelRatio( this.devicePixelRatio );
             this.canvas.width = this.canvas.width / this.devicePixelRatio;
             this.canvas.height = this.canvas.height / this.devicePixelRatio;
-            // console.log(this.canvas.width);
         }
         this.renderer.setSize( this.canvas.width / this.devicePixelRatio, this.canvas.height / this.devicePixelRatio, false);
-        // console.log(this.canvas.width);
     }
     setCamera(){
         let z = this.canvas.width * 5.72 * this.devicePixelRatio;
@@ -208,7 +201,6 @@ export class Canvas {
         this.autoRecordingQueue = match;
     }
     initRecording(){
-        // console.log('initRecording');
         this.isInitRecording = true;
         this.downloadVideoButton.innerText = 'Loading . . .';
         this.readyState = 0;
@@ -217,31 +209,29 @@ export class Canvas {
             this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
             this.chunks = [];
             try{
-                // console.log('try?');
                 this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
                 this.media_recorder.ondataavailable = (evt) => { 
-                    // console.log('ondataavailable--');
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
                     this.isRecording = true;
-                    // console.log('start--');
-                    // console.log(this)
                     for(const shape_id in this.shapes) {
                         this.shapes[shape_id].animate(performance.now());
                     }
                 });
                 this.media_recorder.addEventListener('stop', ()=>{
-                    // console.log('stop--');
                     this.isRecording = false;
                     this.saveCanvasAsVideo(); 
                 });
+                for(const shape_id in this.shapes) {
+                    this.shapes[shape_id].initAnimate(this.shapes[shape_id].animationName, true);
+                }
             } catch{
                 console.log('error-0');
             }
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
-            
-            this.startRecording();
+            setTimeout(this.startRecording.bind(this), 0);
+            // this.startRecording();
         }, 0)
         
     }
@@ -253,12 +243,7 @@ export class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(){
-        // let now = new Date();
-        // let start = now + 1000;
-        // console.log('start recording--');
-        // console.log('startRecording--');
         this.media_recorder.start(1); 
-        // this.animate(true); 
         this.animate(); 
     }
     getDefaultOption(options, returnKey = false){
@@ -371,16 +356,6 @@ export class Canvas {
             let powof2 = 1;
             while ( powof2 < palette.length ) powof2 <<= 1;
             palette.length = powof2;
-            // powof2 = powof2 > 8 ? 8 : powof2;
-            // try {
-            //     palette.length = Math.pow(2, powof2)
-            // } catch{
-            //     console.log('powof2', powof2)
-            //     console.log(Math.pow(2, powof2));
-            // }
-            
-            
-            // const delay = Math.round(1000 / fps / 10);
             const options = { palette: new Uint32Array( palette ), delay: delay };
             writer.addFrame( 0, 0, canvas.width, canvas.height, pixels, options );
 
@@ -402,7 +377,6 @@ export class Canvas {
         var dpi = 300; // dots per inch
         var ppd = this.devicePixelRatio; // pixels per dot
         val = parseFloat(val);
-        // console.log('toPixel', val * (dpi * ppd), this.devicePixelRatio);
         // return source_unit === 'cm' ? parseInt((val * (dpi * ppd) / cpi).toFixed(n)) : parseInt((val * (dpi * ppd)).toFixed(n));
         return source_unit === 'cm' ? parseInt((val * (dpi) / cpi).toFixed(n)) : parseInt((val * (dpi)).toFixed(n));
     }
@@ -766,6 +740,7 @@ export class Canvas {
         }
     }
     animate(isSilent = false){
+        // isSilent = true;
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
             if(this.isThree) el.initAnimate(el.animationName, isSilent);
@@ -876,7 +851,6 @@ export class Canvas {
             this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
             this.counterpart.setCanvasSize({'width': this.fields['custom-width-input'].value, 'height': this.fields['custom-height-input'].value}, null, false);
         } else {
-            // console.log(this.canvas.width / 2 * this.scale);
             this.counterpart.setCanvasSize({'width': this.canvas.width, 'height': this.canvas.height}, null, false);
         }
         for(let shape_id in this.shapes) {
@@ -885,7 +859,6 @@ export class Canvas {
         }
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
-        // if(this.isThree) console.log('setCanvasSize()', size);
         let updated = false;
 
         if(size.width) {
@@ -898,7 +871,6 @@ export class Canvas {
             this.canvas.height = size.height;
             this.canvas.style.height = size.height / this.scale + 'px';
         }
-        // if(this.isThree) console.log('post setCanvasSize()', this.canvas.width, this.canvas.height);
         if(!this.wrapper.offsetHeight || !updated) return;
         
         if(this.isThree)

@@ -114,7 +114,7 @@ export class Shape {
             x: shape.innerPadding[0],
             y: shape.innerPadding[1] ? shape.innerPadding[1] : shape.innerPadding[0]
         }
-        this.rotate = shape.rotate ? shape.rotate * Math.PI / 180 : 0;
+        // this.rad = shape.rotate ? shape.rotate * Math.PI / 180 : 0;
 	}
 	
     updateWatermark(idx, values_obj = {}, silent=true){

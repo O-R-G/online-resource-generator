@@ -443,7 +443,8 @@ export class ShapeAnimated extends Shape {
 	}
 	drawDiamondPath(){
 		const output = new THREE.Shape();
-		const angleRad = this.rotate;
+		// const angleRad = this.rotate;
+		const angleRad = 0;
 		const sqrt2 = Math.sqrt(2);
 		let side = Math.min(this.frame.w, this.frame.h);
 		const w = (side - this.padding * 2) / sqrt2;
@@ -1552,21 +1553,30 @@ export class ShapeAnimated extends Shape {
 	}
 	
 	initAnimate(animationName, isSilent = false){
-		// console.log('initAnimate');
 		this.resetAnimation();
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
 		
 		if(animationName == 'spin'){
-			this.mesh_back.rotation.y = Math.PI;
+			this.mesh_front.rotation.y = 0;
+			this.mesh_back.rotation.y  = Math.PI;
+			this.group.remove( this.mesh_back );
+			this.group.add( this.mesh_front );
 			this.backWatermarkGroup.scale.copy(new THREE.Vector3(-1, 1, 1));
 		}
 		else if(animationName == 'flip'){
+			this.mesh_front.rotation.x = 0;
 			this.mesh_back.rotation.x = Math.PI;
+			this.group.remove( this.mesh_back );
+			this.group.add( this.mesh_front );
 			this.backWatermarkGroup.scale.copy(new THREE.Vector3(1, -1, 1));
 		}
 		else if(animationName == 'rotate'){
+			// this.mesh_front.rotation.y = 0;
+			// this.mesh_front.rotation.x = 0;
+			// this.group.remove( this.mesh_back );
+			// this.group.add( this.mesh_front );
 		}
 		else if(animationName == 'rotateBackward'){
 		}
@@ -1612,7 +1622,7 @@ export class ShapeAnimated extends Shape {
 				this.mesh_front.rotation.y += this.spinAngleInterval;
 			}
 			this.animationName = 'rest';
-			this.renderer.render( this.scene, this.camera );
+			
 		}
 		else if(animationName == 'fadeIn'){
 			// if(this.fadeInDelay > this.animationDurationBase) {
@@ -1659,7 +1669,7 @@ export class ShapeAnimated extends Shape {
 			this.resetMesh();
 
 		}
-		
+		this.renderer.render( this.scene, this.camera );
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
@@ -1790,7 +1800,7 @@ export class ShapeAnimated extends Shape {
 	  	}
 	    this.renderer.render( this.scene, this.camera );
 	}
-	rotate (progress){
+	rotate(progress){
 		this.mesh_front.rotation.z = -progress * Math.PI * 2;
 		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
