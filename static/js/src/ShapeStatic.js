@@ -639,17 +639,17 @@ export class ShapeStatic extends Shape {
 			if(align.indexOf('top') !== -1){
     			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
 				if(align.indexOf('left') !== -1){ 
-					rad = -45 * Math.PI / 180;
+					rad += -45 * Math.PI / 180;
 				} else if(align.indexOf('right') !== -1){ 
-					rad = 45 * Math.PI / 180;
+					rad +=  45 * Math.PI / 180;
 				} 
        		}
     		else if(align.indexOf('bottom') !== -1){
     			y = this.shapeCenter.y + a / 2 - inner_p_y / sqrt2;
 				if(align.indexOf('left') !== -1){ 
-					rad = 225 * Math.PI / 180;
+					rad += 225 * Math.PI / 180;
 				} else if(align.indexOf('right') !== -1){ 
-					rad = 135 * Math.PI / 180;
+					rad += 135 * Math.PI / 180;
 				}
     		}
 		}

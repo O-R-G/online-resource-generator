@@ -591,6 +591,11 @@ export class Shape {
                     item['el'].onkeydown = (e) => {
                         this.updatePositionByKey(e, self.fields['watermarks'][idx]['shift'], (shift)=>this.updateWatermark(idx, {'shift': shift}, false));
                     }
+                    const counterpart_name = shift_direction === 'x' ? 'shift-y' : 'shift-x';
+                    const counterpart = items.find((itm)=> itm.name.indexOf(counterpart_name) !== -1 );
+                    item['el'].onblur = () => {
+                        this.unfocusInputs([item['el'], counterpart['el']]);
+                    }
                 }
                 
             }
@@ -605,6 +610,7 @@ export class Shape {
         let output = document.createElement('input');
         output.id = id;
         if(value !== null) output.value = value;
+        output.autocomplete = "off";
         if(attrs) {
             for(let attr in attrs) {
                 output.setAttribute(attr, attrs[attr]);
