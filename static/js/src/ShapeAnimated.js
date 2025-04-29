@@ -762,8 +762,8 @@ export class ShapeAnimated extends Shape {
     			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
 				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180);
     		}
-			output.position.x = x;
-			output.position.y = y;
+			output.position.x = x + shift.x;
+			output.position.y = y + shift.y;
 		}
 		if(align.indexOf('top') !== -1)
 			output.position.y -= line_num / 2 * lineHeight;
