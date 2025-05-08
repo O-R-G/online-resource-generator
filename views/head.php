@@ -38,7 +38,7 @@ if(count($uri) > $root_path_count) {
 	if(count($temp) == count($root_database) + count($temp_url)) {
 		$record_id = end($temp);
 		$temp = $oo->get($record_id);
-		if(!$temp['body']) $record_id = '';
+		// if(!$temp['body']) $record_id = '';
 	}   
 }
 if(!$record_id && (count($uri) > count(explode('/', $root_path)))) {
