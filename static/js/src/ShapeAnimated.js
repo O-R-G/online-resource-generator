@@ -523,14 +523,11 @@ export class ShapeAnimated extends Shape {
 		}
 		this.applyTypographyAndFontToTextMesh(output, typography, font, isBack);
 		output.text = str.replaceAll(' ', '\u00A0');
-		// output.whiteSpace = 'pre';
-		// output.overflowWrap: 'normal'
 		output.material = material;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
 		output.anchorY = 'middle';
-		// let dev_x = this.getValueByPixelRatio(0);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = 0;
 		if(this.shape.base === 'triangle') {
@@ -674,24 +671,26 @@ export class ShapeAnimated extends Shape {
 				let textObjs = [];
 				let output = new THREE.Group();
 				const radius = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) / 2;
-				const spaceWidth = fontData.size * 0.35 ; // Define a fixed width for spaces
+				const spaceWidth = typography.size * 0.35 ; // Define a fixed width for spaces
 				const charWidths = [];
 				let currentAngle = Math.PI / 2;
 				let synced = 0;
 				for (let i = 0; i < str.length; i++) {
 					
 					const char = str[i];
+					
 					let text = new Text();
+					this.applyTypographyAndFontToTextMesh(text, typography, font, isBack);
 					text.text = char;
-					text.fontSize = fontData.size;
+					// text.fontSize = typography.size;
 					text.material = material;
 					text.position.z = 0.5;
 					text.textAlign = align == 'align-left' ? 'left' : 'center';
 					text.anchorX = 'center';
 					text.anchorY = 'middle';
-					text.font = fontData.path;
-					text.lineHeight = fontData.lineHeight;
-					text.letterSpacing = fontData.letterSpacing;
+					// text.font = fontData.path;
+					// text.lineHeight = fontData.lineHeight;
+					// text.letterSpacing = fontData.letterSpacing;
 					textObjs[i] = text;
 					text.sync(()=>{
 						const charWidth = text.textRenderInfo.blockBounds[2] - text.textRenderInfo.blockBounds[0];

@@ -40,7 +40,6 @@ export class ShapeStatic extends Shape {
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
-		console.log(this.watermarks);
 	}
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;

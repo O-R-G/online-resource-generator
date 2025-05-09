@@ -97,20 +97,9 @@ export class Record {
                 });
             }
         })
-        // this.elements.fetch_button.addEventListener('click', (event) =>{
-        //     event.preventDefault();
-        //     if (!this.elements.input_id.value || this.elements.input_id.value == this.record_id) return;
-        //     this.fetchRecord(this.elements.input_id.value, ()=>{
-        //         window.location.href='?record=' + this.elements.input_id.value;
-        //     });
-        // })
     }
-    fetchRecord(record_id='', callback=null){
-        // console.log(record_id);
-        
+    fetchRecord(record_id='', callback=null){        
         let data = new FormData();
-        // if (!record_id) record_id = this.record_id;
-        // console.log(record_id);
         let data_json = {
             'action': 'get',
             'record_id': record_id
@@ -134,12 +123,10 @@ export class Record {
     }
     applySavedRecord(){
         let active_canvas_fields = [];
-        // let viewingThree = false;
         let params = new URL(document.location).searchParams;
         let format = params.get("format");
         let hasSecondShape = false;
         let avtive_canvas = null;
-        // console.log(this.record_body)
         if(!this.record_body) return;
         for(let canvas_id in this.record_body) {
             if(canvas_id === 'images'){
@@ -151,12 +138,10 @@ export class Record {
             let active = canvas_data['active'];
             if(isThree && active) document.body.classList.add('viewing-three');
             if(active) avtive_canvas = this.canvasObjs[canvas_id];
-            // console.log(Object.keys(canvas_data['shape-controls']).length > 1);
             if(Object.keys(canvas_data['shape-controls']).length > 1 && !hasSecondShape) {
                 hasSecondShape = true;
             }
             if(hasSecondShape && canvas_data['add_second_shape_button']) {
-                // console.log(canvas_data['add_second_shape_button']);
                 let btn = document.getElementById(canvas_data['add_second_shape_button']['id']);
                 btn.click();
             }
@@ -165,10 +150,8 @@ export class Record {
                 let data = canvas_data['common-controls'][common_control_id];
                 let common_control = document.getElementById(common_control_id);
                 if (!common_control) continue;
-                // let isThree = data['isThree'];
                 let fields = data['fields'];
                 for (let field of fields) {
-                    
                     if(!field['id']) continue;
                     let field_element = common_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
@@ -186,7 +169,6 @@ export class Record {
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
                         for(let i = 0; i < field_element.options.length; i++) {
-                            // console.log(field_element.options[i].value);
                             if (field_element.options[i].value === field_element.value) {
                                 field_element.selectedIndex = i;
                                 break;
@@ -198,7 +180,6 @@ export class Record {
                 }
             }
             for(let shape_control_id in canvas_data['shape-controls']) {
-                // console.log(shape_control_id);
                 let data = canvas_data['shape-controls'][shape_control_id];
                 let shape_control = document.getElementById(shape_control_id);
                 let shape_id = data['shape_id'];
@@ -215,11 +196,12 @@ export class Record {
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
-                    
+        
                     if(!field['id']) {
                         continue;
                     }
-                    
+                    if(field['id'] === 'animated-shape-0-field-id-animation-speed') 
+                        console.log(field['value']);
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
                     
@@ -266,6 +248,9 @@ export class Record {
                     avtive_canvas.changeFormat(null, null, false);
                     continue;
                 }
+            }
+            if(field_element.classList.contains("field-id-animation-speed")) {
+                console.log('speed', field_element.value);
             }
             field_element.dispatchEvent(new Event('initImg'));
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
