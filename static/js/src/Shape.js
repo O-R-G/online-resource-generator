@@ -119,8 +119,6 @@ export class Shape {
 	
     updateWatermark(idx, values_obj = {}, silent=true){
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
-        console.log(idx);
-        console.log(this.watermarks);
         if(typeof this.watermarks[idx] == 'undefined')
     	{
             if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
@@ -140,7 +138,6 @@ export class Shape {
     	{
             if(!typography) typography = this.watermarks[idx]['typography'];
             let values = {...values_obj, typography:typography};
-            console.log(values);
             for(let name in values) {
                 if(!values[name] && values[name] !== 0) continue;
                 this.watermarks[idx][name] = values[name];

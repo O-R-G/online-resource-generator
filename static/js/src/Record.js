@@ -112,7 +112,9 @@ export class Record {
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
+                
                 this.record_body = JSON.parse(json['body']);
+                console.log(this.record_body);
                 if (typeof callback == 'function') {
                     callback();
                 }
@@ -126,7 +128,7 @@ export class Record {
         let params = new URL(document.location).searchParams;
         let format = params.get("format");
         let hasSecondShape = false;
-        let avtive_canvas = null;
+        let active_canvas = null;
         if(!this.record_body) return;
         for(let canvas_id in this.record_body) {
             if(canvas_id === 'images'){
@@ -136,8 +138,9 @@ export class Record {
             let canvas_data = this.record_body[canvas_id];
             let isThree = canvas_data['isThree'];
             let active = canvas_data['active'];
+
             if(isThree && active) document.body.classList.add('viewing-three');
-            if(active) avtive_canvas = this.canvasObjs[canvas_id];
+            if(active) active_canvas = this.canvasObjs[canvas_id];
             if(Object.keys(canvas_data['shape-controls']).length > 1 && !hasSecondShape) {
                 hasSecondShape = true;
             }
@@ -200,7 +203,8 @@ export class Record {
                     if(!field['id']) {
                         continue;
                     }
-                    if(field['id'] === 'animated-shape-0-field-id-animation-speed') 
+                    // console.log(field['id'])
+                    if(field['id'] === 'static-shape-0-field-id-animation') 
                         console.log(field['value']);
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
@@ -220,6 +224,8 @@ export class Record {
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
                         for(let i = 0; i < field_element.options.length; i++) {
+                            if(field['id'] === 'static-shape-0-field-id-animation') 
+                                console.log(field_element.options[i].value);
                             if (field_element.options[i].value === field_element.value) {
                                 field_element.selectedIndex = i;
                                 break;
@@ -245,18 +251,16 @@ export class Record {
             if(field_element.classList.contains('field-id-format')) {
                 if(format) continue;
                 else {
-                    avtive_canvas.changeFormat(null, null, false);
+                    active_canvas.changeFormat(null, null, false);
                     continue;
                 }
-            }
-            if(field_element.classList.contains("field-id-animation-speed")) {
-                console.log('speed', field_element.value);
             }
             field_element.dispatchEvent(new Event('initImg'));
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
             field_element.dispatchEvent(new CustomEvent('input', {'detail': {'isSilent': true}}));
         }
-        avtive_canvas.draw();
+       
+        active_canvas.draw();
     }
     applySavedFile(field, shapeObj){
         // console.log('applySavedFile', field.id);

@@ -1523,6 +1523,7 @@ export class ShapeAnimated extends Shape {
 		
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
+		console.log('updateAnimation', animationData);
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1678,6 +1679,7 @@ export class ShapeAnimated extends Shape {
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
+		console.log(this.animationName);
 		let fn = this[this.animationName].bind(this);
 		const progress = ((timestamp - this.startTime) / this.animationDuration );
 		fn( progress );
