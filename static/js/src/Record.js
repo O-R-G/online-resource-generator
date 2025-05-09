@@ -140,6 +140,7 @@ export class Record {
         let hasSecondShape = false;
         let avtive_canvas = null;
         // console.log(this.record_body)
+        if(!this.record_body) return;
         for(let canvas_id in this.record_body) {
             if(canvas_id === 'images'){
                 continue;
@@ -248,13 +249,16 @@ export class Record {
                 }
             }
         }
-        for(let field_id in this.record_body['images'] ){
-            let el = document.getElementById(field_id);
-            // console.log(el)
-            if(!el) continue;
-            this.applySavedFile(el);
-
-        }  
+        if(this.record_body['images']) {
+            for(let field_id in this.record_body['images'] ){
+                let el = document.getElementById(field_id);
+                // console.log(el)
+                if(!el) continue;
+                this.applySavedFile(el);
+    
+            } 
+        }
+         
         for(let field_element of active_canvas_fields) {
             if(field_element.classList.contains('field-id-format')) {
                 if(format) continue;

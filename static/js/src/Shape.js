@@ -119,6 +119,8 @@ export class Shape {
 	
     updateWatermark(idx, values_obj = {}, silent=true){
         let typography = typeof values_obj.typography === 'string' ? ( this.options.watermarkTypographyOptions[values_obj['typography']] ? this.options.watermarkTypographyOptions[values_obj['typography']] : false ) : values_obj.typography;
+        console.log(idx);
+        console.log(this.watermarks);
         if(typeof this.watermarks[idx] == 'undefined')
     	{
             if(!typography) typography = this.getDefaultOption(this.options.watermarkTypographyOptions);
@@ -138,9 +140,7 @@ export class Shape {
     	{
             if(!typography) typography = this.watermarks[idx]['typography'];
             let values = {...values_obj, typography:typography};
-            // if(this.isThree) {
-            //     console.log(values);
-            // }
+            console.log(values);
             for(let name in values) {
                 if(!values[name] && values[name] !== 0) continue;
                 this.watermarks[idx][name] = values[name];
@@ -687,8 +687,8 @@ export class Shape {
         this.addWatermarkButton.parentNode.insertBefore(newWatermark, this.addWatermarkButton);
         this.watermarks[this.watermarkidx] = {
             'str': str,
-            'position': Object.keys(this.options.watermarkPositionOptions)[0],
-            'color': Object.keys(this.options.watermarkColorOptions)[0],
+            'position': this.getDefaultOption(this.options.watermarkPositionOptions, true),
+            'color': this.getDefaultOption(this.options.watermarkColorOptions, true),
             'typography': this.getDefaultOption(this.options.watermarkTypographyOptions),
             'font': this.getDefaultOption(this.options.fontOptions),
         };

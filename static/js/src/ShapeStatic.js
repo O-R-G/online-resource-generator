@@ -40,6 +40,7 @@ export class ShapeStatic extends Shape {
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
+		console.log(this.watermarks);
 	}
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
@@ -863,12 +864,14 @@ export class ShapeStatic extends Shape {
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
+		console.log('updateWatermark', values_raw);
 		super.updateWatermark(idx, values_raw);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position)) {
+				console.log(el.color);
 				this.write(el.str, el.position, el.color, el.typography, el.font, el.shift, el.rotate);
 			}
 				
