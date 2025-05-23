@@ -203,9 +203,6 @@ export class Record {
                     if(!field['id']) {
                         continue;
                     }
-                    // console.log(field['id'])
-                    if(field['id'] === 'static-shape-0-field-id-animation') 
-                        console.log(field['value']);
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
                     
@@ -224,8 +221,6 @@ export class Record {
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
                         for(let i = 0; i < field_element.options.length; i++) {
-                            if(field['id'] === 'static-shape-0-field-id-animation') 
-                                console.log(field_element.options[i].value);
                             if (field_element.options[i].value === field_element.value) {
                                 field_element.selectedIndex = i;
                                 break;

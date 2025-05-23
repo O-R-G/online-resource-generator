@@ -20,15 +20,16 @@ export class ShapeAnimated extends Shape {
 		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);
 		// let speed_value = parseFloat( this.animationSpeed );
 		
-		this.flipAngleInterval_base = 0.01;     // aka, speed
-        this.spinAngleInterval_base = 0.01;
-		this.rotateAngleInterval_base = 0.01;
+		this.flipAngleInterval_base = 0.005;     // aka, speed
+        this.spinAngleInterval_base = 0.005;
+		this.rotateAngleInterval_base = 0.005;
 		// this.fadeInterval_base = 0.005;
 		this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;     // aka, speed
         this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
 		this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
 
-		this.animationDurationBase = 5000;
+		// suppose speed 3 / 5000ms be the default
+		this.animationDurationBase = 15000; 
 
 		/* 
 			durations of fade effects have nothing to do with animationDurationBase 
@@ -131,10 +132,8 @@ export class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-		// console.log('updateCanvasSize', this.canvas.width, this.canvas.height);
 		this.context = this.canvas.getContext("2d");
 		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
-		// console.log('scale', this.scale);
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
@@ -171,6 +170,7 @@ export class ShapeAnimated extends Shape {
 		this.fieldCounterparts['front-background-image-scale'] = 'background-image-scale';
 	}
 	updateShape(shape, silent = false){
+		
 		super.updateShape(shape);
 		this.padding = this.getValueByPixelRatio(this.padding);
 		for(const prop in this.innerPadding)
@@ -185,6 +185,7 @@ export class ShapeAnimated extends Shape {
 			this.checkWatermarkPosition(position, label);
 		}.bind(this));
 		if(!silent) this.canvasObj.draw();
+		
 	}
 	updateTextMeshByShape(shape){
 		if(this.mesh_frontText) {
@@ -1523,7 +1524,6 @@ export class ShapeAnimated extends Shape {
 		
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
-		console.log('updateAnimation', animationData);
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
@@ -1549,9 +1549,9 @@ export class ShapeAnimated extends Shape {
 	}
 	updateAnimationSpeed(speed, silent = false){
 		this.animationSpeed = parseFloat(this.options.animationSpeedOptions[speed].value);
-		this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;
-        this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
-		this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
+		// this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;
+        // this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
+		// this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
 		if(!silent) this.canvasObj.draw();
 	}
 	
@@ -1560,7 +1560,6 @@ export class ShapeAnimated extends Shape {
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
-		
 		if(animationName == 'spin'){
 			this.mesh_front.rotation.y = 0;
 			this.mesh_back.rotation.y  = Math.PI;
@@ -1679,7 +1678,6 @@ export class ShapeAnimated extends Shape {
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
-		console.log(this.animationName);
 		let fn = this[this.animationName].bind(this);
 		const progress = ((timestamp - this.startTime) / this.animationDuration );
 		fn( progress );
@@ -1870,7 +1868,8 @@ export class ShapeAnimated extends Shape {
     }
     renderControl(){
 		super.renderControl();
-		this.control.appendChild(this.renderSelectField('animation-speed', 'Speed', this.options.animationSpeedOptions));
+		const speed = this.renderSelectField('animation-speed', 'Speed', this.options.animationSpeedOptions);
+		this.control.appendChild(speed);
 		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'front';

@@ -175,6 +175,8 @@ export class Shape {
         output.className = 'field-id-' + id + ' ' + extraClass;
         output.id = this.id + '-field-id-' + id;
         const default_key = this.getDefaultOption(options, true);
+
+        
         let default_idx = 0;
         if(typeof options === 'object' && options !== null)
         {
@@ -184,10 +186,13 @@ export class Shape {
                 opt.value = key;
                 opt.innerText = value['name'];
                 if(key === selected_value || (value['default'] && selected_value !== null))  {
+                    console.log('not gonna be here');
                     opt.selected=true;
                     output.selectedIndex = idx; 
                 }
                 if(key === default_key) {
+                    
+                                
                     default_idx = idx;
                 }
                 output.appendChild(opt);
