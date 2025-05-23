@@ -105,7 +105,13 @@ export class ShapeStatic extends Shape {
 				var output = this.context.createLinearGradient(this.canvasW/2, 0, this.canvasW/2, this.canvasH);
 			}
 			else if(colorData.angle == 45){
-				var output = this.context.createLinearGradient(0, this.canvasH, this.canvasW, 0);
+				if(this.shape.base === 'diamond') {
+					console.log(this.shapeCenter.x, this.frame.w / 4);
+					var output = this.context.createLinearGradient(this.shapeCenter.x - this.frame.w / 3, this.shapeCenter.y + this.frame.w / 3, this.shapeCenter.x + this.frame.w / 3, this.shapeCenter.y - this.frame.w / 3);
+				}else {
+					var output = this.context.createLinearGradient(0, this.canvasH, this.canvasW, 0);
+				}
+				
 			}
 			
 			for(var i = 0; i < colorData.code.length; i++)
