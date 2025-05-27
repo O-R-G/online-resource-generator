@@ -503,7 +503,7 @@ export class ShapeAnimated extends Shape {
 	getValueByPixelRatio(input){
 		return input * window.devicePixelRatio;
 	}
-	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false){
+	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false, renderOrder=0){
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
@@ -526,6 +526,7 @@ export class ShapeAnimated extends Shape {
 		output.text = str.replaceAll(' ', '\u00A0');
 		output.material = material;
 		output.material.depthTest = false;
+		if(renderOrder) output.renderOrder = renderOrder;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
@@ -1287,9 +1288,10 @@ export class ShapeAnimated extends Shape {
 					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
-					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync);
+					let renderOrder = i;
+					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
-					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync);
+					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_back) this.backWatermarkGroup.add(el.mesh_back);
 				}
 			}.bind(this));
