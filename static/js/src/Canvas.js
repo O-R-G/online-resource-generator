@@ -763,14 +763,20 @@ export class Canvas {
     changeFormat(event, currentFormat, toConfirm=true){
         let el = event ? event.target : this.control_wrapper.querySelector('.field-id-format');
         currentFormat = currentFormat ? currentFormat : el.value;
+        let redirect = new URL(window.location.href);
+        // Set or update the 'format' parameter
+        redirect.searchParams.set('format', el.value);
+        redirect = redirect.toString();
+        
         if(toConfirm) {
             const confirmChangeFormat = confirm('You are about to change the format. The current content will not be saved. Continue?');
             if(confirmChangeFormat)
             {
-                window.location.href = '?format=' + el.value;
+                
+                window.location.href = redirect;
                 return;
             }
-        } else window.location.href = '?format=' + el.value;
+        } else window.location.href = redirect;
         el.value = currentFormat;
         return false;
     }

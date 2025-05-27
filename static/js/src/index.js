@@ -4,7 +4,6 @@ import { Record } from "./Record.js";
 import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
-import ORGFontLoader from "./ORGFontLoader.js";
 
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
@@ -135,5 +134,16 @@ if(customScriptsByHook['beforeMainInit']) {
     init(resources_data, ()=>{
         loadCustomScripts(customScriptsByHook, 'afterMainInit');
     });
+    
+        
 }
 
+console.log(action);
+if(action === 'download-mp4') {
+    setTimeout(()=>{ 
+        if(document.querySelector('button.download-video-button'))
+            document.querySelector('button.download-video-button').click();
+        else alert('download button not found');
+        window.downloadFinished = true;
+    }, 1000);
+}

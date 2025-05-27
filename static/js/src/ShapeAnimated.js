@@ -525,6 +525,7 @@ export class ShapeAnimated extends Shape {
 		this.applyTypographyAndFontToTextMesh(output, typography, font, isBack);
 		output.text = str.replaceAll(' ', '\u00A0');
 		output.material = material;
+		output.material.depthTest = false;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
@@ -697,6 +698,7 @@ export class ShapeAnimated extends Shape {
 						const charWidth = text.textRenderInfo.blockBounds[2] - text.textRenderInfo.blockBounds[0];
 						charWidths[i] = charWidth;
 						synced++;
+						text.material.depthTest = false;
 						if(synced == str.length) {
 							for (let j = 0; j < str.length; j++) {
 								const char = str[j];
