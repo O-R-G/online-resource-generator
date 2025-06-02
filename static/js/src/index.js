@@ -146,4 +146,11 @@ if(action === 'download-mp4') {
         else alert('download button not found');
         window.downloadFinished = true;
     }, 1000);
+} else if(action === 'download-png'){
+    setTimeout(()=>{ 
+        if(document.querySelector('.animated-common-control button.download-image-button'))
+            document.querySelector('.animated-common-control button.download-image-button').click();
+        else alert('download button not found');
+        window.downloadFinished = true;
+    }, 1000);
 }
