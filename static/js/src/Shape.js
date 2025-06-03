@@ -143,8 +143,6 @@ export class Shape {
                 this.watermarks[idx][name] = values[name];
             }
     	} 		
-        
-        
         if(!silent)
             this.canvasObj.draw();
 	}
@@ -185,14 +183,11 @@ export class Shape {
                 let opt = document.createElement('option');
                 opt.value = key;
                 opt.innerText = value['name'];
-                if(key === selected_value || (value['default'] && selected_value !== null))  {
-                    console.log('not gonna be here');
+                if(key === selected_value)  {
                     opt.selected=true;
                     output.selectedIndex = idx; 
                 }
                 if(key === default_key) {
-                    
-                                
                     default_idx = idx;
                 }
                 output.appendChild(opt);
@@ -803,7 +798,6 @@ export class Shape {
         if(type === 'watermark') {
             if(this.watermarks[idx]) {
                 this.watermarks.splice(idx, 1);
-                
                 this.resetWatermarks(true);
                 for(let i = 0 ; i < this.watermarks.length; i++) {
                     this.addWatermarkButton.parentNode.insertBefore(this.renderWatermark(i), this.addWatermarkButton);

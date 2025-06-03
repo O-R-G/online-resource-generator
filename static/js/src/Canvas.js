@@ -652,25 +652,25 @@ export class Canvas {
         this.control_bottom.appendChild(this.renderAddShape('second-shape-button'));
         let buttons_container = document.createElement('div');
         buttons_container.className = 'buttons-container';
-        this.downloadImageButton = this.renderDownloadButton('png', ['download-image-button', 'download-button']);
-        buttons_container.appendChild(this.downloadImageButton);
-        if(!this.isThree) {
+        const button_list = Object.keys(this.downloadOptions);
+        if(button_list.includes('png')) {
+            this.downloadImageButton = this.renderDownloadButton('png', ['download-image-button', 'download-button']);
+            buttons_container.appendChild(this.downloadImageButton);
+        }
+        if(button_list.includes('pdf') && !this.isThree) {
             this.downloadPdfButton = this.renderDownloadButton('pdf', ['download-pdf-button', 'download-button']);
             buttons_container.appendChild(this.downloadPdfButton);
-        } else {
+        }
+        if(button_list.includes('mp4') && this.isThree) {
             this.downloadVideoButton = this.renderDownloadButton('mp4', ['download-video-button', 'download-button']);
             buttons_container.appendChild(this.downloadVideoButton);
+        }
+        if(button_list.includes('gif') && this.isThree) {
             this.downloadGifButton = this.renderDownloadButton('gif', ['download-gif-button', 'download-button']);
             buttons_container.appendChild(this.downloadGifButton);
         }
-        this.control_bottom.appendChild(buttons_container);
-        // if(!this.isThree) {
-        //     this.downloadVideoButton.style.display = 'none';
-        //     this.downloadGifButton.style.display = 'none';
-        // } else {
-        //     this.downloadPdfButton.style.display = 'none';
-        // }
         
+        this.control_bottom.appendChild(buttons_container);
         this.addListenersBottom();
     }
     addListenersTop(){

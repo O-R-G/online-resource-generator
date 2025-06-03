@@ -33,7 +33,8 @@ async function init(data, cb){
         main.appendChild( container );
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
-        let cvs = new Canvas(wrapper, format, id, {'formatOptions': formatOptions,'baseOptions': baseOptions, 'formatUnitOptions': formatUnitOptions}, data[id]['isThree']);
+        const canvas_options = {'formatOptions': formatOptions,'baseOptions': baseOptions, 'formatUnitOptions': formatUnitOptions, 'downloadOptions': data[id]['options']['downloadOptions']};
+        let cvs = new Canvas(wrapper, format, id, canvas_options, data[id]['isThree']);
         let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
         if (isThree) shapes['animated'].push(shape);
         else shapes['static'].push(shape);
@@ -138,19 +139,19 @@ if(customScriptsByHook['beforeMainInit']) {
         
 }
 
-console.log(action);
+// console.log(action);
 if(action === 'download-mp4') {
     setTimeout(()=>{ 
         if(document.querySelector('button.download-video-button'))
             document.querySelector('button.download-video-button').click();
-        else alert('download button not found');
+        else console.log('download button not found');
         window.downloadFinished = true;
     }, 1000);
 } else if(action === 'download-png'){
     setTimeout(()=>{ 
         if(document.querySelector('.animated-common-control button.download-image-button'))
             document.querySelector('.animated-common-control button.download-image-button').click();
-        else alert('download button not found');
+        else console.log('download button not found');
         window.downloadFinished = true;
     }, 1000);
 }

@@ -507,8 +507,7 @@ export class ShapeAnimated extends Shape {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		if(isBack)
-			console.log('align', align);
+
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
@@ -1267,21 +1266,25 @@ export class ShapeAnimated extends Shape {
 		}
 		if( this.shape.watermarkPositions !== undefined)
 		{
+			this.frontWatermarkGroup.clear();
+			this.backWatermarkGroup.clear();
 			this.watermarks.forEach(function(el, i){
-				if(el.mesh_front) {
-					this.frontWatermarkGroup.remove(el.mesh_front);
-					if(el.mesh_front instanceof Text)
-						el.mesh_front.dispose();
-					else if(el.mesh_front instanceof THREE.Group)
-						this.disposeGroup(el.mesh_front);
-				}
-				if(el.mesh_back) {
-					this.backWatermarkGroup.remove(el.mesh_back);
-					if(el.mesh_back instanceof Text)
-						el.mesh_back.dispose();
-					else if(el.mesh_back instanceof THREE.Group)
-						this.disposeGroup(el.mesh_back);
-				}
+				// if(el.mesh_front) {
+					
+				// 	this.frontWatermarkGroup.remove(el.mesh_front);
+				// 	if(el.mesh_front instanceof Text) {
+				// 		el.mesh_front.dispose();
+				// 	}
+				// 	else if(el.mesh_front instanceof THREE.Group)
+				// 		this.disposeGroup(el.mesh_front);
+				// }
+				// if(el.mesh_back) {
+				// 	this.backWatermarkGroup.remove(el.mesh_back);
+				// 	if(el.mesh_back instanceof Text)
+				// 		el.mesh_back.dispose();
+				// 	else if(el.mesh_back instanceof THREE.Group)
+				// 		this.disposeGroup(el.mesh_back);
+				// }
 
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
@@ -1289,6 +1292,7 @@ export class ShapeAnimated extends Shape {
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
 					let renderOrder = i;
+					// console.log('animated watermark:', el.str);
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
 					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync, renderOrder);

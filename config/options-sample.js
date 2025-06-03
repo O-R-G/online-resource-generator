@@ -785,7 +785,25 @@ let watermarkPositionOptions = {
 		name: 'surrounding'
 	}
 };
-
+const staticDownloadOptions = {
+	'png': {
+		name: 'png'
+	},
+	'pdf': {
+		name: 'pdf'
+	}
+}
+const threeDownloadOptions = {
+	'png': {
+		name: 'png'
+	},
+	'mp4': {
+		name: 'mp4'
+	},
+	'git': {
+		name: 'git'
+	}
+}
 const resources_data = {
 	'static': {
 		options: {
@@ -800,6 +818,7 @@ const resources_data = {
 			'watermarkColorOptions': textColorOptions,
 			'watermarkPositionOptions': watermarkPositionOptions,
 			'animationOptions': animationOptions,
+			'downloadOptions': staticDownloadOptions
 		},
 		isThree: false,
 		counterpart: 'animated'
@@ -817,7 +836,8 @@ const resources_data = {
 			'watermarkColorOptions': textColorOptions,
 			'watermarkPositionOptions': watermarkPositionOptions,
 			'animationOptions': animationOptions,
-			'animationSpeedOptions': animationSpeedOptions
+			'animationSpeedOptions': animationSpeedOptions,
+			'downloadOptions': threeDownloadOptions
 		},
 		isThree: true,
 		counterpart: 'static'
