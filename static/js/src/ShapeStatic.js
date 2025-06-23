@@ -408,7 +408,6 @@ export class ShapeStatic extends Shape {
 	updateText(str, silent = false){
 		this.str = str;
 		if(str) this.fields.text.value = this.str;
-        // this.canvas.style.letterSpacing = this.typography['letterSpacing'] + 'px';
         if(!silent) this.canvasObj.draw();
     }
     updateTextColor(colorData, silent = false){
@@ -457,6 +456,7 @@ export class ShapeStatic extends Shape {
 				]
 			}
 		*/
+		
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
 			/*
 				write main text
@@ -479,6 +479,7 @@ export class ShapeStatic extends Shape {
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
+			console.log(lines);
 			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, addStroke);
 			
 			return;
@@ -769,13 +770,13 @@ export class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		let temp = str.split('\n');
-		// console.log(str);
+		
 		for(let i = 0; i < temp.length; i++) {
 			const segments = this.getSegments(temp[i], color);
 			// console.log(segments);
-			// console.log('segments', segments);
+			console.log('segments', segments);
 			let lns = this.breakSegmentsIntoLinesByWidth(segments, this.textBoxWidth);
-			// console.log(lns);
+			console.log(lns);
 			for(let l of lns) output.push(l);
 		}
 		return output;
@@ -810,7 +811,7 @@ export class ShapeStatic extends Shape {
 			'style': words[0]['style'],
 			'color': words[0]['color']
 		}
-
+console.log('words', words);
 		for(let i = 0; i < words.length; i++ ) {
 			const word = words[i];
 			temp = line ? line + ' ' + word['content'] : word['content'];
@@ -819,6 +820,7 @@ export class ShapeStatic extends Shape {
 			let m = this.context.measureText(temp);
 			// if(word['content'] === '') console.log(line);
 			if( m.width <= width ) { 
+				console.log('<=');
 				line = line ? line + ' ' + word['content'] : word['content'];
 				
 				seg_unit.content += word['content'] === '' ? ' ' : (seg_unit.content ? ' ' + word['content'] : word['content']);
@@ -836,11 +838,12 @@ export class ShapeStatic extends Shape {
 				}
 				continue;
 			}
-			
-			line_unit['segs'].push(seg_unit);
-			output.push(line_unit);
+			if(seg_unit['content'] !== '') {
+				line_unit['segs'].push(seg_unit);
+				output.push(line_unit);
+			}
 			seg_unit = word;
-			
+			console.log(seg_unit);
 			line = word['content'];
 			temp = line;
 			m = this.context.measureText(temp);
