@@ -4,18 +4,13 @@ import { Record } from "./Record.js";
 import { Canvas } from "./Canvas.js";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
+import ORGFontLoader from "./ORGFontLoader.js";
 
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
-
-/* fotmat font */
-
-
-
 async function init(data, cb){
-    // console.log('main init()');
-    // console.log(record_id);
+    
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = {};
@@ -23,7 +18,6 @@ async function init(data, cb){
         'animated': [],
         'static': []
     };
-    // fontLoader.init();
 
     for(let id in data) {
         /* render canvas / shapes */

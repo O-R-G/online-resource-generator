@@ -2,6 +2,7 @@
 
 export class ORGFontLoader {
 	constructor(fonts_data){
+        console.log('ORGFontLoader', fonts_data);
         this.fonts_data = fonts_data;
         this.loaded_css = [];
         

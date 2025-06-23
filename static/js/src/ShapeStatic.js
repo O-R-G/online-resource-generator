@@ -427,6 +427,7 @@ export class ShapeStatic extends Shape {
     	if(typography === false)
     		typography = this.typography;
 		font = font ? font['static'] : typography['font']['static'];
+		console.log('write', font);
 		this.fontStyle = typography.size + 'px ' + font['family'];
 		if(font['weight']) this.fontStyle = font['weight'] + ' ' + this.fontStyle;
 
