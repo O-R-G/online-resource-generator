@@ -388,7 +388,6 @@ export class ShapeStatic extends Shape {
             	if(this.canvasObj.isRecording && !this.colorData['animation-type']) this.canvasObj.saveCanvasAsVideo();
             }
         }
-        // this.cornerRadius = this.animation_shape_data.current.r;
         this.cornerRadius = this.animation_shape_data.current.r;
         this.canvasObj.draw();
     }
@@ -426,7 +425,6 @@ export class ShapeStatic extends Shape {
     	if(typography === false)
     		typography = this.typography;
 		font = font ? font['static'] : typography['font']['static'];
-		console.log('write', font);
 		this.fontStyle = typography.size + 'px ' + font['family'];
 		if(font['weight']) this.fontStyle = font['weight'] + ' ' + this.fontStyle;
 
@@ -479,7 +477,6 @@ export class ShapeStatic extends Shape {
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
-			console.log(lines);
 			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, addStroke);
 			
 			return;
@@ -496,7 +493,6 @@ export class ShapeStatic extends Shape {
     	if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
     		let side_x = this.size.width;
 			let side_y = this.size.height;
-			// console.log(this.size);
     		let inner_p_x = this.innerPadding.x;
     		let inner_p_y = this.innerPadding.y;
     		if(align.indexOf('left') !== -1){
@@ -773,10 +769,7 @@ export class ShapeStatic extends Shape {
 		
 		for(let i = 0; i < temp.length; i++) {
 			const segments = this.getSegments(temp[i], color);
-			// console.log(segments);
-			console.log('segments', segments);
 			let lns = this.breakSegmentsIntoLinesByWidth(segments, this.textBoxWidth);
-			console.log(lns);
 			for(let l of lns) output.push(l);
 		}
 		return output;
@@ -789,11 +782,8 @@ export class ShapeStatic extends Shape {
 		let temp, seg_color, seg_style;
 		let isSorting = true;
 		const words = [];
-		// console.log(segments);
 		for(let i = 0; i < segments.length; i++) {
 			let seg = segments[i];
-			// let words_temp = seg['content'].split(' ').filter((word)=>{ return word !== ''; });
-			// console.log(seg, words_temp);
 			let words_temp = seg['content'].split(' ');
 			for(let j = 0; j < words_temp.length; j++) {
 				const word_temp = words_temp[j];
@@ -811,21 +801,16 @@ export class ShapeStatic extends Shape {
 			'style': words[0]['style'],
 			'color': words[0]['color']
 		}
-console.log('words', words);
+
 		for(let i = 0; i < words.length; i++ ) {
 			const word = words[i];
 			temp = line ? line + ' ' + word['content'] : word['content'];
-			// if(word['content'] === 'qweee') console.log(temp);
 			this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
 			let m = this.context.measureText(temp);
-			// if(word['content'] === '') console.log(line);
 			if( m.width <= width ) { 
-				console.log('<=');
 				line = line ? line + ' ' + word['content'] : word['content'];
 				
 				seg_unit.content += word['content'] === '' ? ' ' : (seg_unit.content ? ' ' + word['content'] : word['content']);
-				// if(word === '') console.log(seg_unit.content)
-				// if(word['content'] === 'qweee') console.log('qweee', seg_unit);
 				line_unit.width = m.width;
 				if((  i !== words.length - 1 && (seg_unit['color'] != words[i+1]['color'] || seg_unit['style'] != words[i+1]['style'])  )) {
 					line_unit['segs'].push(seg_unit);
@@ -843,7 +828,6 @@ console.log('words', words);
 				output.push(line_unit);
 			}
 			seg_unit = word;
-			console.log(seg_unit);
 			line = word['content'];
 			temp = line;
 			m = this.context.measureText(temp);
@@ -872,14 +856,12 @@ console.log('words', words);
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
-		console.log('updateWatermark', values_raw);
 		super.updateWatermark(idx, values_raw);
 		if(!silent) this.canvasObj.draw();
 	}
 	drawWatermarks(){
 		this.watermarks.forEach(function(el, i){
 			if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position)) {
-				console.log(el.color);
 				this.write(el.str, el.position, el.color, el.typography, el.font, el.shift, el.rotate);
 			}
 				
@@ -905,7 +887,6 @@ console.log('words', words);
         ctx.clip();
 	}
 	drawRectanglePath(ctx = null){
-		// console.log(this.size);
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
         let paddingX = this.padding;
@@ -1010,7 +991,6 @@ console.log('words', words);
 		];
 		let dev_y = 412;
 		let m = side / ((Math.abs(arcs[0]['x']) + arcs[0]['r']) * 2);
-		// console.log(side, (Math.abs(arcs[0]['x']) + arcs[0]['r']));
 		this.context.beginPath();
 		this.context.arc(this.shapeCenter.x + arcs[0].x * m, this.shapeCenter.y + arcs[0].y * m, arcs[0].r * m, arcs[0].from,arcs[0].to);
 		this.context.arc(this.shapeCenter.x + arcs[1].x * m, this.shapeCenter.y + arcs[1].y * m, arcs[1].r * m, arcs[1].from,arcs[1].to);
@@ -1177,7 +1157,6 @@ console.log('words', words);
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
 		this.drawCustomGraphic();
-		// console.log('?');
 	}
 	
 	renderControl(){
@@ -1327,7 +1306,6 @@ console.log('words', words);
 					if(this.options.colorOptions[e.target.value].color.type === 'animation') isSilent = false;
 					this.updateColor(this.options.colorOptions[e.target.value].color, isSilent);
 				}
-				// console.log(this.options.colorOptions[e.target.value].color);
 			}.bind(this);
 		}
 		
@@ -1432,7 +1410,6 @@ console.log('words', words);
 			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
 			
 			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[idx].shiftY + this.frame.y;
-			// console.log(this.frame.h / 2, temp_scaledH / 2, this.media[idx].shiftY);
 			if(this.timer_color != null)
 			{
 				clearInterval(this.timer_color);
@@ -1489,7 +1466,6 @@ console.log('words', words);
         if(!silent) this.canvasObj.draw();
     }
 	updateTextShiftX(x, silent = false){
-		// console.log('updateTextShiftX', x);
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
 
@@ -1556,19 +1532,12 @@ console.log('words', words);
 		this.context.globalCompositeOperation = 'normal';
 	}
 	syncMedia(){
-		// console.log('syncMedia')
 		super.syncMedia();
 		let idx = 'background-image';
 		if(this.color instanceof CanvasPattern && this.media[idx]) {
-			// console.log('syncMedia?')
 			let c_idx = this.fieldCounterparts[idx];
 			this.counterpart.updateMedia(c_idx, this.media[idx].img);
-			// console.log(c_idx);
-			// console.log(this.counterpart.fields)
-			// console.log(this.fields.media)
-			// console.log(this.counterpart.fields.media)
 			if(this.counterpart.fields.media[c_idx]) {
-				
 				if(this.fields.media[idx].getAttribute('data-file-src')) {
 					this.counterpart.fields.media[c_idx].setAttribute('data-file-src', this.fields.media[idx].getAttribute('data-file-src'));
 				}

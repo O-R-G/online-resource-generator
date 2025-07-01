@@ -1,14 +1,10 @@
 // import { FontLoader as threeFontLoader } from 'three/addons/loaders/FontLoader.js';
 
-export class ORGFontLoader {
+export default class ORGFontLoader {
 	constructor(fonts_data){
         console.log('ORGFontLoader', fonts_data);
         this.fonts_data = fonts_data;
         this.loaded_css = [];
-        
-        // this.styles = fonts_data['styles-to-preload'];
-        // this.stylesheets = fonts_data['stylesheets'];
-        // this.files = fonts_data['files'];
         this.init();
 	}
     init(cb){
@@ -19,7 +15,6 @@ export class ORGFontLoader {
         if (typeof cb === 'function') cb();
     }
     addStylesheet(path){
-        // console.log('eee');
         if(this.loaded_css.includes(path)) return;
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -39,5 +34,3 @@ export class ORGFontLoader {
         document.body.appendChild(temp);
     }
 }
-const fontLoaderInstance = new ORGFontLoader(fonts, '');
-export default fontLoaderInstance;

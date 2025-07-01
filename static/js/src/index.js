@@ -10,7 +10,7 @@ const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
 async function init(data, cb){
-    
+    const fontLoader = new ORGFontLoader(fonts, '');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
     let canvases = {};
@@ -96,56 +96,55 @@ function loadCustomScripts(scriptsObj, hook, cb){
         firstScript.parentNode.insertBefore(s, firstScript);
     }
 }
-// console.log(customScriptsByHook);
-if(customScriptsByHook['beforeMainInit']) {
-    let count = 0;
-    let firstScript = document.querySelector('script');
-    loadCustomScripts(customScriptsByHook, 'beforeMainInit', function(){
+
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOMContentLoaded");
+    if(customScriptsByHook['beforeMainInit']) {
+        let count = 0;
+        let firstScript = document.querySelector('script');
+        loadCustomScripts(customScriptsByHook, 'beforeMainInit', function(){
+            init(resources_data, ()=>{
+                loadCustomScripts(customScriptsByHook, 'afterMainInit');
+            });
+        });
+        for(let item of customScriptsByHook['beforeMainInit']) {
+            let src = location.pathname + '/static/js/custom/' + item['name'] + '.js';
+            let s = document.createElement('script');
+            s.onload = ()=>{
+                count++;
+                if(count >= customScriptsByHook.length) init(resources_data, ()=>{
+                    if(customScriptsByHook['afterMainInit']) {
+                        let firstScript = document.querySelector('script');
+                        for(let item of customScriptsByHook['afterMainInit']) {
+                            let src = location.pathname + 'static/js/custom/' + item['name'] + '.js';
+                            let s = document.createElement('script');
+                            s.src = src;
+                            firstScript.parentNode.insertBefore(s, firstScript);
+                        }
+                    }
+                });
+            }
+            s.src = src;
+            firstScript.parentNode.insertBefore(s, firstScript);
+        }
+    } else {
         init(resources_data, ()=>{
             loadCustomScripts(customScriptsByHook, 'afterMainInit');
-        });
-    });
-    for(let item of customScriptsByHook['beforeMainInit']) {
-        let src = location.pathname + '/static/js/custom/' + item['name'] + '.js';
-        let s = document.createElement('script');
-        s.onload = ()=>{
-            count++;
-            if(count >= customScriptsByHook.length) init(resources_data, ()=>{
-                if(customScriptsByHook['afterMainInit']) {
-                    let firstScript = document.querySelector('script');
-                    for(let item of customScriptsByHook['afterMainInit']) {
-                        let src = location.pathname + 'static/js/custom/' + item['name'] + '.js';
-                        let s = document.createElement('script');
-                        s.src = src;
-                        firstScript.parentNode.insertBefore(s, firstScript);
-                    }
-                }
-            });
-        }
-        s.src = src;
-        firstScript.parentNode.insertBefore(s, firstScript);
+        }); 
     }
-} else {
-    init(resources_data, ()=>{
-        loadCustomScripts(customScriptsByHook, 'afterMainInit');
-    });
-    
-        
-}
-
-// console.log(action);
-if(action === 'download-mp4') {
-    setTimeout(()=>{ 
-        if(document.querySelector('button.download-video-button'))
-            document.querySelector('button.download-video-button').click();
-        else console.log('download button not found');
-        window.downloadFinished = true;
-    }, 1000);
-} else if(action === 'download-png'){
-    setTimeout(()=>{ 
-        if(document.querySelector('.animated-common-control button.download-image-button'))
-            document.querySelector('.animated-common-control button.download-image-button').click();
-        else console.log('download button not found');
-        window.downloadFinished = true;
-    }, 1000);
-}
+    if(action === 'download-mp4') {
+        setTimeout(()=>{ 
+            if(document.querySelector('button.download-video-button'))
+                document.querySelector('button.download-video-button').click();
+            else console.log('download button not found');
+            window.downloadFinished = true;
+        }, 1000);
+    } else if(action === 'download-png'){
+        setTimeout(()=>{ 
+            if(document.querySelector('.animated-common-control button.download-image-button'))
+                document.querySelector('.animated-common-control button.download-image-button').click();
+            else console.log('download button not found');
+            window.downloadFinished = true;
+        }, 1000);
+    }
+});

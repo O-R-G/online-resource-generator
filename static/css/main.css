@@ -238,8 +238,6 @@ textarea + select
 #main{
     padding: 20px;
     padding-bottom: 80px;
-    /* display: flex; */
-    /* justify-content: center; */
 }
 .background-image-section {
     display: none;
