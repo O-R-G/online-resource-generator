@@ -1,4 +1,5 @@
-import { getDefaultOption } from './lib.js'
+import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
+import { renderCustomControls, renderSelect, renderNumeralField, renderSection, renderImageControls } from './utils/render.js';
 
 export class Shape {
 	constructor(prefix, canvasObj, options, format, shape_index = 0){
@@ -147,61 +148,13 @@ export class Shape {
             this.canvasObj.draw();
 	}
     renderSection(id='', displayName, children=[], extraClass=''){
-        let output = document.createElement('div');
-        output.className = 'panel-section float-container ' + extraClass;
-        if(id) output.id = id;
-        let label = document.createElement('label');
-        label.innerText = displayName;
-        let right = document.createElement('div');
-        right.className = 'half-right flex-container';
-        if(typeof children === 'object') {
-            if(Array.isArray(children)) {
-                for(let i = 0; i < children.length; i++) 
-                    right.appendChild(children[i]);
-                    
-            }else {
-                right.appendChild(children);
-            }
-        }
-        output.appendChild(label);
-        output.appendChild(right);
-        return output;
+        return renderSection(id, displayName, children, extraClass);
     }
     renderSelect(id, options, extraClass='', attrs=null, selected_value=null){
         if(!options) return null;
-        let output = document.createElement('select');
-        output.className = 'field-id-' + id + ' ' + extraClass;
-        output.id = this.id + '-field-id-' + id;
-        const default_key = this.getDefaultOption(options, true);
-
-        
-        let default_idx = 0;
-        if(typeof options === 'object' && options !== null)
-        {
-            let idx = 0;
-            for (const [key, value] of Object.entries(options)) {
-                let opt = document.createElement('option');
-                opt.value = key;
-                opt.innerText = value['name'];
-                if(key === selected_value)  {
-                    opt.selected=true;
-                    output.selectedIndex = idx; 
-                }
-                if(key === default_key) {
-                    default_idx = idx;
-                }
-                output.appendChild(opt);
-                idx++;
-            }
-            if(!output.selectedIndex) output.selectedIndex = default_idx;
-        }
-        if(attrs) {
-            for(let attr in attrs) {
-                output.setAttribute(attr, attrs[attr]);
-            }
-        }
-
-        return output;
+        const ex_cls = 'field-id-' + id + ' ' + extraClass;
+        const final_id = this.id + '-field-id-' + id;
+        return renderSelect(final_id, options, ex_cls, attrs, selected_value)
     }
     renderSelectField(id, displayName, options, extraClass='')
     {
@@ -244,7 +197,7 @@ export class Shape {
     }
     renderTextField(id, displayName, extraClass='')
     {
-
+        console.log('renderTextField');
         let panel_section = document.createElement('div');
         panel_section.className  = "panel-section float-container " + extraClass;
         let label = document.createElement('LABEL');
@@ -314,25 +267,14 @@ export class Shape {
         return panel_section;
     }
     renderCustomControls(id, container, items=[], cb){
-        for (let item of items) {
-            if(item['input-type'] === 'select') {
-                let cls = item['class'] ? 'flex-item typography-flex-item ' + item['class'] :  'flex-item typography-flex-item';
-                /* the formats of font and typography are saved differently so add exceptions here */
-                const value = (item.name === 'font' || item.name === 'typography') ? Object.keys(item['options']).find((itm)=>{ return item['options'][itm] === item['value']; }) : item['value'];
-                item['el'] = this.renderSelect(item['id'], item['options'], cls, item['attr'], value);
-            } else if(item['input-type'] === 'text') {
-                let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
-                item['el'] = this.renderInput(item['id'], item['value'], item['attr'], cls);
-            } else if(item['input-type'] === 'number') {
-                let cls = item['class'] ? 'flex-item ' + item['class'] :  'flex-item';
-                item['el'] = this.renderNumeralInput(item['id'], 1.0, 0.1, false, cls, item['attr']);
-            }
+        const rendered_items = renderCustomControls(items);
+        for(const item of rendered_items) {
             if(!item['el']) continue;
             container.appendChild(item['el']);
             this.fields[item['id']] = item['el'];
         }
         if(typeof cb === 'function') {
-            cb(items);
+            cb(rendered_items);
         }
     }
     renderAddMedia(){
@@ -740,34 +682,15 @@ export class Shape {
     }
     
     renderImageControls(id=''){
-		let container = document.createElement('div');
-		container.className = 'field-id-image-controls float-container flex-item';
-		container.id = id ? id + '-field-id-image-controls' : '';
-		container.setAttribute('flex', 'full');
-
-		let scale = this.renderNumeralField(id + '-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
-		let x = this.renderNumeralField(id + '-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
-		let y = this.renderNumeralField(id + '-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
-		container.append(scale);
-		container.append(x);
-		container.append(y);
-		return container;
+        return renderImageControls(id);
 	}
     renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
-        let panel_section = document.createElement('div');
-        panel_section.className  = "float-container " + extraWrapperClass;
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', id);
-        label.innerText = displayName;
-        let temp_input = this.renderNumeralInput(id, begin, step, min, extraClass);
-		let temp_right = document.createElement('div');
-		temp_right.className = 'half-right flex-container';
-		temp_right.appendChild(temp_input);
-        panel_section.appendChild(label);
-        panel_section.appendChild(temp_right);
-        this.fields[id] = temp_input;
-        return panel_section;
+        const ex_cls = 'field-id-' + id + ' ' + extraClass;
+        const final_id = this.id + '-field-id-' + id;
+        const [section, input] = renderNumeralField(final_id, displayName, begin, step, min, ex_cls, extraWrapperClass);
+        this.fields[id] = input;
+        return section;
     }
     renderNumeralInput(id, begin, step, min=false, extraClass='', attrs=null){
         let output = document.createElement('INPUT');
@@ -1028,16 +951,10 @@ export class Shape {
         return getDefaultOption(options, returnKey);
     }
     getClassString(arr){
-        return arr.join(' ');
+        return getClassString(arr);
     };
     addExtraAttr(el, attrs){
-        for(let prop in attrs) {
-            if(attrs[prop] === '' || attrs[prop] == true) {
-                el.setAttribute(prop, true);
-            } else {
-                el.setAttribute(prop, attrs[prop]);
-            }
-        }
+        addExtraAttr(el, attrs);
         return el;
     };
     syncMedia(){

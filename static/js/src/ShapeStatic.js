@@ -1083,6 +1083,54 @@ export class ShapeStatic extends Shape {
         
 		ctx.closePath();
 	}
+	drawAngoli(){
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+		
+		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
+        this.context.fillStyle = this.color;
+		this.drawAngoliPath();
+        this.context.fill('evenodd');
+
+		this.context.fillStyle = "#ffffff";
+		this.drawAngoliCornerPath();
+        this.context.fill('evenodd');
+
+		this.context.fillStyle = this.color;
+	}
+	drawAngoliPath(ctx = null){
+		
+        let paddingX = this.padding;
+        let paddingY = this.padding;
+
+		const w = this.frame.w - paddingX * 2, h = this.frame.h - paddingY * 2
+		const inner_w = w - this.innerPadding.x * 2, inner_h = h - this.innerPadding.y * 2
+		this.updateSize(w, h);
+		// let w = this.size.width;
+		// let h = this.size.height;
+		ctx = ctx ? ctx : this.context;
+		this.context.beginPath();
+        // Outer rectangle
+		ctx.rect(paddingX, paddingY, w, h);
+		// Inner rectangle (the "hole")
+		ctx.rect(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y, inner_w, inner_h);
+        this.context.closePath();
+	}
+	drawAngoliCornerPath(ctx = null){
+		
+        let paddingX = this.padding;
+        let paddingY = this.padding;
+		const size = Math.min(this.frame.w - paddingX * 2, this.frame.h - paddingY * 2) / 3;
+		const inner_w = size - this.innerPadding.x, inner_h = size - this.innerPadding.y;
+		
+		ctx = ctx ? ctx : this.context;
+		this.context.beginPath();
+        // Outer rectangle
+		ctx.rect(paddingX, paddingY, size, size);
+		// Inner rectangle (the "hole")
+		ctx.rect(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y, inner_w, inner_h);
+        this.context.closePath();
+	}
 	rotatePoint(x, y, cx, cy, angleRad) {
 		let cos = Math.cos(angleRad);
 		let sin = Math.sin(angleRad);
@@ -1137,6 +1185,8 @@ export class ShapeStatic extends Shape {
 				this.drawHeart();
 			else if(this.shape.base == 'diamond')
 				this.drawDiamond();
+			else if (this.shape.base === 'angoli')
+				this.drawAngoli();
 		}
 		else if(this.shapeMethod == 'clip')
 		{

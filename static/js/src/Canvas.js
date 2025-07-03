@@ -30,7 +30,8 @@ IN THE SOFTWARE.
 import * as THREE from "three";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
-import { getDefaultOption } from './lib.js'
+import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
+import { renderSection, renderNumeralField, renderSelect, renderImageControls } from './utils/render.js'
 import { GifWriter } from 'omggif'
 import { jsPDF } from "jspdf";
 import { Canvg } from 'canvg';
@@ -60,6 +61,8 @@ export class Canvas {
         this.isRecordingGif = false;
         this.isInitRecording = false;
         this.fields = {};
+        this.fields.media = {};
+        this.media = {};
         this.isdebug = false;
         this.scale = this.isThree ? 1 : 2; // for Three.js, the phsical resolution should match the display resolution
         this.r = 1;
@@ -249,6 +252,13 @@ export class Canvas {
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
     }
+    getClassString(arr){
+        return getClassString(arr);
+    };
+    addExtraAttr(el, attrs){
+        addExtraAttr(el, attrs);
+        return el;
+    };
     saveCanvasAsVideo(mediaType="video/mp4"){
         // Gather chunks of video data into a blob and create an object URL
         let blob = new Blob(this.chunks, {type: mediaType });
@@ -443,21 +453,11 @@ export class Canvas {
         this.isSaving = false;
         document.body.classList.remove('saving');
     }
-    renderSelect(id, options, extraClass=''){
-        let temp_select = document.createElement('SELECT');
-        temp_select.id = id;
-        temp_select.className = 'field-id-' + id + ' ' + extraClass;
-        if(typeof options === 'object' && options !== null)
-        {
-            for (const [key, value] of Object.entries(options)) {
-                let temp_option = document.createElement('OPTION');
-                temp_option.value = key;
-                temp_option.innerText = value['name'];
-                temp_select.appendChild(temp_option);
-            }
-        }
-
-        return temp_select;
+    renderSelect(id, options, extraClass='', attrs=null, selected_value=null){
+        if(!options) return null;
+        const ex_cls = 'field-id-' + id + ' ' + extraClass;
+        const final_id = this.id + '-field-id-' + id;
+        return renderSelect(final_id, options, ex_cls, attrs, selected_value)
     }
     renderSelectField(name, displayName, options, extraClass='', elementExtraClass='')
     {
@@ -475,6 +475,9 @@ export class Canvas {
         temp_panel_section.appendChild(temp_right);
         this.fields[name] = temp_select;
         return temp_panel_section;
+    }
+    renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass=''){
+        return renderNumeralField(id, displayName, begin, step, min, extraClass, extraWrapperClass);
     }
     renderFormatField(){
         let formatField = this.renderSelectField('format', 'Format', this.formatOptions, '', 'field-id-format');
@@ -644,8 +647,17 @@ export class Canvas {
     renderControlTop(){
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
-        if(this.baseOptions && Object.keys(this.baseOptions).length > 1)
+        if(this.baseOptions && Object.keys(this.baseOptions).length > 1) {
             this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions, '', 'field-id-base'));
+            if(this.baseOptions['upload']) {
+                const id = 'custom-base';
+                let field = this.renderFileField(id, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+                let controls = this.renderImageControls(id);
+                let section = this.renderSection('', '', [field, controls], id + '-section');
+                this.control_top.appendChild(section);
+            }
+        }
+            
         this.addListenersTop();
     }
     renderControlBottom(){
@@ -677,10 +689,18 @@ export class Canvas {
     	let sBase = this.control_top.querySelector('.field-id-base');
         if(sBase) {
             sBase.onchange = function(e){
-                this.updateBase(e.target.value);
-                this.counterpart.updateBase(e.target.value);
+                let sec = e.target.parentNode.parentNode;
+                if(e.target.value === 'upload') {
+					this.color = 'upload';
+					sec.classList.add('viewing-background-upload');
+				} else {
+					sec.classList.remove('viewing-background-upload');
+					this.updateBase(e.target.value);
+                    this.counterpart.updateBase(e.target.value);
+				}
             }.bind(this);
         }
+        this.addMediaListener('custom-base');
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
@@ -690,6 +710,7 @@ export class Canvas {
         if(sCustomHeight) sCustomHeight.onchange = () => {
             this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
         };
+        
         
     }
     
@@ -718,6 +739,182 @@ export class Canvas {
             this.pdfSizePopup.setAttribute('data-hidden', 1);
         }
     }
+    addMediaListener(idx){
+		if(!idx) return;
+		let input = this.fields.media[idx];
+		if(!input) console.error('media field doesnt exist: ', idx);
+		input.onclick = function (e) {
+			e.target.value = null;
+		}.bind(this);
+		input.onchange = function(e){
+			this.readImageUploaded(e, this.updateMedia.bind(this));
+		}.bind(this);
+		input.addEventListener('applySavedFile', (e)=>{
+			
+			let idx = input.getAttribute('image-idx');
+			let src = input.getAttribute('data-file-src');
+			this.readImage(idx, src, (idx, image)=>{
+				input.classList.add('not-empty');
+				this.updateMedia(idx, image);
+			});
+		});
+		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+		if(scale_input) {
+			scale_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				e.preventDefault();
+				// let scale = e.target.value >= 1 ? e.target.value : 1;
+				let scale = e.target.value;
+				this.updateMediaScale(scale, idx, isSilent);
+			}.bind(this);
+		}	
+		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+		if(shift_x_input) {
+			shift_x_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(e.target.value, idx, isSilent);
+			}.bind(this);
+			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(shift.x, idx, isSilent)
+				this.updateMediaPositionY(shift.y, idx, isSilent)
+			});
+		}
+		if(shift_y_input) {
+			shift_y_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionY(e.target.value, idx, isSilent);
+			}.bind(this);
+			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(shift.x, idx, isSilent)
+				this.updateMediaPositionY(shift.y, idx, isSilent)
+			});
+		}
+		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+		if(blend_mode_input) {
+			blend_mode_input.onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaBlendMode(e.target.value, idx, isSilent);
+			}.bind(this);
+		}
+	}
+    readImage(idx, src, cb) {
+        let image = new Image();
+        image.onload = function (e) {
+            if(typeof cb === 'function') {
+                cb(idx, image);	
+            }
+                
+        };
+        image.src = src;
+    }
+    readImageUploaded(event, cb){
+        let input = event.target;
+		let idx = input.getAttribute('image-idx');
+
+        if (input.files && input.files[0]) {
+        	var FR = new FileReader();
+            FR.onload = function (e) {
+                this.readImage(idx, e.target.result, (idx, image)=>{
+                    input.classList.add('not-empty');
+                    if(typeof cb === 'function') cb(idx, image);
+                });
+            }.bind(this);
+            FR.readAsDataURL(input.files[0]);
+            input.parentNode.parentNode.classList.add('viewing-image-control');
+        }
+    }
+    updateMediaScale(imgScale, idx, silent = false){
+        if(!this.media[idx]) return;
+        if(!imgScale) imgScale = 1;
+    	this.media[idx].scale = imgScale;
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    };
+    updateMediaPositionX(imgShiftX, idx, silent = false){
+        if(!this.media[idx]) return;
+        if(!imgShiftX) imgShiftX = 0;
+    	this.media[idx].shiftX = parseFloat(imgShiftX);
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    };
+    updateMediaPositionY(imgShiftY, idx, silent = false){
+        if(!this.media[idx]) return;
+        if(!imgShiftY) imgShiftY = 0;
+    	this.media[idx].shiftY = parseFloat(imgShiftY);
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    };
+    updateMediaBlendMode(mode, idx, silent=false){
+        if(!this.media[idx]) return;
+    	this.media[idx]['blend-mode'] = mode;
+        if(this.media[idx].obj)
+    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    }
+    updateMedia(idx, obj, silent = false){
+        obj = obj ? obj : (this.media[idx] ? this.media[idx].obj : null);
+        if(!obj) return false;
+		if(!this.media[idx]) {
+			this.media[idx] = {
+				obj: null,
+				x: 0,
+				y: 0,				
+				shiftY: 0,
+				shiftX: 0,
+				scale: 1
+			}
+		}
+		this.media[idx].obj = obj;
+        if(idx === 'custom-base') {
+			let temp = document.createElement('canvas');
+			let temp_ctx = temp.getContext('2d');
+			// if(this.timer_color != null)
+			// {
+			// 	clearInterval(this.timer_color);
+			// 	this.timer_color = null;
+			// }
+			temp.width = this.canvas.width;
+			temp.height = this.canvas.height;
+			
+			let length = this.canvas.width;
+				
+			let temp_scale = 1;
+			let temp_scaledW = this.media[idx].obj.width * temp_scale;
+			let temp_scaledH = this.media[idx].obj.height * temp_scale;
+			
+			if(this.media[idx].obj.width > this.media[idx].obj.height)
+			{
+				temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
+				temp_scaledW = this.media[idx].obj.width * temp_scale;
+				temp_scaledH = this.media[idx].obj.height * temp_scale;
+			}
+			else
+			{
+				temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
+				temp_scaledW = this.media[idx].obj.width * temp_scale;
+				temp_scaledH = this.media[idx].obj.height * temp_scale;
+			}
+
+			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
+			
+			this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx].shiftY + 0;
+			// if(this.timer_color != null)
+			// {
+			// 	clearInterval(this.timer_color);
+			// 	this.timer_color = null;
+			// }
+			// if(this.timer_position != null)
+			// {
+			// 	clearInterval(this.timer_position);
+			// 	this.timer_position = null;
+			// }
+			temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
+			this.base = this.context.createPattern(temp, "no-repeat");
+		} 
+		if(!silent) this.draw();
+	}
     updateBase(base){
     	this.base = base;
 		this.draw();
@@ -904,5 +1101,45 @@ export class Canvas {
     toFix(val, digits=2){
         let output = parseFloat(val).toFixed(digits);
         return parseFloat(output);
+    }
+    renderFileField(id, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){
+        let input_id = this.id + '-field-id-' + id;
+        let output = document.createElement('div');
+        let input = document.createElement('input');
+        let label = document.createElement('label');
+        let extraWrapperClass = extraClass['wrapper'] && extraClass['wrapper'].length ? ' ' + this.getClassString(extraClass['wrapper']) : '';
+        output.className = 'field-wrapper ' + input_id + '-wrapper' + extraWrapperClass;
+        if(extraAttr['wrapper']) output = this.addExtraAttr(output, extraAttr['wrapper']);
+        
+        let extraInputClass = extraClass['input'] && extraClass['input'].length ? ' ' + this.getClassString(extraClass['input']) : '';
+        input.className = 'field-id-' + id + extraInputClass;
+        input.id = input_id;
+        input.type = 'file';
+		input.setAttribute('image-idx', id);
+        label.setAttribute('for', input_id);
+		label.className = 'pseudo-upload';
+        label.innerText = 'Choose file';
+        output.appendChild(input);
+        output.appendChild(label);
+        this.fields.media[id] = input
+        return output;
+    }
+    renderImageControls(id=''){
+        return renderImageControls(id);
+		let container = document.createElement('div');
+		container.className = 'field-id-image-controls float-container flex-item';
+		container.id = id ? id + '-field-id-image-controls' : '';
+		container.setAttribute('flex', 'full');
+
+		let [section_scale, input_scale] = this.renderNumeralField(id + '-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
+		let [section_x, input_x] = this.renderNumeralField(id + '-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
+		let [section_y, input_y] = this.renderNumeralField(id + '-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
+		container.append(section_scale);
+		container.append(section_x);
+		container.append(section_y);
+		return container;
+	}
+    renderSection(id='', displayName, children=[], extraClass=''){
+        return renderSection(id, displayName, children, extraClass);
     }
 }
