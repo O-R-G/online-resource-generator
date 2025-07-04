@@ -195,7 +195,7 @@ export class Record {
                 }
 
                 for(let i = 0 ; i < data['media_num']; i++) {
-                    this.canvasObjs[canvas_id].shapes[shape_id].addMedia();
+                    this.canvasObjs[canvas_id].shapes[shape_id].addMediaSection();
                 }
                 let fields = data['fields'];
                 for (let field of fields) {

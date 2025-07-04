@@ -31,7 +31,7 @@ import * as THREE from "three";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
-import { renderSection, renderNumeralField, renderSelect, renderImageControls } from './utils/render.js'
+import { renderSection, renderNumeralField, renderSelect, renderSelectSection, renderImageControls } from './utils/render.js'
 import { GifWriter } from 'omggif'
 import { jsPDF } from "jspdf";
 import { Canvg } from 'canvg';
@@ -453,35 +453,26 @@ export class Canvas {
         this.isSaving = false;
         document.body.classList.remove('saving');
     }
-    renderSelect(id, options, extraClass='', attrs=null, selected_value=null){
+    renderSelect(key, options, extraClass=[], attrs=null, selected_value=null){
         if(!options) return null;
-        const ex_cls = 'field-id-' + id + ' ' + extraClass;
-        const final_id = this.id + '-field-id-' + id;
-        return renderSelect(final_id, options, ex_cls, attrs, selected_value)
+        const ex_cls = ['field-id-' + key].concat(extraClass);
+        const id = this.id + '-field-id-' + key;
+        return renderSelect(id, options, ex_cls, attrs, selected_value)
     }
-    renderSelectField(name, displayName, options, extraClass='', elementExtraClass='')
+    renderSelectSection(key, displayName, data, extraSelectClass=[], extraSectionClass=[], extraAttr = null, extraSectionAttr=null)
     {
-        let id = this.id + '-field-id-' + name;
-        let temp_panel_section = document.createElement('DIV');
-        temp_panel_section.className  = "panel-section float-container " + extraClass;
-        let temp_label = document.createElement('LABEL');
-        temp_label.setAttribute('for', id);
-        temp_label.innerText = displayName;
-        let temp_right = document.createElement('div');
-        temp_right.className = 'half-right flex-container';
-        let temp_select = this.renderSelect(id, options, 'flex-item ' + elementExtraClass);
-        temp_right.appendChild(temp_select);
-        temp_panel_section.appendChild(temp_label);
-        temp_panel_section.appendChild(temp_right);
-        this.fields[name] = temp_select;
-        return temp_panel_section;
+        const s_cls = ['field-id-' + key].concat(extraSelectClass);
+        const id = this.id + '-field-id-' + key;
+        const [section, select] = renderSelectSection(id, displayName, data, s_cls, extraSectionClass, extraAttr = null, extraSectionAttr=null);
+        if(!this.fields[key]) this.fields[key] = select;
+        return [section, select];
     }
     renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass=''){
         return renderNumeralField(id, displayName, begin, step, min, extraClass, extraWrapperClass);
     }
     renderFormatField(){
-        let formatField = this.renderSelectField('format', 'Format', this.formatOptions, '', 'field-id-format');
-        formatField.querySelector('select').setAttribute('flex', 'full');
+        const [format_section] = this.renderSelectSection('format', 'Format', {options: this.formatOptions});
+        format_section.querySelector('select').setAttribute('flex', 'full');
         if(this.format == 'custom') {
             let customWidth = document.createElement('input');
             customWidth.id="custom-width-input";
@@ -498,7 +489,7 @@ export class Canvas {
             customHeight.placeholder="H";
             customHeight.setAttribute('flex', 3);
             customHeight.value = this.formatOptions['custom']['h'];
-            let temp_right = formatField.querySelector('.half-right');
+            let temp_right = format_section.querySelector('.half-right');
             temp_right.appendChild(customWidth);
             temp_right.appendChild(cross);
             temp_right.appendChild(customHeight);
@@ -506,17 +497,17 @@ export class Canvas {
             this.fields['custom-width-input'] = customWidth;
             this.fields['custom-height-input'] = customHeight;
         }
-        let options = formatField.querySelectorAll('option');
+        let options = format_section.querySelectorAll('option');
         [].forEach.call(options, function(el, i){
             if(el.value == this.format)
                 el.selected = true;
             
         }.bind(this));
-        let select = formatField.querySelector('select');
+        let select = format_section.querySelector('select');
         select.addEventListener('change', function(event){
             this.changeFormat(event, this.format);
         }.bind(this));
-        return formatField;
+        return format_section;
     }
     renderButtonLikeCheckbox(id, text, extraClass=""){
         let temp_panel_section = document.createElement('div');
@@ -594,7 +585,7 @@ export class Canvas {
         flex_container.appendChild(this.pdfSizeInput);
         if(this.formatUnitOptions) {
             let id = `${this.id}-formatUnit`;
-            this.pdfSizeUnitInput = this.renderSelect(id, this.formatUnitOptions)
+            this.pdfSizeUnitInput = this.renderSelect(id,{options: this.formatUnitOptions})
             this.pdfSizeUnitInput.className = 'flex-item';
             this.pdfSizeUnitInput.setAttribute('flex', 1);
             flex_container.appendChild(this.pdfSizeUnitInput);
@@ -648,11 +639,39 @@ export class Canvas {
         if(this.formatOptions && Object.keys(this.formatOptions).length > 1)
             this.control_top.appendChild(this.renderFormatField());
         if(this.baseOptions && Object.keys(this.baseOptions).length > 1) {
-            this.control_top.appendChild(this.renderSelectField('base', 'Base', this.baseOptions, '', 'field-id-base'));
+            const [base_section] = this.renderSelectSection('base', 'Base', { options: this.baseOptions });
+            this.control_top.appendChild(base_section);
             if(this.baseOptions['upload']) {
-                const id = 'custom-base';
+                const id = 'base-image';
+                let control_data = [
+                    { 
+                        'name': 'scale',
+                        'displayName': 'Scale',
+                        'id': id + '-scale',
+                        'input-type': 'number',
+                        'attr': {'flex': 'half', 'placeholder' : 'Scale (1)'},
+                        'meta': {begin: 1.0, step: 0.1},
+                        'class': ['img-control-scale', 'flex-item']
+                    },{ 
+                        'name': 'shift-x',
+                        'displayName': 'X',
+                        'id': id + '-shift-x',
+                        'input-type': 'number',
+                        'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
+                        'meta': {begin: 0, step: 1},
+                        'class': ['img-control-shift-x', 'flex-item']
+                    },{ 
+                        'name': 'shift-y',
+                        'displayName': 'Y',
+                        'id': id + '-shift-y',
+                        'input-type': 'number',
+                        'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
+                        'meta': {begin: 0, step: 1},
+                        'class': ['img-control-shift-y', 'flex-item']
+                    }
+                ];
                 let field = this.renderFileField(id, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-                let controls = this.renderImageControls(id);
+                let controls = this.renderImageControls(id, control_data);
                 let section = this.renderSection('', '', [field, controls], id + '-section');
                 this.control_top.appendChild(section);
             }
@@ -692,15 +711,15 @@ export class Canvas {
                 let sec = e.target.parentNode.parentNode;
                 if(e.target.value === 'upload') {
 					this.color = 'upload';
-					sec.classList.add('viewing-background-upload');
+					sec.classList.add('viewing-base-image-section');
 				} else {
-					sec.classList.remove('viewing-background-upload');
+					sec.classList.remove('viewing-base-image-section');
 					this.updateBase(e.target.value);
                     this.counterpart.updateBase(e.target.value);
 				}
             }.bind(this);
         }
-        this.addMediaListener('custom-base');
+        this.addMediaListener('base-image');
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
@@ -710,8 +729,6 @@ export class Canvas {
         if(sCustomHeight) sCustomHeight.onchange = () => {
             this.setCanvasSize({height: parseInt(sCustomHeight.value)}, null, false);
         };
-        
-        
     }
     
     addListenersBottom(){
@@ -739,10 +756,10 @@ export class Canvas {
             this.pdfSizePopup.setAttribute('data-hidden', 1);
         }
     }
-    addMediaListener(idx){
-		if(!idx) return;
-		let input = this.fields.media[idx];
-		if(!input) console.error('media field doesnt exist: ', idx);
+    addMediaListener(key){
+		if(!key) return;
+		let input = this.fields.media[key];
+		if(!input) console.error('media field doesnt exist: ', key);
 		input.onclick = function (e) {
 			e.target.value = null;
 		}.bind(this);
@@ -765,7 +782,7 @@ export class Canvas {
 				e.preventDefault();
 				// let scale = e.target.value >= 1 ? e.target.value : 1;
 				let scale = e.target.value;
-				this.updateMediaScale(scale, idx, isSilent);
+				this.updateMediaScale(scale, key, isSilent);
 			}.bind(this);
 		}	
 		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
@@ -773,30 +790,30 @@ export class Canvas {
 		if(shift_x_input) {
 			shift_x_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(e.target.value, idx, isSilent);
+				this.updateMediaPositionX(e.target.value, key, isSilent);
 			}.bind(this);
 			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, idx, isSilent)
-				this.updateMediaPositionY(shift.y, idx, isSilent)
+				this.updateMediaPositionX(shift.x, key, isSilent)
+				this.updateMediaPositionY(shift.y, key, isSilent)
 			});
 		}
 		if(shift_y_input) {
 			shift_y_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionY(e.target.value, idx, isSilent);
+				this.updateMediaPositionY(e.target.value, key, isSilent);
 			}.bind(this);
 			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, idx, isSilent)
-				this.updateMediaPositionY(shift.y, idx, isSilent)
+				this.updateMediaPositionX(shift.x, key, isSilent)
+				this.updateMediaPositionY(shift.y, key, isSilent)
 			});
 		}
 		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
 		if(blend_mode_input) {
 			blend_mode_input.onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaBlendMode(e.target.value, idx, isSilent);
+				this.updateMediaBlendMode(e.target.value, key, isSilent);
 			}.bind(this);
 		}
 	}
@@ -867,7 +884,7 @@ export class Canvas {
 			}
 		}
 		this.media[idx].obj = obj;
-        if(idx === 'custom-base') {
+        if(idx === 'base-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
 			// if(this.timer_color != null)
@@ -919,6 +936,22 @@ export class Canvas {
     	this.base = base;
 		this.draw();
 	}
+    updatePositionByKey(e, inputs, cb){
+        if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        let val = e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
+        val *= e.shiftKey ? 10 : 1;
+        if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            if(!inputs.y.value) inputs.y.value = 0;
+            inputs.y.value = this.toFix(inputs.y.value) + val;
+        } else if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            if(!inputs.x.value) inputs.x.value = 0;
+            inputs.x.value = this.toFix(inputs.x.value) + val;
+        }
+        inputs.x.classList.add('pseudo-focused');
+        inputs.y.classList.add('pseudo-focused');
+        if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
+    }
 	drawBase(){
 		if(!this.isThree)
     	{
@@ -1124,20 +1157,8 @@ export class Canvas {
         this.fields.media[id] = input
         return output;
     }
-    renderImageControls(id=''){
-        return renderImageControls(id);
-		let container = document.createElement('div');
-		container.className = 'field-id-image-controls float-container flex-item';
-		container.id = id ? id + '-field-id-image-controls' : '';
-		container.setAttribute('flex', 'full');
-
-		let [section_scale, input_scale] = this.renderNumeralField(id + '-scale', 'Scale', 1.0, 0.1, false, 'img-control-scale', '');
-		let [section_x, input_x] = this.renderNumeralField(id + '-shift-x', 'X', 0, 1, false, 'img-control-shift-x', '');
-		let [section_y, input_y] = this.renderNumeralField(id + '-shift-y', 'Y', 0, 1, false, 'img-control-shift-y', '');
-		container.append(section_scale);
-		container.append(section_x);
-		container.append(section_y);
-		return container;
+    renderImageControls(id='', control_data){
+        return renderImageControls(id, control_data);
 	}
     renderSection(id='', displayName, children=[], extraClass=''){
         return renderSection(id, displayName, children, extraClass);

@@ -1074,7 +1074,6 @@ export class ShapeStatic extends Shape {
 
 		for (let i = 0; i < 4; i++) {
 			const corner = corners[i];
-			// const next = corners[(i + 1) % 4];
 			const angleStart = angles[i][0] + angle;
 			const angleEnd = angles[i][1] + angle;
 			const rotatedCorner = this.rotatePoint(corner.x, corner.y, centerX, centerY, angle);
@@ -1211,15 +1210,18 @@ export class ShapeStatic extends Shape {
 	
 	renderControl(){
 		super.renderControl();
-		this.control.appendChild(this.renderSelectField('shape-color', 'Color', this.options.colorOptions));
+		const [select_section] = this.renderSelectSection('shape-color', 'Color', {options: this.options.colorOptions});
+		this.control.appendChild(select_section);
 		if(this.options.colorOptions['upload']) {
-			let field = this.renderFileField('background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			let controls = this.renderImageControls('background-image');
-			let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			const [section] = this.renderMediaSection('background-image', '', ['shape-image-section'])
 			this.control.appendChild(section);
 		}
-		
-		this.control.appendChild(this.renderTextField('text', 'Main Text', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
+		// const main_text_data = {
+		// 	'position-options': this.options.textPositionOptions,
+		// 	'color-options': this.options.textPositionOptions,
+		// 	'typography-options': this.options.typographyOptions
+		// };
+		this.control.appendChild(this.renderTextSection('text', 'Main Text'));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control.appendChild(super.renderAddMedia());
 	}
@@ -1234,7 +1236,7 @@ export class ShapeStatic extends Shape {
 				let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
 				[].forEach.call(sWatermark_panels, function(el, i){
 					let position = el.querySelector('.watermark-position').value;
-					let label = el.querySelector('label[for^="watermark"]');
+					let label = el.querySelector('label');
 					this.checkWatermarkPosition(position, label);
 				}.bind(this));
 			}.bind(this);
@@ -1268,9 +1270,7 @@ export class ShapeStatic extends Shape {
 		}
 		
 		if(this.fields['animation']) {
-			this.fields['animation'].onchange = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				
+			this.fields['animation'].onchange = function(e){				
 				if(e.target.value !== 'none') {
 					document.body.classList.add('viewing-three');
 					this.canvasObj.sync();
@@ -1348,9 +1348,9 @@ export class ShapeStatic extends Shape {
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
-					sec.classList.add('viewing-background-upload');
+					sec.classList.add('viewing-shape-image-section');
 				} else {
-					sec.classList.remove('viewing-background-upload');
+					sec.classList.remove('viewing-shape-image-section');
 					if(this.fields.media['background-image'])
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
 					if(this.options.colorOptions[e.target.value].color.type === 'animation') isSilent = false;
@@ -1363,10 +1363,11 @@ export class ShapeStatic extends Shape {
 			this.addMediaListener(idx);
 		}
 	}
-	addMediaListener(idx){
-		if(!idx) return;
-		let input = this.fields.media[idx];
-		if(!input) console.error('media field doesnt exist: ', idx);
+	addMediaListener(key){
+		if(!key) return;
+		let input = this.fields.media[key];
+		if(!input) console.error('media field doesnt exist: ', key);
+		console.log('addMediaListener: ', key);
 		input.onclick = function (e) {
 			e.target.value = null;
 		}.bind(this);
@@ -1389,7 +1390,7 @@ export class ShapeStatic extends Shape {
 				e.preventDefault();
 				// let scale = e.target.value >= 1 ? e.target.value : 1;
 				let scale = e.target.value;
-				this.updateMediaScale(scale, idx, isSilent);
+				this.updateMediaScale(scale, key, isSilent);
 			}.bind(this);
 		}	
 		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
@@ -1397,30 +1398,30 @@ export class ShapeStatic extends Shape {
 		if(shift_x_input) {
 			shift_x_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(e.target.value, idx, isSilent);
+				this.updateMediaPositionX(e.target.value, key, isSilent);
 			}.bind(this);
 			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, idx, isSilent)
-				this.updateMediaPositionY(shift.y, idx, isSilent)
+				this.updateMediaPositionX(shift.x, key, isSilent)
+				this.updateMediaPositionY(shift.y, key, isSilent)
 			});
 		}
 		if(shift_y_input) {
 			shift_y_input.oninput = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionY(e.target.value, idx, isSilent);
+				this.updateMediaPositionY(e.target.value, key, isSilent);
 			}.bind(this);
 			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, idx, isSilent)
-				this.updateMediaPositionY(shift.y, idx, isSilent)
+				this.updateMediaPositionX(shift.x, key, isSilent)
+				this.updateMediaPositionY(shift.y, key, isSilent)
 			});
 		}
 		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
 		if(blend_mode_input) {
 			blend_mode_input.onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaBlendMode(e.target.value, idx, isSilent);
+				this.updateMediaBlendMode(e.target.value, key, isSilent);
 			}.bind(this);
 		}
 	}
@@ -1576,6 +1577,7 @@ export class ShapeStatic extends Shape {
 		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
 			if(!this.media[idx].obj) continue;
+			console.log(this.media[idx]['blend-mode']);
 			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
 			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX), (this.media[idx].y - this.media[idx].shiftY), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
 		}

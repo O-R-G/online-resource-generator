@@ -1868,7 +1868,6 @@ export class ShapeAnimated extends Shape {
 				}
 			});
 		}
-
 		this.renderer.render( this.scene, this.camera );
 	}
     checkWatermarkPosition(position, label){
@@ -1876,27 +1875,28 @@ export class ShapeAnimated extends Shape {
     }
     renderControl(){
 		super.renderControl();
-		const speed = this.renderSelectField('animation-speed', 'Speed', this.options.animationSpeedOptions);
-		this.control.appendChild(speed);
-		this.control.appendChild(this.renderSelectField('shape-front-color', 'Color (front)', this.options.colorOptions));
+		const [speed_section] = this.renderSelectSection('animation-speed', 'Speed', { options: this.options.animationSpeedOptions });
+		const [front_color_section] = this.renderSelectSection('shape-front-color', 'Color (front)', { options: this.options.colorOptions });
+		const [back_color_section] = this.renderSelectSection('shape-back-color', 'Color (back)', { options: this.options.colorOptions });
+		this.control.appendChild(speed_section);
+		this.control.appendChild(front_color_section);
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'front';
-			let field = this.renderFileField(prefix + '-background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			let controls = this.renderImageControls(prefix + '-background-image');
-			let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			// let field = this.renderFileField(, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+			// let controls = this.renderImageControls(prefix + '-background-image');
+			// let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['color-image-section'])
 			this.control.appendChild(section);
 		}
-		this.control.appendChild(this.renderSelectField('shape-back-color', 'Color (back)', this.options.colorOptions));
+		this.control.appendChild(back_color_section);
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'back';
-			let field = this.renderFileField(prefix + '-background-image', {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			let controls = this.renderImageControls(prefix + '-background-image');
-			let section = this.renderSection('', '', [field, controls], 'background-image-section');
+			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['color-image-section'])
 			this.control.appendChild(section);
 		}
 		this.fields['shape-back-color'].selectedIndex = 1;
-		this.control.appendChild(this.renderTextField('text-front', 'Main Text (front)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
-		this.control.appendChild(this.renderTextField('text-back', 'Main Text (back)', this.options.textPositionOptions, this.options.textColorOptions, this.options.typographyOptions));
+		this.control.appendChild(this.renderTextSection('text-front', 'Main Text (front)'));
+		this.control.appendChild(this.renderTextSection('text-back', 'Main Text (back)'));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control_wrapper.appendChild(this.control);
 	}
@@ -2049,9 +2049,9 @@ export class ShapeAnimated extends Shape {
 
 	    
 
-	    let sShape_front_color = this.control.querySelector('.field-id-shape-front-color');
-		this.fields['shape-front-color'] = sShape_front_color;
-	    sShape_front_color.onchange = function(e){
+	    // let sShape_front_color = this.control.querySelector('.field-id-shape-front-color');
+		// console.log(this.control);
+	    this.fields['shape-front-color'].onchange = function(e){
 			// let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
 			if(shape_color === 'upload') {
@@ -2080,8 +2080,7 @@ export class ShapeAnimated extends Shape {
 	        // document.getElementById("background-image-controls").style.display="none";
 	    }.bind(this);
 
-	    let sShape_back_color = this.control.querySelector('.field-id-shape-back-color');
-	    sShape_back_color.onchange = function(e){
+	    this.fields['shape-back-color'].onchange = function(e){
 	        let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
 			if(shape_color === 'upload') {

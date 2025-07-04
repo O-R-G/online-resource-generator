@@ -239,12 +239,20 @@ textarea + select
     padding: 20px;
     padding-bottom: 80px;
 }
-.background-image-section {
+.shape-image-section,
+.base-image-section {
     display: none;
     margin-bottom: 0;
 }
-.viewing-background-upload + .background-image-section {
+.viewing-shape-image-section + .shape-image-section,
+.viewing-base-image-section + .base-image-section {
     display: block;
+}
+.shape-image-section > .delete-button,
+.shape-image-section > .delete-button.btn,
+.base-image-section > .delete-button,
+.base-image-section > .delete-button.btn {
+    display: none;
 }
 /* #content
 {
@@ -288,21 +296,19 @@ textarea + select
 {
     display: none;
 }
-.watermarks-container {
-    /* margin: 0 1.5px; */
-}
 .panel-section,
 .watermarks-container
 {
     margin-bottom: calc(8px - 2 * var(--flex-item-margin));
 }    
-.field-id-image-controls
+.panel-section.media-control-section {
+    margin-bottom: 0;
+}
+.field-id-image-controls,
+.field-id-image-controls.flex-item
 {
     /* display: none; */
-    margin: 1.5px 0;
-}
-.viewing-image-control .field-id-image-controls {
-    /* display: block; */
+    margin: 0 0 1.5px 0;
 }
 input[type="file"]
 {
@@ -322,12 +328,6 @@ input[type="file"] + label:hover
 {
     background-color: #ccc;
 }
-/*#stop,
-body.recording #record,
-body.recording #record + div
-{
-    display: none;
-}*/
 .download-button:before {
     content: '';
     display: inline-block;
@@ -488,11 +488,6 @@ body.recording .download-video-button
     margin-top: 0;
     cursor: pointer;
 }
-.button-like-label:hover
-{
-    /* background-color: #ccc;
-    color: #000;*/
-}
 .btn-remove-watermark
 {
     display: inline-block;
@@ -502,15 +497,7 @@ input#restart-animation
 {
     cursor:pointer;
 }
-label[for^='watermark'],
-label[for^='media']
-{
-    position: relative;
-    display: inline-block;
-    padding-right: 10px;
-    margin-left: 8px;
-}
-label[for^='watermark'].not-supported:after
+.watermarks-container label.not-supported:after
 {
     content: "this position is not compatible to this shape.";
     display: block;
@@ -713,6 +700,24 @@ input[value="fetch"]
     width: calc(100% + calc(var(--flex-item-margin) * 2));
     position: relative;
     left: calc(-1 * var(--flex-item-margin));
+}
+.media-container > .panel-section,
+.watermarks-container > .panel-section  {
+    position: relative;
+}
+.media-container > .panel-section > label,
+.watermarks-container > .panel-section > label{
+    position: relative;
+    display: inline-block;
+    padding-right: 10px;
+    padding-left: 30px;
+    margin-left: 8px;
+}
+.media-container > .panel-section > .delete-button,
+.watermarks-container > .panel-section > .delete-button {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 @media screen and (max-width: 1080px)
 {

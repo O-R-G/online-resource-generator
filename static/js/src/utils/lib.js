@@ -10,6 +10,7 @@ export function getClassString(arr){
     return arr.join(' ');
 };
 export function addExtraAttr(el, attrs){
+    if(!attrs) return el;
     for(let prop in attrs) {
         if(attrs[prop] === '' || attrs[prop] == true) {
             el.setAttribute(prop, true);

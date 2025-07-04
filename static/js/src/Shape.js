@@ -1,5 +1,5 @@
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
-import { renderCustomControls, renderSelect, renderNumeralField, renderSection, renderImageControls } from './utils/render.js';
+import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralField, renderSection, renderImageControls } from './utils/render.js';
 
 export class Shape {
 	constructor(prefix, canvasObj, options, format, shape_index = 0){
@@ -147,135 +147,116 @@ export class Shape {
         if(!silent)
             this.canvasObj.draw();
 	}
-    renderSection(id='', displayName, children=[], extraClass=''){
+    renderSection(id='', displayName, children=[], extraClass=[]){
         return renderSection(id, displayName, children, extraClass);
     }
-    renderSelect(id, options, extraClass='', attrs=null, selected_value=null){
-        if(!options) return null;
-        const ex_cls = 'field-id-' + id + ' ' + extraClass;
-        const final_id = this.id + '-field-id-' + id;
-        return renderSelect(final_id, options, ex_cls, attrs, selected_value)
+    renderSelect(key, data, extraClass=[], attrs=null, selected_value=null){
+        // if(!data) return null;
+        const ex_cls = ['field-id-' + key].concat(extraClass);
+        const id = this.id + '-field-id-' + key;
+        const select = renderSelect(id, data, ex_cls, attrs, selected_value);
+        if(!this.fields[key]) this.fields[key] = select;
+        return select;
     }
-    renderSelectField(id, displayName, options, extraClass='')
+    renderSelectSection(key, displayName, data, extraSelectClass=[], extraSectionClass=[], extraAttr = null, extraSectionAttr=null)
     {
-        let panel_section = document.createElement('div');
-        panel_section.className  = "panel-section float-container " + extraClass;
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', id);
-        label.innerText = displayName;
-        let temp_right = document.createElement('div');
-        temp_right.className = 'half-right flex-container';
-        let temp_select = this.renderSelect(id, options, 'flex-item');
-        temp_right.appendChild(temp_select);
-        panel_section.appendChild(label);
-        panel_section.appendChild(temp_right);
-        this.fields[id] = temp_select;
-        return panel_section;
+        const s_cls = ['field-id-' + key].concat(extraSelectClass);
+        const id = this.id + '-field-id-' + key;
+        const [section, select] = renderSelectSection(id, displayName, data, s_cls, extraSectionClass, extraAttr = null, extraSectionAttr=null);
+        if(!this.fields[key]) this.fields[key] = select;
+        return [section, select];
     }
-    renderShapeField(id, displayName, extraClass='')
+    renderShapeSection(id, displayName, extraClass=[])
     {
-        let panel_section = document.createElement('div');
-        panel_section.className  = "panel-section float-container " + extraClass;
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', id);
-        label.innerText = displayName;
-        let temp_right = document.createElement('div');
-        temp_right.className = 'half-right flex-container';
-        let cls = 'flex-item typography-flex-item';
-        let select = this.renderSelect('shape', this.options.shapeOptions, cls, {'flex': 'full'});
+        let cls = ['flex-item', 'typography-flex-item'];
+        let select = this.renderSelect('shape', {options: this.options.shapeOptions}, cls, {'flex': 'full'});
         let input_x = this.renderInput('shape-shift-x', null, {'flex': 'half', 'placeholder' : 'X (0)'}, cls);
         let input_y = this.renderInput('shape-shift-y', null, {'flex': 'half', 'placeholder' : 'X (0)'}, cls);
         this.fields['shape'] = select;
         this.fields['shape-shift-x'] = input_x;
         this.fields['shape-shift-y'] = input_y;
-        temp_right.appendChild(select);
-        temp_right.appendChild(input_x);
-        temp_right.appendChild(input_y);
-        panel_section.appendChild(label);
-        panel_section.appendChild(temp_right);
-        return panel_section;
+        const section = this.renderSection(id, displayName, [select, input_x, input_y], extraClass=[]);
+        
+        return section;
     }
-    renderTextField(id, displayName, extraClass='')
+    renderTextSection(key, displayName, extraClass='')
     {
-        console.log('renderTextField');
-        let panel_section = document.createElement('div');
-        panel_section.className  = "panel-section float-container " + extraClass;
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', id);
-        label.innerText = displayName;
-        let temp_right = document.createElement('div');
-        temp_right.className = 'half-right flex-container';
-        let temp_textarea = document.createElement('TEXTAREA');
-        temp_textarea.className = 'flex-item field-id-' + id + ' ' + extraClass;
-        temp_textarea.id = this.id + '-field-id-' + id;
-        temp_textarea.setAttribute('rows', 3);
-        temp_textarea.setAttribute('flex', 'full');
-        temp_right.appendChild(temp_textarea);
+        const id = this.id + '-field-id-' + key;
+        let textarea = document.createElement('TEXTAREA');
+        textarea.className = getClassString(['flex-item','field-id-' + key].concat(extraClass));
+        textarea.id = id;
+        textarea.setAttribute('rows', 3);
+        textarea.setAttribute('flex', 'full');
 
         let text_controls = [
             { 
                 'name': 'position',
-                'id': id + '-position',
+                'id': key + '-position',
                 'input-type': 'select',
                 'options': this.options['textPositionOptions'],
                 'attr': {'flex': 'half'},
-                'class': ''
+                'class': ['typography-flex-item']
             },
             { 
                 'name': 'color',
-                'id': id + '-color',
+                'id': key + '-color',
                 'input-type': 'select',
                 'options': this.options['textColorOptions'],
                 'attr': {'flex': 'half'},
-                'class': ''
+                'class': ['typography-flex-item']
             },
             { 
                 'name': 'typography',
-                'id': id + '-typography',
+                'id': key + '-typography',
                 'input-type': 'select',
                 'options': this.options['typographyOptions'],
                 'attr': {'flex': 'half'},
-                'class': ''
+                'class': ['typography-flex-item']
             },
             { 
                 'name': 'font',
-                'id': id + '-font',
+                'id': key + '-font',
                 'input-type': 'select',
                 'options': this.options['fontOptions'],
                 'attr': {'flex': 'half'},
-                'class': ''
+                'class': ['typography-flex-item']
             },
             { 
                 'name': 'shift-x',
-                'id': id + '-shift-x',
+                'id': key + '-shift-x',
                 'input-type': 'text',
                 'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
-                'class': ''
+                'class': []
             },{ 
                 'name': 'shift-y',
-                'id': id + '-shift-y',
+                'id': key + '-shift-y',
                 'input-type': 'text',
                 'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
-                'class': ''
+                'class': []
             }
         ]
-        this.renderCustomControls(id, temp_right, text_controls);
-        panel_section.appendChild(label);
-        panel_section.appendChild(temp_right);
-        this.fields[id] = temp_textarea;
+        const control_items = Array.from(this.renderCustomControls(text_controls));
+        const section = renderSection('', displayName, [textarea, ...control_items]);
+        
+        if(!this.fields[key]) this.fields[key] = textarea;
 
-        return panel_section;
+        return section;
     }
-    renderCustomControls(id, container, items=[], cb){
+    renderCustomControls(items=[], cb){
         const rendered_items = renderCustomControls(items);
+        const elements = [];
         for(const item of rendered_items) {
-            if(!item['el']) continue;
-            container.appendChild(item['el']);
+            
+            // if(!item['el']) continue;
+            elements.push(item['el']);
+            if(this.fields[item['id']]) continue;
             this.fields[item['id']] = item['el'];
         }
+        
         if(typeof cb === 'function') {
             cb(rendered_items);
         }
+        return elements;
     }
     renderAddMedia(){
     	let container = document.createElement('div');
@@ -284,82 +265,84 @@ export class Shape {
     	btn.className = 'btn-add-media btn-add';
         this.addMediaButton = btn;
     	btn.addEventListener('click', function(){
-    		this.addMedia();
+    		this.addMediaSection();
     	}.bind(this));
     	btn.innerText = 'Add media';
     	container.appendChild(btn);
         if(!this.fields['media-container']) this.fields['media-container'] = container;
     	return container;
     }
-    renderMediaField(id, displayName, extraClass='')
+    renderMediaSection(key, displayName, extraClass=[])
     {
-        if(!id) {
-            id = 'media-' + this.mediaIndex;
+        
+        if(!key) {
+            key = 'media-' + this.mediaIndex;
             displayName = 'Media ' + this.mediaIndex;
             this.mediaIndex++;
         }
-        let panel_section = document.createElement('div');
-        panel_section.className  = "panel-section float-container " + extraClass;
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', id);
-        label.innerText = displayName;
-        let delete_button = document.createElement('div');
-        delete_button.className='delete-button media-delete-button btn small-btn';
-        delete_button.addEventListener('click', ()=>{ 
-            this.deleteItem('media', id, panel_section); 
-        });
-        let right = document.createElement('div');
-        right.className = 'half-right flex-container';
-        let upload_input = this.renderFileField(id, {'wrapper':['flex-item']}, {'wrapper': {'flex': 'full'}});
-        
-        right.appendChild(upload_input);
 
-        let controls = [
+        const id = this.id + '-field-id-' + key;    
+        let control_data = [
             { 
-                'name': 'shift-x',
-                'id': id + '-shift-x',
-                'input-type': 'text',
-                'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
-                'class': 'img-control-shift-x'
-            },{ 
-                'name': 'shift-y',
-                'id': id + '-shift-y',
-                'input-type': 'text',
-                'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
-                'class': 'img-control-shift-y'
-            },{ 
                 'name': 'scale',
+                'displayName': 'Scale',
                 'id': id + '-scale',
                 'input-type': 'number',
                 'attr': {'flex': 'half', 'placeholder' : 'Scale (1)'},
-                'class': 'img-control-scale flex-item'
+                'meta': {begin: 1.0, step: 0.1},
+                'class': ['img-control-scale', 'flex-item']
             },{ 
+                'name': 'shift-x',
+                'displayName': 'X',
+                'id': id + '-shift-x',
+                'input-type': 'number',
+                'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
+                'meta': {begin: 0, step: 1},
+                'class': ['img-control-shift-x', 'flex-item']
+            },{ 
+                'name': 'shift-y',
+                'displayName': 'Y',
+                'id': id + '-shift-y',
+                'input-type': 'number',
+                'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
+                'meta': {begin: 0, step: 1},
+                'class': ['img-control-shift-y', 'flex-item']
+            }
+        ];
+        if(this.options['blendModeOptions']) {
+            control_data.push({ 
                 'name': 'blend-mode',
+                'displayName': 'Blend mode',
                 'id': id + '-blend-mode',
                 'input-type': 'select',
                 'attr': {'flex': 'half', 'placeholder' : 'Blend Mode'},
-                'class': 'img-control-blend-mode flex-item',
-                'options': this.options['blendModeOptions']
-            }
-        ]
-        this.renderCustomControls(id, right, controls);
-        panel_section.appendChild(delete_button);
-        panel_section.appendChild(label);
-        panel_section.appendChild(right);
-        this.fields[id] = upload_input;
-
-        return panel_section;
+                'meta': {options: this.options['blendModeOptions']},
+                'class': ['img-control-blend-mode', 'flex-item']
+            });
+        }
+        let upload = this.renderFileField(key, {'wrapper':['flex-item']}, {'wrapper': {'flex': 'full'}});
+        const ex_cls = ['media-section'].concat(extraClass);
+        const controls = this.renderImageControls(id, control_data);
+        const section = this.renderSection('', displayName, [upload, controls], ex_cls);
+        const delete_button = document.createElement('div');
+        delete_button.className='delete-button media-delete-button btn small-btn';
+        delete_button.addEventListener('click', ()=>{ 
+            this.deleteItem('media', key, section); 
+        });
+        section.appendChild(delete_button);
+        if(!this.fields.media[key]) this.fields.media[key] = upload;
+        return [section, upload];
     }
-    addMedia(id, displayName, extraClass){
-        if(!id) {
-            id = 'media-' + this.mediaIndex;
+    addMediaSection(key, displayName, extraClass=[]){
+        if(!key) {
+            key = 'media-' + this.mediaIndex;
             displayName = 'Media ' + this.mediaIndex;
             this.mediaIndex++;
         }
-        let newMedia = this.renderMediaField(id, displayName, 'media-section'); 
-        this.addMediaButton.parentNode.insertBefore(newMedia, this.addMediaButton);
-        if(!this.media[id]) {
-            this.media[id] = {
+        const [section] = this.renderMediaSection(key, displayName, extraClass); 
+        this.addMediaButton.parentNode.insertBefore(section, this.addMediaButton);
+        if(!this.media[key]) {
+            this.media[key] = {
                 obj: null,
                 x: 0,
                 y: 0,
@@ -370,7 +353,7 @@ export class Shape {
             };
         }
         
-        this.addMediaListener(id);
+        this.addMediaListener(key);
     }
     divToNl(nodes){
         let output = '';
@@ -396,33 +379,26 @@ export class Shape {
     
     
     // var this.watermarkidx = 0;
-    renderWatermark(idx, extraClass='')
+    renderWatermarkSection(idx, extraClass=[])
     {
-        let id = 'watermark-' + idx;
+        let key = 'watermark-' + idx;
+        let id = this.id + '-field-id-' +key;
         let displayName = 'Text ' + (idx + 1);
-        let panel_section = document.createElement('div');
-        panel_section.className  = "panel-section float-container watermark-section " + extraClass;
-        let label = document.createElement('LABEL');
-        label.setAttribute('for', id);
-        label.innerText = displayName;
-        let delete_button = document.createElement('div');
-        delete_button.className='delete-button watermark-delete-button btn small-btn';
-        delete_button.addEventListener('click', ()=>{ 
-            this.deleteItem('watermark', idx, panel_section); 
-        });
+        const ex_section_cls = ['watermark-section'].concat(extraClass);
+        
 
-        let right = document.createElement('div');
-        right.className = 'half-right flex-container typography-control';
+        // let right = document.createElement('div');
+        // right.className = 'half-right flex-container typography-control';
         let textarea = document.createElement('TEXTAREA');
-        textarea.className = 'field-id-' +id + ' watermark flex-item ' + extraClass;
-        textarea.id = this.id + '-field-id-' +id;
+        textarea.className = 'field-id-' +key + ' watermark flex-item';
+        textarea.id = id;
         textarea.setAttribute('flex', 'full');
 
         if(this.watermarks[idx] && this.watermarks[idx]['str']) {
             textarea.value = this.watermarks[idx]['str'];
             textarea.innerText = this.watermarks[idx]['str'];
         }
-        right.appendChild(textarea);
+        // right.appendChild(textarea);
 
         this.fields['watermarks'][idx] = 
         {
@@ -444,7 +420,7 @@ export class Shape {
                 'input-type': 'select',
                 'options': this.options['watermarkPositionOptions'],
                 'attr': {'flex': 'one-third'},
-                'class': 'watermark-position',
+                'class': ['watermark-position'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['position'] : null
             },{ 
                 'name': 'color',
@@ -452,7 +428,7 @@ export class Shape {
                 'input-type': 'select',
                 'options': this.options['textColorOptions'],
                 'attr': {'flex': 'one-third'},
-                'class': 'watermark-color',
+                'class': ['watermark-color'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['color'] : null
             },{ 
                 'name': 'typography',
@@ -460,7 +436,7 @@ export class Shape {
                 'input-type': 'select',
                 'options': this.options['watermarkTypographyOptions'],
                 'attr': {'flex': 'one-third'},
-                'class': 'watermark-typography',
+                'class': ['watermark-typography'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['typography'] : null
             },{ 
                 'name': 'font',
@@ -468,37 +444,39 @@ export class Shape {
                 'input-type': 'select',
                 'options': this.options['fontOptions'],
                 'attr': {'flex': 'one-third'},
-                'class': 'watermark-font',
+                'class': ['watermark-font'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['font'] : null
             },{ 
                 'name': 'rotate',
                 'id': 'watermark-rotate-' + idx,
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'rotate (0)'},
-                'class': 'watermark-rotate',
+                'class': ['watermark-rotate'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['rotate'] ? this.watermarks[idx]['rotate'] * 360 / (2 * Math.PI) : null
             },{ 
                 'name': 'shift-x',
                 'id': 'watermark-shift-x-' + idx,
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'X (0)'},
-                'class': 'watermark-shift-x',
+                'class': ['watermark-shift-x'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['x'] : null
             },{ 
                 'name': 'shift-y',
                 'id': 'watermark-shift-y-' + idx,
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'Y (0)'},
-                'class': 'watermark-shift-y',
+                'class': ['watermark-shift-y'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['y'] : null
             }
         ]
-        this.renderCustomControls(id, right, text_controls, (items)=>{
+        const control_items = Array.from(this.renderCustomControls(text_controls, (items)=>{
             let self = this;
             for(let item of items) {
                 if(item['name'].indexOf('shift-') === -1) {
                     self.fields['watermarks'][idx][item['name']] = item['el'];
                     item['el'].onchange = function(e){
+                        let label = item['el'].parentNode.parentNode.querySelector('label');
+                        console.log('render watermark section', label);
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, label);
                         let param = {};
                         if(item['name'] === 'rotate') {
@@ -542,14 +520,24 @@ export class Shape {
                 }
                 
             }
+        }));
+        const section = renderSection('', displayName, [textarea, ...control_items]);
+        const delete_button = document.createElement('div');
+        delete_button.className='delete-button watermark-delete-button btn small-btn';
+        delete_button.addEventListener('click', ()=>{ 
+            this.deleteItem('watermark', idx, section); 
         });
-        panel_section.appendChild(delete_button);
-        panel_section.appendChild(label);
-        panel_section.appendChild(right);
+        section.appendChild(delete_button);
+
+        if(!this.fields[key]) this.fields[key] = textarea;
         
-        return panel_section;
+        return section;
     }
-    renderInput(id, value='', attrs = null, extraClass = ''){
+    renderInput(key, value='', attrs = null, extraClass = []){
+        const id = this.id + '-field-id-' + key;
+        const input = renderInput(id, value, attrs, extraClass);
+        if(!this.fields[key]) this.fields[key] = input;
+        return input;
         let output = document.createElement('input');
         output.id = id;
         if(value !== null) output.value = value;
@@ -614,16 +602,15 @@ export class Shape {
     }
 
     addWatermark(str = ''){
-        // let sBtn_add_watermark = document.getElementById('btn-add-watermark');
-        let newWatermark = this.renderWatermark(this.watermarkidx); 
-        
+        let section = this.renderWatermarkSection(this.watermarkidx); 
         const availables = this.shape.watermarkPositions;
-        let position = newWatermark.querySelector('.watermark-position').value;
-        let label = newWatermark.querySelector('label[for^="watermark"]');
-        this.pp = position;
-        this.checkWatermarkPosition(this.pp, label);
+        let position = section.querySelector('.watermark-position').value;
+        let label = section.querySelector('label');
+        console.log('addWatermark label', label);
+        let pp = position;
+        this.checkWatermarkPosition(pp, label);
 
-        this.addWatermarkButton.parentNode.insertBefore(newWatermark, this.addWatermarkButton);
+        this.addWatermarkButton.parentNode.insertBefore(section, this.addWatermarkButton);
         this.watermarks[this.watermarkidx] = {
             'str': str,
             'position': this.getDefaultOption(this.options.watermarkPositionOptions, true),
@@ -651,38 +638,39 @@ export class Shape {
 
     renderControl(){
         if(this.options.shapeOptions && Object.keys(this.options.shapeOptions).length > 1) {
-            this.control.appendChild(this.renderShapeField('shape', 'Shape', this.options.shapeOptions));
-            // this.control.appendChild(this.renderSelectField('shape', 'Shape', this.options.shapeOptions));
+            this.control.appendChild(this.renderShapeSection('shape', 'Shape'));
         }
         if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
-	        this.control.appendChild(this.renderSelectField('animation', 'Animation', this.options.animationOptions));
+            const id = 'animation';
+            const [section] = this.renderSelectSection(id, 'Animation', { options: this.options.animationOptions});
+	        this.control.appendChild(section);
         }
     }
-    renderFileField(id, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){
-        let input_id = this.id + '-field-id-' + id;
+    renderFileField(key, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){
+        let id = this.id + '-field-id-' + key;
         let output = document.createElement('div');
         let input = document.createElement('input');
         let label = document.createElement('label');
         let extraWrapperClass = extraClass['wrapper'] && extraClass['wrapper'].length ? ' ' + this.getClassString(extraClass['wrapper']) : '';
-        output.className = 'field-wrapper ' + input_id + '-wrapper' + extraWrapperClass;
+        output.className = 'field-wrapper ' + id + '-wrapper' + extraWrapperClass;
         if(extraAttr['wrapper']) output = this.addExtraAttr(output, extraAttr['wrapper']);
         
         let extraInputClass = extraClass['input'] && extraClass['input'].length ? ' ' + this.getClassString(extraClass['input']) : '';
-        input.className = 'field-id-' + id + extraInputClass;
-        input.id = input_id;
+        input.className = 'field-id-' + key + extraInputClass;
+        input.id = id;
         input.type = 'file';
-		input.setAttribute('image-idx', id);
-        label.setAttribute('for', input_id);
+		input.setAttribute('image-idx', key);
+        label.setAttribute('for', id);
 		label.className = 'pseudo-upload';
         label.innerText = 'Choose file';
         output.appendChild(input);
         output.appendChild(label);
-        this.fields.media[id] = input
+        this.fields.media[key] = input
         return output;
     }
     
-    renderImageControls(id=''){
-        return renderImageControls(id);
+    renderImageControls(id, control_data){
+        return renderImageControls(id, control_data);
 	}
     renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
@@ -723,7 +711,7 @@ export class Shape {
                 this.watermarks.splice(idx, 1);
                 this.resetWatermarks(true);
                 for(let i = 0 ; i < this.watermarks.length; i++) {
-                    this.addWatermarkButton.parentNode.insertBefore(this.renderWatermark(i), this.addWatermarkButton);
+                    this.addWatermarkButton.parentNode.insertBefore(this.renderWatermarkSection(i), this.addWatermarkButton);
                 }
             }
             if(panel_section)
@@ -733,9 +721,9 @@ export class Shape {
                 delete this.media[idx];
                 this.resetMedia(true);
                 for(let id in this.media) {
-                    if(id.indexOf('media-') === 0) {
-                        this.addMedia(id, id.replace('media-', 'Media '));
-                    }
+                    // if(id.indexOf('media-') === 0) {
+                    //     this.addMedia(id, id.replace('media-', 'Media '));
+                    // }
                     
                 }
             }
@@ -792,6 +780,7 @@ export class Shape {
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
+        console.log('updateMediaPositionX', this.media[idx]);
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
     	this.media[idx].shiftX = parseFloat(imgShiftX);
