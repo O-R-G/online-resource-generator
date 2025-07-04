@@ -1,5 +1,5 @@
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
-import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralField, renderSection, renderImageControls } from './utils/render.js';
+import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralSection, renderSection, renderImageControls } from './utils/render.js';
 
 export class Shape {
 	constructor(prefix, canvasObj, options, format, shape_index = 0){
@@ -530,7 +530,7 @@ export class Shape {
         section.appendChild(delete_button);
 
         if(!this.fields[key]) this.fields[key] = textarea;
-        
+
         return section;
     }
     renderInput(key, value='', attrs = null, extraClass = []){
@@ -672,11 +672,11 @@ export class Shape {
     renderImageControls(id, control_data){
         return renderImageControls(id, control_data);
 	}
-    renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
+    renderNumeralSection(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
         const ex_cls = 'field-id-' + id + ' ' + extraClass;
         const final_id = this.id + '-field-id-' + id;
-        const [section, input] = renderNumeralField(final_id, displayName, begin, step, min, ex_cls, extraWrapperClass);
+        const [section, input] = renderNumeralSection(final_id, displayName, begin, step, min, ex_cls, extraWrapperClass);
         this.fields[id] = input;
         return section;
     }

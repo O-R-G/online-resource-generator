@@ -31,7 +31,7 @@ import * as THREE from "three";
 import { ShapeStatic } from "./ShapeStatic.js";
 import { ShapeAnimated } from "./ShapeAnimated.js";
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
-import { renderSection, renderNumeralField, renderSelect, renderSelectSection, renderImageControls } from './utils/render.js'
+import { renderSection, renderNumeralSection, renderSelect, renderSelectSection, renderImageControls } from './utils/render.js'
 import { GifWriter } from 'omggif'
 import { jsPDF } from "jspdf";
 import { Canvg } from 'canvg';
@@ -467,8 +467,8 @@ export class Canvas {
         if(!this.fields[key]) this.fields[key] = select;
         return [section, select];
     }
-    renderNumeralField(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass=''){
-        return renderNumeralField(id, displayName, begin, step, min, extraClass, extraWrapperClass);
+    renderNumeralSection(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass=''){
+        return renderNumeralSection(id, displayName, begin, step, min, extraClass, extraWrapperClass);
     }
     renderFormatField(){
         const [format_section] = this.renderSelectSection('format', 'Format', {options: this.formatOptions});
