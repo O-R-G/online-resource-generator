@@ -1082,22 +1082,22 @@ export class ShapeStatic extends Shape {
         
 		ctx.closePath();
 	}
-	drawAngoli(){
+	drawAngolo(){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		
 		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
         this.context.fillStyle = this.color;
-		this.drawAngoliPath();
+		this.drawAngoloPath();
         this.context.fill('evenodd');
 
 		this.context.fillStyle = "#ffffff";
-		this.drawAngoliCornerPath();
+		this.drawAngoloCornerPath();
         this.context.fill('evenodd');
 
 		this.context.fillStyle = this.color;
 	}
-	drawAngoliPath(ctx = null){
+	drawAngoloPath(ctx = null){
 		
         let paddingX = this.padding;
         let paddingY = this.padding;
@@ -1105,8 +1105,6 @@ export class ShapeStatic extends Shape {
 		const w = this.frame.w - paddingX * 2, h = this.frame.h - paddingY * 2
 		const inner_w = w - this.innerPadding.x * 2, inner_h = h - this.innerPadding.y * 2
 		this.updateSize(w, h);
-		// let w = this.size.width;
-		// let h = this.size.height;
 		ctx = ctx ? ctx : this.context;
 		this.context.beginPath();
         // Outer rectangle
@@ -1115,7 +1113,7 @@ export class ShapeStatic extends Shape {
 		ctx.rect(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y, inner_w, inner_h);
         this.context.closePath();
 	}
-	drawAngoliCornerPath(ctx = null){
+	drawAngoloCornerPath(ctx = null){
 		
         let paddingX = this.padding;
         let paddingY = this.padding;
@@ -1184,8 +1182,8 @@ export class ShapeStatic extends Shape {
 				this.drawHeart();
 			else if(this.shape.base == 'diamond')
 				this.drawDiamond();
-			else if (this.shape.base === 'angoli')
-				this.drawAngoli();
+			else if (this.shape.base === 'angolo')
+				this.drawAngolo();
 		}
 		else if(this.shapeMethod == 'clip')
 		{

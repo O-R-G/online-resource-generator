@@ -6,28 +6,36 @@ export class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
 		
+		this.mesh_front = null;
+		this.mesh_arr_front = [];
 		this.geometry_front = null;
 		this.geometry_front_uvs = null;
+		this.mesh_front_text = null;
+		this.material_front = this.processColor(Object.values(this.options.colorOptions)[0].color);
+		this.material_front_text = this.processColor(Object.values(this.options.textColorOptions)[0].color);
+		this.frontTypography = this.getDefaultOption(this.options.typographyOptions);
+		this.frontFont = this.getDefaultOption(this.options.fontOptions);
+		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
+		
+		this.mesh_back = null;
+		this.mesh_arr_back = [];
 		this.geometry_back = null;
 		this.geometry_back_uvs = null;
-		this.fonts = {};
+		this.mesh_back_text = null;
+		this.material_back = this.processColor(Object.values(this.options.colorOptions)[1].color);
+		this.material_back_text = this.processColor(Object.values(this.options.textColorOptions)[0].color);
+		this.backTypography = this.getDefaultOption(this.options.typographyOptions);
+		this.backFont = this.getDefaultOption(this.options.fontOptions);
+		this.backTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 
-		this.mesh_front = null;
-		this.mesh_frontText = null;
-		this.mesh_front = null;
-		this.mesh_backText = null;
 		this.isForward = true;
-		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);
-		// let speed_value = parseFloat( this.animationSpeed );
-		
+		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);		
 		this.flipAngleInterval_base = 0.005;     // aka, speed
         this.spinAngleInterval_base = 0.005;
 		this.rotateAngleInterval_base = 0.005;
-		// this.fadeInterval_base = 0.005;
 		this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;     // aka, speed
         this.spinAngleInterval = this.spinAngleInterval_base * this.animationSpeed;
 		this.rotateAngleInterval = this.rotateAngleInterval_base * this.animationSpeed;
-
 		// suppose speed 3 / 5000ms be the default
 		this.animationDurationBase = 15000; 
 
@@ -44,52 +52,15 @@ export class ShapeAnimated extends Shape {
 		this.easeAngleInitial = 0.3;
 		this.easeAngleRate = 0.98;
 		this.easeAngleInterval = this.easeAngleInitial;
-		
-		
-		let defaultFrontColor = Object.values(this.options.colorOptions)[0].color;
-		if(defaultFrontColor['type'] == 'solid' || defaultFrontColor['type'] == 'transparent')
-		{
-			let params = this.processStaticColorData(defaultFrontColor);
-			this.frontMaterial = new THREE.MeshBasicMaterial( params );
-		}
-		else if(defaultFrontColor['type'] == 'gradient')
-		{
-			this.frontMaterial = this.generateGradient(this.geometry_front, defaultFrontColor['code'], defaultFrontColor['angle']);
-		}
-
-		let defaultBackColor = Object.values(this.options.colorOptions)[1].color;
-		if(defaultBackColor['type'] == 'solid' || defaultBackColor['type'] == 'transparent')
-		{
-			let params = this.processStaticColorData(defaultBackColor);
-			this.backMaterial = new THREE.MeshBasicMaterial( params );
-		}
-		else if(defaultBackColor['type'] == 'gradient')
-		{
-			this.backMaterial = this.generateGradient(this.geometry_back, defaultBackColor['code'], defaultBackColor['angle']);
-		}
-		this.frontTextMaterial = this.processColor(Object.values(this.options.textColorOptions)[0].color);
-		this.backTextMaterial = this.processColor(Object.values(this.options.textColorOptions)[0].color);
-		
-		this.frontTypography = this.getDefaultOption(this.options.typographyOptions);
-		this.backTypography = this.getDefaultOption(this.options.typographyOptions);
-		this.frontFont = this.getDefaultOption(this.options.fontOptions);
-		this.backFont = this.getDefaultOption(this.options.fontOptions);
 		this.timer = null;
 		this.timer_delaySaveVideo = null;
 		this.watermarkTimer = null;
 		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
 		
-		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
-		this.backTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
-		
-		this.frontTextShiftX = 0;
-		this.frontTextShiftY = 0;
-		this.backTextShiftX = 0;
-		this.backTextShiftY = 0;
-
 		this.shapeShiftX = 0;
 		this.shapeShiftY = 0;
 		
+		this.fonts = {};
 		this.text = {
 			front: {
 				str: false,
@@ -104,7 +75,10 @@ export class ShapeAnimated extends Shape {
 				isBack: false
 			},
 		}
-
+		this.frontTextShiftX = 0;
+		this.frontTextShiftY = 0;
+		this.backTextShiftX = 0;
+		this.backTextShiftY = 0;
 		
 		this.frontIsGridColor = false;
 		this.backIsGridColor = false;
@@ -188,17 +162,17 @@ export class ShapeAnimated extends Shape {
 		
 	}
 	updateTextMeshByShape(shape){
-		if(this.mesh_frontText) {
-			this.mesh_frontText.maxWidth = this.maxWidth;
+		if(this.mesh_front_text) {
+			this.mesh_front_text.maxWidth = this.maxWidth;
 			if(shape.base === 'triangle') 
-				this.mesh_frontText.y += this.getValueByPixelRatio( -110 );
-			this.mesh_frontText.needsUpdate = true;
+				this.mesh_front_text.y += this.getValueByPixelRatio( -110 );
+			this.mesh_front_text.needsUpdate = true;
 		}
-		if(this.mesh_backText) {
-			this.mesh_backText.maxWidth = this.maxWidth;
+		if(this.mesh_back_text) {
+			this.mesh_back_text.maxWidth = this.maxWidth;
 			if(shape.base === 'triangle') 
-				this.mesh_backText.y += this.getValueByPixelRatio( -110 );
-			this.mesh_backText.needsUpdate = true;
+				this.mesh_back_text.y += this.getValueByPixelRatio( -110 );
+			this.mesh_back_text.needsUpdate = true;
 		}
 	}
 	drawHeart() {
@@ -328,24 +302,6 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
-	// clipRectangle(ctx = null){
-	// 	ctx = ctx ? ctx : this.context;
-	// 	if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
-    //         this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-    //     let paddingX = this.padding;
-    //     let paddingY = this.padding;
-    //     let side = this.frame.w - this.padding * 2;
-    //     this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2);
-	// 	// this.context.save();
-    //     ctx.beginPath();
-    //     ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
-    //     ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + paddingY + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 0);
-    //     ctx.arc(this.frame.x + side + paddingX - this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
-    //     ctx.arc(this.frame.x + paddingX + this.cornerRadius, this.frame.y + side + paddingY - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
-    //     ctx.closePath();
-    //     ctx.clip();
-	// 	// this.context.restore();
-	// }
 	drawRectanglePath(){
 		const output = new THREE.Shape();
 		let this_r = this.cornerRadius;
@@ -378,31 +334,8 @@ export class ShapeAnimated extends Shape {
 		return output;
 	}
 	drawTriangle(){
-		// var path_front = new THREE.Shape();
-		
-
-		// this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.6;
 		let path_front = this.drawTrianglePath();
-		// path_front.lineTo(- (this.frame.w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (this.frame.w / 2 - this_p)) / 3 + dev );
-		// path_front.arc( 0, this_r, this_r, 3 * Math.PI / 2, 5 / 6 * Math.PI, true);
-		// path_front.lineTo( - 1.732 / 2 * this_r, 2 * (1.732 * (this.frame.w / 2 - this_p)) / 3 - 3 / 2 * this_r  + dev);
-		// path_front.arc( 1.732 / 2 * this_r, - this_r / 2 , this_r, 5 / 6 * Math.PI, Math.PI / 6, true);
-		// path_front.lineTo((this.frame.w / 2 - ( this_p + 1.732 * this_r )) + 1.732 / 2 * this_r, - (1.732 * (this.frame.w / 2 - this_p)) / 3 + 3 / 2 * this_r + dev );
-		// path_front.arc(  - 1.732 / 2 * this_r, - this_r / 2 , this_r, Math.PI / 6, 3 / 2 * Math.PI , true);
-		// path_front.lineTo(- (this.frame.w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (this.frame.w / 2 - this_p)) / 3 + dev );
-		// path_front.closePath();
-
-		// var path_back = new THREE.Shape();
 		let path_back = this.drawTrianglePath();
-		// path_back.lineTo(- (this.frame.w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (this.frame.w / 2 - this_p)) / 3 + dev );
-		// path_back.arc( 0, this_r, this_r, 3 * Math.PI / 2, 5 / 6 * Math.PI, true);
-		// path_back.lineTo( - 1.732 / 2 * this_r, 2 * (1.732 * (this.frame.w / 2 - this_p)) / 3 - 3 / 2 * this_r  + dev);
-		// path_back.arc( 1.732 / 2 * this_r, - this_r / 2 , this_r, 5 / 6 * Math.PI, Math.PI / 6, true);
-		// path_back.lineTo((this.frame.w / 2 - ( this_p + 1.732 * this_r )) + 1.732 / 2 * this_r, - (1.732 * (this.frame.w / 2 - this_p)) / 3 + 3 / 2 * this_r + dev );
-		// path_back.arc(  - 1.732 / 2 * this_r, - this_r / 2 , this_r, Math.PI / 6, 3 / 2 * Math.PI , true);
-		// path_back.lineTo(- (this.frame.w / 2 - ( this_p + 1.732 * this_r )), - (1.732 * (this.frame.w / 2 - this_p)) / 3 + dev );
-		// path_back.closePath();
-
 		this.geometry_front = new THREE.ShapeGeometry(path_front);
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 	}
@@ -488,6 +421,71 @@ export class ShapeAnimated extends Shape {
 
 		output.closePath();
 		return output;
+	}
+	drawAngolo(){
+		let path_front = this.drawAngoloPath();
+		let corner
+		let path_back = this.drawAngoloPath();
+		this.geometry_front = new THREE.ShapeGeometry(path_front);
+		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.updateSize(this.canvas.width, this.canvas.height);
+	}
+	drawAngoloPath() {
+		// Outer rectangle
+		const paddingX = this.padding;
+		const paddingY = this.padding;
+		const w = this.frame.w - paddingX * 2;
+		const h = this.frame.h - paddingY * 2;
+		const inner_w = w - this.innerPadding.x * 2;
+		const inner_h = h - this.innerPadding.y * 2;
+
+		// Outer shape
+		const outer = new THREE.Shape();
+		outer.moveTo(paddingX - w / 2, paddingY - h/2);
+		outer.lineTo(paddingX + w / 2, paddingY - h/2);
+		outer.lineTo(paddingX + w / 2, paddingY + h/2);
+		outer.lineTo(paddingX - w / 2, paddingY + h/2);
+		outer.lineTo(paddingX - w / 2, paddingY - h/2);
+
+		// Inner "hole"
+		const hole = new THREE.Path();
+		hole.moveTo(paddingX + this.innerPadding.x - w / 2, paddingY + this.innerPadding.y - h/2);
+		hole.lineTo(paddingX + this.innerPadding.x - w / 2 + inner_w, paddingY + this.innerPadding.y - h/2);
+		hole.lineTo(paddingX + this.innerPadding.x - w / 2 + inner_w, paddingY + this.innerPadding.y + inner_h - h/2);
+		hole.lineTo(paddingX + this.innerPadding.x - w / 2, paddingY + this.innerPadding.y + inner_h - h/2);
+		hole.lineTo(paddingX + this.innerPadding.x - w / 2, paddingY + this.innerPadding.y - h/2);
+
+		outer.holes.push(hole);
+
+		return outer;
+	}
+
+	drawAngoloCornerPath() {
+		const paddingX = this.padding;
+		const paddingY = this.padding;
+		const size = Math.min(this.frame.w - paddingX * 2, this.frame.h - paddingY * 2) / 3;
+		const inner_w = size - this.innerPadding.x;
+		const inner_h = size - this.innerPadding.y;
+
+		// Outer shape
+		const outer = new THREE.Shape();
+		outer.moveTo(paddingX, paddingY);
+		outer.lineTo(paddingX + size, paddingY);
+		outer.lineTo(paddingX + size, paddingY + size);
+		outer.lineTo(paddingX, paddingY + size);
+		outer.lineTo(paddingX, paddingY);
+
+		// Inner "hole"
+		const hole = new THREE.Path();
+		hole.moveTo(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y);
+		hole.lineTo(paddingX + this.innerPadding.x + inner_w, paddingY + this.innerPadding.y);
+		hole.lineTo(paddingX + this.innerPadding.x + inner_w, paddingY + this.innerPadding.y + inner_h);
+		hole.lineTo(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y + inner_h);
+		hole.lineTo(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y);
+
+		outer.holes.push(hole);
+
+		return outer;
 	}
 	rotatePoint(x, y, cx, cy, angleRad) {
 		const cos = Math.cos(angleRad);
@@ -807,31 +805,31 @@ export class ShapeAnimated extends Shape {
 	}
 	updateFrontTypography(key, silent = false){
 		this.frontTypography = this.options.typographyOptions[key];
-		this.applyTypographyAndFontToTextMesh(this.mesh_frontText, this.frontTypography, this.frontFont);
+		this.applyTypographyAndFontToTextMesh(this.mesh_front_text, this.frontTypography, this.frontFont);
 		
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTypography(key, silent = false){
 		this.backTypography = this.options.typographyOptions[key];
-		this.applyTypographyAndFontToTextMesh(this.mesh_backText, this.backTypography, this.backFont, true);
+		this.applyTypographyAndFontToTextMesh(this.mesh_back_text, this.backTypography, this.backFont, true);
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontFont(key, silent = false){
 		this.frontFont = this.options.fontOptions[key];
-		this.applyTypographyAndFontToTextMesh(this.mesh_frontText, this.frontTypography, this.frontFont);
+		this.applyTypographyAndFontToTextMesh(this.mesh_front_text, this.frontTypography, this.frontFont);
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackFont(key, silent = false){
 		this.backFont = this.options.fontOptions[key];
-		this.applyTypographyAndFontToTextMesh(this.mesh_backText, this.backTypography, this.backFont, true);
+		this.applyTypographyAndFontToTextMesh(this.mesh_back_text, this.backTypography, this.backFont, true);
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontText(str, silent = false){
 		this.frontText = str;
 		this.fields['text-front'].value = this.frontText;
-		if(this.mesh_frontText) {
-			this.mesh_frontText.text = this.frontText;
-			this.mesh_frontText.needsUpdate = true;
+		if(this.mesh_front_text) {
+			this.mesh_front_text.text = this.frontText;
+			this.mesh_front_text.needsUpdate = true;
 		}
 		this.renderer.renderLists.dispose();
 		if(!silent) this.canvasObj.draw();
@@ -839,26 +837,26 @@ export class ShapeAnimated extends Shape {
 	updateBackText(str, silent = false){
 		this.backText = str;
 		this.fields['text-back'].value = this.backText;
-		if(this.mesh_backText) {
-			this.mesh_backText.text = this.backText;
-			this.mesh_backText.needsUpdate = true;
+		if(this.mesh_back_text) {
+			this.mesh_back_text.text = this.backText;
+			this.mesh_back_text.needsUpdate = true;
 		}
 		this.renderer.renderLists.dispose();
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPosition(position, silent = false){
         this.frontTextPosition = position;
-		if(this.mesh_frontText) {
-			this.mesh_frontText.textAlign = position == 'align-left' ? 'left' : 'center';
-			this.mesh_frontText.anchorX = position == 'align-left' ? 'left' : 'center';
+		if(this.mesh_front_text) {
+			this.mesh_front_text.textAlign = position == 'align-left' ? 'left' : 'center';
+			this.mesh_front_text.anchorX = position == 'align-left' ? 'left' : 'center';
 			this.updateFrontTextPositionX(silent);
 		}
     }
     updateBackTextPosition(position, silent = false){
         this.backTextPosition = position;
-		if(this.mesh_backText) {
-			this.mesh_backText.textAlign = position == 'align-left' ? 'left' : 'center';
-			this.mesh_backText.anchorX = position == 'align-left' ? 'left' : 'center';
+		if(this.mesh_back_text) {
+			this.mesh_back_text.textAlign = position == 'align-left' ? 'left' : 'center';
+			this.mesh_back_text.anchorX = position == 'align-left' ? 'left' : 'center';
 			this.updateBackTextPositionX(silent);
 		}
     }
@@ -873,7 +871,7 @@ export class ShapeAnimated extends Shape {
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
         this.frontTextShiftY = y;
-		if(this.mesh_frontText)
+		if(this.mesh_front_text)
 			this.updateFrontTextPositionY(silent);
     }
 	updateBackTextShiftX(x, silent = false){
@@ -889,42 +887,40 @@ export class ShapeAnimated extends Shape {
 		this.updateBackTextPositionY(silent);
     }
 	updateFrontTextPositionX(silent=false){
-		if(!this.mesh_frontText) return;
+		if(!this.mesh_front_text) return;
 		// let dev = this.getValueByPixelRatio(-3);
 		let x = this.frontTextPosition === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
 		x += parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) ? parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) : 0;
 
-		this.mesh_frontText.position.x = x;
-		this.mesh_frontText.needsUpdate = true;
+		this.mesh_front_text.position.x = x;
+		this.mesh_front_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextPositionY(silent=false){
 		let y = parseFloat(this.frontTextShiftY) ? parseFloat(this.frontTextShiftY) : 0;
-		this.mesh_frontText.position.y = this.getValueByPixelRatio(y);
-		this.mesh_frontText.needsUpdate = true;
+		this.mesh_front_text.position.y = this.getValueByPixelRatio(y);
+		this.mesh_front_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextPositionX(silent=false){
-		if(!this.mesh_backText) return;
+		if(!this.mesh_back_text) return;
 		let dev = this.getValueByPixelRatio(-3);
 		let x = this.backTextPosition === 'align-left' ? - this.textBoxWidth / 2 + dev : 0;
 		x += parseFloat(this.getValueByPixelRatio(this.backTextShiftX)) ? parseFloat(this.getValueByPixelRatio(this.backTextShiftX)) : 0;
-		this.mesh_backText.position.x = x;
-		this.mesh_backText.needsUpdate = true;
+		this.mesh_back_text.position.x = x;
+		this.mesh_back_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextPositionY(silent=false){
 		let y = parseFloat(this.backTextShiftY) ? parseFloat(this.backTextShiftY) : 0;
-		this.mesh_backText.position.y = this.getValueByPixelRatio(-y);
-		this.mesh_backText.needsUpdate = true;
+		this.mesh_back_text.position.y = this.getValueByPixelRatio(-y);
+		this.mesh_back_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
 	updateShapeShiftX(x, silent = false){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
 		this.shapeShiftX = x;
-		// this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
-		// this.group.needsUpdate = true;
 		this.setGroupPosition();
         if(!silent) this.canvasObj.draw();
     }
@@ -967,10 +963,10 @@ export class ShapeAnimated extends Shape {
 			sec.classList.remove('viewing-background-upload');
 			this.shapeMethod = 'draw';
 			this.frontIsGridColor = color['type'] == 'special';
-			if(this.frontMaterial) this.frontMaterial.dispose();
-			this.frontMaterial = this.processColor(color);
+			if(this.material_front) this.material_front.dispose();
+			this.material_front = this.processColor(color);
 			if(this.mesh_front) {
-				this.mesh_front.material = this.frontMaterial;
+				this.mesh_front.material = this.material_front;
 				this.mesh_front.needsUpdate = true;
 			}
 			if(!silent) this.canvasObj.draw();
@@ -984,10 +980,10 @@ export class ShapeAnimated extends Shape {
 			sec.classList.remove('viewing-background-upload');
 			this.shapeMethod = 'draw';
 			this.backIsGridColor = color['type'] == 'special';
-			if(this.backMaterial) this.backMaterial.dispose();
-			this.backMaterial = this.processColor(color);
+			if(this.material_back) this.material_back.dispose();
+			this.material_back = this.processColor(color);
 			if(this.mesh_back) {
-				this.mesh_back.material = this.backMaterial;
+				this.mesh_back.material = this.material_back;
 				this.mesh_back.needsUpdate = true;
 			}
 			if(!silent) this.canvasObj.draw();
@@ -996,18 +992,18 @@ export class ShapeAnimated extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	updateFrontTextColor(color, silent = false){
-		this.frontTextMaterial = this.processColor(color);
-		if(this.mesh_frontText) {
-			this.mesh_frontText.material = this.frontTextMaterial;
-			this.mesh_frontText.needsUpdate = true;
+		this.material_front_text = this.processColor(color);
+		if(this.mesh_front_text) {
+			this.mesh_front_text.material = this.material_front_text;
+			this.mesh_front_text.needsUpdate = true;
 		}
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextColor(color, silent = false){
-		this.backTextMaterial = this.processColor(color);
-		if(this.mesh_backText) {
-			this.mesh_backText.material = this.backTextMaterial;
-			this.mesh_backText.needsUpdate = true;
+		this.material_back_text = this.processColor(color);
+		if(this.mesh_back_text) {
+			this.mesh_back_text.material = this.material_back_text;
+			this.mesh_back_text.needsUpdate = true;
 		}
 		if(!silent) this.canvasObj.draw();
 	}
@@ -1054,7 +1050,7 @@ export class ShapeAnimated extends Shape {
 	applyVideoAsMaterial(idx, silent=false, isBack=false){
 		let videoElement = this.media[idx].obj;
 		const texture = new THREE.VideoTexture( videoElement );
-		let material = isBack ? this.backMaterial : this.frontMaterial;
+		let material = isBack ? this.material_back : this.material_front;
 		let mesh = isBack ? this.mesh_back : this.mesh_front;
 		material = new THREE.MeshBasicMaterial({ map: texture })
 		mesh.material = material;
@@ -1093,7 +1089,7 @@ export class ShapeAnimated extends Shape {
 		}
 		else {
 			if(!isBack) 
-				this.mesh_front.remove(this.frontMaterial);
+				this.mesh_front.remove(this.material_front);
 			this.applyImageAsMaterial(idx, silent, isBack)
 		}
 	}
@@ -1107,11 +1103,11 @@ export class ShapeAnimated extends Shape {
 			
 			let mesh = isBack ? this.mesh_back : this.mesh_front;
 			  if(!isBack) {
-				this.frontMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-				mesh.material = this.frontMaterial;
+				this.material_front = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+				mesh.material = this.material_front;
 			} else {
-				this.backMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-				mesh.material = this.backMaterial;
+				this.material_back = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+				mesh.material = this.material_back;
 			}
 			mesh.needsUpdate = true;
 			let geometry = isBack ? this.geometry_back : this.geometry_front;
@@ -1206,6 +1202,8 @@ export class ShapeAnimated extends Shape {
 			this.drawHeart();
 		else if(this.shape.base == 'diamond')
 			this.drawDiamond();
+		else if(this.shape.base == 'angolo')
+			this.drawAngolo();
 		
 		if(this.mesh_front) {
 			this.mesh_front.geometry = this.geometry_front;
@@ -1232,18 +1230,18 @@ export class ShapeAnimated extends Shape {
 		let sync = !animate;
 		this.scene.add( this.group );
 		if(this.frontIsGridColor){
-			this.mesh_front = this.frontMaterial;
+			this.mesh_front = this.material_front;
 		}
 		else if(!this.mesh_front){
-			this.mesh_front = new THREE.Mesh( this.geometry_front, this.frontMaterial );
+			this.mesh_front = new THREE.Mesh( this.geometry_front, this.material_front );
 			this.mesh_front.scale.copy(this.scale);
 		} 
 		
 		if(this.backIsGridColor){
-			this.mesh_back = this.backMaterial;
+			this.mesh_back = this.material_back;
 		}
 		else if(!this.mesh_back){
-			this.mesh_back = new THREE.Mesh( this.geometry_back, this.backMaterial );
+			this.mesh_back = new THREE.Mesh( this.geometry_back, this.material_back );
 			this.mesh_back.scale.copy(this.scale);
 		} 
 		if(this.frontWatermarkGroup.parent !== this.mesh_front)
@@ -1251,17 +1249,17 @@ export class ShapeAnimated extends Shape {
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
 			this.mesh_back.add(this.backWatermarkGroup);
 
-		if(!this.mesh_frontText && this.frontText) {
+		if(!this.mesh_front_text && this.frontText) {
 			
-			this.mesh_frontText = this.write( this.frontText, this.frontTypography, this.frontTextMaterial, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
-			if(this.mesh_frontText) {
-				this.mesh_front.add(this.mesh_frontText);
+			this.mesh_front_text = this.write( this.frontText, this.frontTypography, this.material_front_text, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
+			if(this.mesh_front_text) {
+				this.mesh_front.add(this.mesh_front_text);
 			}
 		}
-		if(!this.mesh_backText && this.backText) {
-			this.mesh_backText = this.write( this.backText, this.backTypography, this.backTextMaterial, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
-			if(this.mesh_backText) {
-				this.mesh_back.add(this.mesh_backText);
+		if(!this.mesh_back_text && this.backText) {
+			this.mesh_back_text = this.write( this.backText, this.backTypography, this.material_back_text, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
+			if(this.mesh_back_text) {
+				this.mesh_back.add(this.mesh_back_text);
 			}
 		}
 		if( this.shape.watermarkPositions !== undefined)
@@ -1269,22 +1267,6 @@ export class ShapeAnimated extends Shape {
 			this.frontWatermarkGroup.clear();
 			this.backWatermarkGroup.clear();
 			this.watermarks.forEach(function(el, i){
-				// if(el.mesh_front) {
-					
-				// 	this.frontWatermarkGroup.remove(el.mesh_front);
-				// 	if(el.mesh_front instanceof Text) {
-				// 		el.mesh_front.dispose();
-				// 	}
-				// 	else if(el.mesh_front instanceof THREE.Group)
-				// 		this.disposeGroup(el.mesh_front);
-				// }
-				// if(el.mesh_back) {
-				// 	this.backWatermarkGroup.remove(el.mesh_back);
-				// 	if(el.mesh_back instanceof Text)
-				// 		el.mesh_back.dispose();
-				// 	else if(el.mesh_back instanceof THREE.Group)
-				// 		this.disposeGroup(el.mesh_back);
-				// }
 
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
@@ -1292,7 +1274,6 @@ export class ShapeAnimated extends Shape {
 					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
 					let renderOrder = i;
-					// console.log('animated watermark:', el.str);
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_front) this.frontWatermarkGroup.add(el.mesh_front);
 					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, el.shift, el.font, el.rotate, sync, renderOrder);
@@ -1459,12 +1440,6 @@ export class ShapeAnimated extends Shape {
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
 	}
-	// resetMaterials(){
-	// 	if(this.frontMaterial) { 
-	// 		this.frontMaterial.opacity = 1;
-	// 		this.frontMaterial.needsUpdate = true;
-	// 	}
-	// }
 	resetMesh(){
 		if(this.isForward)
             this.group.remove( this.mesh_front );
@@ -1486,16 +1461,16 @@ export class ShapeAnimated extends Shape {
 		}
 	}
 	resetMaterials(){
-		if(this.frontMaterial) {
-			if(this.frontMaterial.opacity !== 1) {
-				this.frontMaterial.opacity = 1;
-				this.frontMaterial.needsUpdate = true;
+		if(this.material_front) {
+			if(this.material_front.opacity !== 1) {
+				this.material_front.opacity = 1;
+				this.material_front.needsUpdate = true;
 			}
 		}
-		if(this.frontTextMaterial) {
-			if(this.frontTextMaterial.opacity !== 1) {
-				this.frontTextMaterial.opacity = 1;
-				this.frontTextMaterial.needsUpdate = true;
+		if(this.material_front_text) {
+			if(this.material_front_text.opacity !== 1) {
+				this.material_front_text.opacity = 1;
+				this.material_front_text.needsUpdate = true;
 			}
 			
 		}
@@ -1507,17 +1482,17 @@ export class ShapeAnimated extends Shape {
 				}
 			});
 		}
-		if(this.backMaterial) {
-			if(this.backMaterial.opacity !== 1) {
-				this.backMaterial.opacity = 1;
-				this.backMaterial.needsUpdate = true;
+		if(this.material_back) {
+			if(this.material_back.opacity !== 1) {
+				this.material_back.opacity = 1;
+				this.material_back.needsUpdate = true;
 			}
 
 		}
-		if(this.backTextMaterial) {
-			if(this.backTextMaterial.opacity !== 1) {
-				this.backTextMaterial.opacity = 1;
-				this.backTextMaterial.needsUpdate = true;
+		if(this.material_back_text) {
+			if(this.material_back_text.opacity !== 1) {
+				this.material_back_text.opacity = 1;
+				this.material_back_text.needsUpdate = true;
 			}
 			
 		}
@@ -1596,7 +1571,7 @@ export class ShapeAnimated extends Shape {
 		// 	// this.mesh_back.scale.copy(this.scale);
 		// 	this.backWatermarkGroup.scale.copy(this.scale);
 		// 	this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
-		// 	if(this.mesh_backText) this.mesh_backText.rotation.y = Math.PI;
+		// 	if(this.mesh_back_text) this.mesh_back_text.rotation.y = Math.PI;
 		// 	if(!isSilent) this.spinEase();
 		// }
 		// else if(animationName == 'flip-ease')
@@ -1604,7 +1579,7 @@ export class ShapeAnimated extends Shape {
 		// 	this.mesh_back.rotation.x = Math.PI;
 		// 	this.backWatermarkGroup.scale.copy(this.scale);
 		// 	this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
-		// 	if(this.mesh_backText) this.mesh_backText.rotation.x = Math.PI;
+		// 	if(this.mesh_back_text) this.mesh_back_text.rotation.x = Math.PI;
 		// 	if(!isSilent) this.flipEase();
 		// }
 		else if(animationName.indexOf('rest') !== -1)
@@ -1639,11 +1614,11 @@ export class ShapeAnimated extends Shape {
 			// 	alert('fade-in delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
 			// 	return;
 			// }
-			this.frontMaterial.transparent = true;
-			this.frontMaterial.opacity = 0;
-			this.frontMaterial.needsUpdate = true;
-			this.frontTextMaterial.opacity = 0;
-			this.frontTextMaterial.needsUpdate = true;
+			this.material_front.transparent = true;
+			this.material_front.opacity = 0;
+			this.material_front.needsUpdate = true;
+			this.material_front_text.opacity = 0;
+			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
 				if (child.isMesh && child.material) {
 					child.material.opacity = 0;
@@ -1652,7 +1627,7 @@ export class ShapeAnimated extends Shape {
 			});
 
 			this.animationDuration = (this.fadeInDurationBase + this.fadeInDelayBase) / this.animationSpeed;
-			this.frontMaterial.needsUpdate = true;
+			this.material_front.needsUpdate = true;
 			
 		}
 		else if(animationName == 'fadeOut'){
@@ -1660,11 +1635,11 @@ export class ShapeAnimated extends Shape {
 			// 	alert('fade-out delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
 			// 	return;
 			// }
-			this.frontMaterial.transparent = true;
-			this.frontMaterial.opacity = 1;
-			this.frontMaterial.needsUpdate = true;
-			this.frontTextMaterial.opacity = 1;
-			this.frontTextMaterial.needsUpdate = true;
+			this.material_front.transparent = true;
+			this.material_front.opacity = 1;
+			this.material_front.needsUpdate = true;
+			this.material_front_text.opacity = 1;
+			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
 				if (child.isMesh && child.material) {
 					child.material.opacity = 1;
@@ -1834,10 +1809,10 @@ export class ShapeAnimated extends Shape {
 			}
 		} else {
 			let opacity = progress / (this.fadeInDurationBase / this.animationSpeed / this.animationDuration);
-			this.frontMaterial.opacity = opacity;
-			this.frontMaterial.needsUpdate = true;
-			this.frontTextMaterial.opacity = opacity;
-			this.frontTextMaterial.needsUpdate = true;
+			this.material_front.opacity = opacity;
+			this.material_front.needsUpdate = true;
+			this.material_front_text.opacity = opacity;
+			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
 				if (child.isMesh && child.material) {
 					child.material.opacity = opacity;
@@ -1857,10 +1832,10 @@ export class ShapeAnimated extends Shape {
 				
 		} else if(progress > delay_progress){
 			let opacity = (1 - progress)  / (1 - delay_progress);
-			this.frontMaterial.opacity = opacity;
-			this.frontMaterial.needsUpdate = true;
-			this.frontTextMaterial.opacity = 1 - (progress - delay_progress)  / (1 - delay_progress);
-			this.frontTextMaterial.needsUpdate = true;
+			this.material_front.opacity = opacity;
+			this.material_front.needsUpdate = true;
+			this.material_front_text.opacity = 1 - (progress - delay_progress)  / (1 - delay_progress);
+			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
 				if (child.isMesh && child.material) {
 					child.material.opacity = 1 - (progress - delay_progress)  / (1 - delay_progress);
@@ -2274,7 +2249,7 @@ export class ShapeAnimated extends Shape {
     }
 	syncImgs(){
 		super.syncImgs();
-		if(this.frontMaterial.map instanceof THREE.Texture && this.media['front-background-image']) {
+		if(this.material_front.map instanceof THREE.Texture && this.media['front-background-image']) {
 			let idx = this.fieldCounterparts['front-background-image'];
 			this.counterpart.updateMedia(idx, this.media['front-background-image'].img);
 		}
