@@ -988,9 +988,9 @@ drawAngoloCornerPath() {
 	updateFrontColor(color, silent = false, transparent=false){
 		let sec = this.fields['shape-front-color'].parentNode.parentNode;
 		if(color === 'upload') {
-			sec.classList.add('viewing-background-upload');
+			sec.classList.add('viewing-shape-image-section');
 		} else  {
-			sec.classList.remove('viewing-background-upload');
+			sec.classList.remove('viewing-shape-image-section');
 			this.shapeMethod = 'draw';
 			this.frontIsGridColor = color['type'] == 'special';
 			if(this.material_front) this.material_front.dispose();
@@ -1005,9 +1005,9 @@ drawAngoloCornerPath() {
 	updateBackColor(color, silent = false){
 		let sec = this.fields['shape-back-color'].parentNode.parentNode;
 		if(color === 'upload') {
-			sec.classList.add('viewing-background-upload');
+			sec.classList.add('viewing-shape-image-section');
 		}  else  {
-			sec.classList.remove('viewing-background-upload');
+			sec.classList.remove('viewing-shape-image-section');
 			this.shapeMethod = 'draw';
 			this.backIsGridColor = color['type'] == 'special';
 			if(this.material_back) this.material_back.dispose();
@@ -1937,16 +1937,13 @@ drawAngoloCornerPath() {
 		this.control.appendChild(front_color_section);
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'front';
-			// let field = this.renderFileField(, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-			// let controls = this.renderImageControls(prefix + '-background-image');
-			// let section = this.renderSection('', '', [field, controls], 'background-image-section');
-			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['color-image-section'])
+			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['shape-image-section'])
 			this.control.appendChild(section);
 		}
 		this.control.appendChild(back_color_section);
 		if(this.options.colorOptions['upload']) {
 			let prefix = 'back';
-			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['color-image-section'])
+			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['shape-image-section'])
 			this.control.appendChild(section);
 		}
 		this.fields['shape-back-color'].selectedIndex = 1;
@@ -2113,7 +2110,7 @@ drawAngoloCornerPath() {
 				this.updateFrontColor('upload');
 			}
 	        else {
-				// sec.classList.remove('viewing-background-upload');
+				// sec.classList.remove('viewing-shape-image-section');
 				if( this.options.colorOptions[shape_color]['color']['type'] == 'solid' || 
 					this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
 					this.options.colorOptions[shape_color]['color']['type'] == 'special')
@@ -2139,11 +2136,11 @@ drawAngoloCornerPath() {
 	        let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
 			if(shape_color === 'upload') {
-				sec.classList.add('viewing-background-upload');
+				sec.classList.add('viewing-shape-image-section');
 				this.updateBackColor('upload');
 			}
 	        else {
-				sec.classList.remove('viewing-background-upload');
+				sec.classList.remove('viewing-shape-image-section');
 				if( this.options.colorOptions[shape_color]['color']['type'] == 'solid' || 
 					this.options.colorOptions[shape_color]['color']['type'] == 'gradient' ||
 					this.options.colorOptions[shape_color]['color']['type'] == 'special')
