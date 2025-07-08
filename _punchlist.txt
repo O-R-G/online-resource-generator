@@ -63,3 +63,5 @@ x unify text-handling (main texts and watermarks)
 + shape "angoli" for animated shapes
 - update old database: media-1-shift-x => static-shape-0-field-id-media-1-shift-x
 - make sure the key of base in the saved records is a word instead of a hex code
+- pdf generation is not working right
+- mobile css
