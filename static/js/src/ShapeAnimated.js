@@ -7,11 +7,15 @@ export class ShapeAnimated extends Shape {
 		super(prefix, canvasObj, options, format, shape_index);
 		
 		this.mesh_front = null;
-		this.mesh_arr_front = [];
+		this.secondary_mesh_front = null;
 		this.geometry_front = null;
 		this.geometry_front_uvs = null;
-		this.mesh_front_text = null;
 		this.material_front = this.processColor(Object.values(this.options.colorOptions)[0].color);
+		this.shapes_mesh_front = {};
+		this.shapes_geometry_front = {};
+		this.shapes_geometry_front_uvs = {};
+		this.shapes_material_front = {};
+		this.mesh_front_text = null;
 		this.material_front_text = this.processColor(Object.values(this.options.textColorOptions)[0].color);
 		this.frontTypography = this.getDefaultOption(this.options.typographyOptions);
 		this.frontFont = this.getDefaultOption(this.options.fontOptions);
@@ -23,6 +27,10 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back_uvs = null;
 		this.mesh_back_text = null;
 		this.material_back = this.processColor(Object.values(this.options.colorOptions)[1].color);
+		this.shapes_mesh_back = {};
+		this.shapes_geometry_back = {};
+		this.shapes_geometry_back_uvs = {};
+		this.shapes_material_back = {};
 		this.material_back_text = this.processColor(Object.values(this.options.textColorOptions)[0].color);
 		this.backTypography = this.getDefaultOption(this.options.typographyOptions);
 		this.backFont = this.getDefaultOption(this.options.fontOptions);
@@ -146,6 +154,7 @@ export class ShapeAnimated extends Shape {
 	updateShape(shape, silent = false){
 		
 		super.updateShape(shape);
+		this.resetExtraShapes();
 		this.padding = this.getValueByPixelRatio(this.padding);
 		for(const prop in this.innerPadding)
 			this.innerPadding[prop] = this.getValueByPixelRatio(this.innerPadding[prop]);
@@ -424,10 +433,19 @@ export class ShapeAnimated extends Shape {
 	}
 	drawAngolo(){
 		let path_front = this.drawAngoloPath();
-		let corner
 		let path_back = this.drawAngoloPath();
+		let path_corner_front = this.drawAngoloCornerPath();
+		let path_corner_back = this.drawAngoloCornerPath();
 		this.geometry_front = new THREE.ShapeGeometry(path_front);
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		const key = 'angolo-corner';
+		const material = this.processColor( this.options.colorOptions['white'].color);
+		console.log('material in drawAngolo: ', material);
+		this.shapes_geometry_front[key] = new THREE.ShapeGeometry(path_corner_front);
+		this.shapes_geometry_back[key] = new THREE.ShapeGeometry(path_corner_back);
+		this.shapes_material_front[key] = material;
+		this.shapes_material_back[key] = material;
+		console.log(this.shapes_material_front);
 		this.updateSize(this.canvas.width, this.canvas.height);
 	}
 	drawAngoloPath() {
@@ -460,33 +478,42 @@ export class ShapeAnimated extends Shape {
 		return outer;
 	}
 
-	drawAngoloCornerPath() {
-		const paddingX = this.padding;
-		const paddingY = this.padding;
-		const size = Math.min(this.frame.w - paddingX * 2, this.frame.h - paddingY * 2) / 3;
-		const inner_w = size - this.innerPadding.x;
-		const inner_h = size - this.innerPadding.y;
+drawAngoloCornerPath() {
+    const paddingX = this.padding;
+    const paddingY = this.padding;
+    const w = this.frame.w - paddingX * 2;
+    const h = this.frame.h - paddingY * 2;
+    const size = Math.min(w, h) / 3;
 
-		// Outer shape
-		const outer = new THREE.Shape();
-		outer.moveTo(paddingX, paddingY);
-		outer.lineTo(paddingX + size, paddingY);
-		outer.lineTo(paddingX + size, paddingY + size);
-		outer.lineTo(paddingX, paddingY + size);
-		outer.lineTo(paddingX, paddingY);
 
-		// Inner "hole"
-		const hole = new THREE.Path();
-		hole.moveTo(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y);
-		hole.lineTo(paddingX + this.innerPadding.x + inner_w, paddingY + this.innerPadding.y);
-		hole.lineTo(paddingX + this.innerPadding.x + inner_w, paddingY + this.innerPadding.y + inner_h);
-		hole.lineTo(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y + inner_h);
-		hole.lineTo(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y);
+    // Top left corner (Three.js: origin at center, +y is up)
+    const x0 = paddingX - w / 2;
+    const y0 = h / 2 - paddingY;
 
-		outer.holes.push(hole);
+    // Outer shape (top left)
+    const outer = new THREE.Shape();
+    outer.moveTo(x0, y0);
+	outer.lineTo(x0 + size, y0);
+    outer.lineTo(x0 + size, y0 - size);
+    outer.lineTo(x0, y0 - size);
+	outer.lineTo(x0, y0);
 
-		return outer;
-	}
+    // Inner "hole" (extended down)
+	const x_inner = x0 + this.innerPadding.x;
+    const y_inner = y0 - this.innerPadding.y;
+	// console.log(x0, y0, x_inner, y_inner);
+	// const hole = new THREE.Shape();
+    const hole = new THREE.Path();
+    hole.moveTo(x_inner, y_inner);
+	hole.lineTo(x_inner, y_inner - (size - this.innerPadding.y));
+	hole.lineTo(x_inner + (size - this.innerPadding.x), y_inner - (size - this.innerPadding.y));
+	hole.lineTo(x_inner + (size - this.innerPadding.x), y_inner);
+    hole.lineTo(x_inner, y_inner);
+
+    outer.holes.push(hole);
+
+    return outer;
+}
 	rotatePoint(x, y, cx, cy, angleRad) {
 		const cos = Math.cos(angleRad);
 		const sin = Math.sin(angleRad);
@@ -1231,19 +1258,20 @@ export class ShapeAnimated extends Shape {
 		this.scene.add( this.group );
 		if(this.frontIsGridColor){
 			this.mesh_front = this.material_front;
-		}
-		else if(!this.mesh_front){
+		} else if(!this.mesh_front){
 			this.mesh_front = new THREE.Mesh( this.geometry_front, this.material_front );
 			this.mesh_front.scale.copy(this.scale);
 		} 
+		this.addExtraShapeMeshes(this.mesh_front, this.shapes_geometry_front, this.shapes_material_front);
 		
 		if(this.backIsGridColor){
 			this.mesh_back = this.material_back;
-		}
-		else if(!this.mesh_back){
+		} else if(!this.mesh_back){
 			this.mesh_back = new THREE.Mesh( this.geometry_back, this.material_back );
 			this.mesh_back.scale.copy(this.scale);
 		} 
+		this.addExtraShapeMeshes(this.mesh_back, this.shapes_geometry_back, this.shapes_material_back);
+
 		if(this.frontWatermarkGroup.parent !== this.mesh_front)
 			this.mesh_front.add(this.frontWatermarkGroup);
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
@@ -1300,7 +1328,19 @@ export class ShapeAnimated extends Shape {
 		this.isForward = true;
 		this.actualDraw(animate);
 	}
-	
+	addExtraShapeMeshes(main_mesh, geometry_arr, metarial_arr, isBack = false){
+		if(Object.keys(geometry_arr).length > 0) {
+			for(const key in geometry_arr) {
+				const material = metarial_arr[key];
+				if(!material) continue;
+				const mesh = new THREE.Mesh( geometry_arr[key], material );
+				mesh.position.z = 0.5;
+				main_mesh.add(mesh);
+				main_mesh.needsUpdate = true;
+			}
+		}
+		// return main_mesh;
+	}
 	generateThreeColorsGradient(uniforms, angle){
 		uniforms.measure = Math.abs(uniforms.bboxMax.value.x * 2);
 		let material_gradient = new THREE.ShaderMaterial({
@@ -1441,24 +1481,35 @@ export class ShapeAnimated extends Shape {
         this.renderer.render( this.scene, this.camera );
 	}
 	resetMesh(){
-		if(this.isForward)
-            this.group.remove( this.mesh_front );
+		if(this.isForward){
+			this.group.remove( this.mesh_front );
+		}
         else
             this.group.remove( this.mesh_back );
+		this.disposeHierarchy(this.group);
 		if(this.mesh_front) {
+			this.disposeHierarchy(this.mesh_front);
 			this.mesh_front.rotation.x = 0;
 			this.mesh_front.rotation.y = 0;
 			this.mesh_front.rotation.z = 0;
 			this.mesh_front.needsUpdate = true;
 		}
-		
-
 		if(this.mesh_back) {
+			this.disposeHierarchy(this.mesh_back);
 			this.mesh_back.rotation.x = 0;
 			this.mesh_back.rotation.y = 0;
 			this.mesh_back.rotation.z = 0;
 			this.mesh_back.needsUpdate = true;
 		}
+		
+	}
+	resetExtraShapes(){
+		this.shapes_geometry_front = {};
+		this.shapes_geometry_front_uvs = {};
+		this.shapes_material_front = {};
+		this.shapes_geometry_back = {};
+		this.shapes_geometry_back_uvs = {};
+		this.shapes_material_back = {};
 	}
 	resetMaterials(){
 		if(this.material_front) {
@@ -1505,6 +1556,32 @@ export class ShapeAnimated extends Shape {
 			});
 		}
 		
+	}
+	disposeHierarchy(node) {
+		/* remove all the children of node */
+		const children = [...node.children]; // clone the array to avoid modification issues
+
+		for (const child of children) {
+		this.disposeHierarchy(child); // Recursively dispose first
+
+		if (child.geometry) {
+			child.geometry.dispose();
+		}
+
+		if (child.material) {
+			if (Array.isArray(child.material)) {
+			child.material.forEach(mat => {
+				if (mat.map) mat.map.dispose();
+				mat.dispose();
+			});
+			} else {
+			if (child.material.map) child.material.map.dispose();
+			child.material.dispose();
+			}
+		}
+
+		node.remove(child); // Safely remove after disposal
+		}
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
 		this.animationName = animationData;
@@ -1652,7 +1729,7 @@ export class ShapeAnimated extends Shape {
 		}
 		else {
 			this.resetMesh();
-
+			// this.resetExtraShapes();
 		}
 		this.renderer.render( this.scene, this.camera );
 		if(!isSilent) this.animate(performance.now());
