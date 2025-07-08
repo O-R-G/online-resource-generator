@@ -101,6 +101,7 @@ if(!empty($_FILES)) {
         }
         
     }
+
     if(!empty($record_body_json['images'])) {
         $record_body = addslashes(json_encode($record_body_json));
         $sql = "UPDATE objects SET body = '$record_body' WHERE id = $record_id";

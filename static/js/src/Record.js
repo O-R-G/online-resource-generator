@@ -295,7 +295,6 @@ export class Record {
                 active: (document.body.classList.contains('viewing-three') && isThree) || (!document.body.classList.contains('viewing-three') && !isThree),
                 'common-controls': {},
                 'shape-controls': {},
-                // 'record_body': null
             }
 
             let shape_controls = container.querySelectorAll('.shape-control');
@@ -358,14 +357,28 @@ export class Record {
                         record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
                         continue;
                     }
-                    if(!field.value) continue;
-                    data['fields'].push(this.formatField(field));
+                    if(field.type === 'file') {
+                        console.log(field.id);
+                        if(field.id === 'static-canvas-field-id-base-image')
+                            console.log(field.files.length);
+                        if(field.files.length > 0) {
+                            formData.append(field.id, field.files[0]);
+                        } else if(field.getAttribute('data-file-src')) {
+                            record_body['images'][field.id] = field.getAttribute('data-file-src').replace(media_relative_root, '');
+                        } else {
+                            continue;
+                        }
+                        
+                    } else {
+                        if(!field.value) continue;
+                        data['fields'].push(this.formatField(field));
+                    }
+                    
                 }
                 record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
-        // console.log(record_body);
-        // return;
+        
         record_body = JSON.stringify(record_body);
         
         formData.append('record_body', record_body);

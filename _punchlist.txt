@@ -61,7 +61,10 @@ x clean up setCanvasSize for three.js canvas
 x unify text-handling (main texts and watermarks)
 - italic style for animated shapes
 + shape "angoli" for animated shapes
+- custom base image can not be saved
 - update old database: media-1-shift-x => static-shape-0-field-id-media-1-shift-x
 - make sure the key of base in the saved records is a word instead of a hex code
 - pdf generation is not working right
+- update the text of the "Choose file" button when a file has been selected
+- wrong watermark position for animated angolo
 - mobile css
