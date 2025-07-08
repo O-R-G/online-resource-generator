@@ -440,22 +440,23 @@ export class ShapeAnimated extends Shape {
 		this.geometry_back = new THREE.ShapeGeometry(path_back);
 		const key = 'angolo-corner';
 		const material = this.processColor( this.options.colorOptions['white'].color);
-		console.log('material in drawAngolo: ', material);
 		this.shapes_geometry_front[key] = new THREE.ShapeGeometry(path_corner_front);
 		this.shapes_geometry_back[key] = new THREE.ShapeGeometry(path_corner_back);
 		this.shapes_material_front[key] = material;
 		this.shapes_material_back[key] = material;
-		console.log(this.shapes_material_front);
 		this.updateSize(this.canvas.width, this.canvas.height);
 	}
 	drawAngoloPath() {
 		// Outer rectangle
 		const paddingX = this.padding;
 		const paddingY = this.padding;
+		const thicknessX = this.getValueByPixelRatio(this.shape.thickness[0]),
+		thicknessY = this.getValueByPixelRatio(this.shape.thickness[1]);
 		const w = this.frame.w - paddingX * 2;
 		const h = this.frame.h - paddingY * 2;
-		const inner_w = w - this.innerPadding.x * 2;
-		const inner_h = h - this.innerPadding.y * 2;
+		const inner_w = w - thicknessX * 2;
+		const inner_h = h - thicknessY * 2;
+		
 
 		// Outer shape
 		const outer = new THREE.Shape();
@@ -467,11 +468,11 @@ export class ShapeAnimated extends Shape {
 
 		// Inner "hole"
 		const hole = new THREE.Path();
-		hole.moveTo(paddingX + this.innerPadding.x - w / 2, paddingY + this.innerPadding.y - h/2);
-		hole.lineTo(paddingX + this.innerPadding.x - w / 2 + inner_w, paddingY + this.innerPadding.y - h/2);
-		hole.lineTo(paddingX + this.innerPadding.x - w / 2 + inner_w, paddingY + this.innerPadding.y + inner_h - h/2);
-		hole.lineTo(paddingX + this.innerPadding.x - w / 2, paddingY + this.innerPadding.y + inner_h - h/2);
-		hole.lineTo(paddingX + this.innerPadding.x - w / 2, paddingY + this.innerPadding.y - h/2);
+		hole.moveTo(paddingX + thicknessX - w / 2, paddingY + thicknessY - h/2);
+		hole.lineTo(paddingX + thicknessX - w / 2 + inner_w, paddingY + thicknessY - h/2);
+		hole.lineTo(paddingX + thicknessX - w / 2 + inner_w, paddingY + thicknessY + inner_h - h/2);
+		hole.lineTo(paddingX + thicknessX - w / 2, paddingY + thicknessY + inner_h - h/2);
+		hole.lineTo(paddingX + thicknessX - w / 2, paddingY + thicknessY - h/2);
 
 		outer.holes.push(hole);
 
@@ -481,6 +482,8 @@ export class ShapeAnimated extends Shape {
 drawAngoloCornerPath() {
     const paddingX = this.padding;
     const paddingY = this.padding;
+	const thicknessX = this.getValueByPixelRatio(this.shape.thickness[0]),
+		thicknessY = this.getValueByPixelRatio(this.shape.thickness[1]);
     const w = this.frame.w - paddingX * 2;
     const h = this.frame.h - paddingY * 2;
     const size = Math.min(w, h) / 3;
@@ -499,15 +502,14 @@ drawAngoloCornerPath() {
 	outer.lineTo(x0, y0);
 
     // Inner "hole" (extended down)
-	const x_inner = x0 + this.innerPadding.x;
-    const y_inner = y0 - this.innerPadding.y;
-	// console.log(x0, y0, x_inner, y_inner);
+	const x_inner = x0 + thicknessX;
+    const y_inner = y0 - thicknessY;
 	// const hole = new THREE.Shape();
     const hole = new THREE.Path();
     hole.moveTo(x_inner, y_inner);
-	hole.lineTo(x_inner, y_inner - (size - this.innerPadding.y));
-	hole.lineTo(x_inner + (size - this.innerPadding.x), y_inner - (size - this.innerPadding.y));
-	hole.lineTo(x_inner + (size - this.innerPadding.x), y_inner);
+	hole.lineTo(x_inner, y_inner - (size - thicknessY));
+	hole.lineTo(x_inner + (size - thicknessX), y_inner - (size - thicknessY));
+	hole.lineTo(x_inner + (size - thicknessX), y_inner);
     hole.lineTo(x_inner, y_inner);
 
     outer.holes.push(hole);
@@ -574,7 +576,8 @@ drawAngoloCornerPath() {
 			return output;
 		}
 		output.lineHeight = parseFloat(typography['lineHeight']) / parseFloat(typography['size']);
-		if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
+		if(this.shape.base == 'rectangle' || this.shape.base == 'fill' || this.shape.base == 'angolo' || this.shape.base == 'none'){
+			console.log(this.shape.base);
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			

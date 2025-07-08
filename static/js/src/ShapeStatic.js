@@ -490,7 +490,7 @@ export class ShapeStatic extends Shape {
 		
 		let x, y;
 		
-    	if(this.shape.base == 'rectangle' || this.shape.base == 'fill'){
+    	if(this.shape.base == 'rectangle' || this.shape.base == 'fill' || this.shape.base == 'angolo' || this.shape.base == 'none'){
     		let side_x = this.size.width;
 			let side_y = this.size.height;
     		let inner_p_x = this.innerPadding.x;
@@ -1101,31 +1101,34 @@ export class ShapeStatic extends Shape {
 		
         let paddingX = this.padding;
         let paddingY = this.padding;
+		const thicknessX = this.shape.thickness[0], thicknessY = this.shape.thickness[1];
 
 		const w = this.frame.w - paddingX * 2, h = this.frame.h - paddingY * 2
-		const inner_w = w - this.innerPadding.x * 2, inner_h = h - this.innerPadding.y * 2
+		const inner_w = w - thicknessX * 2, inner_h = h - thicknessY * 2
 		this.updateSize(w, h);
 		ctx = ctx ? ctx : this.context;
 		this.context.beginPath();
         // Outer rectangle
 		ctx.rect(paddingX, paddingY, w, h);
 		// Inner rectangle (the "hole")
-		ctx.rect(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y, inner_w, inner_h);
+		ctx.rect(paddingX + thicknessX, paddingY + thicknessY, inner_w, inner_h);
         this.context.closePath();
 	}
 	drawAngoloCornerPath(ctx = null){
 		
         let paddingX = this.padding;
         let paddingY = this.padding;
+		const thicknessX = this.shape.thickness[0], thicknessY = this.shape.thickness[1];
+
 		const size = Math.min(this.frame.w - paddingX * 2, this.frame.h - paddingY * 2) / 3;
-		const inner_w = size - this.innerPadding.x, inner_h = size - this.innerPadding.y;
+		const inner_w = size - thicknessX, inner_h = size - thicknessY;
 		
 		ctx = ctx ? ctx : this.context;
 		this.context.beginPath();
         // Outer rectangle
 		ctx.rect(paddingX, paddingY, size, size);
 		// Inner rectangle (the "hole")
-		ctx.rect(paddingX + this.innerPadding.x, paddingY + this.innerPadding.y, inner_w, inner_h);
+		ctx.rect(paddingX + thicknessX, paddingY + thicknessY, inner_w, inner_h);
         this.context.closePath();
 	}
 	rotatePoint(x, y, cx, cy, angleRad) {
