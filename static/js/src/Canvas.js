@@ -72,16 +72,22 @@ export class Canvas {
                 unit: 'cm',
                 format: [21, 29.7]
             },
-            // 'letter': {
-            //     orientation: 'portrait',
-            //     unit: 'in',
-            //     format: [8.5, 11]
-            // }
         }
         this.gifRecordingDuration = 7; // sec
         this.framerate = 60;
         this.pdfWidth = null;
         this.v = null; // canvg
+
+        this.windowResize_timer = null;
+        this.windowResizeListeners = [
+            this.checkWrapperWidth.bind(this)
+        ];
+        this.loadedListeners = [
+            this.checkWrapperWidth.bind(this)
+        ];
+        this.canvasResizeListeners = [
+            this.checkWrapperWidth.bind(this)
+        ]
 	}
 	init(){
         if(this.initialized) return;
@@ -143,7 +149,9 @@ export class Canvas {
             }
         }
         this.initialized = true;
-        // this.draw();
+        this.addWindowResizeListeners();
+        this.addLoadedListeners();
+        this.addCanvasResizeListeners();
 	}
 	initThree(){
         let width =  this.formatOptions[this.format].w / this.devicePixelRatio;
@@ -159,7 +167,8 @@ export class Canvas {
         this.setCamera();
 
         /* if the window is dragged into a different screen... */
-        window.addEventListener('resize', ()=>{
+        this.windowResizeListeners.push(()=>{
+            console.log('check pxel');
             if(window.devicePixelRatio !== this.devicePixelRatio) {
                 this.initialized = false;
                 this.canvas.parentNode.removeChild(this.canvas);
@@ -167,7 +176,8 @@ export class Canvas {
                 for(const shape of this.shapes)
                     shape.init(this.canvas);
             }
-		})
+		});
+        // window.addEventListener('resize', )
 	}
     createCanvas(){
         const canvas = document.createElement('canvas');
@@ -887,11 +897,6 @@ export class Canvas {
         if(idx === 'base-image') {
 			let temp = document.createElement('canvas');
 			let temp_ctx = temp.getContext('2d');
-			// if(this.timer_color != null)
-			// {
-			// 	clearInterval(this.timer_color);
-			// 	this.timer_color = null;
-			// }
 			temp.width = this.canvas.width;
 			temp.height = this.canvas.height;
 			
@@ -917,16 +922,7 @@ export class Canvas {
 			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
 			
 			this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx].shiftY + 0;
-			// if(this.timer_color != null)
-			// {
-			// 	clearInterval(this.timer_color);
-			// 	this.timer_color = null;
-			// }
-			// if(this.timer_position != null)
-			// {
-			// 	clearInterval(this.timer_position);
-			// 	this.timer_position = null;
-			// }
+			
 			temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
 			this.base = this.context.createPattern(temp, "no-repeat");
 		} 
@@ -1162,5 +1158,48 @@ export class Canvas {
 	}
     renderSection(id='', displayName, children=[], extraClass=''){
         return renderSection(id, displayName, children, extraClass);
+    }
+    addWindowResizeListeners(){
+        window.addEventListener('resize', ()=>{
+            if(this.windowResize_timer) clearTimeout(this.windowResize_timer);
+            this.windowResize_timer = setTimeout(()=>{
+                for(const fn of this.windowResizeListeners)
+                    fn();
+                this.windowResize_timer = null;
+            }, 200);
+        });
+    }
+    addCanvasResizeListeners(){
+        this.canvas.addEventListener('resize', ()=>{
+            for(const fn of this.canvasResizeListeners)
+                fn();
+        });
+    }
+    addLoadedListeners(){
+        window.addEventListener('DOMContentLoaded', ()=>{
+            for(const fn of this.loadedListeners)
+                fn();
+        });
+    }
+    checkWrapperWidth(){
+        this.wrapper.style.width = 'auto';
+        this.wrapper.style.height = 'auto';
+        this.wrapper.style.transform = 'none';
+        this.wrapper.parentNode.style.width = 'auto';
+        this.wrapper.parentNode.style.height = 'auto';
+
+        const canvas_style = window.getComputedStyle(this.canvas);
+        const canvas_computed_width = parseFloat(canvas_style.getPropertyValue('width'));
+        console.log(canvas_computed_width);
+        if(this.wrapper.offsetWidth != canvas_computed_width ) {
+            const scale = (this.wrapper.offsetWidth / canvas_computed_width * (2 / this.scale)).toFixed(2);
+            const canvas_computed_height = parseFloat(canvas_style.getPropertyValue('height'));
+            this.wrapper.style.width = canvas_computed_width + 'px';
+            this.wrapper.style.height = canvas_computed_height + 'px';
+            this.wrapper.style.transform = `scale(${scale})`;
+            this.wrapper.parentNode.style.height = canvas_computed_height * scale + 'px';
+        }
+        
+        
     }
 }

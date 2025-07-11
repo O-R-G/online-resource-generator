@@ -5,7 +5,6 @@
     $filename = $filename ? 'filename="' . $filename . '"' : '';
     $action = isset($_GET['action']) ? $_GET['action'] : '';
 ?><main id='main' <?= $format ? 'format="'.$format.'"' : ''; ?> <?php echo $filename; ?>></main>
-<canvas id="canvas"></canvas>
 <script>
     const root_path = '<?php echo $root_path; ?>';
     const record_id = '<?php echo $record_id; ?>';
