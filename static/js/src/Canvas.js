@@ -392,6 +392,8 @@ export class Canvas {
     }
     toPixel(val, source_unit) {
         var n = 1;
+        if(source_unit == 'px')
+            return parseInt(parseFloat(val).toFixed(n));
         var cpi = 2.54; // centimeters per inch
         // var dpi = 96; // dots per inch
         var dpi = 300; // dots per inch
@@ -416,36 +418,44 @@ export class Canvas {
         const original_height = this.canvas.height;
         let pdf_width = size['format'][0];
         let pdf_height = size['format'][1];
-        let resized_width = this.toPixel(pdf_width, 'in'),
-            resized_height = this.toPixel(pdf_height, 'in');
+        let resized_width = this.toPixel(pdf_width, size['unit']),
+            resized_height = this.toPixel(pdf_height, size['unit']);
         this.canvas.width = resized_width;
         this.canvas.height = resized_height;
         this.context.save();
         const scaleFactor = resized_width / original_width;
         this.context.scale(scaleFactor, scaleFactor);
         this.draw();
-        let pdf = new jsPDF(size);
-        const svg = `
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" style="background:none;">
-                <text x="50" y="100" font-size="40" font-family="Arial">Canvas Text</text>
-            </svg>`;
+        let pdf;
+        try {
+            pdf = new jsPDF(size);
+            // const svg = `
+            // <svg xmlns="http://www.w3.org/2000/svg" fill="none" style="background:none;">
+            //     <text x="50" y="100" font-size="40" font-family="Arial">Canvas Text</text>
+            // </svg>`;
         
-        let imgData = this.canvas.toDataURL("image/png", 1.0);
-            
-        pdf.addImage(imgData, 'PNG', 0, 0, pdf_width, pdf_height);
-        pdf.save("download.pdf");
+            let imgData = this.canvas.toDataURL("image/png", 1.0);
+                
+            pdf.addImage(imgData, 'PNG', 0, 0, pdf_width, pdf_height);
+            pdf.save("download.pdf");
 
-        this.canvas.width = original_width;
-        this.canvas.height = original_height;
-        this.context.restore();
-        this.draw();
+            this.canvas.width = original_width;
+            this.canvas.height = original_height;
+            this.context.restore();
+            this.draw();
+        } catch(error){
+            console.log(error);
+            alert(`An error happened when generating the PDF. Please make sure the browser can handle canvas of the specified size (${resized_width}px x ${resized_height}px)`)
+        }
+        
+        
     }
     generatePdfSize(){
         let width = parseFloat(this.pdfWidth),
             height = this.pdfWidth * this.canvas.height / this.canvas.width,
             unit = this.formatUnit;
 
-            const output = {
+        const output = {
             'orientation': 'portrait',
             'unit': unit,
             'format': [width, height]
@@ -1051,19 +1061,16 @@ export class Canvas {
         let output = '';
         [].forEach.call(nodes, function(el){
             if(el.nodeName == 'DIV' && el.previousSibling) output += "\n";
-            if(el.nodeName == 'I')
-            {
+            if(el.nodeName == 'I') {
                 output += '<i>' +el.textContent+ '</i>';
             }
             else if(el.childNodes && el.childNodes.length !== 0) {
                 output += this.divToNl(el.childNodes);
             }
             else if(el.nodeName == 'BR') {
-
                 if(el.previousSibling) {
                     output += el.previousSibling.nodeName == '#text' ? '' : "\n";
-                }
-                else {
+                } else {
                     output += '';
                 }
             }
@@ -1187,10 +1194,8 @@ export class Canvas {
         this.wrapper.style.transform = 'none';
         this.wrapper.parentNode.style.width = 'auto';
         this.wrapper.parentNode.style.height = 'auto';
-
         const canvas_style = window.getComputedStyle(this.canvas);
         const canvas_computed_width = parseFloat(canvas_style.getPropertyValue('width'));
-        console.log(canvas_computed_width);
         if(this.wrapper.offsetWidth != canvas_computed_width ) {
             const scale = (this.wrapper.offsetWidth / canvas_computed_width * (2 / this.scale)).toFixed(2);
             const canvas_computed_height = parseFloat(canvas_style.getPropertyValue('height'));
@@ -1199,7 +1204,5 @@ export class Canvas {
             this.wrapper.style.transform = `scale(${scale})`;
             this.wrapper.parentNode.style.height = canvas_computed_height * scale + 'px';
         }
-        
-        
     }
 }
