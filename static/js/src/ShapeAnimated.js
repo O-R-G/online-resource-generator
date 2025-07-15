@@ -534,7 +534,7 @@ drawAngoloCornerPath() {
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-
+		console.log('write', str);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
@@ -1279,19 +1279,15 @@ drawAngoloCornerPath() {
 			this.mesh_front.add(this.frontWatermarkGroup);
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
 			this.mesh_back.add(this.backWatermarkGroup);
-
-		if(!this.mesh_front_text && this.frontText) {
-			
-			this.mesh_front_text = this.write( this.frontText, this.frontTypography, this.material_front_text, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
-			if(this.mesh_front_text) {
-				this.mesh_front.add(this.mesh_front_text);
-			}
+		console.log(this.mesh_front_text, this.frontText);
+		this.mesh_front_text = this.write( this.frontText, this.frontTypography, this.material_front_text, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
+		if(this.mesh_front_text) {
+			console.log('adding mesh_front_text');
+			this.mesh_front.add(this.mesh_front_text);
 		}
-		if(!this.mesh_back_text && this.backText) {
-			this.mesh_back_text = this.write( this.backText, this.backTypography, this.material_back_text, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
-			if(this.mesh_back_text) {
-				this.mesh_back.add(this.mesh_back_text);
-			}
+		this.mesh_back_text = this.write( this.backText, this.backTypography, this.material_back_text, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
+		if(this.mesh_back_text) {
+			this.mesh_back.add(this.mesh_back_text);
 		}
 		if( this.shape.watermarkPositions !== undefined)
 		{
@@ -1484,6 +1480,7 @@ drawAngoloCornerPath() {
         this.renderer.render( this.scene, this.camera );
 	}
 	resetMesh(){
+		console.log('resetMesh');
 		if(this.isForward){
 			this.group.remove( this.mesh_front );
 		}
@@ -1619,6 +1616,7 @@ drawAngoloCornerPath() {
 	}
 	
 	initAnimate(animationName, isSilent = false){
+		console.log('initAnimate', animationName);
 		this.resetAnimation();
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
@@ -1709,8 +1707,7 @@ drawAngoloCornerPath() {
 			this.animationDuration = (this.fadeInDurationBase + this.fadeInDelayBase) / this.animationSpeed;
 			this.material_front.needsUpdate = true;
 			
-		}
-		else if(animationName == 'fadeOut'){
+		} else if(animationName == 'fadeOut'){
 			// if(this.fadeOutDelay > this.animationDurationBase) {
 			// 	alert('fade-out delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
 			// 	return;
@@ -1729,8 +1726,7 @@ drawAngoloCornerPath() {
 			this.animationDuration = (this.fadeOutDurationBase + this.fadeOutDelayBase) / this.animationSpeed;
 			
 			// if(!isSilent) this.fadeOut();
-		}
-		else {
+		} else {
 			this.resetMesh();
 			// this.resetExtraShapes();
 		}

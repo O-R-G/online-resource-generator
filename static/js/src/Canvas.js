@@ -47,7 +47,7 @@ export class Canvas {
 		this.isThree = isThree;
 		this.prefix = prefix;
         this.id = prefix + '-canvas';
-        
+        this.container = this.wrapper.parentNode.parentNode;
 		this.chunks = [];
 		this.shapes = {};
         this.base = null;
@@ -1204,5 +1204,8 @@ export class Canvas {
             this.wrapper.style.transform = `scale(${scale})`;
             this.wrapper.parentNode.style.height = canvas_computed_height * scale + 'px';
         }
+    }
+    show(){
+        this.checkWrapperWidth();
     }
 }
