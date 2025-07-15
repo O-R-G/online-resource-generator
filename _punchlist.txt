@@ -67,4 +67,5 @@ x unify text-handling (main texts and watermarks)
 + pdf generation is not working
 + update the text of the "Choose file" button when a file has been selected
 - wrong watermark position for animated angolo
+- make media work for the animated canvas
 + mobile css
