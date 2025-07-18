@@ -1,7 +1,8 @@
 import "./../../../config/fonts.js";
 import "./../../../config/options.js";
 import Record from "./Record.js";
-import Canvas from "./Canvas.js";
+import CanvasStatic from "./CanvasStatic.js";
+import CanvasAnimated from "./CanvasAnimated.js";
 import ShapeStatic from "./ShapeStatic.js";
 import ShapeAnimated from "./ShapeAnimated.js";
 import ORGFontLoader from "./ORGFontLoader.js";
@@ -28,7 +29,7 @@ async function init(data, cb){
         let wrapper = container.querySelector('.canvas-wrapper');
         let control = container.querySelector('.control-panel');
         const canvas_options = {'formatOptions': formatOptions,'baseOptions': baseOptions, 'formatUnitOptions': formatUnitOptions, 'downloadOptions': data[id]['options']['downloadOptions']};
-        let cvs = new Canvas(wrapper, format, id, canvas_options, data[id]['isThree']);
+        let cvs = isThree ? new CanvasAnimated(wrapper, format, id, canvas_options) : new CanvasStatic(wrapper, format, id, canvas_options);
         let shape = isThree ? new ShapeAnimated(id, cvs, data[id]['options'], format) : new ShapeStatic(id, cvs, data[id]['options'], format);
         if (isThree) shapes['animated'].push(shape);
         else shapes['static'].push(shape);

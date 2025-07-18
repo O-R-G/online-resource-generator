@@ -112,9 +112,7 @@ export default class Record {
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
-                
                 this.record_body = JSON.parse(json['body']);
-                console.log(this.record_body);
                 if (typeof callback == 'function') {
                     callback();
                 }

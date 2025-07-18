@@ -29,16 +29,7 @@ export default class Shape {
             x: this.shapeShiftX,
             y: this.shapeShiftY
         };
-        this.media = {
-			'background-image': {
-				obj: null,
-				x: 0,
-				y: 0,
-				shiftY: 0,
-				shiftX: 0,
-				scale: 1
-			}
-		};
+        this.media = {};
         this.mediaIndex = 1;
         this.text = {
 			'text': {
@@ -342,19 +333,12 @@ export default class Shape {
         const [section] = this.renderMediaSection(key, displayName, extraClass); 
         this.addMediaButton.parentNode.insertBefore(section, this.addMediaButton);
         if(!this.media[key]) {
-            this.media[key] = {
-                obj: null,
-                x: 0,
-                y: 0,
-                shiftY: 0,
-                shiftX: 0,
-                scale: 1,
-                'blend-mode': 'normal'
-            };
+            this.media[key] = this.initMedia(key);
         }
         
         this.addMediaListener(key);
     }
+    
     divToNl(nodes){
         let output = '';
         [].forEach.call(nodes, function(el){

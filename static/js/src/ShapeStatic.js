@@ -27,6 +27,7 @@ export default class ShapeStatic extends Shape {
 		this.timer_shape = null;
 		this.customGraphic = [];
 		this.initRecording = false;
+		this.media['background-image'] = this.initMedia('background-image', {isShapeColor: true});
 	}
 	init(canvasObj) {
 		super.init(canvasObj);
@@ -1421,7 +1422,6 @@ export default class ShapeStatic extends Shape {
 		}
 	}
     updateMedia(idx, image, silent = false){
-		
 		super.updateMedia(idx, image, silent);
         if(idx === 'background-image') {
 			let temp = document.createElement('canvas');
@@ -1575,6 +1575,21 @@ export default class ShapeStatic extends Shape {
 			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX), (this.media[idx].y - this.media[idx].shiftY), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
 		}
 		this.context.globalCompositeOperation = 'normal';
+	}
+	initMedia(key, values={}){
+		if(!key || this.media[key]) return null;
+		let template = {
+			obj: null,
+			x: 0,
+			y: 0,
+			shiftY: 0,
+			shiftX: 0,
+			scale: 1,
+			'blend-mode': 'normal',
+			isShapeColor: false
+		};
+		const output = {...template, ...values};
+		return output;
 	}
 	syncMedia(){
 		super.syncMedia();

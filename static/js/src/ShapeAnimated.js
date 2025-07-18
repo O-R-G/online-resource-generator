@@ -5,15 +5,15 @@ import {Text} from 'troika-three-text';
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		
-		this.mesh_front = null;
+		this.group_front = new THREE.Group();
+		this.mesh_front = this.createMesh('mesh_front');
+		this.mesh_front.material = this.processColor(Object.values(this.options.colorOptions)[0].color);
+		this.mesh_front.initialized = true;
 		this.secondary_mesh_front = null;
 		this.geometry_front = null;
-		this.geometry_front_uvs = null;
-		this.material_front = this.processColor(Object.values(this.options.colorOptions)[0].color);
+		
 		this.shapes_mesh_front = {};
 		this.shapes_geometry_front = {};
-		this.shapes_geometry_front_uvs = {};
 		this.shapes_material_front = {};
 		this.mesh_front_text = null;
 		this.material_front_text = this.processColor(Object.values(this.options.textColorOptions)[0].color);
@@ -21,12 +21,13 @@ export default class ShapeAnimated extends Shape {
 		this.frontFont = this.getDefaultOption(this.options.fontOptions);
 		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 		
-		this.mesh_back = null;
+		this.group_back = new THREE.Group();
+		this.mesh_back = this.createMesh('mesh_back');
+		this.mesh_back.material = this.processColor(Object.values(this.options.colorOptions)[1].color);
+		this.mesh_back.initialized = true;
 		this.mesh_arr_back = [];
-		this.geometry_back = null;
 		this.geometry_back_uvs = null;
 		this.mesh_back_text = null;
-		this.material_back = this.processColor(Object.values(this.options.colorOptions)[1].color);
 		this.shapes_mesh_back = {};
 		this.shapes_geometry_back = {};
 		this.shapes_geometry_back_uvs = {};
@@ -93,7 +94,9 @@ export default class ShapeAnimated extends Shape {
 		this.path = new THREE.Curve();
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
-		this.startTime = null
+		this.startTime = null;
+		this.media['front-background-image'] = this.initMedia('front-background-image', {mesh: {front: this.mesh_front, back: null}, isShapeColor: true});
+		this.media['back-background-image'] = this.initMedia('back-background-image', {mesh: {front: null, back: this.mesh_back}, isShapeColor: true});
 	}
 	init(canvasObj){
 		super.init(canvasObj);
@@ -106,7 +109,6 @@ export default class ShapeAnimated extends Shape {
 		this.camera = this.canvasObj.camera;	
 		// this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
 		this.scale = new THREE.Vector3(1, 1, 1);
-		// console.log('scale', this.canvas.width, this.canvas.height);
 		this.group = new THREE.Group();
 		this.setGroupPosition();
 		this.drawShape();
@@ -120,12 +122,12 @@ export default class ShapeAnimated extends Shape {
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
-		if(this.mesh_front) {
-			this.mesh_front.scale.copy(this.scale);
+		// if(this.mesh_front) {
+			// this.mesh_front.scale.copy(this.scale);
 			this.mesh_front.needsUpdate = true;
-		}
+		// }
 		if(this.mesh_back) {
-			this.mesh_back.scale.copy(this.scale);
+			// this.mesh_back.scale.copy(this.scale);
 			this.mesh_back.needsUpdate = true;
 		}
 	}
@@ -226,8 +228,8 @@ export default class ShapeAnimated extends Shape {
 		path_back.lineTo(this.shapeCenter.x, this.shapeCenter.y - dev_y);
 		path_back.closePath();
 
-		this.geometry_front = new THREE.ShapeGeometry(path_front);
-		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
+		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
 	}
 	drawHexagon(){
 		let this_r = this.cornerRadius;
@@ -279,18 +281,16 @@ export default class ShapeAnimated extends Shape {
 		path_back.arc( 1.732/2 * this_r, -1/2*this_r, this_r, 5*Math.PI / 6, 3*Math.PI / 6, true);
 		path_back.closePath();
 
-		this.geometry_front = new THREE.ShapeGeometry(path_front);
-		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
+		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
 	}
 	drawCircle(){
 		let this_r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
-		console.log(this.frame.w, this.frame.h);
-		// this_r = this_r;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
-		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
-		this.geometry_back = new THREE.CircleGeometry( this_r, 64);
-		this.geometry_front_uvs = this.geometry_front.attributes.uv.array;
-		this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
+		this.mesh_front.geometry = new THREE.CircleGeometry( this_r, 64);
+		this.mesh_back.geometry = new THREE.CircleGeometry( this_r, 64);
+		// this.mesh_front.geometry_uvs = this.mesh_front.geometry.attributes.uv.array;
+		// this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
 		let this_r = this.cornerRadius;
@@ -309,8 +309,10 @@ export default class ShapeAnimated extends Shape {
 		let path_front = this.drawRectanglePath();
 		let path_back = this.drawRectanglePath();
 
-		this.geometry_front = new THREE.ShapeGeometry(path_front);
-		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
+		this.mesh_front.needsUpdate = true;
+		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.needsUpdate = true;
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	drawRectanglePath(){
@@ -347,8 +349,8 @@ export default class ShapeAnimated extends Shape {
 	drawTriangle(){
 		let path_front = this.drawTrianglePath();
 		let path_back = this.drawTrianglePath();
-		this.geometry_front = new THREE.ShapeGeometry(path_front);
-		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
+		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
 	}
 	drawTrianglePath(){
 		const output = new THREE.Shape();
@@ -382,8 +384,8 @@ export default class ShapeAnimated extends Shape {
 		let path_front = this.drawDiamondPath();
 		let path_back = this.drawDiamondPath();
 
-		this.geometry_front = new THREE.ShapeGeometry(path_front);
-		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
+		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	drawDiamondPath(){
@@ -438,8 +440,8 @@ export default class ShapeAnimated extends Shape {
 		let path_back = this.drawAngoloPath();
 		let path_corner_front = this.drawAngoloCornerPath();
 		let path_corner_back = this.drawAngoloCornerPath();
-		this.geometry_front = new THREE.ShapeGeometry(path_front);
-		this.geometry_back = new THREE.ShapeGeometry(path_back);
+		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
+		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
 		const key = 'angolo-corner';
 		const material = this.processColor( this.options.colorOptions['white'].color);
 		this.shapes_geometry_front[key] = new THREE.ShapeGeometry(path_corner_front);
@@ -518,6 +520,16 @@ drawAngoloCornerPath() {
 
     return outer;
 }
+drawNone(){
+	console.log('drawNone');
+	this.mesh_front.geometry.dispose();
+	this.mesh_front.material.dispose();
+	this.mesh_front.needsUpdate = true;
+
+	this.mesh_back.geometry.dispose();
+	this.mesh_back.material.dispose();
+	this.mesh_back.needsUpdate = true;
+}
 	rotatePoint(x, y, cx, cy, angleRad) {
 		const cos = Math.cos(angleRad);
 		const sin = Math.sin(angleRad);
@@ -579,7 +591,6 @@ drawAngoloCornerPath() {
 		}
 		output.lineHeight = parseFloat(typography['lineHeight']) / parseFloat(typography['size']);
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill' || this.shape.base == 'angolo' || this.shape.base == 'none'){
-			console.log(this.shape.base);
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
 			
@@ -810,9 +821,25 @@ drawAngoloCornerPath() {
 		output.sync();
 		return output;
 	}
-	// setTextLeftByAlign(){
-
-	// }
+	initMedia(key, values={}){
+		if(!key || this.media[key]) return null;
+		let template = {
+			obj: null,
+			x: 0,
+			y: 0,
+			shiftY: 0,
+			shiftX: 0,
+			scale: 1,
+			'blend-mode': 'normal',
+			mesh: {
+				front: this.createMesh('media-' + key),
+				back: this.createMesh('media-' + key)
+			},
+			isShapeColor: false
+		};
+		const output = {...template, ...values};
+		return output;
+	}
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
 		if(!text_mesh) return;
 		let fontData = this.processFontData(typography, font, isBack);
@@ -974,7 +1001,7 @@ drawAngoloCornerPath() {
 		}
 		else if(color['type'] == 'gradient')
 		{
-			output = this.generateGradient(this.geometry_front, color['code'], color['angle']);
+			output = this.generateGradient(this.mesh_front.geometry, color['code'], color['angle']);
 			
 		}
 		else if(color['type'] == 'special')
@@ -994,13 +1021,12 @@ drawAngoloCornerPath() {
 		} else  {
 			sec.classList.remove('viewing-shape-image-section');
 			this.shapeMethod = 'draw';
-			this.frontIsGridColor = color['type'] == 'special';
-			if(this.material_front) this.material_front.dispose();
-			this.material_front = this.processColor(color);
-			if(this.mesh_front) {
-				this.mesh_front.material = this.material_front;
-				this.mesh_front.needsUpdate = true;
-			}
+			// this.frontIsGridColor = color['type'] == 'special';
+			if(color['type'] == 'special') {
+				this.mesh_front = this.processColor(color);
+			} else 
+				this.mesh_front.material = this.processColor(color);
+			this.mesh_front.needsUpdate = true;
 			if(!silent) this.canvasObj.draw();
 		}
 	}
@@ -1011,13 +1037,11 @@ drawAngoloCornerPath() {
 		}  else  {
 			sec.classList.remove('viewing-shape-image-section');
 			this.shapeMethod = 'draw';
-			this.backIsGridColor = color['type'] == 'special';
-			if(this.material_back) this.material_back.dispose();
-			this.material_back = this.processColor(color);
-			if(this.mesh_back) {
-				this.mesh_back.material = this.material_back;
-				this.mesh_back.needsUpdate = true;
-			}
+			if(color['type'] == 'special') {
+				this.mesh_back = this.processColor(color);
+			} else 
+				this.mesh_back.material = this.processColor(color);
+			this.mesh_back.needsUpdate = true;
 			if(!silent) this.canvasObj.draw();
 		}
 		
@@ -1082,13 +1106,12 @@ drawAngoloCornerPath() {
 	applyVideoAsMaterial(idx, silent=false, isBack=false){
 		let videoElement = this.media[idx].obj;
 		const texture = new THREE.VideoTexture( videoElement );
-		let material = isBack ? this.material_back : this.material_front;
 		let mesh = isBack ? this.mesh_back : this.mesh_front;
-		material = new THREE.MeshBasicMaterial({ map: texture })
+		let material = new THREE.MeshBasicMaterial({ map: texture })
 		mesh.material = material;
 
 		const videoAspect = videoElement.videoWidth / videoElement.videoHeight;
-		let geometry = isBack ? this.geometry_back : this.geometry_front;
+		let geometry = mesh.geometry;
 		geometry.computeBoundingBox();
 		const bbox = geometry.boundingBox;
 		const geomWidth = bbox.max.x - bbox.min.x;
@@ -1114,81 +1137,123 @@ drawAngoloCornerPath() {
 
 		mesh.needsUpdate = true;
 	}
-	updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
+	createMesh(name=''){
+		const output = new THREE.Mesh();
+		if(name) output.name = name;
+		output.initialized = false;
+		return output;
+	}
+	async updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
 		super.updateMedia(idx, obj, silent);
 		if(isVideo) {
 			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
 		else {
-			if(!isBack){
-				let mesh = this.mesh_front;
-				mesh.remove(this.material_front);
-				this.material_front = this.applyImageAsMaterial(idx, mesh, silent, isBack)
-			} else {
-				let mesh = this.mesh_back;
-				this.material_back = this.applyImageAsMaterial(idx, mesh, silent, isBack)
-			}
+			await this.applyImageAsMaterial(idx)
+			if(!silent) this.canvasObj.draw();
 		}
 	}
-	applyImageAsMaterial(idx, mesh, silent, isBack){
+	async applyImageAsMaterial(idx){
+		const media = this.media[idx];
 		const textureLoader = new THREE.TextureLoader();
 		return new Promise((resolve, reject) => {
-			textureLoader.load(this.media[idx].obj.src, (texture) => {
-				// Set texture filtering
+			textureLoader.load(media.obj.src, (texture) => {
 				texture.magFilter = THREE.LinearFilter;
 				texture.minFilter = THREE.LinearFilter;
 				texture.colorSpace = THREE.SRGBColorSpace;
-				let material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-				mesh.material = material;
-				mesh.needsUpdate = true;
-				// let geometry = isBack ? this.geometry_back : this.geometry_front;
-				let geometry = mesh.geometry;
+				const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
+					imageWidth = texture.image.width,
+					imageHeight = texture.image.height;
+				if(media.isShapeColor) {
+					/* when media is the shape color, the size/position of the mesh can't be updated  */
+					const imageAspect = imageWidth / imageHeight;
+					for(const key in media.mesh){
+						const mesh = media.mesh[key];
+						if(!mesh) continue;
+						let scaleX = 1 / media.scale,
+							scaleY = 1 / media.scale,
+							uvArray = [],
+							geometry = mesh.geometry;
+						geometry.computeBoundingBox();
+						let bbox = geometry.boundingBox;
+						const geomWidth = bbox.max.x - bbox.min.x,
+						      geomHeight = bbox.max.y - bbox.min.y;
+						const geometryAspect = geomWidth / geomHeight;
+						
+						if (imageAspect > geometryAspect) {
+							scaleX *= geometryAspect / imageAspect;
+						} else {
+							scaleY *= imageAspect / geometryAspect;
+						}
+						const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX / geomWidth : 0;
+						const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY / geomHeight : 0;
+						const position = geometry.attributes.position;
+						const max = bbox.max;
+						const min = bbox.min;
 
-				const imageAspect = texture.image.width / texture.image.height;
-				geometry.computeBoundingBox();
-				const bbox = geometry.boundingBox;
-				const geomWidth = bbox.max.x - bbox.min.x;
-				const geomHeight = bbox.max.y - bbox.min.y;
-				const geometryAspect = geomWidth / geomHeight;
+						for (let i = 0; i < position.count; i++) {
+							const x = position.getX(i);
+							const y = position.getY(i);
+					
+							let u = (x - min.x) / (max.x - min.x);
+							let v = (y - min.y) / (max.y - min.y);
+							u = u * scaleX + (1 - scaleX) / 2 - dev_x;
+							v = v * scaleY + (1 - scaleY) / 2 + dev_y;
 
-				let scaleX = 1 / this.media[idx].scale;
-				let scaleY = 1 / this.media[idx].scale;
-
-				if (imageAspect > geometryAspect) {
-					scaleX *= geometryAspect / imageAspect;
+							uvArray.push(u, v);
+						}
+						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+						geometry.attributes.uv.needsUpdate = true;
+						mesh.material = material;
+						mesh.needsUpdate = true;
+					}
 				} else {
-					scaleY *= imageAspect / geometryAspect;
-				}
+					for(const key in media.mesh){
+						const mesh = media.mesh[key];
+						if(!mesh) continue;
+						let scaleX = 1, 
+							scaleY = 1, 
+							scale = media.scale,
+							width = imageWidth * scale, 
+							height = imageHeight * scale,
+							geometry = new THREE.PlaneGeometry(width, height),
+							uvArray = [];
+						mesh.geometry = geometry;
+						geometry.computeBoundingBox();
+						let bbox = geometry.boundingBox;
+						
+						const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX : 0;
+						const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY : 0;
+						
+						const position = geometry.attributes.position;
+						const max = bbox.max;
+						const min = bbox.min;
 
-				const dev_x = this.media[idx].shiftX ? this.getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
-				const dev_y = this.media[idx].shiftY ? - this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
-				
-				const uvArray = [];
-				const position = geometry.attributes.position;
-				const max = bbox.max;
-				const min = bbox.min;
-
-				for (let i = 0; i < position.count; i++) {
-					const x = position.getX(i);
-					const y = position.getY(i);
-			
-					let u = (x - min.x) / (max.x - min.x);
-					let v = (y - min.y) / (max.y - min.y);
-					u = u * scaleX + (1 - scaleX) / 2 - dev_x;
-					v = v * scaleY + (1 - scaleY) / 2 + dev_y;
-
-					// if (u < 0 || u > 1 || v < 0 || v > 1) {
-					// 	u = Math.max(Math.min(u, 1), 0);
-					// 	v = Math.max(Math.min(v, 1), 0);
-					// }
-					uvArray.push(u, v);
-				}
-
-				geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-				geometry.attributes.uv.needsUpdate = true;
-				
-				if(!silent) this.canvasObj.draw();
-				resolve(material);
+						for (let i = 0; i < position.count; i++) {
+							const x = position.getX(i);
+							const y = position.getY(i);
+					
+							let u = (x - min.x) / (max.x - min.x);
+							let v = (y - min.y) / (max.y - min.y);
+							u = u * scaleX + (1 - scaleX) / 2;
+							v = v * scaleY + (1 - scaleY) / 2;
+							uvArray.push(u, v);
+						}
+						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+						geometry.attributes.uv.needsUpdate = true;
+					
+						mesh.material = material;
+						if(!mesh.initialized) {
+							mesh.initialized = true;
+							mesh.position.z = 0.5;
+						}
+						console.log(dev_x, dev_y);
+						mesh.position.x = dev_x;
+						mesh.position.y = -dev_y;
+						mesh.needsUpdate = true;
+					}
+				}							
+				resolve();
 			});
 		})
 	}
@@ -1214,14 +1279,13 @@ drawAngoloCornerPath() {
 	}
 	drawShape()
 	{
-		if(this.geometry_front) {
-			this.geometry_front.dispose();
-			if(this.mesh_front) this.mesh_front.remove(this.geometry_front);
-		}
-		if(this.geometry_back) {
-			this.geometry_back.dispose();
-			if(this.mesh_back) this.mesh_back.remove(this.geometry_back);
-		}
+		// if(this.mesh_front && this.mesh_front.geometry) {
+		// 	this.mesh_front.geometry.dispose();
+		// }
+		// if(this.mesh_back.geometry) {
+		// 	this.mesh_back.geometry.dispose();
+		// }
+		console.log(this.shape.base)
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
@@ -1236,17 +1300,11 @@ drawAngoloCornerPath() {
 			this.drawDiamond();
 		else if(this.shape.base == 'angolo')
 			this.drawAngolo();
+		else if(this.shape.base == 'none') {
+			this.drawNone();
+		}
+			
 		
-		if(this.mesh_front) {
-			this.mesh_front.geometry = this.geometry_front;
-			this.mesh_front.needsUpdate = true;
-		}
-		if(this.mesh_back) {
-			this.mesh_back.geometry = this.geometry_back;
-			this.mesh_back.needsUpdate = true;
-		}
-		this.geometry_front_uvs = new Float32Array(this.geometry_front.attributes.uv.array);
-		this.geometry_back_uvs = new Float32Array(this.geometry_back.attributes.uv.array);
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
 			if(this.media['front-background-image']) {
 				this.updateMedia('front-background-image', this.media['front-background-image'].img);
@@ -1261,20 +1319,8 @@ drawAngoloCornerPath() {
 	actualDraw (animate = true){
 		let sync = !animate;
 		this.scene.add( this.group );
-		if(this.frontIsGridColor){
-			this.mesh_front = this.material_front;
-		} else if(!this.mesh_front){
-			this.mesh_front = new THREE.Mesh( this.geometry_front, this.material_front );
-			this.mesh_front.scale.copy(this.scale);
-		} 
-		this.addExtraShapeMeshes(this.mesh_front, this.shapes_geometry_front, this.shapes_material_front);
 		
-		if(this.backIsGridColor){
-			this.mesh_back = this.material_back;
-		} else if(!this.mesh_back){
-			this.mesh_back = new THREE.Mesh( this.geometry_back, this.material_back );
-			this.mesh_back.scale.copy(this.scale);
-		} 
+		this.addExtraShapeMeshes(this.mesh_front, this.shapes_geometry_front, this.shapes_material_front);
 		this.addExtraShapeMeshes(this.mesh_back, this.shapes_geometry_back, this.shapes_material_back);
 
 		if(this.frontWatermarkGroup.parent !== this.mesh_front)
@@ -1314,9 +1360,23 @@ drawAngoloCornerPath() {
 		let animationName = animate ? this.animationName : 'rest-front';
 		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group) {
 			this.group.add(this.mesh_back);
+			
 		}
-		else if(this.mesh_front.parent !== this.group) 
+		else if(this.mesh_front.parent !== this.group) {
 			this.group.add(this.mesh_front);
+			for(const key in this.media) {
+				if(this.media[key].isShapeColor) continue;
+				if(this.media[key].mesh.front)
+					this.mesh_front.add(this.media[key].mesh.front);
+			}
+		}
+		for(const key in this.media) {
+			if(this.media[key].isShapeColor) continue;
+			if(this.media[key].mesh.front)
+				this.mesh_front.add(this.media[key].mesh.front);
+			if(this.media[key].mesh.back)
+				this.mesh_back.add(this.media[key].mesh.back);
+		}
 		this.initAnimate(animationName);
 		 
 	}
@@ -1332,7 +1392,9 @@ drawAngoloCornerPath() {
 			for(const key in geometry_arr) {
 				const material = metarial_arr[key];
 				if(!material) continue;
-				const mesh = new THREE.Mesh( geometry_arr[key], material );
+				// const mesh = new THREE.Mesh( geometry_arr[key], material );
+				const mesh = this.createMesh('extra-shape-' + key);
+				mesh.material = material;
 				mesh.position.z = 0.5;
 				main_mesh.add(mesh);
 				main_mesh.needsUpdate = true;
@@ -1480,41 +1542,36 @@ drawAngoloCornerPath() {
         this.renderer.render( this.scene, this.camera );
 	}
 	resetMesh(){
-		if(this.isForward){
-			this.group.remove( this.mesh_front );
-		}
-        else
-            this.group.remove( this.mesh_back );
 		this.disposeHierarchy(this.group);
-		if(this.mesh_front) {
-			this.disposeHierarchy(this.mesh_front);
-			this.mesh_front.rotation.x = 0;
-			this.mesh_front.rotation.y = 0;
-			this.mesh_front.rotation.z = 0;
-			this.mesh_front.needsUpdate = true;
-		}
-		if(this.mesh_back) {
-			this.disposeHierarchy(this.mesh_back);
-			this.mesh_back.rotation.x = 0;
-			this.mesh_back.rotation.y = 0;
-			this.mesh_back.rotation.z = 0;
-			this.mesh_back.needsUpdate = true;
-		}
+		this.disposeHierarchy(this.mesh_front);
+		// this.mesh_front.material.dispose();
+		// this.mesh_front.geometry.dispose();
+		this.mesh_front.rotation.x = 0;
+		this.mesh_front.rotation.y = 0;
+		this.mesh_front.rotation.z = 0;
+		this.mesh_front.needsUpdate = true;
+		this.disposeHierarchy(this.mesh_back);
+		// this.mesh_front.material.dispose();
+		// this.mesh_front.geometry.dispose();
+		this.mesh_back.rotation.x = 0;
+		this.mesh_back.rotation.y = 0;
+		this.mesh_back.rotation.z = 0;
+		this.mesh_back.needsUpdate = true;
 		
 	}
 	resetExtraShapes(){
 		this.shapes_geometry_front = {};
-		this.shapes_geometry_front_uvs = {};
+		// this.shapes_geometry_front_uvs = {};
 		this.shapes_material_front = {};
 		this.shapes_geometry_back = {};
 		this.shapes_geometry_back_uvs = {};
 		this.shapes_material_back = {};
 	}
 	resetMaterials(){
-		if(this.material_front) {
-			if(this.material_front.opacity !== 1) {
-				this.material_front.opacity = 1;
-				this.material_front.needsUpdate = true;
+		if(this.mesh_front.material) {
+			if(this.mesh_front.material.opacity !== 1) {
+				this.mesh_front.material.opacity = 1;
+				this.mesh_front.material.needsUpdate = true;
 			}
 		}
 		if(this.material_front_text) {
@@ -1532,12 +1589,11 @@ drawAngoloCornerPath() {
 				}
 			});
 		}
-		if(this.material_back) {
-			if(this.material_back.opacity !== 1) {
-				this.material_back.opacity = 1;
-				this.material_back.needsUpdate = true;
+		if(this.mesh_back.material) {
+			if(this.mesh_back.material.opacity !== 1) {
+				this.mesh_back.material.opacity = 1;
+				this.mesh_back.material.needsUpdate = true;
 			}
-
 		}
 		if(this.material_back_text) {
 			if(this.material_back_text.opacity !== 1) {
@@ -1574,8 +1630,8 @@ drawAngoloCornerPath() {
 				mat.dispose();
 			});
 			} else {
-			if (child.material.map) child.material.map.dispose();
-			child.material.dispose();
+				if (child.material.map) child.material.map.dispose();
+				child.material.dispose();
 			}
 		}
 
@@ -1619,6 +1675,7 @@ drawAngoloCornerPath() {
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
+		
 		if(animationName == 'spin'){
 			this.mesh_front.rotation.y = 0;
 			this.mesh_back.rotation.y  = Math.PI;
@@ -1690,9 +1747,9 @@ drawAngoloCornerPath() {
 			// 	alert('fade-in delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
 			// 	return;
 			// }
-			this.material_front.transparent = true;
-			this.material_front.opacity = 0;
-			this.material_front.needsUpdate = true;
+			this.mesh_front.material.transparent = true;
+			this.mesh_front.material.opacity = 0;
+			this.mesh_front.material.needsUpdate = true;
 			this.material_front_text.opacity = 0;
 			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
@@ -1703,16 +1760,12 @@ drawAngoloCornerPath() {
 			});
 
 			this.animationDuration = (this.fadeInDurationBase + this.fadeInDelayBase) / this.animationSpeed;
-			this.material_front.needsUpdate = true;
+			this.mesh_front.material.needsUpdate = true;
 			
 		} else if(animationName == 'fadeOut'){
-			// if(this.fadeOutDelay > this.animationDurationBase) {
-			// 	alert('fade-out delay cannot be greater than animationDurationBase ('+this.animationDurationBase+')');
-			// 	return;
-			// }
-			this.material_front.transparent = true;
-			this.material_front.opacity = 1;
-			this.material_front.needsUpdate = true;
+			this.mesh_front.material.transparent = true;
+			this.mesh_front.material.opacity = 1;
+			this.mesh_front.material.needsUpdate = true;
 			this.material_front_text.opacity = 1;
 			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
@@ -1722,11 +1775,8 @@ drawAngoloCornerPath() {
 				}
 			});
 			this.animationDuration = (this.fadeOutDurationBase + this.fadeOutDelayBase) / this.animationSpeed;
-			
-			// if(!isSilent) this.fadeOut();
 		} else {
 			this.resetMesh();
-			// this.resetExtraShapes();
 		}
 		this.renderer.render( this.scene, this.camera );
 		if(!isSilent) this.animate(performance.now());
@@ -1883,8 +1933,8 @@ drawAngoloCornerPath() {
 			}
 		} else {
 			let opacity = progress / (this.fadeInDurationBase / this.animationSpeed / this.animationDuration);
-			this.material_front.opacity = opacity;
-			this.material_front.needsUpdate = true;
+			this.mesh_front.material.opacity = opacity;
+			this.mesh_front.material.needsUpdate = true;
 			this.material_front_text.opacity = opacity;
 			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
@@ -1903,11 +1953,10 @@ drawAngoloCornerPath() {
 				this.canvasObj.saveCanvasAsVideo(); 
 			} 
 			this.initAnimate();
-				
 		} else if(progress > delay_progress){
 			let opacity = (1 - progress)  / (1 - delay_progress);
-			this.material_front.opacity = opacity;
-			this.material_front.needsUpdate = true;
+			this.mesh_front.material.opacity = opacity;
+			this.mesh_front.material.needsUpdate = true;
 			this.material_front_text.opacity = 1 - (progress - delay_progress)  / (1 - delay_progress);
 			this.material_front_text.needsUpdate = true;
 			this.frontWatermarkGroup.traverse((child) => {
@@ -2179,67 +2228,6 @@ drawAngoloCornerPath() {
 	    	this.updateBackTextPosition(position);
 	    }.bind(this);
 
-		for(let idx in this.fields.media) {
-			let input = this.fields.media[idx];
-			input.onclick = function (e) {
-				e.target.value = null;
-			}.bind(this);
-			input.onchange = function(e){
-				const file = e.target.files[0];
-				if(file.type === 'video/mp4') {
-					this.readVideoUploaded(e, (video)=>{
-						let isBack = idx.indexOf('back-') !== -1;
-						this.updateMedia(idx, video, false, isBack, true);
-					});
-				} else {
-					this.readImageUploaded(e, (idx, image)=> {
-						let isBack = idx.indexOf('back-') !== -1;
-						this.updateMedia(idx, image, false, isBack)
-					});
-				}
-			}.bind(this);
-			input.addEventListener('applySavedFile', (e)=>{
-				let idx = input.getAttribute('image-idx');
-				let src = input.getAttribute('data-file-src');
-				let ext = src.substring(src.lastIndexOf('.') + 1);
-				if(this.supported_ext['video'].includes(ext)) {
-					this.readVideo(idx, src, (idx, video, silent)=>{
-						let isBack = idx.indexOf('back-') !== -1;
-						this.updateMedia(idx, video, silent, isBack, true);
-					});
-				}else {
-					this.readImage(idx, src, (idx, image, silent)=>{
-						let isBack = idx.indexOf('back-') !== -1;
-						this.updateMedia(idx, image, silent, isBack);
-					});
-				}
-			});
-			let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-			if(scale_input) {
-				scale_input.oninput = function(e){
-				    e.preventDefault();
-				    let scale = e.target.value;
-				    this.updateMediaScale(scale, idx);
-				}.bind(this);
-				scale_input.addEventListener('initImg', ()=>{
-					this.initImg(idx);
-				});
-			}	
-			let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-			shift_x_input.oninput = function(e){
-				this.updateMediaPositionX(e.target.value, idx);
-			}.bind(this);
-			shift_x_input.addEventListener('initImg', ()=>{
-				this.initImg(idx);
-			});
-			let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-			shift_y_input.oninput = function(e){
-				this.updateMediaPositionY(e.target.value, idx);
-			}.bind(this);
-			shift_y_input.addEventListener('initImg', ()=>{
-				this.initImg(idx);
-			});
-		}
 
 		let sAnimation_speed = this.control.querySelector('.field-id-animation-speed');
 		if(sAnimation_speed) {
@@ -2248,19 +2236,75 @@ drawAngoloCornerPath() {
 				this.updateAnimationSpeed(e.target.value);  
 			}.bind(this);
 		}
-		// window.addEventListener('resize', ()=>{
-			
-		// })
+		for(let idx in this.fields.media) {
+			this.addMediaListener(idx);
+		}
 	}
-	initImg(idx){
-		if(!this.media[idx]) this.media[idx] = {
-			img: null,
-			x: 0,
-			y: 0,				
-			shiftY: 0,
-			shiftX: 0,
-			scale: 1
-		};
+	addMediaListener(key){
+		// console.log('addMediaListener', key);
+		if(!key) return;
+		if(!this.media[key]) {
+
+		}
+
+		let input = this.fields.media[key];
+		if(!input) console.error('media field doesnt exist: ', key);
+		input.onclick = function (e) {
+			e.target.value = null;
+		}.bind(this);
+		input.onchange = function(e){
+			this.readImageUploaded(e, this.updateMedia.bind(this));
+		}.bind(this);
+		input.addEventListener('applySavedFile', (e)=>{
+			
+			let idx = input.getAttribute('image-idx');
+			let src = input.getAttribute('data-file-src');
+			this.readImage(idx, src, (idx, image)=>{
+				input.classList.add('not-empty');
+				this.updateMedia(idx, image);
+			});
+		});
+		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+		if(scale_input) {
+			scale_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				e.preventDefault();
+				// let scale = e.target.value >= 1 ? e.target.value : 1;
+				let scale = e.target.value;
+				this.updateMediaScale(scale, key, isSilent);
+			}.bind(this);
+		}	
+		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+		if(shift_x_input) {
+			shift_x_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(e.target.value, key, isSilent);
+			}.bind(this);
+			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(shift.x, key, isSilent)
+				this.updateMediaPositionY(shift.y, key, isSilent)
+			});
+		}
+		if(shift_y_input) {
+			shift_y_input.oninput = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionY(e.target.value, key, isSilent);
+			}.bind(this);
+			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaPositionX(shift.x, key, isSilent)
+				this.updateMediaPositionY(shift.y, key, isSilent)
+			});
+		}
+		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+		if(blend_mode_input) {
+			blend_mode_input.onchange = function(e){
+				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				this.updateMediaBlendMode(e.target.value, key, isSilent);
+			}.bind(this);
+		}
 	}
     updateFrame(frame=null, silent = false)
     {
@@ -2280,9 +2324,11 @@ drawAngoloCornerPath() {
 	setGroupPosition(){
 		this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
+			// this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
+			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY);
 		} else {
-			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
+			// this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
+			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
 		}
 		this.group.needsUpdate = true;
 	}
@@ -2321,11 +2367,19 @@ drawAngoloCornerPath() {
     }
 	syncImgs(){
 		super.syncImgs();
-		if(this.material_front.map instanceof THREE.Texture && this.media['front-background-image']) {
+		if(this.mesh_front.material.map instanceof THREE.Texture && this.media['front-background-image']) {
 			let idx = this.fieldCounterparts['front-background-image'];
 			this.counterpart.updateMedia(idx, this.media['front-background-image'].img);
 		}
 	}
+	// updateMediaScale(scale, key, isSilent) {
+	// 	super.updateMediaScale(scale, key, isSilent);
+	// 	const m = this.media[key];
+	// 	for(const mesh_key in m.mesh){
+	// 		const mesh = m.mesh[mesh_key];
+	// 		mesh.geometry.width;
+	// 	}
+	// }
 	async readVideoUploaded(event, cb){
 		const file = event.target.files[0];
 		const videoURL = URL.createObjectURL(file);
