@@ -151,8 +151,10 @@ export class Canvas {
         this.canvas.style.transformOrigin = `0 0`;
         this.setRenderer();
         this.scene = new THREE.Scene();
-		this.aspect = 1;  // the canvas default
-		this.fov = 10;
+		// this.aspect = 1;  // the canvas default
+        this.aspect = width / height;
+		// this.fov = 10;
+        this.fov = 10 / this.aspect;
         this.setCamera();
 
         /* if the window is dragged into a different screen... */
@@ -881,6 +883,8 @@ export class Canvas {
         
         if(this.isThree)
         {
+            this.aspect = this.canvas.width / this.canvas.height;
+            this.fov = 10 / this.aspect;
             this.setRenderer();
             this.setCamera();
         }
