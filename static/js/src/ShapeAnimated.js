@@ -104,7 +104,8 @@ export class ShapeAnimated extends Shape {
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
-		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
+		// this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
+		this.scale = new THREE.Vector3(1, 1, 1);
 		// console.log('scale', this.canvas.width, this.canvas.height);
 		this.group = new THREE.Group();
 		this.setGroupPosition();
@@ -115,7 +116,7 @@ export class ShapeAnimated extends Shape {
 	}
 	updateCanvasSize(){
 		this.context = this.canvas.getContext("2d");
-		this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
+		// this.scale = new THREE.Vector3(1, 1, 1);
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
@@ -283,7 +284,8 @@ export class ShapeAnimated extends Shape {
 	}
 	drawCircle(){
 		let this_r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
-		this_r = this_r;
+		console.log(this.frame.w, this.frame.h);
+		// this_r = this_r;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
 		this.geometry_back = new THREE.CircleGeometry( this_r, 64);
@@ -1619,6 +1621,7 @@ drawAngoloCornerPath() {
 		console.log('initAnimate', animationName);
 		this.resetAnimation();
 		this.resetMaterials();
+		console.log(this.camera.aspect);
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
 		if(animationName == 'spin'){
@@ -1862,6 +1865,7 @@ drawAngoloCornerPath() {
 	    this.renderer.render( this.scene, this.camera );
 	}
 	rotate(progress){
+		console.log(this.frame.w);
 		this.mesh_front.rotation.z = -progress * Math.PI * 2;
 		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
