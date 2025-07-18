@@ -66,6 +66,8 @@ x unify text-handling (main texts and watermarks)
 - make sure the key of base in the saved records is a word instead of a hex code
 + pdf generation is not working
 + update the text of the "Choose file" button when a file has been selected
++ make media work for the animated canvas
 - wrong watermark position for animated angolo
-- make media work for the animated canvas
+- weird white edge of animated angolo
+- sync media
 + mobile css

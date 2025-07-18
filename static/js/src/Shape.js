@@ -603,6 +603,7 @@ export default class Shape {
         this.watermarkidx++;
     }
     checkWatermarkPosition(position, label){
+        if(!label) return;
         let availables = this.shape.watermarkPositions;
         let isAvailable = ( availables == 'all' || availables.includes(position) );
         if(isAvailable) label.classList.remove('not-supported');

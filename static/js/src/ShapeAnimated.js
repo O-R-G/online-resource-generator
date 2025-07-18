@@ -5,10 +5,11 @@ import {Text} from 'troika-three-text';
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		this.group_front = new THREE.Group();
+		this.group_front = this.createGroup('group_front');
 		this.mesh_front = this.createMesh('mesh_front');
 		this.mesh_front.material = this.processColor(Object.values(this.options.colorOptions)[0].color);
 		this.mesh_front.initialized = true;
+		this.group_front.add(this.mesh_front);
 		this.secondary_mesh_front = null;
 		this.geometry_front = null;
 		
@@ -21,10 +22,11 @@ export default class ShapeAnimated extends Shape {
 		this.frontFont = this.getDefaultOption(this.options.fontOptions);
 		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 		
-		this.group_back = new THREE.Group();
+		this.group_back = this.createGroup('group_back');
 		this.mesh_back = this.createMesh('mesh_back');
 		this.mesh_back.material = this.processColor(Object.values(this.options.colorOptions)[1].color);
 		this.mesh_back.initialized = true;
+		this.group_back.add(this.mesh_back);
 		this.mesh_arr_back = [];
 		this.geometry_back_uvs = null;
 		this.mesh_back_text = null;
@@ -118,18 +120,9 @@ export default class ShapeAnimated extends Shape {
 	}
 	updateCanvasSize(){
 		this.context = this.canvas.getContext("2d");
-		// this.scale = new THREE.Vector3(1, 1, 1);
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
-		// if(this.mesh_front) {
-			// this.mesh_front.scale.copy(this.scale);
-			this.mesh_front.needsUpdate = true;
-		// }
-		if(this.mesh_back) {
-			// this.mesh_back.scale.copy(this.scale);
-			this.mesh_back.needsUpdate = true;
-		}
 	}
 	addCounterpart(obj)
 	{
@@ -310,9 +303,8 @@ export default class ShapeAnimated extends Shape {
 		let path_back = this.drawRectanglePath();
 
 		this.mesh_front.geometry = new THREE.ShapeGeometry(path_front);
-		this.mesh_front.needsUpdate = true;
 		this.mesh_back.geometry = new THREE.ShapeGeometry(path_back);
-		this.mesh_front.needsUpdate = true;
+		
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	drawRectanglePath(){
@@ -436,6 +428,7 @@ export default class ShapeAnimated extends Shape {
 		return output;
 	}
 	drawAngolo(){
+		console.log('drawAngolo');
 		let path_front = this.drawAngoloPath();
 		let path_back = this.drawAngoloPath();
 		let path_corner_front = this.drawAngoloCornerPath();
@@ -521,14 +514,10 @@ drawAngoloCornerPath() {
     return outer;
 }
 drawNone(){
-	console.log('drawNone');
 	this.mesh_front.geometry.dispose();
 	this.mesh_front.material.dispose();
-	this.mesh_front.needsUpdate = true;
-
 	this.mesh_back.geometry.dispose();
 	this.mesh_back.material.dispose();
-	this.mesh_back.needsUpdate = true;
 }
 	rotatePoint(x, y, cx, cy, angleRad) {
 		const cos = Math.cos(angleRad);
@@ -1024,9 +1013,13 @@ drawNone(){
 			// this.frontIsGridColor = color['type'] == 'special';
 			if(color['type'] == 'special') {
 				this.mesh_front = this.processColor(color);
-			} else 
+			} else  {
+				if(this.mesh_front.material) 
+					this.mesh_front.material.dispose();
 				this.mesh_front.material = this.processColor(color);
-			this.mesh_front.needsUpdate = true;
+				this.mesh_front.material.needsUpdate = true;
+			}
+			
 			if(!silent) this.canvasObj.draw();
 		}
 	}
@@ -1039,17 +1032,22 @@ drawNone(){
 			this.shapeMethod = 'draw';
 			if(color['type'] == 'special') {
 				this.mesh_back = this.processColor(color);
-			} else 
+			} else {
+				if(this.mesh_back.material) 
+					this.mesh_back.material.dispose();
 				this.mesh_back.material = this.processColor(color);
-			this.mesh_back.needsUpdate = true;
+				this.mesh_back.material.needsUpdate = true;
+			}
 			if(!silent) this.canvasObj.draw();
 		}
 		
-		if(!silent) this.canvasObj.draw();
+		
 	}
 	updateFrontTextColor(color, silent = false){
 		this.material_front_text = this.processColor(color);
 		if(this.mesh_front_text) {
+			if(this.mesh_front_text.material)
+				this.mesh_front_text.material.dispose();
 			this.mesh_front_text.material = this.material_front_text;
 			this.mesh_front_text.needsUpdate = true;
 		}
@@ -1058,6 +1056,8 @@ drawNone(){
 	updateBackTextColor(color, silent = false){
 		this.material_back_text = this.processColor(color);
 		if(this.mesh_back_text) {
+			if(this.mesh_back_text.material)
+				this.mesh_back_text.material.dispose();
 			this.mesh_back_text.material = this.material_back_text;
 			this.mesh_back_text.needsUpdate = true;
 		}
@@ -1134,13 +1134,16 @@ drawNone(){
 		texture.wrapT = THREE.ClampToEdgeWrapping;
 		texture.offset.set(offsetX, offsetY);
 		texture.repeat.set(repeatX, repeatY);
-
-		mesh.needsUpdate = true;
 	}
 	createMesh(name=''){
 		const output = new THREE.Mesh();
 		if(name) output.name = name;
 		output.initialized = false;
+		return output;
+	}
+	createGroup(name=''){
+		const output = new THREE.Group();
+		if(name) output.name = name;
 		return output;
 	}
 	async updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
@@ -1205,7 +1208,6 @@ drawNone(){
 						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
 						geometry.attributes.uv.needsUpdate = true;
 						mesh.material = material;
-						mesh.needsUpdate = true;
 					}
 				} else {
 					for(const key in media.mesh){
@@ -1250,7 +1252,6 @@ drawNone(){
 						console.log(dev_x, dev_y);
 						mesh.position.x = dev_x;
 						mesh.position.y = -dev_y;
-						mesh.needsUpdate = true;
 					}
 				}							
 				resolve();
@@ -1279,13 +1280,6 @@ drawNone(){
 	}
 	drawShape()
 	{
-		// if(this.mesh_front && this.mesh_front.geometry) {
-		// 	this.mesh_front.geometry.dispose();
-		// }
-		// if(this.mesh_back.geometry) {
-		// 	this.mesh_back.geometry.dispose();
-		// }
-		console.log(this.shape.base)
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
@@ -1320,20 +1314,25 @@ drawNone(){
 		let sync = !animate;
 		this.scene.add( this.group );
 		
-		this.addExtraShapeMeshes(this.mesh_front, this.shapes_geometry_front, this.shapes_material_front);
-		this.addExtraShapeMeshes(this.mesh_back, this.shapes_geometry_back, this.shapes_material_back);
+		this.addExtraShapeMeshes(this.group_front, this.shapes_geometry_front, this.shapes_material_front);
+		this.addExtraShapeMeshes(this.group_back, this.shapes_geometry_back, this.shapes_material_back, true);
 
-		if(this.frontWatermarkGroup.parent !== this.mesh_front)
-			this.mesh_front.add(this.frontWatermarkGroup);
-		if(this.backWatermarkGroup.parent !== this.mesh_back)
-			this.mesh_back.add(this.backWatermarkGroup);
+		// if(this.frontWatermarkGroup.parent !== this.mesh_front) {
+		// 	this.mesh_front.add(this.frontWatermarkGroup);
+		// }
+		if(this.frontWatermarkGroup.parent !== this.group_front) {
+			this.group_front.add(this.frontWatermarkGroup);
+		}
+			
+		if(this.backWatermarkGroup.parent !== this.group_back)
+			this.group_back.add(this.backWatermarkGroup);
 		this.mesh_front_text = this.write( this.frontText, this.frontTypography, this.material_front_text, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 		if(this.mesh_front_text) {
-			this.mesh_front.add(this.mesh_front_text);
+			this.group_front.add(this.mesh_front_text)
 		}
 		this.mesh_back_text = this.write( this.backText, this.backTypography, this.material_back_text, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
 		if(this.mesh_back_text) {
-			this.mesh_back.add(this.mesh_back_text);
+			this.group_back.add(this.mesh_back_text);
 		}
 		if( this.shape.watermarkPositions !== undefined)
 		{
@@ -1358,31 +1357,37 @@ drawNone(){
 		
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
-		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group) {
-			this.group.add(this.mesh_back);
+		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group_back) {
+			if(this.group_back.parent !== this.group)
+				this.group.add(this.group_back);
 			
 		}
-		else if(this.mesh_front.parent !== this.group) {
-			this.group.add(this.mesh_front);
-			for(const key in this.media) {
-				if(this.media[key].isShapeColor) continue;
-				if(this.media[key].mesh.front)
-					this.mesh_front.add(this.media[key].mesh.front);
-			}
+		else  {
+			if(this.group_front.parent !== this.group)
+				this.group.add(this.group_front);
+			
 		}
+		if(this.shape.base !== 'none') {
+			if(this.mesh_back.parent !== this.group_back)
+				this.group_back.add(this.mesh_back);
+			if(this.mesh_front.parent !== this.group_front)
+				this.group_front.add(this.mesh_front);
+		}
+		
 		for(const key in this.media) {
 			if(this.media[key].isShapeColor) continue;
 			if(this.media[key].mesh.front)
-				this.mesh_front.add(this.media[key].mesh.front);
+				this.group_front.add(this.media[key].mesh.front);
 			if(this.media[key].mesh.back)
-				this.mesh_back.add(this.media[key].mesh.back);
+				this.group_back.add(this.media[key].mesh.back);
 		}
+		// console.log(this.group_front.children);
 		this.initAnimate(animationName);
 		 
 	}
 	
 	draw (animate = true){
-		this.resetMesh();
+		this.resetGroups();
 		this.resetAnimation();
 		this.isForward = true;
 		this.actualDraw(animate);
@@ -1391,16 +1396,16 @@ drawNone(){
 		if(Object.keys(geometry_arr).length > 0) {
 			for(const key in geometry_arr) {
 				const material = metarial_arr[key];
+				
 				if(!material) continue;
 				// const mesh = new THREE.Mesh( geometry_arr[key], material );
-				const mesh = this.createMesh('extra-shape-' + key);
+				const mesh = this.createMesh(`extra-shape-${key}-${isBack ? 'back' : 'front'}`);
 				mesh.material = material;
+				mesh.geometry = geometry_arr[key];
 				mesh.position.z = 0.5;
 				main_mesh.add(mesh);
-				main_mesh.needsUpdate = true;
 			}
 		}
-		// return main_mesh;
 	}
 	generateThreeColorsGradient(uniforms, angle){
 		uniforms.measure = Math.abs(uniforms.bboxMax.value.x * 2);
@@ -1541,30 +1546,52 @@ drawNone(){
         this.easeAngleInterval = this.easeAngleInitial;
         this.renderer.render( this.scene, this.camera );
 	}
-	resetMesh(){
-		this.disposeHierarchy(this.group);
-		this.disposeHierarchy(this.mesh_front);
+	resetGroups(){
+		// this.disposeHierarchy(this.group);
+		// this.disposeHierarchy(this.group_front);
+		// this.disposeHierarchy(this.mesh_front);
 		// this.mesh_front.material.dispose();
 		// this.mesh_front.geometry.dispose();
-		this.mesh_front.rotation.x = 0;
-		this.mesh_front.rotation.y = 0;
-		this.mesh_front.rotation.z = 0;
-		this.mesh_front.needsUpdate = true;
-		this.disposeHierarchy(this.mesh_back);
+		this.disposeHierarchy(this.group_front);
+		this.group_front.rotation.x = 0;
+		this.group_front.rotation.y = 0;
+		this.group_front.rotation.z = 0;
+		// this.disposeHierarchy(this.group_back);
+		// this.disposeHierarchy(this.mesh_back);
 		// this.mesh_front.material.dispose();
 		// this.mesh_front.geometry.dispose();
-		this.mesh_back.rotation.x = 0;
-		this.mesh_back.rotation.y = 0;
-		this.mesh_back.rotation.z = 0;
-		this.mesh_back.needsUpdate = true;
+		this.disposeHierarchy(this.group_back);
+		this.group_back.rotation.x = 0;
+		this.group_back.rotation.y = 0;
+		this.group_back.rotation.z = 0;
+		
 		
 	}
 	resetExtraShapes(){
+		for(const key in this.shapes_geometry_front) {
+			const g = this.shapes_geometry_front[key];
+			if(!g) continue;
+			this.dump(g);
+		}
 		this.shapes_geometry_front = {};
 		// this.shapes_geometry_front_uvs = {};
+		for(const key in this.shapes_material_front) {
+			const m = this.shapes_material_front[key];
+			if(!m) continue;
+			this.dump(m);
+		}
 		this.shapes_material_front = {};
+		for(const key in this.shapes_geometry_back) {
+			const g = this.shapes_geometry_back[key];
+			if(!g) continue;
+			this.dump(g);
+		}
 		this.shapes_geometry_back = {};
-		this.shapes_geometry_back_uvs = {};
+		// this.shapes_geometry_back_uvs = {};
+		for(const key in this.shapes_material_back) {
+			const m = this.shapes_material_back[key];
+			this.dump(m);
+		}
 		this.shapes_material_back = {};
 	}
 	resetMaterials(){
@@ -1617,26 +1644,32 @@ drawNone(){
 		const children = [...node.children]; // clone the array to avoid modification issues
 
 		for (const child of children) {
-		this.disposeHierarchy(child); // Recursively dispose first
+			this.disposeHierarchy(child); // Recursively dispose first
 
-		if (child.geometry) {
-			child.geometry.dispose();
-		}
-
-		if (child.material) {
-			if (Array.isArray(child.material)) {
-			child.material.forEach(mat => {
-				if (mat.map) mat.map.dispose();
-				mat.dispose();
-			});
-			} else {
-				if (child.material.map) child.material.map.dispose();
-				child.material.dispose();
+			if (child.geometry) {
+				child.geometry.dispose();
 			}
-		}
 
-		node.remove(child); // Safely remove after disposal
+			if (child.material) {
+				if (Array.isArray(child.material)) {
+				child.material.forEach(mat => {
+					if (mat.map) mat.map.dispose();
+					mat.dispose();
+				});
+				} else {
+					if (child.material.map) child.material.map.dispose();
+					child.material.dispose();
+				}
+			}
+
+			node.remove(child); // Safely remove after disposal
 		}
+	}
+	dump(trash){
+		/* dispose only works on materials and geometries */
+		trash.dispose();
+		if(trash.parent)
+			trash.parent.remove(trash);
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
 		this.animationName = animationData;
@@ -1675,19 +1708,25 @@ drawNone(){
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
-		
+		for(const child of this.mesh_front.children) {
+			console.log(child.name);
+		}
 		if(animationName == 'spin'){
-			this.mesh_front.rotation.y = 0;
-			this.mesh_back.rotation.y  = Math.PI;
-			this.group.remove( this.mesh_back );
-			this.group.add( this.mesh_front );
+			// this.mesh_front.rotation.y = 0;
+			// this.mesh_back.rotation.y  = Math.PI;
+			// this.group.remove( this.mesh_back );
+			// this.group.add( this.mesh_front );
+			this.group_front.rotation.y = 0;
+			this.group_back.rotation.y  = Math.PI;
+			this.group.remove( this.group_back );
+			this.group.add( this.group_front );
 			this.backWatermarkGroup.scale.copy(new THREE.Vector3(-1, 1, 1));
 		}
 		else if(animationName == 'flip'){
-			this.mesh_front.rotation.x = 0;
-			this.mesh_back.rotation.x = Math.PI;
-			this.group.remove( this.mesh_back );
-			this.group.add( this.mesh_front );
+			this.group_front.rotation.x = 0;
+			this.group_back.rotation.x = Math.PI;
+			this.group.remove( this.group_back );
+			this.group.add( this.group_front );
 			this.backWatermarkGroup.scale.copy(new THREE.Vector3(1, -1, 1));
 		}
 		else if(animationName == 'rotate'){
@@ -1721,23 +1760,23 @@ drawNone(){
 				this.isForward = false;
 				// this.backWatermarkGroup.scale.copy(this.scale);
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(-1, 1, 1));
-				this.group.remove( this.mesh_front );
-	  			this.group.add( this.mesh_back );
+				this.group.remove( this.group_front );
+	  			this.group.add( this.group_back );
 			}
 			else if(animationName == 'restBackFlip')
 			{
 				this.isForward = false;
 				this.backWatermarkGroup.scale.multiply(new THREE.Vector3(1, -1, 1));
-				this.group.remove( this.mesh_front );
-	  			this.group.add( this.mesh_back );
+				this.group.remove( this.group_front );
+	  			this.group.add( this.group_back );
 			}
 			else {
-				if(this.mesh_front.parent !== this.group) {
-					this.group.add(this.mesh_front);
+				if(this.group_front.parent !== this.group) {
+					this.group.add(this.group_front);
 				}
 				
 				this.isForward = true;
-				this.mesh_front.rotation.y += this.spinAngleInterval;
+				this.group_front.rotation.y += this.spinAngleInterval;
 			}
 			this.animationName = 'rest';
 			
@@ -1776,7 +1815,7 @@ drawNone(){
 			});
 			this.animationDuration = (this.fadeOutDurationBase + this.fadeOutDelayBase) / this.animationSpeed;
 		} else {
-			this.resetMesh();
+			this.resetGroups();
 		}
 		this.renderer.render( this.scene, this.camera );
 		if(!isSilent) this.animate(performance.now());
@@ -1799,15 +1838,18 @@ drawNone(){
 		this.renderer.render( this.scene, this.camera );
 	}
 	spin(progress){
-		this.mesh_front.rotation.y = progress * Math.PI * 2;
-		this.mesh_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
-		if(this.mesh_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
+		// this.mesh_front.rotation.y = progress * Math.PI * 2;
+		// this.mesh_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
+		// console.log(this.mesh_front.children.length);
+		this.group_front.rotation.y = progress * Math.PI * 2;
+		this.group_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
+		if(this.group_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.group_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
 	  		if(this.isForward)
 	  		{
 	  			this.isForward = false;
-	  			this.group.remove( this.mesh_front );
-	  			this.group.add( this.mesh_back );
+	  			this.group.remove( this.group_front );
+	  			this.group.add( this.group_back );
 	  		}
 	  	}
 	    else
@@ -1815,8 +1857,8 @@ drawNone(){
 	  		if(!this.isForward)
 	  		{
 	  			this.isForward = true;
-	  			this.group.add( this.mesh_front );
-	  			this.group.remove( this.mesh_back );
+	  			this.group.add( this.group_front );
+	  			this.group.remove( this.group_back );
 	  		}
 	  	}
 
@@ -1855,16 +1897,16 @@ drawNone(){
 	//     this.renderer.render( this.scene, this.camera );
 	// }
 	flip(progress){
-		this.mesh_front.rotation.x = progress * Math.PI * 2;
-		this.mesh_back.rotation.x  = progress * Math.PI * 2 + Math.PI;
+		this.group_front.rotation.x = progress * Math.PI * 2;
+		this.group_back.rotation.x  = progress * Math.PI * 2 + Math.PI;
 		
-	    if(this.mesh_front.rotation.x % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.x % (Math.PI * 2) < 3 * Math.PI / 2)
+	    if(this.group_front.rotation.x % (Math.PI * 2) >= Math.PI / 2 && this.group_front.rotation.x % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
 	  		if(this.isForward)
 	  		{
 	  			this.isForward = false;
-	  			this.group.remove( this.mesh_front );
-	  			this.group.add( this.mesh_back );
+	  			this.group.remove( this.group_front );
+	  			this.group.add( this.group_back );
 	  		}
 	  	}
 	    else
@@ -1872,30 +1914,30 @@ drawNone(){
 	  		if(!this.isForward)
 	  		{
 	  			this.isForward = true;
-	  			this.group.add( this.mesh_front );
-	  			this.group.remove( this.mesh_back );
+	  			this.group.add( this.group_front );
+	  			this.group.remove( this.group_back );
 	  		}
 	  	}
 		this.renderer.render( this.scene, this.camera );
 	}
 	flipEase(){
 		this.timer = requestAnimationFrame( this.flipEase.bind(this) );
-		if(this.mesh_front.rotation.x < 3.25 * Math.PI)
+		if(this.group_front.rotation.x < 3.25 * Math.PI)
 			this.easeAngleInterval = this.easeAngleInterval * this.easeAngleRate;
-		else if(this.mesh_front.rotation.x >= 4 * Math.PI){
+		else if(this.group_front.rotation.x >= 4 * Math.PI){
 			cancelAnimationFrame(this.timer);
-			this.mesh_front.rotation.x = 0;
-			this.mesh_back.rotation.x = Math.PI;
+			this.group_front.rotation.x = 0;
+			this.group_back.rotation.x = Math.PI;
 		}
-	    this.mesh_front.rotation.x += this.easeAngleInterval;
-	    this.mesh_back.rotation.x  += this.easeAngleInterval;
-	    if(this.mesh_front.rotation.x % (Math.PI * 2) >= Math.PI / 2 && this.mesh_front.rotation.x % (Math.PI * 2) < 3 * Math.PI / 2)
+	    this.group_front.rotation.x += this.easeAngleInterval;
+	    this.group_back.rotation.x  += this.easeAngleInterval;
+	    if(this.mesh_front.rotation.x % (Math.PI * 2) >= Math.PI / 2 && this.group_front.rotation.x % (Math.PI * 2) < 3 * Math.PI / 2)
 	  	{
 	  		if(this.isForward)
 	  		{
 	  			this.isForward = false;
-	  			this.group.remove( this.mesh_front );
-	  			this.group.add( this.mesh_back );
+	  			this.group.remove( this.group_front );
+	  			this.group.add( this.group_back );
 	  		}
 	  	}
 	    else
@@ -1903,20 +1945,20 @@ drawNone(){
 	  		if(!this.isForward)
 	  		{
 	  			this.isForward = true;
-	  			this.group.add( this.mesh_front );
-	  			this.group.remove( this.mesh_back );
+	  			this.group.add( this.group_front );
+	  			this.group.remove( this.group_back );
 	  		}
 	  	}
 	    this.renderer.render( this.scene, this.camera );
 	}
 	rotate(progress){
-		this.mesh_front.rotation.z = -progress * Math.PI * 2;
-		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
+		this.group_front.rotation.z = -progress * Math.PI * 2;
+		this.group_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
 	}
 	rotateBackward(progress){
-		this.mesh_front.rotation.z = progress * Math.PI * 2;
-		this.mesh_back.rotation.z  = progress * Math.PI * 2;
+		this.group_front.rotation.z = progress * Math.PI * 2;
+		this.group_back.rotation.z  = progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeIn(progress){
@@ -2313,10 +2355,10 @@ drawNone(){
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
 		if(this.group) {
-			this.group.remove(this.mesh_front);
-			this.group.remove(this.mesh_back);
+			this.group.remove(this.group_front);
+			this.group.remove(this.group_back);
 			this.scene.remove(this.group);
-			this.group = new THREE.Group();
+			this.group = this.createGroup('main-group');
 			this.setGroupPosition();
 		}
     	if(!silent) this.canvasObj.draw();
@@ -2330,7 +2372,6 @@ drawNone(){
 			// this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
 			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
 		}
-		this.group.needsUpdate = true;
 	}
 	generateShapeCenter(){
 		let output = {x: 0, y: 0};
