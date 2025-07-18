@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { Shape } from "./Shape.js";
+import Shape from "./Shape.js";
 import {Text} from 'troika-three-text';
 
-export class ShapeAnimated extends Shape {
+export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
 		
@@ -1120,77 +1120,77 @@ drawAngoloCornerPath() {
 			this.applyVideoAsMaterial(idx, silent, isBack)
 		}
 		else {
-			if(!isBack) 
-				this.mesh_front.remove(this.material_front);
-			this.applyImageAsMaterial(idx, silent, isBack)
+			if(!isBack){
+				let mesh = this.mesh_front;
+				mesh.remove(this.material_front);
+				this.material_front = this.applyImageAsMaterial(idx, mesh, silent, isBack)
+			} else {
+				let mesh = this.mesh_back;
+				this.material_back = this.applyImageAsMaterial(idx, mesh, silent, isBack)
+			}
 		}
 	}
-	applyImageAsMaterial(idx, silent, isBack){
+	applyImageAsMaterial(idx, mesh, silent, isBack){
 		const textureLoader = new THREE.TextureLoader();
-		return textureLoader.load(this.media[idx].obj.src, (texture) => {
-			// Set texture filtering
-			texture.magFilter = THREE.LinearFilter;
-			texture.minFilter = THREE.LinearFilter;
-			texture.colorSpace = THREE.SRGBColorSpace;
+		return new Promise((resolve, reject) => {
+			textureLoader.load(this.media[idx].obj.src, (texture) => {
+				// Set texture filtering
+				texture.magFilter = THREE.LinearFilter;
+				texture.minFilter = THREE.LinearFilter;
+				texture.colorSpace = THREE.SRGBColorSpace;
+				let material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+				mesh.material = material;
+				mesh.needsUpdate = true;
+				// let geometry = isBack ? this.geometry_back : this.geometry_front;
+				let geometry = mesh.geometry;
+
+				const imageAspect = texture.image.width / texture.image.height;
+				geometry.computeBoundingBox();
+				const bbox = geometry.boundingBox;
+				const geomWidth = bbox.max.x - bbox.min.x;
+				const geomHeight = bbox.max.y - bbox.min.y;
+				const geometryAspect = geomWidth / geomHeight;
+
+				let scaleX = 1 / this.media[idx].scale;
+				let scaleY = 1 / this.media[idx].scale;
+
+				if (imageAspect > geometryAspect) {
+					scaleX *= geometryAspect / imageAspect;
+				} else {
+					scaleY *= imageAspect / geometryAspect;
+				}
+
+				const dev_x = this.media[idx].shiftX ? this.getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
+				const dev_y = this.media[idx].shiftY ? - this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
+				
+				const uvArray = [];
+				const position = geometry.attributes.position;
+				const max = bbox.max;
+				const min = bbox.min;
+
+				for (let i = 0; i < position.count; i++) {
+					const x = position.getX(i);
+					const y = position.getY(i);
 			
-			let mesh = isBack ? this.mesh_back : this.mesh_front;
-			  if(!isBack) {
-				this.material_front = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-				mesh.material = this.material_front;
-			} else {
-				this.material_back = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-				mesh.material = this.material_back;
-			}
-			mesh.needsUpdate = true;
-			let geometry = isBack ? this.geometry_back : this.geometry_front;
+					let u = (x - min.x) / (max.x - min.x);
+					let v = (y - min.y) / (max.y - min.y);
+					u = u * scaleX + (1 - scaleX) / 2 - dev_x;
+					v = v * scaleY + (1 - scaleY) / 2 + dev_y;
 
-			const imageAspect = texture.image.width / texture.image.height;
-			geometry.computeBoundingBox();
-			const bbox = geometry.boundingBox;
-			const geomWidth = bbox.max.x - bbox.min.x;
-			const geomHeight = bbox.max.y - bbox.min.y;
-			const geometryAspect = geomWidth / geomHeight;
+					// if (u < 0 || u > 1 || v < 0 || v > 1) {
+					// 	u = Math.max(Math.min(u, 1), 0);
+					// 	v = Math.max(Math.min(v, 1), 0);
+					// }
+					uvArray.push(u, v);
+				}
 
-			let scaleX = 1 / this.media[idx].scale;
-			let scaleY = 1 / this.media[idx].scale;
-
-			if (imageAspect > geometryAspect) {
-				scaleX *= geometryAspect / imageAspect;
-			} else {
-				scaleY *= imageAspect / geometryAspect;
-			}
-
-			const dev_x = this.media[idx].shiftX ? this.getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
-			const dev_y = this.media[idx].shiftY ? - this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
-			
-			const uvArray = [];
-			const position = geometry.attributes.position;
-			const max = bbox.max;
-			const min = bbox.min;
-
-			for (let i = 0; i < position.count; i++) {
-				const x = position.getX(i);
-				const y = position.getY(i);
-		
-				let u = (x - min.x) / (max.x - min.x);
-				let v = (y - min.y) / (max.y - min.y);
-				u = u * scaleX + (1 - scaleX) / 2 - dev_x;
-				v = v * scaleY + (1 - scaleY) / 2 + dev_y;
-
-				// if (u < 0 || u > 1 || v < 0 || v > 1) {
-				// 	u = Math.max(Math.min(u, 1), 0);
-				// 	v = Math.max(Math.min(v, 1), 0);
-				// }
-				uvArray.push(u, v);
-			}
-			
-
-			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-			geometry.attributes.uv.needsUpdate = true;
-			
-			if(!silent) this.canvasObj.draw();
-			// return true;
-		});
+				geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+				geometry.attributes.uv.needsUpdate = true;
+				
+				if(!silent) this.canvasObj.draw();
+				resolve(material);
+			});
+		})
 	}
 	processStaticColorData(colorData){
 		var output = {}; // params of material
@@ -1281,10 +1281,8 @@ drawAngoloCornerPath() {
 			this.mesh_front.add(this.frontWatermarkGroup);
 		if(this.backWatermarkGroup.parent !== this.mesh_back)
 			this.mesh_back.add(this.backWatermarkGroup);
-		console.log(this.mesh_front_text, this.frontText);
 		this.mesh_front_text = this.write( this.frontText, this.frontTypography, this.material_front_text, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 		if(this.mesh_front_text) {
-			console.log('adding mesh_front_text');
 			this.mesh_front.add(this.mesh_front_text);
 		}
 		this.mesh_back_text = this.write( this.backText, this.backTypography, this.material_back_text, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
@@ -1482,7 +1480,6 @@ drawAngoloCornerPath() {
         this.renderer.render( this.scene, this.camera );
 	}
 	resetMesh(){
-		console.log('resetMesh');
 		if(this.isForward){
 			this.group.remove( this.mesh_front );
 		}
@@ -1618,10 +1615,8 @@ drawAngoloCornerPath() {
 	}
 	
 	initAnimate(animationName, isSilent = false){
-		console.log('initAnimate', animationName);
 		this.resetAnimation();
 		this.resetMaterials();
-		console.log(this.camera.aspect);
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
 		if(animationName == 'spin'){
@@ -1865,7 +1860,6 @@ drawAngoloCornerPath() {
 	    this.renderer.render( this.scene, this.camera );
 	}
 	rotate(progress){
-		console.log(this.frame.w);
 		this.mesh_front.rotation.z = -progress * Math.PI * 2;
 		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
@@ -1950,6 +1944,7 @@ drawAngoloCornerPath() {
 		this.control.appendChild(this.renderTextSection('text-front', 'Main Text (front)'));
 		this.control.appendChild(this.renderTextSection('text-back', 'Main Text (back)'));
 		this.control.appendChild(super.renderAddWaterMark());
+		this.control.appendChild(super.renderAddMedia());
 		this.control_wrapper.appendChild(this.control);
 	}
     addListeners(){

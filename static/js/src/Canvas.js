@@ -28,15 +28,15 @@ IN THE SOFTWARE.
 */
 
 import * as THREE from "three";
-import { ShapeStatic } from "./ShapeStatic.js";
-import { ShapeAnimated } from "./ShapeAnimated.js";
+import ShapeStatic from "./ShapeStatic.js";
+import ShapeAnimated from "./ShapeAnimated.js";
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
 import { renderSection, renderNumeralSection, renderSelect, renderSelectSection, renderImageControls } from './utils/render.js'
 import { GifWriter } from 'omggif'
 import { jsPDF } from "jspdf";
 import { Canvg } from 'canvg';
 
-export class Canvas {
+export default class Canvas {
 	constructor(wrapper, format, prefix, options, isThree = false){
         this.initialized = false;
 		for(const property in options){
@@ -170,7 +170,6 @@ export class Canvas {
 
         /* if the window is dragged into a different screen... */
         this.windowResizeListeners.push(()=>{
-            console.log('check pxel');
             if(window.devicePixelRatio !== this.devicePixelRatio) {
                 this.initialized = false;
                 this.canvas.parentNode.removeChild(this.canvas);

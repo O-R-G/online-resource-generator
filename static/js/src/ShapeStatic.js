@@ -1,6 +1,6 @@
-import { Shape } from "./Shape.js";
+import Shape from "./Shape.js";
 
-export class ShapeStatic extends Shape {
+export default class ShapeStatic extends Shape {
 	constructor(prefix = '', canvasObj, options, format, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
 
@@ -1217,11 +1217,6 @@ export class ShapeStatic extends Shape {
 			const [section] = this.renderMediaSection('background-image', '', ['shape-image-section'])
 			this.control.appendChild(section);
 		}
-		// const main_text_data = {
-		// 	'position-options': this.options.textPositionOptions,
-		// 	'color-options': this.options.textPositionOptions,
-		// 	'typography-options': this.options.typographyOptions
-		// };
 		this.control.appendChild(this.renderTextSection('text', 'Main Text'));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control.appendChild(super.renderAddMedia());
@@ -1368,7 +1363,6 @@ export class ShapeStatic extends Shape {
 		if(!key) return;
 		let input = this.fields.media[key];
 		if(!input) console.error('media field doesnt exist: ', key);
-		console.log('addMediaListener: ', key);
 		input.onclick = function (e) {
 			e.target.value = null;
 		}.bind(this);
@@ -1546,7 +1540,6 @@ export class ShapeStatic extends Shape {
     }
     animate(colorData = false, shape = false){
 		if(this.initRecording && !this.canvasObj.isRecording) {
-			// this.animate();
 			console.log('start recording...');
 			
 			setTimeout(()=>{
@@ -1578,7 +1571,6 @@ export class ShapeStatic extends Shape {
 		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
 			if(!this.media[idx].obj) continue;
-			console.log(this.media[idx]['blend-mode']);
 			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
 			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX), (this.media[idx].y - this.media[idx].shiftY), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
 		}

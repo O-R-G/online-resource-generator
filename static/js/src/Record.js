@@ -1,4 +1,4 @@
-export class Record {
+export default class Record {
     constructor(container, record_id='', canvasObjs={}){
         this.container = container;
         this.record_id = record_id;

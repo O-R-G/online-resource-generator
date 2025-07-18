@@ -1,7 +1,7 @@
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
 import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralSection, renderSection, renderImageControls } from './utils/render.js';
 
-export class Shape {
+export default class Shape {
 	constructor(prefix, canvasObj, options, format, shape_index = 0){
         this.initialized = false;
         this.id = prefix + '-shape-' + shape_index;
@@ -476,7 +476,6 @@ export class Shape {
                     self.fields['watermarks'][idx][item['name']] = item['el'];
                     item['el'].onchange = function(e){
                         let label = item['el'].parentNode.parentNode.querySelector('label');
-                        console.log('render watermark section', label);
                         if(item['name'] === 'position') self.checkWatermarkPosition(e.target.value, label);
                         let param = {};
                         if(item['name'] === 'rotate') {
@@ -606,7 +605,6 @@ export class Shape {
         const availables = this.shape.watermarkPositions;
         let position = section.querySelector('.watermark-position').value;
         let label = section.querySelector('label');
-        console.log('addWatermark label', label);
         let pp = position;
         this.checkWatermarkPosition(pp, label);
 
@@ -780,7 +778,6 @@ export class Shape {
     	    this.updateMedia(idx, this.media[idx].obj, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
-        console.log('updateMediaPositionX', this.media[idx]);
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
     	this.media[idx].shiftX = parseFloat(imgShiftX);
