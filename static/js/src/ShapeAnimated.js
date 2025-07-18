@@ -301,7 +301,6 @@ export class ShapeAnimated extends Shape {
 	}
 	drawCircle(){
 		let this_r = (Math.min(this.frame.w, this.frame.h) - (this.padding * 2))/2;
-		console.log(this.frame.w, this.frame.h);
 		// this_r = this_r;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 		this.geometry_front = new THREE.CircleGeometry( this_r, 64);
@@ -1568,7 +1567,6 @@ export class ShapeAnimated extends Shape {
 	initAnimate(animationName, isSilent = false){
 		this.resetAnimation();
 		this.resetMaterials();
-		console.log(this.camera.aspect);
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
 		if(animationName == 'spin'){
@@ -1590,6 +1588,9 @@ export class ShapeAnimated extends Shape {
 			// this.mesh_front.rotation.x = 0;
 			// this.group.remove( this.mesh_back );
 			// this.group.add( this.mesh_front );
+		}
+		else if(animationName == 'rotateEaseOut' || animationName == 'rotateBackwardEaseOut'){
+
 		}
 		else if(animationName == 'rotateBackward'){
 		}
@@ -1814,14 +1815,59 @@ export class ShapeAnimated extends Shape {
 	    this.renderer.render( this.scene, this.camera );
 	}
 	rotate(progress){
-		console.log(this.frame.w);
 		this.mesh_front.rotation.z = -progress * Math.PI * 2;
 		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
 	}
+	rotateEaseOut(progress){
+		if(progress >= 1) {
+			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+				this.timer_delaySaveVideo = setTimeout(()=>{ 
+					this.canvasObj.saveCanvasAsVideo(); 
+					this.initAnimate();
+				}, 0);
+			} 
+			else {
+				this.initAnimate();
+			}
+		} else {
+			const easedProgress = this.easeOutQuart(progress);
+			const angle = -easedProgress * Math.PI * 2 * 4; // `this.rounds` = number of full spins
+			this.mesh_front.rotation.z = angle;
+			this.mesh_back.rotation.z = angle;
+		}
+
+		this.renderer.render( this.scene, this.camera );
+	}
+	easeOutCubic(t){
+		return 1 - Math.pow(1 - t, 3);
+	}
+	easeOutQuart(t) {
+		return 1 - Math.pow(1 - t, 5);
+	}
 	rotateBackward(progress){
 		this.mesh_front.rotation.z = progress * Math.PI * 2;
 		this.mesh_back.rotation.z  = progress * Math.PI * 2;
+		this.renderer.render( this.scene, this.camera );
+	}
+	rotateBackwardEaseOut(progress){
+		if(progress >= 1) {
+			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+				this.timer_delaySaveVideo = setTimeout(()=>{ 
+					this.canvasObj.saveCanvasAsVideo(); 
+					this.initAnimate();
+				}, 0);
+			} 
+			else {
+				this.initAnimate();
+			}
+		} else {
+			const easedProgress = this.easeOutQuart(progress);
+			const angle = easedProgress * Math.PI * 2 * 4; // `this.rounds` = number of full spins
+			this.mesh_front.rotation.z = angle;
+			this.mesh_back.rotation.z = angle;
+		}
+
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeIn(progress){
