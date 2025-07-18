@@ -208,6 +208,7 @@ export class Canvas {
 		this.far = z + this.canvas.width / this.scale * this.devicePixelRatio;
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
 		this.camera.position.set(0, 0, z);
+        this.camera.updateProjectionMatrix();
     }
     updateAutoRecordingQueue()
     {
