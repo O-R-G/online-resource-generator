@@ -1735,6 +1735,9 @@ drawNone(){
 			// this.group.remove( this.mesh_back );
 			// this.group.add( this.mesh_front );
 		}
+		else if(animationName == 'rotateEaseOut' || animationName == 'rotateBackwardEaseOut'){
+
+		}
 		else if(animationName == 'rotateBackward'){
 		}
 		// else if(animationName == 'spin-ease')
@@ -1954,11 +1957,59 @@ drawNone(){
 	rotate(progress){
 		this.group_front.rotation.z = -progress * Math.PI * 2;
 		this.group_back.rotation.z  = -progress * Math.PI * 2;
+		this.mesh_front.rotation.z = -progress * Math.PI * 2;
+		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
+	}
+	rotateEaseOut(progress){
+		if(progress >= 1) {
+			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+				this.timer_delaySaveVideo = setTimeout(()=>{ 
+					this.canvasObj.saveCanvasAsVideo(); 
+					this.initAnimate();
+				}, 0);
+			} 
+			else {
+				this.initAnimate();
+			}
+		} else {
+			const easedProgress = this.easeOutQuart(progress);
+			const angle = -easedProgress * Math.PI * 2 * 4; // `this.rounds` = number of full spins
+			this.group_front.rotation.z = angle;
+			this.group_back.rotation.z = angle;
+		}
+
+		this.renderer.render( this.scene, this.camera );
+	}
+	easeOutCubic(t){
+		return 1 - Math.pow(1 - t, 3);
+	}
+	easeOutQuart(t) {
+		return 1 - Math.pow(1 - t, 5);
 	}
 	rotateBackward(progress){
 		this.group_front.rotation.z = progress * Math.PI * 2;
 		this.group_back.rotation.z  = progress * Math.PI * 2;
+		this.renderer.render( this.scene, this.camera );
+	}
+	rotateBackwardEaseOut(progress){
+		if(progress >= 1) {
+			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+				this.timer_delaySaveVideo = setTimeout(()=>{ 
+					this.canvasObj.saveCanvasAsVideo(); 
+					this.initAnimate();
+				}, 0);
+			} 
+			else {
+				this.initAnimate();
+			}
+		} else {
+			const easedProgress = this.easeOutQuart(progress);
+			const angle = easedProgress * Math.PI * 2 * 4; // `this.rounds` = number of full spins
+			this.group_front.rotation.z = angle;
+			this.group_back.rotation.z = angle;
+		}
+
 		this.renderer.render( this.scene, this.camera );
 	}
 	fadeIn(progress){

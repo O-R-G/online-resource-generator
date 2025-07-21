@@ -70,4 +70,5 @@ x unify text-handling (main texts and watermarks)
 - wrong watermark position for animated angolo
 - weird white edge of animated angolo
 - sync media
+- the watermark placement changes also on teiger when you switch to animated threejs canvas.
 + mobile css
