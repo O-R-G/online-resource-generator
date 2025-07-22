@@ -67,8 +67,10 @@ x unify text-handling (main texts and watermarks)
 + pdf generation is not working
 + update the text of the "Choose file" button when a file has been selected
 + make media work for the animated canvas
-- wrong watermark position for animated angolo
-- weird white edge of animated angolo
-- sync media
-- the watermark placement changes also on teiger when you switch to animated threejs canvas.
++ wrong watermark position for animated angolo
++ weird white edge of animated angolo
++ sync media
++ the watermark placement changes also on teiger when you switch to animated threejs canvas.
+- when the input is cleaned, rotate doesnt update
+- three js mix blend mode for images
 + mobile css

@@ -1368,7 +1368,9 @@ export default class ShapeStatic extends Shape {
 			e.target.value = null;
 		}.bind(this);
 		input.onchange = function(e){
-			this.readImageUploaded(e, this.updateMedia.bind(this));
+			this.readImageUploaded(e, (key, image)=>{
+				this.updateMedia(key, {obj:image});
+			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
 			
@@ -1376,7 +1378,7 @@ export default class ShapeStatic extends Shape {
 			let src = input.getAttribute('data-file-src');
 			this.readImage(idx, src, (idx, image)=>{
 				input.classList.add('not-empty');
-				this.updateMedia(idx, image);
+				this.updateMedia(idx, { obj: image});
 			});
 		});
 		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
@@ -1421,54 +1423,59 @@ export default class ShapeStatic extends Shape {
 			}.bind(this);
 		}
 	}
-    updateMedia(idx, image, silent = false){
-		super.updateMedia(idx, image, silent);
-        if(idx === 'background-image') {
-			let temp = document.createElement('canvas');
-			let temp_ctx = temp.getContext('2d');
-			if(this.timer_color != null)
-			{
-				clearInterval(this.timer_color);
-				this.timer_color = null;
-			}
-			temp.width = this.canvasW;
-			temp.height = this.canvasH;
-			
-			let length = this.frame.w - this.padding * 2;
+    updateMedia(key, values, silent = false){
+		super.updateMedia(key, values, silent);
+        if(key === 'background-image') {
+			const media = this.media[key];
+			if(media && media.obj) {
+				let temp = document.createElement('canvas');
+				let temp_ctx = temp.getContext('2d');
+				if(this.timer_color != null)
+				{
+					clearInterval(this.timer_color);
+					this.timer_color = null;
+				}
+				temp.width = this.canvasW;
+				temp.height = this.canvasH;
 				
-			let temp_scale = 1;
-			let temp_scaledW = this.media[idx].obj.width * temp_scale;
-			let temp_scaledH = this.media[idx].obj.height * temp_scale;
-			
-			if(this.media[idx].obj.width > this.media[idx].obj.height)
-			{
-				temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
-				temp_scaledW = this.media[idx].obj.width * temp_scale;
-				temp_scaledH = this.media[idx].obj.height * temp_scale;
-			}
-			else
-			{
-				temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
-				temp_scaledW = this.media[idx].obj.width * temp_scale;
-				temp_scaledH = this.media[idx].obj.height * temp_scale;
-			}
+				let length = this.frame.w - this.padding * 2;
+					
+				let temp_scale = 1;
+				let temp_scaledW = this.media[key].obj.width * temp_scale;
+				let temp_scaledH = this.media[key].obj.height * temp_scale;
+				
+				if(this.media[key].obj.width > this.media[key].obj.height)
+				{
+					temp_scale = length / this.media[key].obj.height * this.media[key].scale;
+					temp_scaledW = this.media[key].obj.width * temp_scale;
+					temp_scaledH = this.media[key].obj.height * temp_scale;
+				}
+				else
+				{
+					temp_scale = length / this.media[key].obj.width * this.media[key].scale;
+					temp_scaledW = this.media[key].obj.width * temp_scale;
+					temp_scaledH = this.media[key].obj.height * temp_scale;
+				}
 
-			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
-			
-			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[idx].shiftY + this.frame.y;
-			if(this.timer_color != null)
-			{
-				clearInterval(this.timer_color);
-				this.timer_color = null;
-			}
-			if(this.timer_position != null)
-			{
-				clearInterval(this.timer_position);
-				this.timer_position = null;
-			}
-			temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
-			this.color = this.context.createPattern(temp, "no-repeat");
-		} 
+				this.media[key].x = temp.width / 2 - temp_scaledW / 2 + this.media[key].shiftX;
+				
+				this.media[key].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[key].shiftY + this.frame.y;
+				if(this.timer_color != null)
+				{
+					clearInterval(this.timer_color);
+					this.timer_color = null;
+				}
+				if(this.timer_position != null)
+				{
+					clearInterval(this.timer_position);
+					this.timer_position = null;
+				}
+				temp_ctx.drawImage(this.media[key].obj, this.media[key].x, this.media[key].y, temp_scaledW, temp_scaledH);
+				this.color = this.context.createPattern(temp, "no-repeat");
+			} 
+		} else {
+			// this.drawImage(idx);
+		}
 		if(!silent) this.canvasObj.draw();
 	}
     updateFrame(frame = null, silent = false){
@@ -1567,6 +1574,13 @@ export default class ShapeStatic extends Shape {
     	clearInterval(timer);
 		timer = null;
     }
+	drawImage(idx){
+		const m = this.media[idx];
+		if(!m.obj) return;
+		this.context.globalCompositeOperation = m['blend-mode'] ? m['blend-mode'] : 'normal';
+		this.context.drawImage(m.obj, (m.x + m.shiftX), (m.y - m.shiftY), m.obj.width * m.scale, m.obj.height * m.scale);
+		this.context.globalCompositeOperation = 'normal';
+	}
 	drawImages(){
 		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
@@ -1578,7 +1592,7 @@ export default class ShapeStatic extends Shape {
 	}
 	initMedia(key, values={}){
 		if(!key || this.media[key]) return null;
-		let template = {
+		let output = {
 			obj: null,
 			x: 0,
 			y: 0,
@@ -1588,7 +1602,10 @@ export default class ShapeStatic extends Shape {
 			'blend-mode': 'normal',
 			isShapeColor: false
 		};
-		const output = {...template, ...values};
+		for(const prop in values) {
+			if(typeof output[prop] === 'undefined') continue;
+			output[prop] = values[prop];
+		}
 		return output;
 	}
 	syncMedia(){

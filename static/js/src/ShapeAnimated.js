@@ -428,7 +428,6 @@ export default class ShapeAnimated extends Shape {
 		return output;
 	}
 	drawAngolo(){
-		console.log('drawAngolo');
 		let path_front = this.drawAngoloPath();
 		let path_back = this.drawAngoloPath();
 		let path_corner_front = this.drawAngoloCornerPath();
@@ -441,7 +440,7 @@ export default class ShapeAnimated extends Shape {
 		this.shapes_geometry_back[key] = new THREE.ShapeGeometry(path_corner_back);
 		this.shapes_material_front[key] = material;
 		this.shapes_material_back[key] = material;
-		this.updateSize(this.canvas.width, this.canvas.height);
+		this.updateSize(this.frame.w, this.frame.h);
 	}
 	drawAngoloPath() {
 		// Outer rectangle
@@ -589,8 +588,6 @@ drawNone(){
 				w = Math.min(this.size.width, this.size.height);
 				h = w;
 			}
-			console.log(w, h);
-			// let side = Math.min(this.size.width, this.size.height);
 			let x = 0;
 			let y = 0;
 			if(align.indexOf('left') !== -1){
@@ -813,7 +810,7 @@ drawNone(){
 	}
 	initMedia(key, values={}){
 		if(!key || this.media[key]) return null;
-		let template = {
+		let output = {
 			obj: null,
 			x: 0,
 			y: 0,
@@ -827,7 +824,10 @@ drawNone(){
 			},
 			isShapeColor: false
 		};
-		const output = {...template, ...values};
+		for(const prop in values) {
+			if(typeof output[prop] === 'undefined') continue;
+			output[prop] = values[prop];
+		}
 		return output;
 	}
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
@@ -1147,116 +1147,123 @@ drawNone(){
 		if(name) output.name = name;
 		return output;
 	}
-	async updateMedia(idx, obj, silent = false, isBack = false, isVideo = false){
-		super.updateMedia(idx, obj, silent);
+	async updateMedia(key, values, silent = false, isBack = false, isVideo = false){
+		super.updateMedia(key, values, silent);
 		if(isVideo) {
-			this.applyVideoAsMaterial(idx, silent, isBack)
+			this.applyVideoAsMaterial(key, silent, isBack)
 		}
 		else {
-			await this.applyImageAsMaterial(idx)
+			await this.applyImageAsMaterial(key)
 			if(!silent) this.canvasObj.draw();
 		}
 	}
-	async applyImageAsMaterial(idx){
-		const media = this.media[idx];
+	async applyImageAsMaterial(key){
+		const media = this.media[key];
+		console.log(key, this.media)
 		const textureLoader = new THREE.TextureLoader();
 		return new Promise((resolve, reject) => {
-			textureLoader.load(media.obj.src, (texture) => {
-				texture.magFilter = THREE.LinearFilter;
-				texture.minFilter = THREE.LinearFilter;
-				texture.colorSpace = THREE.SRGBColorSpace;
-				const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
-					imageWidth = texture.image.width,
-					imageHeight = texture.image.height;
-				if(media.isShapeColor) {
-					/* when media is the shape color, the size/position of the mesh can't be updated  */
-					const imageAspect = imageWidth / imageHeight;
-					for(const key in media.mesh){
-						const mesh = media.mesh[key];
-						if(!mesh) continue;
-						let scaleX = 1 / media.scale,
-							scaleY = 1 / media.scale,
-							uvArray = [],
-							geometry = mesh.geometry;
-						geometry.computeBoundingBox();
-						let bbox = geometry.boundingBox;
-						const geomWidth = bbox.max.x - bbox.min.x,
-						      geomHeight = bbox.max.y - bbox.min.y;
-						const geometryAspect = geomWidth / geomHeight;
-						
-						if (imageAspect > geometryAspect) {
-							scaleX *= geometryAspect / imageAspect;
-						} else {
-							scaleY *= imageAspect / geometryAspect;
-						}
-						const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX / geomWidth : 0;
-						const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY / geomHeight : 0;
-						const position = geometry.attributes.position;
-						const max = bbox.max;
-						const min = bbox.min;
+			try{
+				textureLoader.load(media.obj.src, (texture) => {
+					texture.magFilter = THREE.LinearFilter;
+					texture.minFilter = THREE.LinearFilter;
+					texture.colorSpace = THREE.SRGBColorSpace;
+					const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
+						imageWidth = texture.image.width,
+						imageHeight = texture.image.height;
+					if(media.isShapeColor) {
+						/* when media is the shape color, the size/position of the mesh can't be updated  */
+						const imageAspect = imageWidth / imageHeight;
+						for(const key in media.mesh){
+							const mesh = media.mesh[key];
+							if(!mesh) continue;
+							let scaleX = 1 / media.scale,
+								scaleY = 1 / media.scale,
+								uvArray = [],
+								geometry = mesh.geometry;
+							geometry.computeBoundingBox();
+							let bbox = geometry.boundingBox;
+							const geomWidth = bbox.max.x - bbox.min.x,
+								geomHeight = bbox.max.y - bbox.min.y;
+							const geometryAspect = geomWidth / geomHeight;
+							
+							if (imageAspect > geometryAspect) {
+								scaleX *= geometryAspect / imageAspect;
+							} else {
+								scaleY *= imageAspect / geometryAspect;
+							}
+							const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX / geomWidth : 0;
+							const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY / geomHeight : 0;
+							const position = geometry.attributes.position;
+							const max = bbox.max;
+							const min = bbox.min;
 
-						for (let i = 0; i < position.count; i++) {
-							const x = position.getX(i);
-							const y = position.getY(i);
-					
-							let u = (x - min.x) / (max.x - min.x);
-							let v = (y - min.y) / (max.y - min.y);
-							u = u * scaleX + (1 - scaleX) / 2 - dev_x;
-							v = v * scaleY + (1 - scaleY) / 2 + dev_y;
-
-							uvArray.push(u, v);
-						}
-						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-						geometry.attributes.uv.needsUpdate = true;
-						mesh.material = material;
-					}
-				} else {
-					for(const key in media.mesh){
-						const mesh = media.mesh[key];
-						if(!mesh) continue;
-						let scaleX = 1, 
-							scaleY = 1, 
-							scale = media.scale,
-							width = imageWidth * scale, 
-							height = imageHeight * scale,
-							geometry = new THREE.PlaneGeometry(width, height),
-							uvArray = [];
-						mesh.geometry = geometry;
-						geometry.computeBoundingBox();
-						let bbox = geometry.boundingBox;
+							for (let i = 0; i < position.count; i++) {
+								const x = position.getX(i);
+								const y = position.getY(i);
 						
-						const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX : 0;
-						const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY : 0;
-						
-						const position = geometry.attributes.position;
-						const max = bbox.max;
-						const min = bbox.min;
+								let u = (x - min.x) / (max.x - min.x);
+								let v = (y - min.y) / (max.y - min.y);
+								u = u * scaleX + (1 - scaleX) / 2 - dev_x;
+								v = v * scaleY + (1 - scaleY) / 2 + dev_y;
 
-						for (let i = 0; i < position.count; i++) {
-							const x = position.getX(i);
-							const y = position.getY(i);
-					
-							let u = (x - min.x) / (max.x - min.x);
-							let v = (y - min.y) / (max.y - min.y);
-							u = u * scaleX + (1 - scaleX) / 2;
-							v = v * scaleY + (1 - scaleY) / 2;
-							uvArray.push(u, v);
+								uvArray.push(u, v);
+							}
+							geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+							geometry.attributes.uv.needsUpdate = true;
+							mesh.material = material;
 						}
-						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-						geometry.attributes.uv.needsUpdate = true;
-					
-						mesh.material = material;
-						if(!mesh.initialized) {
-							mesh.initialized = true;
-							mesh.position.z = 0.5;
+					} else {
+						for(const key in media.mesh){
+							const mesh = media.mesh[key];
+							if(!mesh) continue;
+							let scaleX = 1, 
+								scaleY = 1, 
+								scale = media.scale,
+								width = this.getValueByPixelRatio(imageWidth) * scale, 
+								height = this.getValueByPixelRatio(imageHeight) * scale,
+								geometry = new THREE.PlaneGeometry(width, height),
+								uvArray = [];
+							mesh.geometry = geometry;
+							geometry.computeBoundingBox();
+							let bbox = geometry.boundingBox;
+							
+							const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX : 0;
+							const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY : 0;
+							
+							const position = geometry.attributes.position;
+							const max = bbox.max;
+							const min = bbox.min;
+
+							for (let i = 0; i < position.count; i++) {
+								const x = position.getX(i);
+								const y = position.getY(i);
+						
+								let u = (x - min.x) / (max.x - min.x);
+								let v = (y - min.y) / (max.y - min.y);
+								u = u * scaleX + (1 - scaleX) / 2;
+								v = v * scaleY + (1 - scaleY) / 2;
+								uvArray.push(u, v);
+							}
+							geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+							geometry.attributes.uv.needsUpdate = true;
+						
+							mesh.material = material;
+							if(!mesh.initialized) {
+								mesh.initialized = true;
+								mesh.position.z = 0.5;
+							}
+							const x = (width - this.getValueByPixelRatio(this.canvas.width)) / 2 + dev_x,
+							y  = - (height - this.getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
+							mesh.position.x = x;
+							mesh.position.y = y;
 						}
-						console.log(dev_x, dev_y);
-						mesh.position.x = dev_x;
-						mesh.position.y = -dev_y;
-					}
-				}							
-				resolve();
-			});
+					}							
+					resolve();
+				});
+			} catch(err) {
+				console.log(key, this.media);
+			}
+			
 		})
 	}
 	processStaticColorData(colorData){
@@ -1302,12 +1309,12 @@ drawNone(){
 		
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
 			if(this.media['front-background-image']) {
-				this.updateMedia('front-background-image', this.media['front-background-image'].img);
+				this.updateMedia('front-background-image', { obj: this.media['front-background-image'].obj});
 			}
 		}
 		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
 			if(this.media['back-background-image']) {
-				this.updateMedia('back-background-image', this.media['back-background-image'].img, false, false);
+				this.updateMedia('back-background-image', { obj: this.media['back-background-image'].obj}, false, false);
 			}
 		}
 	}
@@ -1382,7 +1389,6 @@ drawNone(){
 			if(this.media[key].mesh.back)
 				this.group_back.add(this.media[key].mesh.back);
 		}
-		// console.log(this.group_front.children);
 		this.initAnimate(animationName);
 		 
 	}
@@ -1709,9 +1715,6 @@ drawNone(){
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
 		this.animationDuration = this.animationDurationBase / this.animationSpeed;
-		for(const child of this.mesh_front.children) {
-			console.log(child.name);
-		}
 		if(animationName == 'spin'){
 			// this.mesh_front.rotation.y = 0;
 			// this.mesh_back.rotation.y  = Math.PI;
@@ -1842,9 +1845,6 @@ drawNone(){
 		this.renderer.render( this.scene, this.camera );
 	}
 	spin(progress){
-		// this.mesh_front.rotation.y = progress * Math.PI * 2;
-		// this.mesh_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
-		// console.log(this.mesh_front.children.length);
 		this.group_front.rotation.y = progress * Math.PI * 2;
 		this.group_back.rotation.y  = progress * Math.PI * 2 + Math.PI;
 		if(this.group_front.rotation.y % (Math.PI * 2) >= Math.PI / 2 && this.group_front.rotation.y % (Math.PI * 2) < 3 * Math.PI / 2)
@@ -2330,24 +2330,21 @@ drawNone(){
 				this.updateAnimationSpeed(e.target.value);  
 			}.bind(this);
 		}
-		for(let idx in this.fields.media) {
-			this.addMediaListener(idx);
+		for(let key in this.fields.media) {
+			this.addMediaListener(key);
 		}
 	}
 	addMediaListener(key){
-		// console.log('addMediaListener', key);
-		if(!key) return;
-		if(!this.media[key]) {
-
-		}
-
+		if(!key || !this.media[key]) return;
 		let input = this.fields.media[key];
 		if(!input) console.error('media field doesnt exist: ', key);
 		input.onclick = function (e) {
 			e.target.value = null;
 		}.bind(this);
 		input.onchange = function(e){
-			this.readImageUploaded(e, this.updateMedia.bind(this));
+			this.readImageUploaded(e, (key, image)=>{
+				this.updateMedia(key, {obj: image})
+			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
 			
@@ -2355,7 +2352,7 @@ drawNone(){
 			let src = input.getAttribute('data-file-src');
 			this.readImage(idx, src, (idx, image)=>{
 				input.classList.add('not-empty');
-				this.updateMedia(idx, image);
+				this.updateMedia(idx, { obj: image});
 			});
 		});
 		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
@@ -2458,13 +2455,13 @@ drawNone(){
 
         this.canvasObj.counterpart.draw();
     }
-	syncImgs(){
-		super.syncImgs();
-		if(this.mesh_front.material.map instanceof THREE.Texture && this.media['front-background-image']) {
-			let idx = this.fieldCounterparts['front-background-image'];
-			this.counterpart.updateMedia(idx, this.media['front-background-image'].img);
-		}
-	}
+	// syncImgs(){
+	// 	super.syncImgs();
+	// 	if(this.mesh_front.material.map instanceof THREE.Texture && this.media['front-background-image']) {
+	// 		let idx = this.fieldCounterparts['front-background-image'];
+	// 		this.counterpart.updateMedia(idx, {obj: this.media['front-background-image'].obj});
+	// 	}
+	// }
 	// updateMediaScale(scale, key, isSilent) {
 	// 	super.updateMediaScale(scale, key, isSilent);
 	// 	const m = this.media[key];

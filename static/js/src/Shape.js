@@ -265,7 +265,6 @@ export default class Shape {
     }
     renderMediaSection(key, displayName, extraClass=[])
     {
-        
         if(!key) {
             key = 'media-' + this.mediaIndex;
             displayName = 'Media ' + this.mediaIndex;
@@ -741,14 +740,14 @@ export default class Shape {
     }
     readImageUploaded(event, cb){
         let input = event.target;
-		let idx = input.getAttribute('image-idx');
+		let key = input.getAttribute('image-idx');
 
         if (input.files && input.files[0]) {
         	var FR = new FileReader();
             FR.onload = function (e) {
-                this.readImage(idx, e.target.result, (idx, image)=>{
+                this.readImage(key, e.target.result, (key, image)=>{
                     input.classList.add('not-empty');
-                    if(typeof cb === 'function') cb(idx, image);
+                    if(typeof cb === 'function') cb(key, image);
                 });
             }.bind(this);
             FR.readAsDataURL(input.files[0]);
@@ -760,42 +759,43 @@ export default class Shape {
         if(!imgScale) imgScale = 1;
     	this.media[idx].scale = imgScale;
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
     	this.media[idx].shiftX = parseFloat(imgShiftX);
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
     };
     updateMediaPositionY(imgShiftY, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftY) imgShiftY = 0;
     	this.media[idx].shiftY = parseFloat(imgShiftY);
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
     };
     updateMediaBlendMode(mode, idx, silent=false){
         if(!this.media[idx]) return;
     	this.media[idx]['blend-mode'] = mode;
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
     }
-    updateMedia(idx, obj, silent = false){
-        obj = obj ? obj : (this.media[idx] ? this.media[idx].obj : null);
+    initMedia(){
+
+    }
+    updateMedia(key, values){
+        let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
         if(!obj) return false;
-		if(!this.media[idx]) {
-			this.media[idx] = {
-				obj: null,
-				x: 0,
-				y: 0,				
-				shiftY: 0,
-				shiftX: 0,
-				scale: 1
-			}
-		}
-		this.media[idx].obj = obj;
+		if(!this.media[key]) {
+			this.media[key] = this.initMedia(key, values);
+		} else {
+            for(let prop in values) {
+                if(typeof this.media[key][prop] !== 'undefined')
+                    this.media[key][prop] = values[prop];
+            }
+        }
+		// this.media[key].obj = obj;
 	}
     updateFrame(frame){
         frame = frame ? frame : this.generateFrame();
@@ -819,11 +819,8 @@ export default class Shape {
             if(!val) return;
             counter_field.value = val;
         }
-        // counter_field.dispatchEvent(new Event('change', {detail: {isSilent: true}}));
-        // counter_field.dispatchEvent(new Event('input', {detail: {isSilent: true}}));
         counter_field.dispatchEvent(new CustomEvent('change', {detail: {isSilent: true, isSyncing: true}}));
         counter_field.dispatchEvent(new CustomEvent('input',  {detail: {isSilent: true, isSyncing: true}}));
-        // counter_field.dispatchEvent(new Event('input', {detail: {isSilent: true}}));
     }
     updateCounterpartSelectField(field, index)
     {
@@ -884,8 +881,6 @@ export default class Shape {
         else this.watermarks[idx].str = text;
         let text_field = this.fields.watermarks[ idx ]['text'];
         text_field.value = text;
-
-        // this.watermarks[idx].str = text;
     }
     trimWatermark(idx){
         this.watermarkidx = idx;
@@ -894,7 +889,6 @@ export default class Shape {
     }
     resetMedia(fieldOnly=false){
         if(fieldOnly) {
-            // this.mediaIndex = Object.keys(this.media).filter((item)=>item.indexOf('media') === 0).length;
             this.reindexMedia();
         } else {
             this.media = {};
@@ -929,10 +923,32 @@ export default class Shape {
         return el;
     };
     syncMedia(){
-        for(const idx in this.media) {
-            if(!this.fieldCounterparts[idx]) continue;
-            let counter_idx = this.fieldCounterparts[idx];
-            this.counterpart.media[counter_idx] = this.media[idx];
+        const pattern = /media\-\d+/;
+        this.counterpart.resetMedia();
+        for(const key in this.media) {
+            let counter_key = key.match(pattern) ? key : this.fieldCounterparts[key];
+            if(!counter_key) continue;
+            const media = this.media[key];
+            this.counterpart.updateMedia(counter_key, media);
+            if(!media.isShapeColor) {
+                this.counterpart.addMediaSection(counter_key);
+                let input = this.counterpart.fields.media[key];
+                let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+                let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		        let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+                let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+                scale_input.value = media.scale;
+                shift_x_input.value = media.shiftX;
+                shift_y_input.value = media.shiftY;
+                if(blend_mode_input) {
+                    // for(const [option, idx] of blend_mode_input) {
+                    //     if(option.value === media['blend-mode']){
+                    //         blend_mode_input.selectedIndex = idx;
+                    //         break;
+                    //     }
+                    // }
+                }
+            }
         }
     }
     sync(){
