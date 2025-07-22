@@ -537,7 +537,6 @@ drawNone(){
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		console.log('write', str);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
@@ -582,19 +581,27 @@ drawNone(){
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill' || this.shape.base == 'angolo' || this.shape.base == 'none'){
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
-			
-			let side = Math.min(this.size.width, this.size.height);
+			let w, h;
+			if(this.shape.base == 'angolo') {
+				w = this.size.width;
+				h = this.size.height;
+			} else {
+				w = Math.min(this.size.width, this.size.height);
+				h = w;
+			}
+			console.log(w, h);
+			// let side = Math.min(this.size.width, this.size.height);
 			let x = 0;
 			let y = 0;
 			if(align.indexOf('left') !== -1){
 				output.textAlign = align.indexOf('middle') !== -1 ? 'center' : 'left';
 				output.anchorX = align.indexOf('middle') !== -1 ? 'center' : 'left';
-				x = align.indexOf('middle') !== -1 ? - side / 2 + inner_p_y : - side / 2 + inner_p_x;
+				x = align.indexOf('middle') !== -1 ? - w / 2 + inner_p_y : - w / 2 + inner_p_x;
 			}
 			else if(align.indexOf('right') !== -1){
 				output.textAlign = align.indexOf('middle') !== -1 ? 'center' : 'right';
 				output.anchorX = align.indexOf('middle') !== -1 ? 'center' : 'right';
-				x = align.indexOf('middle') !== -1 ? side / 2 - inner_p_y : side / 2 - inner_p_x;
+				x = align.indexOf('middle') !== -1 ? w / 2 - inner_p_y : w / 2 - inner_p_x;
 			}
 			else if(align.indexOf('center') !== -1){
 				output.textAlign = 'center';
@@ -603,17 +610,11 @@ drawNone(){
 			}
 
 			if(align.indexOf('top') !== -1){
-				
-				// output.anchorY = 'middle';
-				y = side / 2 - inner_p_y;
-			}
-			else if(align.indexOf('middle') !== -1){
-				// output.anchorY = 'middle';
+				y = h / 2 - inner_p_y;
+			} else if (align.indexOf('middle') !== -1){
 				output.rotation.z = align.indexOf('left') !== -1 ? Math.PI / 2 : -Math.PI / 2;
-			}
-			else if(align.indexOf('bottom') !== -1){
-				// output.anchorY = 'middle';
-				y = - side / 2 + inner_p_y;
+			} else if (align.indexOf('bottom') !== -1){
+				y = - h / 2 + inner_p_y;
 			}
 			
 			output.rotation.z += rad;
