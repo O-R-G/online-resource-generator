@@ -286,6 +286,7 @@ export default class ShapeAnimated extends Shape {
 		// this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
+		console.log('drawRectangle');
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
