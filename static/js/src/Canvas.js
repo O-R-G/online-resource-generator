@@ -800,9 +800,10 @@ export default class Canvas {
 		input.addEventListener('applySavedFile', (e)=>{
 			// console.log('canvas applySavedFile');
 			let idx = input.getAttribute('image-idx');
-            if(idx === 'base-image' && this.base !== 'upload') {
-                return;
-            }
+            // if(idx === 'base-image' && this.base !== 'upload') {
+            //     console.log('not applying');
+            //     return;
+            // }
 			let src = input.getAttribute('data-file-src');
             // update Media here?
 			this.readImage(idx, src, (idx, image)=>{

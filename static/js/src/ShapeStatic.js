@@ -1352,7 +1352,7 @@ export default class ShapeStatic extends Shape {
 					sec.classList.remove('viewing-shape-image-section');
 					if(this.fields.media['background-image'])
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
-					if(this.options.colorOptions[e.target.value].color.type === 'animation') isSilent = false;
+					if(this.options.colorOptions[e.target.value]?.color.type === 'animation') isSilent = false;
 					this.updateColor(this.options.colorOptions[e.target.value].color, isSilent);
 				}
 			}.bind(this);
