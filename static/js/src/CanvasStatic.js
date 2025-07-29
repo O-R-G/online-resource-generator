@@ -17,7 +17,7 @@ export default class CanvasStatic extends Canvas {
     }
     updateMedia(idx, values, silent = false){
         super.updateMedia(idx, values);
-        console.log('CanvasStatic updateMedia()', silent);
+        console.log('CanvasStatic updateMedia()', idx);
         if(idx === 'base-image') {
             let temp = document.createElement('canvas');
             let temp_ctx = temp.getContext('2d');
@@ -43,9 +43,9 @@ export default class CanvasStatic extends Canvas {
                 temp_scaledH = this.media[idx].obj.height * temp_scale;
             }
 
-            this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
+            this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx]['shift-x'];
             
-            this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx].shiftY + 0;
+            this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx]['shift-y'] + 0;
             
             temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
             this.base = this.context.createPattern(temp, "no-repeat");
