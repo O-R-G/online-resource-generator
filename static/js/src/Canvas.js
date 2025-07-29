@@ -31,7 +31,7 @@ import * as THREE from "three";
 import ShapeStatic from "./ShapeStatic.js";
 import ShapeAnimated from "./ShapeAnimated.js";
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
-import { renderSection, renderNumeralSection, renderSelect, renderSelectSection, renderImageControls } from './utils/render.js'
+import { renderSection, renderNumeralSection, renderSelect, renderSelectSection, renderImageControls, renderFileField } from './utils/render.js'
 import { GifWriter } from 'omggif'
 import { jsPDF } from "jspdf";
 import { Canvg } from 'canvg';
@@ -662,7 +662,8 @@ export default class Canvas {
             const [base_section] = this.renderSelectSection('base', 'Base', { options: this.baseOptions });
             this.control_top.appendChild(base_section);
             if(this.baseOptions['upload']) {
-                const id = 'base-image';
+                const key = 'base-image';
+                const id = this.id + '-field-id-' + key;
                 let control_data = [
                     { 
                         'name': 'scale',
@@ -690,9 +691,14 @@ export default class Canvas {
                         'class': ['img-control-shift-y', 'flex-item']
                     }
                 ];
-                let field = this.renderFileField(id, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+                const src = this.media[key]?.src ? this.media[key].src : '';
+                const [field, input] = renderFileField(id, key, src, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
+                // this.fields.media[key] = input;
+                // if(!this.isThree)
+                //     console.log(input);
                 let controls = this.renderImageControls(id, control_data);
                 let section = this.renderSection('', '', [field, controls], id + '-section');
+                this.fields.media[key] = input;
                 this.control_top.appendChild(section);
             }
         }
@@ -739,7 +745,9 @@ export default class Canvas {
 				}
             }.bind(this);
         }
-        this.addMediaListener('base-image');
+        const key = 'base-image';
+        // const id = this.id + '-field-id-' + key;
+        this.addMediaListener(key);
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
@@ -785,13 +793,15 @@ export default class Canvas {
 		}.bind(this);
 		input.onchange = function(e){
 			this.readImageUploaded(e, (key, image)=>{
+                console.log(image);
 				this.updateMedia(key, {obj:image});
 			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
-			console.log('applySavedFile');
+			console.log('canvas applySavedFile');
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
+            // update Media here?
 			this.readImage(idx, src, (idx, image)=>{
                 console.log('file read');
 				input.classList.add('not-empty');
@@ -871,7 +881,7 @@ export default class Canvas {
     }
     updateMedia(key, values){
         let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
-        console.log('updateMedia', values);
+        console.log('updateMedia', key, values);
         if(!obj) return false;
 		if(!this.media[key]) {
 			this.media[key] = this.initMedia(key, values);
@@ -882,13 +892,14 @@ export default class Canvas {
             }
         }
 	}
-    updateMediaScale(imgScale, idx, silent = false){
-        // console.log('updateMediaScale', imgScale);
-        if(!this.media[idx]) return;
+    updateMediaScale(imgScale, key, silent = false){
+        console.log('canvas updateMediaScale', imgScale);
+        console.log(this.media[key]);
+        if(!this.media[key]) return;
         if(!imgScale) imgScale = 1;
-    	this.media[idx].scale = imgScale;
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
+    	this.media[key].scale = imgScale;
+        if(this.media[key].obj)
+    	    this.updateMedia(key, { obj: this.media[key].obj }, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
         if(!this.media[idx]) return;

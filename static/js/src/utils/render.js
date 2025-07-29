@@ -142,10 +142,12 @@ export function renderImageControls(id='', control_data=[]){
     container.setAttribute('flex', 'full');
     for(const control of control_data) {
         if(control['input-type'] === 'number') {
-            let [section] = renderNumeralSection(control['id'], control['displayName'], control.meta.begin, control.meta.step, false, control['class'], ['media-control-section']);
+            let [section, input] = renderNumeralSection(control['id'], control['displayName'], control.meta.begin, control.meta.step, false, control['class'], ['media-control-section']);
+            if(control.value) input.value = control.value;
             container.append(section);
         }else if(control['input-type'] === 'select') {
-            let [section] = renderSelectSection(control['id'], control['displayName'], { options: control.meta.options}, control['class'], ['media-control-section']);
+            let [section, input] = renderSelectSection(control['id'], control['displayName'], { options: control.meta.options}, control['class'], ['media-control-section']);
+            if(control.value) input.value = control.value;
             container.append(section);
         }
         
@@ -153,3 +155,28 @@ export function renderImageControls(id='', control_data=[]){
     
     return container;
 }
+export function renderFileField(id, key, src, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){
+        // let id = this.id + '-field-id-' + key;
+        let output = document.createElement('div');
+        let input = document.createElement('input');
+        let label = document.createElement('label');
+        let extraWrapperClass = extraClass['wrapper'] && extraClass['wrapper'].length ? ' ' + getClassString(extraClass['wrapper']) : '';
+        output.className = 'field-wrapper ' + id + '-wrapper' + extraWrapperClass;
+        if(extraAttr['wrapper']) output = addExtraAttr(output, extraAttr['wrapper']);
+        
+        let extraInputClass = extraClass['input'] && extraClass['input'].length ? ' ' + getClassString(extraClass['input']) : '';
+        input.className = 'field-id-' + key + extraInputClass;
+        input.id = id;
+        input.type = 'file';
+		input.setAttribute('image-idx', key);
+        // if(this.media[key]?.src) input.setAttribute('data-file-src', this.media[key].src);
+        input.setAttribute('data-file-src', src);
+        label.setAttribute('for', id);
+        
+		label.className = 'pseudo-upload';
+        label.innerText = 'Choose file';
+        output.appendChild(input);
+        output.appendChild(label);
+        // this.fields.media[key] = input
+        return [output, input];
+    }

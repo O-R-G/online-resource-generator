@@ -1,5 +1,5 @@
 import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
-import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralSection, renderSection, renderImageControls } from './utils/render.js';
+import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralSection, renderSection, renderImageControls, renderFileField } from './utils/render.js';
 
 export default class Shape {
 	constructor(prefix, canvasObj, options, format, shape_index = 0){
@@ -311,24 +311,29 @@ export default class Shape {
             });
         }
         const m = this.media[key];
+        console.log(m);
         const cls = [];
         if(m) {
+            for(const data of control_data) {
+                if(m[data['name']])
+                    data['value'] = m[data['name']];
+            }
             const empty = !m['obj'] && !m['src'];
             if(!empty) cls.push('not-empty');
         }
-        
-        let upload = this.renderFileField(key, {'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});
+        const src = this.media[key]?.src ? this.media[key].src : '';
+        const [field, input] = renderFileField(id, key, src, {'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});
         const ex_cls = ['media-section'].concat(extraClass);
         const controls = this.renderImageControls(id, control_data);
-        const section = this.renderSection('', displayName, [upload, controls], ex_cls);
+        const section = this.renderSection('', displayName, [field, controls], ex_cls);
         const delete_button = document.createElement('div');
         delete_button.className='delete-button media-delete-button btn small-btn';
         delete_button.addEventListener('click', ()=>{ 
             this.deleteItem('media', key, section); 
         });
         section.appendChild(delete_button);
-        if(!this.fields.media[key]) this.fields.media[key] = upload;
-        return [section, upload];
+        this.fields.media[key] = input;
+        return [section, field];
     }
     addMediaSection(key, displayName, extraClass=[]){
         key = key ? key : 'media-' + this.mediaIndex;
@@ -709,6 +714,7 @@ export default class Shape {
             if(this.media[idx]) {
                 delete this.media[idx];
                 this.resetMedia(true);
+                console.log(this.media);
                 for(let key in this.media) {
                     if(key.indexOf('media-') === -1) continue;
                     this.addMediaSection(key, '');
@@ -775,25 +781,26 @@ export default class Shape {
             }
         }
 	}
-    updateMediaScale(imgScale, idx, silent = false){
-        // console.log('Shape updateMediaScale', imgScale);
-        if(!this.media[idx]) return;
+    updateMediaScale(imgScale, key, silent = false){
+        console.log('Shape updateMediaScale', key);
+        console.log(this.media[key])
+        if(!this.media[key]) return;
         if(!imgScale) imgScale = 1;
-    	this.media[idx].scale = imgScale;
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
+    	this.media[key].scale = imgScale;
+        if(this.media[key].obj)
+    	    this.updateMedia(key, { obj: this.media[key].obj}, silent)
     };
-    updateMediaPositionX(imgShiftX, idx, silent = false){
-        if(!this.media[idx]) return;
+    updateMediaPositionX(imgShiftX, key, silent = false){
+        if(!this.media[key]) return;
         if(!imgShiftX) imgShiftX = 0;
-    	this.media[idx].shiftX = parseFloat(imgShiftX);
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
+    	this.media[key]['shift-x'] = parseFloat(imgShiftX);
+        if(this.media[key].obj)
+    	    this.updateMedia(key, { obj: this.media[key].obj}, silent)
     };
     updateMediaPositionY(imgShiftY, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftY) imgShiftY = 0;
-    	this.media[idx].shiftY = parseFloat(imgShiftY);
+    	this.media[idx]['shift-y'] = parseFloat(imgShiftY);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
     };
@@ -905,7 +912,6 @@ export default class Shape {
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
         this.fields['media-container'] = container;
-        console.log(this.media);
     }
     reindexMedia(){
         let index = 1;
@@ -946,8 +952,8 @@ export default class Shape {
 		        let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
                 let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
                 scale_input.value = media.scale;
-                shift_x_input.value = media.shiftX;
-                shift_y_input.value = media.shiftY;
+                shift_x_input.value = media['shift-x'];
+                shift_y_input.value = media['shift-y'];
                 if(blend_mode_input) {
                     // for(const [option, idx] of blend_mode_input) {
                     //     if(option.value === media['blend-mode']){

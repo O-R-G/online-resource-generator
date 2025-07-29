@@ -7,6 +7,8 @@ export default class CanvasStatic extends Canvas {
         this.isThree = false;
         this.media = {};
         this.scale = 2;
+        if(this.baseOptions['upload'])
+			this.media['base-image'] = this.initMedia('base-image', {isShapeColor: true});
     }
     initMedia(key, values={}){
         console.log('initMedia')

@@ -815,8 +815,8 @@ drawNone(){
 			obj: null,
 			x: 0,
 			y: 0,
-			shiftY: 0,
-			shiftX: 0,
+			'shift-y': 0,
+			'shift-x': 0,
 			scale: 1,
 			'blend-mode': 'normal',
 			mesh: {
@@ -1192,8 +1192,8 @@ drawNone(){
 							} else {
 								scaleY *= imageAspect / geometryAspect;
 							}
-							const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX / geomWidth : 0;
-							const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY / geomHeight : 0;
+							const dev_x = media['shift-x'] ? this.getValueByPixelRatio(media['shift-x']) * scaleX / geomWidth : 0;
+							const dev_y = media['shift-y'] ? - this.getValueByPixelRatio(media['shift-y']) * scaleY / geomHeight : 0;
 							const position = geometry.attributes.position;
 							const max = bbox.max;
 							const min = bbox.min;
@@ -1228,8 +1228,8 @@ drawNone(){
 							geometry.computeBoundingBox();
 							let bbox = geometry.boundingBox;
 							
-							const dev_x = media.shiftX ? this.getValueByPixelRatio(media.shiftX) * scaleX : 0;
-							const dev_y = media.shiftY ? - this.getValueByPixelRatio(media.shiftY) * scaleY : 0;
+							const dev_x = media['shift-x'] ? this.getValueByPixelRatio(media['shift-x']) * scaleX : 0;
+							const dev_y = media['shift-y'] ? - this.getValueByPixelRatio(media['shift-y']) * scaleY : 0;
 							
 							const position = geometry.attributes.position;
 							const max = bbox.max;

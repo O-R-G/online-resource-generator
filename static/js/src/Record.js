@@ -200,7 +200,6 @@ export default class Record {
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
-                    console.log(field);
                     if(!field['id']) {
                         continue;
                     }
@@ -208,9 +207,7 @@ export default class Record {
                     if(!field_element) continue;
                     
                     if(field_element.type === 'file') {
-                        console.log(field_element.id);
                         if(this.record_body['images'][field_element.id]) {
-                            
                             this.applySavedFile(field_element, shapeObj);
                         }
                         continue;
@@ -247,11 +244,8 @@ export default class Record {
          
         for(let field_element of active_canvas_fields) {
             if(field_element.classList.contains('field-id-format')) {
-                if(format) continue;
-                else {
-                    active_canvas.changeFormat(null, null, false);
-                    continue;
-                }
+                if(!format) active_canvas.changeFormat(null, null, false);
+                continue;
             }
             field_element.dispatchEvent(new Event('initImg'));
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
@@ -261,7 +255,6 @@ export default class Record {
         active_canvas.draw();
     }
     applySavedFile(field, shapeObj){
-        // console.log('applySavedFile', field.id);
         let idx = field.getAttribute('image-idx');
         let id = field.id;
         let src = this.record_body['images'][id];
@@ -309,7 +302,6 @@ export default class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
-                console.log(canvas_id);
                 if(canvas_id === 'static') {
                     console.log(media);
                 }
@@ -334,7 +326,6 @@ export default class Record {
                         } else {
                             continue;
                         }
-                        
                     } else {
                         if(!field.value) continue;
                         data['fields'].push(this.formatField(field));

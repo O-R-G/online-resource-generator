@@ -28,7 +28,8 @@ export default class ShapeStatic extends Shape {
 		this.timer_shape = null;
 		this.customGraphic = [];
 		this.initRecording = false;
-		this.media['background-image'] = this.initMedia('background-image', {isShapeColor: true});
+		if(this.options.colorOptions['upload'])
+			this.media['background-image'] = this.initMedia('background-image', {isShapeColor: true});
 	}
 	init(canvasObj) {
 		super.init(canvasObj);
@@ -1374,13 +1375,12 @@ export default class ShapeStatic extends Shape {
 			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
-			console.log('applySavedFile');
+			console.log('shapeStatic applySavedFile')
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
 			this.readImage(idx, src, (key, image)=>{
 				input.classList.add('not-empty');
 				this.updateMedia(key, { obj: image, src: src });
-				console.log(this.media[key]);
 			});
 			
 		});
@@ -1464,9 +1464,9 @@ export default class ShapeStatic extends Shape {
 					temp_scaledH = this.media[key].obj.height * temp_scale;
 				}
 
-				this.media[key].x = temp.width / 2 - temp_scaledW / 2 + this.media[key].shiftX;
+				this.media[key].x = temp.width / 2 - temp_scaledW / 2 + this.media[key]['shift-x'];
 				
-				this.media[key].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[key].shiftY + this.frame.y;
+				this.media[key].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[key]['shift-y'] + this.frame.y;
 				if(this.timer_color != null)
 				{
 					clearInterval(this.timer_color);
@@ -1585,7 +1585,7 @@ export default class ShapeStatic extends Shape {
 		const m = this.media[idx];
 		if(!m.obj) return;
 		this.context.globalCompositeOperation = m['blend-mode'] ? m['blend-mode'] : 'normal';
-		this.context.drawImage(m.obj, (m.x + m.shiftX), (m.y - m.shiftY), m.obj.width * m.scale, m.obj.height * m.scale);
+		this.context.drawImage(m.obj, (m.x + m['shift-x']), (m.y - m['shift-y']), m.obj.width * m.scale, m.obj.height * m.scale);
 		this.context.globalCompositeOperation = 'normal';
 	}
 	drawImages(){
@@ -1593,7 +1593,7 @@ export default class ShapeStatic extends Shape {
 			if(idx === 'background-image') continue;
 			if(!this.media[idx].obj) continue;
 			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
-			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX), (this.media[idx].y - this.media[idx].shiftY), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
+			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx]['shift-x']), (this.media[idx].y - this.media[idx]['shift-y']), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}

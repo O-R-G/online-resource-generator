@@ -26,8 +26,8 @@ export function initMediaStatic(key, values={}){
         src: '',
         x: 0,
         y: 0,
-        shiftY: 0,
-        shiftX: 0,
+        'shift-y': 0,
+        'shift-x': 0,
         scale: 1,
         'blend-mode': 'normal',
         isShapeColor: false
