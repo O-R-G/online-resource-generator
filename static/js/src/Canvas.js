@@ -693,11 +693,8 @@ export default class Canvas {
                 ];
                 const src = this.media[key]?.src ? this.media[key].src : '';
                 const [field, input] = renderFileField(id, key, src, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-                // this.fields.media[key] = input;
-                // if(!this.isThree)
-                //     console.log(input);
                 let controls = this.renderImageControls(id, control_data);
-                let section = this.renderSection('', '', [field, controls], id + '-section');
+                let section = this.renderSection('', '', [field, controls], key + '-section');
                 this.fields.media[key] = input;
                 this.control_top.appendChild(section);
             }
@@ -739,6 +736,9 @@ export default class Canvas {
 					this.color = 'upload';
 					sec.classList.add('viewing-base-image-section');
 				} else {
+                    console.log(this.media);
+                    const key = 'base-image';
+                    delete this.media[key];
 					sec.classList.remove('viewing-base-image-section');
 					this.updateBase(e.target.value);
                     this.counterpart.updateBase(e.target.value);
@@ -798,8 +798,11 @@ export default class Canvas {
 			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
-			console.log('canvas applySavedFile');
+			// console.log('canvas applySavedFile');
 			let idx = input.getAttribute('image-idx');
+            if(idx === 'base-image' && this.base !== 'upload') {
+                return;
+            }
 			let src = input.getAttribute('data-file-src');
             // update Media here?
 			this.readImage(idx, src, (idx, image)=>{
@@ -923,6 +926,7 @@ export default class Canvas {
     }
     
     updateBase(base){
+        console.log('updateBase', base);
     	this.base = base;
 		this.draw();
 	}
