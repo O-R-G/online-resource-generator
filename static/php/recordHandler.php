@@ -71,7 +71,7 @@ endif;
 
 if(!empty($_FILES)) {
     $record_body_json = json_decode($_POST['record_body'], true);
-    $record_body_json['images'] = array();
+    if(!isset($record_body_json['images'])) $record_body_json['images'] = array();
     foreach($_FILES as $key => $file) {
         if($file['error'] !== UPLOAD_ERR_OK) continue;
         // var_dump($key);
@@ -101,7 +101,6 @@ if(!empty($_FILES)) {
         }
         
     }
-
     if(!empty($record_body_json['images'])) {
         $record_body = addslashes(json_encode($record_body_json));
         $sql = "UPDATE objects SET body = '$record_body' WHERE id = $record_id";

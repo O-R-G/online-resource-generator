@@ -1,3 +1,4 @@
+import {initMediaStatic} from "./utils/lib.js"
 import Shape from "./Shape.js";
 
 export default class ShapeStatic extends Shape {
@@ -1423,6 +1424,10 @@ export default class ShapeStatic extends Shape {
 			}.bind(this);
 		}
 	}
+	initMedia(key, values={}){
+		if(!key || this.media[key]) return null;
+		return initMediaStatic(key, values);
+	}
     updateMedia(key, values, silent = false){
 		super.updateMedia(key, values, silent);
         if(key === 'background-image') {
@@ -1590,24 +1595,7 @@ export default class ShapeStatic extends Shape {
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}
-	initMedia(key, values={}){
-		if(!key || this.media[key]) return null;
-		let output = {
-			obj: null,
-			x: 0,
-			y: 0,
-			shiftY: 0,
-			shiftX: 0,
-			scale: 1,
-			'blend-mode': 'normal',
-			isShapeColor: false
-		};
-		for(const prop in values) {
-			if(typeof output[prop] === 'undefined') continue;
-			output[prop] = values[prop];
-		}
-		return output;
-	}
+	
 	syncMedia(){
 		super.syncMedia();
 		let idx = 'background-image';

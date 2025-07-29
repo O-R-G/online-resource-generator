@@ -784,15 +784,18 @@ export default class Canvas {
 			e.target.value = null;
 		}.bind(this);
 		input.onchange = function(e){
-			this.readImageUploaded(e, this.updateMedia.bind(this));
+			this.readImageUploaded(e, (key, image)=>{
+				this.updateMedia(key, {obj:image});
+			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
-			
+			console.log('applySavedFile');
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
 			this.readImage(idx, src, (idx, image)=>{
+                console.log('file read');
 				input.classList.add('not-empty');
-				this.updateMedia(idx, image);
+				this.updateMedia(idx, { obj: image});
 			});
 		});
 		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
@@ -863,32 +866,49 @@ export default class Canvas {
             input.parentNode.parentNode.classList.add('viewing-image-control');
         }
     }
+    initMedia(){
+
+    }
+    updateMedia(key, values){
+        let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
+        console.log('updateMedia', values);
+        if(!obj) return false;
+		if(!this.media[key]) {
+			this.media[key] = this.initMedia(key, values);
+		} else {
+            for(let prop in values) {
+                if(typeof this.media[key][prop] !== 'undefined')
+                    this.media[key][prop] = values[prop];
+            }
+        }
+	}
     updateMediaScale(imgScale, idx, silent = false){
+        // console.log('updateMediaScale', imgScale);
         if(!this.media[idx]) return;
         if(!imgScale) imgScale = 1;
     	this.media[idx].scale = imgScale;
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
     };
     updateMediaPositionX(imgShiftX, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
     	this.media[idx].shiftX = parseFloat(imgShiftX);
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
     };
     updateMediaPositionY(imgShiftY, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftY) imgShiftY = 0;
     	this.media[idx].shiftY = parseFloat(imgShiftY);
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
     };
     updateMediaBlendMode(mode, idx, silent=false){
         if(!this.media[idx]) return;
     	this.media[idx]['blend-mode'] = mode;
         if(this.media[idx].obj)
-    	    this.updateMedia(idx, this.media[idx].obj, silent)
+    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
     }
     
     updateBase(base){
@@ -914,6 +934,7 @@ export default class Canvas {
 	drawBase(){
 		if(!this.isThree)
     	{
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     		this.context.fillStyle = this.base;
     		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     	}

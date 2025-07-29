@@ -73,5 +73,7 @@ x unify text-handling (main texts and watermarks)
   - shape color media can't be synced because applyImageAsMaterial() is called befroe draw() so the geometry is a BufferGeometry. 
 + the watermark placement changes also on teiger when you switch to animated threejs canvas.
 - when the input is cleaned, rotate doesnt update
+- scale, x, and y of media doesn't work after saving
+- media-removing button removes all the custom media fields
 - three js mix blend mode for images
 + mobile css

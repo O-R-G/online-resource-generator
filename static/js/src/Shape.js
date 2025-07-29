@@ -754,7 +754,24 @@ export default class Shape {
             input.parentNode.parentNode.classList.add('viewing-image-control');
         }
     }
+    initMedia(){
+
+    }
+    updateMedia(key, values){
+        // console.log('Shape updateMedia', values);
+        let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
+        if(!obj) return false;
+		if(!this.media[key]) {
+			this.media[key] = this.initMedia(key, values);
+		} else {
+            for(let prop in values) {
+                if(typeof this.media[key][prop] !== 'undefined')
+                    this.media[key][prop] = values[prop];
+            }
+        }
+	}
     updateMediaScale(imgScale, idx, silent = false){
+        // console.log('Shape updateMediaScale', imgScale);
         if(!this.media[idx]) return;
         if(!imgScale) imgScale = 1;
     	this.media[idx].scale = imgScale;
@@ -781,22 +798,7 @@ export default class Shape {
         if(this.media[idx].obj)
     	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
     }
-    initMedia(){
-
-    }
-    updateMedia(key, values){
-        let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
-        if(!obj) return false;
-		if(!this.media[key]) {
-			this.media[key] = this.initMedia(key, values);
-		} else {
-            for(let prop in values) {
-                if(typeof this.media[key][prop] !== 'undefined')
-                    this.media[key][prop] = values[prop];
-            }
-        }
-		// this.media[key].obj = obj;
-	}
+    
     updateFrame(frame){
         frame = frame ? frame : this.generateFrame();
         this.frame = frame;

@@ -1,26 +1,21 @@
-import * as THREE from "three";
+import {initMediaStatic} from "./utils/lib.js"
 import Canvas from "./Canvas.js";
 
-export default class CanvasAnimated extends Canvas {
+export default class CanvasStatic extends Canvas {
     constructor(wrapper, format, prefix, options){
         super(wrapper, format, prefix, options);
         this.isThree = false;
+        this.media = {};
         this.scale = 2;
     }
-    updateMedia(idx, obj, silent = false){
-        obj = obj ? obj : (this.media[idx] ? this.media[idx].obj : null);
-        if(!obj) return false;
-        if(!this.media[idx]) {
-            this.media[idx] = {
-                obj: null,
-                x: 0,
-                y: 0,				
-                shiftY: 0,
-                shiftX: 0,
-                scale: 1
-            }
-        }
-        this.media[idx].obj = obj;
+    initMedia(key, values={}){
+        console.log('initMedia')
+        if(!key || this.media[key]) return null;
+        return initMediaStatic(key, values);
+    }
+    updateMedia(idx, values, silent = false){
+        super.updateMedia(idx, values);
+        console.log('CanvasStatic updateMedia()', silent);
         if(idx === 'base-image') {
             let temp = document.createElement('canvas');
             let temp_ctx = temp.getContext('2d');

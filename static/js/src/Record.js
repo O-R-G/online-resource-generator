@@ -307,6 +307,10 @@ export default class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
+                // console.log(canvas_id);
+                // if(canvas_id === 'static') {
+                //     console.log(media);
+                // }
                 let media_num = media.length;
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {
@@ -379,13 +383,13 @@ export default class Record {
                 record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
-        
+        console.log(record_body['images']);
         record_body = JSON.stringify(record_body);
         
         formData.append('record_body', record_body);
         formData.append('record_name', record_name);
         formData.append('record_id', this.record_id);
-
+        
         // return;
         fetch(this.request_url, {
             method: 'POST',

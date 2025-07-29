@@ -20,3 +20,20 @@ export function addExtraAttr(el, attrs){
     }
     return el;
 };
+export function initMediaStatic(key, values={}){
+    let output = {
+        obj: null,
+        x: 0,
+        y: 0,
+        shiftY: 0,
+        shiftX: 0,
+        scale: 1,
+        'blend-mode': 'normal',
+        isShapeColor: false
+    };
+    for(const prop in values) {
+        if(typeof output[prop] === 'undefined') continue;
+        output[prop] = values[prop];
+    }
+    return output;
+}
