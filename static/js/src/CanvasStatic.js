@@ -42,7 +42,7 @@ export default class CanvasStatic extends Canvas {
                 temp_scaledW = this.media[idx].obj.width * temp_scale;
                 temp_scaledH = this.media[idx].obj.height * temp_scale;
             }
-
+            console.log(this.media[idx]);
             this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx]['shift-x'];
             
             this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx]['shift-y'] + 0;

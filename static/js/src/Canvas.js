@@ -908,14 +908,14 @@ export default class Canvas {
     updateMediaPositionX(imgShiftX, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftX) imgShiftX = 0;
-    	this.media[idx].shiftX = parseFloat(imgShiftX);
+    	this.media[idx]['shift-x'] = parseFloat(imgShiftX);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
     };
     updateMediaPositionY(imgShiftY, idx, silent = false){
         if(!this.media[idx]) return;
         if(!imgShiftY) imgShiftY = 0;
-    	this.media[idx].shiftY = parseFloat(imgShiftY);
+    	this.media[idx]['shift-y'] = parseFloat(imgShiftY);
         if(this.media[idx].obj)
     	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
     };
