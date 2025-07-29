@@ -1356,7 +1356,7 @@ export default class ShapeStatic extends Shape {
 				}
 			}.bind(this);
 		}
-		
+	
 		for(let idx in this.fields.media) {
 			this.addMediaListener(idx);
 		}
@@ -1374,13 +1374,15 @@ export default class ShapeStatic extends Shape {
 			});
 		}.bind(this);
 		input.addEventListener('applySavedFile', (e)=>{
-			
+			console.log('applySavedFile');
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
-			this.readImage(idx, src, (idx, image)=>{
+			this.readImage(idx, src, (key, image)=>{
 				input.classList.add('not-empty');
-				this.updateMedia(idx, { obj: image});
+				this.updateMedia(key, { obj: image, src: src });
+				console.log(this.media[key]);
 			});
+			
 		});
 		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 		if(scale_input) {
@@ -1601,7 +1603,7 @@ export default class ShapeStatic extends Shape {
 		let idx = 'background-image';
 		if(this.color instanceof CanvasPattern && this.media[idx]) {
 			let c_idx = this.fieldCounterparts[idx];
-			this.counterpart.updateMedia(c_idx, this.media[idx].img);
+			this.counterpart.updateMedia(c_idx, {obj: this.media[idx].img, src: this.media[idx].src});
 			if(this.counterpart.fields.media[c_idx]) {
 				if(this.fields.media[idx].getAttribute('data-file-src')) {
 					this.counterpart.fields.media[c_idx].setAttribute('data-file-src', this.fields.media[idx].getAttribute('data-file-src'));

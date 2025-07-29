@@ -310,7 +310,14 @@ export default class Shape {
                 'class': ['img-control-blend-mode', 'flex-item']
             });
         }
-        let upload = this.renderFileField(key, {'wrapper':['flex-item']}, {'wrapper': {'flex': 'full'}});
+        const m = this.media[key];
+        const cls = [];
+        if(m) {
+            const empty = !m['obj'] && !m['src'];
+            if(!empty) cls.push('not-empty');
+        }
+        
+        let upload = this.renderFileField(key, {'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});
         const ex_cls = ['media-section'].concat(extraClass);
         const controls = this.renderImageControls(id, control_data);
         const section = this.renderSection('', displayName, [upload, controls], ex_cls);
@@ -324,11 +331,9 @@ export default class Shape {
         return [section, upload];
     }
     addMediaSection(key, displayName, extraClass=[]){
-        if(!key) {
-            key = 'media-' + this.mediaIndex;
-            displayName = 'Media ' + this.mediaIndex;
-            this.mediaIndex++;
-        }
+        key = key ? key : 'media-' + this.mediaIndex;
+        displayName = displayName ? displayName : 'Media ' + this.mediaIndex;
+        this.mediaIndex++;
         const [section] = this.renderMediaSection(key, displayName, extraClass); 
         this.addMediaButton.parentNode.insertBefore(section, this.addMediaButton);
         if(!this.media[key]) {
@@ -642,7 +647,9 @@ export default class Shape {
         input.id = id;
         input.type = 'file';
 		input.setAttribute('image-idx', key);
+        if(this.media[key]?.src) input.setAttribute('data-file-src', this.media[key].src);
         label.setAttribute('for', id);
+        
 		label.className = 'pseudo-upload';
         label.innerText = 'Choose file';
         output.appendChild(input);
@@ -702,11 +709,9 @@ export default class Shape {
             if(this.media[idx]) {
                 delete this.media[idx];
                 this.resetMedia(true);
-                for(let id in this.media) {
-                    // if(id.indexOf('media-') === 0) {
-                    //     this.addMedia(id, id.replace('media-', 'Media '));
-                    // }
-                    
+                for(let key in this.media) {
+                    if(key.indexOf('media-') === -1) continue;
+                    this.addMediaSection(key, '');
                 }
             }
         }
@@ -890,29 +895,30 @@ export default class Shape {
         this.fields.watermarks = this.fields.watermarks.slice(0, idx+1);
     }
     resetMedia(fieldOnly=false){
+        this.mediaIndex = 1;
         if(fieldOnly) {
-            this.reindexMedia();
+            this.media = this.reindexMedia();
         } else {
             this.media = {};
-            this.mediaIndex = 0;
         }
         this.fields.media = {};
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
         this.fields['media-container'] = container;
+        console.log(this.media);
     }
     reindexMedia(){
-        this.mediaIndex = 1;
+        let index = 1;
         let reindexed = {};
         for(let key in this.media) {
-            if(key.indexOf('media') === 0) {
-                reindexed['media-' + this.mediaIndex] = this.media[key];
-                this.mediaIndex++;
+            if(key.indexOf('media-') === 0) {
+                reindexed['media-' + index] = this.media[key];
+                index++;
             } else {
                 reindexed[key] = this.media[key];
             }
         }
-        this.media = reindexed;
+        return reindexed;
     }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);

@@ -23,6 +23,7 @@ export function addExtraAttr(el, attrs){
 export function initMediaStatic(key, values={}){
     let output = {
         obj: null,
+        src: '',
         x: 0,
         y: 0,
         shiftY: 0,

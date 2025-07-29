@@ -200,7 +200,7 @@ export default class Record {
                 }
                 let fields = data['fields'];
                 for (let field of fields) {
-        
+                    console.log(field);
                     if(!field['id']) {
                         continue;
                     }
@@ -208,7 +208,9 @@ export default class Record {
                     if(!field_element) continue;
                     
                     if(field_element.type === 'file') {
+                        console.log(field_element.id);
                         if(this.record_body['images'][field_element.id]) {
+                            
                             this.applySavedFile(field_element, shapeObj);
                         }
                         continue;
@@ -307,10 +309,10 @@ export default class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
-                // console.log(canvas_id);
-                // if(canvas_id === 'static') {
-                //     console.log(media);
-                // }
+                console.log(canvas_id);
+                if(canvas_id === 'static') {
+                    console.log(media);
+                }
                 let media_num = media.length;
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {
