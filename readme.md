@@ -21,7 +21,7 @@ Choose “Format” to begin. Options correspond to current standard social medi
 
 Here is a video:
 
-https://vimeo.com/1105932198/5e2210d227
+https://vimeo.com/1105938008/27dc2a322e
 
 ### SAVE . . .
 
