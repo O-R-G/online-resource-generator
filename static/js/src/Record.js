@@ -280,7 +280,17 @@ export default class Record {
         let record_body = {
             images: {}
         };
-        let record_name = 'new poster';
+
+        const now = new Date();
+        const record_name_default = `${now.toLocaleString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        }).replace(',', '')}`;
+        let record_name = record_name_default;
 
         let containers = document.querySelectorAll('.generator-container');
         for (let container of containers) {
