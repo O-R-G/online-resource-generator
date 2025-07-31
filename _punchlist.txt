@@ -78,4 +78,5 @@ x unify text-handling (main texts and watermarks)
 - apply the updates on the media fields to the animated shape and canvas.
 - handle base image and shape image in the prop media if the base is switched to a solid color better
 - three js mix blend mode for images
+- gradient doesn't work for base
 + mobile css
