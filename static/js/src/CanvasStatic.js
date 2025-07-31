@@ -52,4 +52,47 @@ export default class CanvasStatic extends Canvas {
         } 
         if(!silent) this.draw();
     }
+    updateBase(base){
+        super.updateBase(base);
+        let colorData = this.baseOptions[base].color;
+        if( colorData['type'] == 'solid' || 
+            colorData['type'] == 'gradient')
+        {
+
+            this.base = this.processStaticColorData(colorData);
+        } else return;
+		this.draw();
+	}
+    processStaticColorData(colorData) {
+        console.log('processStaticColorData');
+		if(colorData.type == 'solid'){
+			return colorData.code;
+		}
+		else if(colorData.type == 'transparent')
+		{	
+			let output = colorData.code;
+			if(output.indexOf('rgba') == -1)
+			{
+				output = output.replace('rgb', 'rgba');
+				output = output.replace(')', ',' + colorData.opacity);
+			}
+			return output;
+		}
+		else if(colorData.type == 'gradient'){
+			if(colorData.angle == null){
+				var output = this.context.createLinearGradient(this.canvas.width/2, 0, this.canvas.width/2, this.canvas.height);
+			}
+			else if(colorData.angle == 45){
+				var output = this.context.createLinearGradient(0, this.canvas.height, this.canvas.width, 0);
+			}
+			
+			for(var i = 0; i < colorData.code.length; i++)
+			{
+				let this_pos = i * 1 / (colorData.code.length - 1);
+				output.addColorStop(this_pos, colorData.code[i]);
+			}
+
+            return output;
+		}
+	}
 }

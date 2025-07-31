@@ -927,9 +927,18 @@ export default class Canvas {
     }
     
     updateBase(base){
-        console.log('updateBase', base);
-    	this.base = base;
-		this.draw();
+        // console.log('updateBase', base);
+        // let colorData = this.baseOptions[base];
+        // console.log(colorData);
+        // if( colorData['type'] == 'solid' || 
+        //     colorData['type'] == 'gradient')
+        // {
+
+        //     this.base = this.processStaticColorData(colorData);
+		// 	if(!silent) this.draw();
+        // }
+    	// // this.base = base;
+		// this.draw();
 	}
     updatePositionByKey(e, inputs, cb){
         if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
