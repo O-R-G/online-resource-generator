@@ -1,75 +1,82 @@
 # ONLINE RESOURCE GENERATOR
-Version 1.0
+Version 1.5
 O-R-G inc. 
-Last updated 15 AUGUST 2024
+Last updated 30 JULY 2025
 
-## INSTRUCTIONS
+### INSTRUCTIONS
 
-Your new website includes custom software to produce static and animated graphic assets. You can easily create and modify these by using ONLINE-RESOURCE-GENERATOR, a light-weight web interface to a robust graphic generation system. You can access this interface by entering the following URL:
+Your new website includes custom software to produce static <!--and animated --> graphic resources for social media. You can easily create and modify these using ONLINE-RESOURCE-GENERATOR, a light-weight web interface to a robust graphic generation system. You can access the interface at the following URL:
 
-http://teigerfoundation.org/online-resource-generator/
+https://castellodirivoli.o-r-g.net/online-resource-generator/
 
 To login, use the following account (User Name) and the corresponding credential (Password).
 
 	main  : add, and edit resources
 
-You are now connected to the asset generator and ready to create a new graphic resource. 
+You are now connected to the resource generator. 
 
 ### NEW . . .
 
-Choose “Format” to begin. There are currently two options, “Post” and “Story” which correspond to square and vertical formats. This applies to both static and animated graphics. From here, you can choose “Base” to set the background, “Shape” to select the form, and “Color.” “Animation”  set to any option except “None” will produce an animated graphic. “Text” includes a field for the primary text, typography sizing, and alignment options. The text position can be changed via the X and Y fields, or via the arrow keys on your keyboard. The “Text” field can be of any length and may include line returns. “Add a watermark” appends additional text fields to the graphic. There is no limit in number or length on these fields.
+Choose “Format” to begin. Options correspond to current standard social media formats. <!-- This applies to both static and animated graphics.--> From here, you can choose “Base” to set the background, “Shape” to select the form, and “Color.” <!--“Animation”  set to any option except “None” will produce an animated graphic. --> “Text” includes a field for the primary text, typography sizing, and alignment options. The text position can be changed via the X and Y fields, or via the arrow keys on your keyboard when the cursor is in either the X or Y field. The “Text” field can be of any length and may include line returns. “Add text” appends additional text fields to the resource. “Add media” appends additional media. 
 
 Here is a video:
 
-https://vimeo.com/999099144/d5ef5b10b5?share=copy
+https://vimeo.com/1105938008/27dc2a322e
 
 ### SAVE . . .
 
-All resources can be saved in OPEN RECORDS GENERATOR. Before generating an object, it is advised to save. Any saved object can be modified in the future. The saved record will be named by the contents of the “Text” field. 
+All resources can be saved. Before generating a resource, it is advised to save. Any saved resource can be modified in the future. The saved resource is stored as a record in a database managed by OPEN RECORDS GENERATOR. The new record will be named by the contents of the “Text” field. If the “Text” field is blank, the record will be named with the current date and time. All saved records can be viewed and edited at the following URL:
+
+https://castellodirivoli.o-r-g.net/open-records-generator
+
+To login, use the following account (User Name) and the corresponding credential (Password).
+
+	main  : add, and edit resources
 
 Here is a video:
 
-https://vimeo.com/994180610/2c94974749
+https://vimeo.com/1105932262/4c2f3f1ec3
 
 ### SHARE . . .
 
-ONLINE-RESOURCE-GENERATOR allows you to share and modify assets between users. Clicking “Share” copies a unique url to your clipboard which may be sent to another user via email, txt, etc. This url remains canonical (consistent) and so the same shared link can continue to be used to make changes to the asset.
+ONLINE-RESOURCE-GENERATOR allows you to share and modify resources between users. Clicking “Share” copies a unique URL to your clipboard which may be sent to another user via email, txt, etc. This URL remains canonical (consistent) and so the same shared link can continue to be used to make changes to the resource.
 
 Here is a video:
 
-https://vimeo.com/994180637/d344ec4913
+https://vimeo.com/1105932272/fdd1d1b43f
 
 ### GENERATE . . .
 
-When the graphic is complete, click “Generate” to produce a final graphic asset as .jpg or .mp4 format.
+When the resource is complete, click “↓ png” <!-- or ↓ mp4 --> to download a final sized graphic resource in .png <!-- or .mp4 --> format.
 
 Here is a video:
 
-https://vimeo.com/994180582/565633ac3d
+https://vimeo.com/1105932283/4e8e7be2f1
 
-### NEW (FROM COPY)
-
-It can be useful to use an existing graphic asset as a template for creating another similar graphic. If the new graphic is the same as the previous with text or color changes, this can be a useful strategy. In other cases, it is typically best to start from scratch as the asset building process is quick and easy.
+A typical workflow combines these functions. 
 
 Here is a video:
 
-https://vimeo.com/995095613/005a75e5e1
+https://vimeo.com/1105932594/ec80994ec7
 
 --
 
-## NOTES
+### NOTES
 
-1. As you use this interface, it should become increasingly transparent to you. As you work in ONLINE-RESOURCE-GENERATOR, use the “Generate” button consistently to check your work and to see live changes you have just made to your asset.
+1. As you use this interface, it should become increasingly transparent to you. Use the “↓” button consistently to check your work and to see live changes you have just made to your resource.
 
 ### VERSION HISTORY
 + 1.0 -- August 2024
++ 1.5 -- July 2025
 
 ### SITES
 + [teigerfoundation.org/](http://teigerfoundation.org/)
++ [giornopoetrysystems.org/](http://giornopoetrysystems.org/)
++ [castellodirivoli.o-r-g.net/](https://castellodirivoli.o-r-g.net)
 
 ### DEV NOTES
 
-To build the project, change the working directory to online-resource-generator/static/js/, and run:
+To build the project, change the working directory to /static/js, and run:
 
 ```bash
 npm install
