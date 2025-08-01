@@ -694,7 +694,7 @@ export default class Canvas {
                 const src = this.media[key]?.src ? this.media[key].src : '';
                 const [field, input] = renderFileField(id, key, src, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
                 let controls = this.renderImageControls(id, control_data);
-                let section = this.renderSection('', '', [field, controls], key + '-section');
+                let [section] = this.renderSection('', '', [field, controls], key + '-section');
                 this.fields.media[key] = input;
                 this.control_top.appendChild(section);
             }
@@ -741,7 +741,8 @@ export default class Canvas {
                     delete this.media[key];
 					sec.classList.remove('viewing-base-image-section');
 					this.updateBase(e.target.value);
-                    this.counterpart.updateBase(e.target.value);
+                    if(this.counterpart)
+                        this.counterpart.updateBase(e.target.value);
 				}
             }.bind(this);
         }
@@ -793,7 +794,6 @@ export default class Canvas {
 		}.bind(this);
 		input.onchange = function(e){
 			this.readImageUploaded(e, (key, image)=>{
-                console.log(image);
 				this.updateMedia(key, {obj:image});
 			});
 		}.bind(this);
@@ -1025,7 +1025,7 @@ export default class Canvas {
             let newShape = this.isThree ? new ShapeAnimated(this.prefix, this, firstShape.options, format, firstShape.fonts, shapeIndex) : new ShapeStatic(this.prefix, this, firstShape.options, format, shapeIndex);
             this.addShape(newShape);
             
-            if(!isSync) {
+            if(!isSync && this.counterpart) {
                 let counterNewShape = this.counterpart.toggleSecondShape(event, true);
                 newShape.addCounterpart(counterNewShape);
             }
@@ -1081,6 +1081,7 @@ export default class Canvas {
     }
 
     sync(){
+        if(!this.counterpart) return;
         if(this.fields['base'])
             this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
         this.counterpart.fields['format'].value = this.fields['format'].value;
@@ -1208,5 +1209,8 @@ export default class Canvas {
     }
     show(){
         this.checkWrapperWidth();
+    }
+    onSave(){
+        // anything to clean up before saving?
     }
 }

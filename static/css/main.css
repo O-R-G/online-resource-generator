@@ -685,6 +685,9 @@ input[value="fetch"]
     position: relative;
     left: calc(-1 * var(--flex-item-margin));
 }
+.media-dom-wrapper {
+    width: 100%;
+}
 .media-container > .panel-section,
 .watermarks-container > .panel-section  {
     position: relative;

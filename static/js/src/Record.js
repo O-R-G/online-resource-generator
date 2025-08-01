@@ -6,6 +6,7 @@ export default class Record {
         this.record_body = '';
         this.form_action = this.record_id !== '' ? 'save' : 'insert';
         this.request_url = '/online-resource-generator/static/php/recordHandler.php';
+        this.isSaving = false;
         this.elements = {
             'form': null,
             'button': null
@@ -49,9 +50,22 @@ export default class Record {
     }
     addListeners(){
         this.elements.save_button.addEventListener('click', (event)=>{
-            this.submit(event, ()=>{
-                alert('Saved!');
-            });
+            if(this.isSaving) return;
+            this.isSaving = true;
+            for(const canvas_id in this.canvasObjs) {
+                const canvas = this.canvasObjs[canvas_id];
+                canvas.onSave();
+                for(const shape_id in canvas.shapes) {
+                    canvas.shapes[shape_id].onSave();
+                }
+            }
+            setTimeout(()=>{
+                this.submit(event, ()=>{
+                    this.isSaving = false;
+                    alert('Saved!');
+                });
+            }, 0)
+            
         })
         this.elements.share_button.addEventListener('click', (event)=>{
             if(!this.record_id) alert('You have to save the draft before you can share it.')
@@ -232,6 +246,7 @@ export default class Record {
                 }
             }
         }
+        // console.log(this.record_body['images']);
         if(this.record_body['images']) {
             for(let field_id in this.record_body['images'] ){
                 let el = document.getElementById(field_id);
@@ -254,17 +269,15 @@ export default class Record {
        
         active_canvas.draw();
     }
-    applySavedFile(field, shapeObj){
-        let idx = field.getAttribute('image-idx');
-        let id = field.id;
+    applySavedFile(input, shapeObj){
+        console.log('applySavedFile', input);
+        let idx = input.getAttribute('image-idx');
+        let id = input.id;
         let src = this.record_body['images'][id];
         if(!src) return false;
         src = media_relative_root + src;
-        let el = document.getElementById(id);
-        if(!el) return false;
-        el.setAttribute('data-file-src', src);
-        el.dispatchEvent(new Event('applySavedFile'));
-        // shapeObj.readImage(idx, src, shapeObj.updateImg.bind(shapeObj));
+        input.setAttribute('data-file-src', src);
+        input.dispatchEvent(new Event('applySavedFile'));
         return idx;
     }
     formatField(field){
@@ -312,8 +325,10 @@ export default class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
-                if(canvas_id === 'static') {
-                    console.log(media);
+                console.log('media', media);
+                for(const m of media) {
+                    if(m.files && m.files[0]) console.log('file!')
+                    else console.log('no file!');
                 }
                 let media_num = media.length;
                 let shape_id = shape_control.getAttribute('data-shape-id');
@@ -367,8 +382,6 @@ export default class Record {
                     }
                     if(field.type === 'file') {
                         console.log(field.id);
-                        if(field.id === 'static-canvas-field-id-base-image')
-                            console.log(field.files.length);
                         if(field.files.length > 0) {
                             formData.append(field.id, field.files[0]);
                         } else if(field.getAttribute('data-file-src')) {
@@ -392,7 +405,6 @@ export default class Record {
         formData.append('record_body', record_body);
         formData.append('record_name', record_name);
         formData.append('record_id', this.record_id);
-        
         // return;
         fetch(this.request_url, {
             method: 'POST',

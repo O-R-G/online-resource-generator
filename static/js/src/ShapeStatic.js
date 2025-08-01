@@ -1,5 +1,7 @@
-import {initMediaStatic} from "./utils/lib.js"
+// import {initMediaStatic} from "./utils/lib.js"
+import MediaStatic from './MediaStatic.js'
 import Shape from "./Shape.js";
+import { generateFieldId } from './utils/lib.js';
 
 export default class ShapeStatic extends Shape {
 	constructor(prefix = '', canvasObj, options, format, shape_index=0){
@@ -8,6 +10,7 @@ export default class ShapeStatic extends Shape {
 		this.colorData = this.getDefaultOption(this.options.colorOptions);
 		this.colorData = this.colorData.color;
 		this.color = this.colorData.code;
+		this.colorPattern = null;
 		this.textColor = null;
         for(let prop in this.options.textColorOptions) {
             if(this.options.textColorOptions[prop]['default']) this.textColor = this.options.textColorOptions[prop].color.code;
@@ -28,8 +31,11 @@ export default class ShapeStatic extends Shape {
 		this.timer_shape = null;
 		this.customGraphic = [];
 		this.initRecording = false;
-		if(this.options.colorOptions['upload'])
-			this.media['background-image'] = this.initMedia('background-image', {isShapeColor: true});
+		
+		if(this.options.colorOptions['upload']) {
+			const key = 'background-image';
+			this.media['background-image'] = this.initMedia(key, {isShapeColor: true, 'fit': 'cover'});
+		}
 	}
 	init(canvasObj) {
 		super.init(canvasObj);
@@ -47,11 +53,6 @@ export default class ShapeStatic extends Shape {
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
 		this.canvasH = this.canvas.height;
-		if(this.color === 'upload' || typeof this.color === 'object') {
-			for(let idx in this.media) {
-				this.updateMedia(idx);
-			}
-		}
 	}
 	addCounterpart(obj) {
 		super.addCounterpart(obj);
@@ -90,34 +91,28 @@ export default class ShapeStatic extends Shape {
 		if(!silent) this.canvasObj.draw();
 	}
 	processStaticColorData(colorData) {
-		if(colorData.type == 'solid'){
-			return colorData.code;
-		}
+		if(colorData.type == 'solid') return colorData.code;
 		else if(colorData.type == 'transparent')
 		{	
 			let output = colorData.code;
-			if(output.indexOf('rgba') == -1)
-			{
+			if(output.indexOf('rgba') == -1) {
 				output = output.replace('rgb', 'rgba');
 				output = output.replace(')', ',' + colorData.opacity);
 			}
 			return output;
 		}
 		else if(colorData.type == 'gradient'){
-			if(colorData.angle == null){
+			if(colorData.angle == null) {
 				var output = this.context.createLinearGradient(this.canvasW/2, 0, this.canvasW/2, this.canvasH);
 			}
-			else if(colorData.angle == 45){
+			else if(colorData.angle == 45) {
 				if(this.shape.base === 'diamond') {
 					var output = this.context.createLinearGradient(this.shapeCenter.x - this.frame.w / 3, this.shapeCenter.y + this.frame.w / 3, this.shapeCenter.x + this.frame.w / 3, this.shapeCenter.y - this.frame.w / 3);
 				}else {
 					var output = this.context.createLinearGradient(0, this.canvasH, this.canvasW, 0);
 				}
-				
 			}
-			
-			for(var i = 0; i < colorData.code.length; i++)
-			{
+			for(var i = 0; i < colorData.code.length; i++) {
 				let this_pos = i * 1 / (colorData.code.length - 1);
 				output.addColorStop(this_pos, colorData.code[i]);
 			}
@@ -151,7 +146,6 @@ export default class ShapeStatic extends Shape {
         }
         else if(colorData['type'] == 'special')
         {
-        	// this.color = this.colorData.color;
             this.updateSpecialColor(this.colorData);
             if(!silent) this.canvasObj.draw();
         }
@@ -877,7 +871,7 @@ export default class ShapeStatic extends Shape {
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
-        this.context.fillStyle = this.color;
+        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawRectanglePath();
         this.context.fill();
 	}
@@ -918,7 +912,7 @@ export default class ShapeStatic extends Shape {
 	}
 	
 	drawCircle(){
-	    this.context.fillStyle = this.color;
+	    this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawCirclePath()
 	    this.context.fill();
 	}
@@ -935,7 +929,7 @@ export default class ShapeStatic extends Shape {
 		this.updateSize(r, r);
 	}
 	drawTriangle(){
-        this.context.fillStyle = this.color;
+        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
         this.drawTrianglePath();
         this.context.fill();
     }
@@ -974,7 +968,7 @@ export default class ShapeStatic extends Shape {
 	}
 	drawHeart() {
 		let this_padding = this.padding;
-		this.context.fillStyle = this.color;
+		this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		let side = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
 		let arcs = [
 			{
@@ -1002,7 +996,7 @@ export default class ShapeStatic extends Shape {
         this.context.fill();
 	}
     drawHexagon(){
-        this.context.fillStyle = this.color;
+        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawHexagonPath();
         this.context.fill();
     }
@@ -1029,7 +1023,7 @@ export default class ShapeStatic extends Shape {
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		
 		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
-        this.context.fillStyle = this.color;
+        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawDiamondPath();
         this.context.fill();
 	}
@@ -1086,18 +1080,17 @@ export default class ShapeStatic extends Shape {
 		ctx.closePath();
 	}
 	drawAngolo(){
-		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) ) 
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		
 		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
-        this.context.fillStyle = this.color;
+        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawAngoloPath();
         this.context.fill('evenodd');
 
 		this.context.fillStyle = "#ffffff";
 		this.drawAngoloCornerPath();
         this.context.fill('evenodd');
-
 		this.context.fillStyle = this.color;
 	}
 	drawAngoloPath(ctx = null){
@@ -1174,6 +1167,9 @@ export default class ShapeStatic extends Shape {
   	}
 
 	draw(){
+		if(this.color === 'upload') {
+			this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.frame);
+		}
 		if(this.shapeMethod == 'draw')
 		{
 			if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
@@ -1347,9 +1343,12 @@ export default class ShapeStatic extends Shape {
 				let sec = e.target.parentNode.parentNode;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
+					this.media['background-image'].show();
 					sec.classList.add('viewing-shape-image-section');
 				} else {
 					sec.classList.remove('viewing-shape-image-section');
+					this.media['background-image'].hide();
+					this.colorPattern = null;
 					if(this.fields.media['background-image'])
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');
 					if(this.options.colorOptions[e.target.value]?.color.type === 'animation') isSilent = false;
@@ -1357,134 +1356,13 @@ export default class ShapeStatic extends Shape {
 				}
 			}.bind(this);
 		}
-	
-		for(let idx in this.fields.media) {
-			this.addMediaListener(idx);
-		}
 	}
-	addMediaListener(key){
-		if(!key) return;
-		let input = this.fields.media[key];
-		if(!input) console.error('media field doesnt exist: ', key);
-		input.onclick = function (e) {
-			e.target.value = null;
-		}.bind(this);
-		input.onchange = function(e){
-			this.readImageUploaded(e, (key, image)=>{
-				this.updateMedia(key, {obj:image});
-			});
-		}.bind(this);
-		input.addEventListener('applySavedFile', (e)=>{
-			console.log('shapeStatic applySavedFile')
-			let idx = input.getAttribute('image-idx');
-			let src = input.getAttribute('data-file-src');
-			this.readImage(idx, src, (key, image)=>{
-				input.classList.add('not-empty');
-				this.updateMedia(key, { obj: image, src: src });
-			});
-			
-		});
-		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-		if(scale_input) {
-			scale_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				e.preventDefault();
-				// let scale = e.target.value >= 1 ? e.target.value : 1;
-				let scale = e.target.value;
-				this.updateMediaScale(scale, key, isSilent);
-			}.bind(this);
-		}	
-		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-		if(shift_x_input) {
-			shift_x_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(e.target.value, key, isSilent);
-			}.bind(this);
-			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, key, isSilent)
-				this.updateMediaPositionY(shift.y, key, isSilent)
-			});
-		}
-		if(shift_y_input) {
-			shift_y_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionY(e.target.value, key, isSilent);
-			}.bind(this);
-			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, key, isSilent)
-				this.updateMediaPositionY(shift.y, key, isSilent)
-			});
-		}
-		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-		if(blend_mode_input) {
-			blend_mode_input.onchange = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaBlendMode(e.target.value, key, isSilent);
-			}.bind(this);
-		}
+	initMedia(key, props={}, onUpload=null){
+		if(!key) return null;
+		const prefix = generateFieldId(this.id, key);
+		return new MediaStatic(key, prefix, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props);
 	}
-	initMedia(key, values={}){
-		if(!key || this.media[key]) return null;
-		return initMediaStatic(key, values);
-	}
-    updateMedia(key, values, silent = false){
-		super.updateMedia(key, values, silent);
-        if(key === 'background-image') {
-			const media = this.media[key];
-			if(media && media.obj) {
-				let temp = document.createElement('canvas');
-				let temp_ctx = temp.getContext('2d');
-				if(this.timer_color != null)
-				{
-					clearInterval(this.timer_color);
-					this.timer_color = null;
-				}
-				temp.width = this.canvasW;
-				temp.height = this.canvasH;
-				
-				let length = this.frame.w - this.padding * 2;
-					
-				let temp_scale = 1;
-				let temp_scaledW = this.media[key].obj.width * temp_scale;
-				let temp_scaledH = this.media[key].obj.height * temp_scale;
-				
-				if(this.media[key].obj.width > this.media[key].obj.height)
-				{
-					temp_scale = length / this.media[key].obj.height * this.media[key].scale;
-					temp_scaledW = this.media[key].obj.width * temp_scale;
-					temp_scaledH = this.media[key].obj.height * temp_scale;
-				}
-				else
-				{
-					temp_scale = length / this.media[key].obj.width * this.media[key].scale;
-					temp_scaledW = this.media[key].obj.width * temp_scale;
-					temp_scaledH = this.media[key].obj.height * temp_scale;
-				}
-
-				this.media[key].x = temp.width / 2 - temp_scaledW / 2 + this.media[key]['shift-x'];
-				
-				this.media[key].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[key]['shift-y'] + this.frame.y;
-				if(this.timer_color != null)
-				{
-					clearInterval(this.timer_color);
-					this.timer_color = null;
-				}
-				if(this.timer_position != null)
-				{
-					clearInterval(this.timer_position);
-					this.timer_position = null;
-				}
-				temp_ctx.drawImage(this.media[key].obj, this.media[key].x, this.media[key].y, temp_scaledW, temp_scaledH);
-				this.color = this.context.createPattern(temp, "no-repeat");
-			} 
-		} else {
-			// this.drawImage(idx);
-		}
-		if(!silent) this.canvasObj.draw();
-	}
+    
     updateFrame(frame = null, silent = false){
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
@@ -1589,11 +1467,10 @@ export default class ShapeStatic extends Shape {
 		this.context.globalCompositeOperation = 'normal';
 	}
 	drawImages(){
-		for(let idx in this.media) {
-			if(idx === 'background-image') continue;
-			if(!this.media[idx].obj) continue;
-			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
-			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx]['shift-x']), (this.media[idx].y - this.media[idx]['shift-y']), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
+		for(let key in this.media) {
+			const m = this.media[key];
+			if(m.isShapeColor) continue;
+			m.draw(this.context);
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}

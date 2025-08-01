@@ -24,12 +24,12 @@ export function renderSection(id='', displayName='', children=[], extraClass=[],
         output.appendChild(label);
     }
     output.appendChild(right);
-    return output;
+    return [output, right];
 }
 export function renderSelectSection(id, displayName, selectData, extraFieldClass=[], extraSectionClass=[], extraFieldAttr = null, extraSectionAttr=null)
 {
     let select = renderSelect(id, selectData, ['flex-item'].concat(extraFieldClass), extraFieldAttr);
-    let section = renderSection('', displayName, select, extraSectionClass, extraSectionAttr);
+    let [section] = renderSection('', displayName, select, extraSectionClass, extraSectionAttr);
     return [section, select];
 }
 export function renderInput(id, value='', attrs = null, extraClass = []){
@@ -100,7 +100,7 @@ export function renderSelectField(id, displayName, options, extraClass=[])
 export function renderNumeralSection(id, displayName, begin, step, min=false, extraClass=[], extraSectionClass=[], extraFieldAttr = null, extraSectionAttr=null)
 {
     let input = renderNumeralInput(id, begin, step, min, extraClass, extraFieldAttr);
-    let section = renderSection('', displayName, input, extraSectionClass, extraSectionAttr);
+    let [section] = renderSection('', displayName, input, extraSectionClass, extraSectionAttr);
     return [section, input];
 }
 export function renderNumeralInput(id, begin=0, step=1, min=false, extraClass=[], attrs=null){
@@ -152,7 +152,6 @@ export function renderImageControls(id='', control_data=[]){
         }
         
     }
-    
     return container;
 }
 export function renderFileField(id, key, src, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){

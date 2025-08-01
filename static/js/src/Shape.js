@@ -1,4 +1,4 @@
-import { getDefaultOption, getClassString, addExtraAttr } from './utils/lib.js'
+import { getDefaultOption, getClassString, addExtraAttr, generateFieldId, updatePositionByKey } from './utils/lib.js'
 import { renderInput, renderCustomControls, renderSelect, renderSelectSection, renderNumeralSection, renderSection, renderImageControls, renderFileField } from './utils/render.js';
 
 export default class Shape {
@@ -13,6 +13,7 @@ export default class Shape {
         for(let prop in this.options.shapeOptions) {
             if(this.options.shapeOptions[prop]['default']) this.shape = this.options.shapeOptions[prop].shape;
         }
+        this.mediaOptions = this.options['mediaOptions'] ?? {};
         if(!this.shape) this.shape = Object.values(this.options.shapeOptions)[0].shape;
 		this.cornerRadius = this.shape.cornerRadius;
 		this.padding = this.shape.padding;
@@ -166,7 +167,7 @@ export default class Shape {
         this.fields['shape'] = select;
         this.fields['shape-shift-x'] = input_x;
         this.fields['shape-shift-y'] = input_y;
-        const section = this.renderSection(id, displayName, [select, input_x, input_y], extraClass=[]);
+        const [section] = this.renderSection(id, displayName, [select, input_x, input_y], extraClass=[]);
         
         return section;
     }
@@ -227,7 +228,7 @@ export default class Shape {
             }
         ]
         const control_items = Array.from(this.renderCustomControls(text_controls));
-        const section = renderSection('', displayName, [textarea, ...control_items]);
+        const [section] = renderSection('', displayName, [textarea, ...control_items]);
         
         if(!this.fields[key]) this.fields[key] = textarea;
 
@@ -270,70 +271,21 @@ export default class Shape {
             displayName = 'Media ' + this.mediaIndex;
             this.mediaIndex++;
         }
-
-        const id = this.id + '-field-id-' + key;    
-        let control_data = [
-            { 
-                'name': 'scale',
-                'displayName': 'Scale',
-                'id': id + '-scale',
-                'input-type': 'number',
-                'attr': {'flex': 'half', 'placeholder' : 'Scale (1)'},
-                'meta': {begin: 1.0, step: 0.1},
-                'class': ['img-control-scale', 'flex-item']
-            },{ 
-                'name': 'shift-x',
-                'displayName': 'X',
-                'id': id + '-shift-x',
-                'input-type': 'number',
-                'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
-                'meta': {begin: 0, step: 1},
-                'class': ['img-control-shift-x', 'flex-item']
-            },{ 
-                'name': 'shift-y',
-                'displayName': 'Y',
-                'id': id + '-shift-y',
-                'input-type': 'number',
-                'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
-                'meta': {begin: 0, step: 1},
-                'class': ['img-control-shift-y', 'flex-item']
-            }
-        ];
-        if(this.options['blendModeOptions']) {
-            control_data.push({ 
-                'name': 'blend-mode',
-                'displayName': 'Blend mode',
-                'id': id + '-blend-mode',
-                'input-type': 'select',
-                'attr': {'flex': 'half', 'placeholder' : 'Blend Mode'},
-                'meta': {options: this.options['blendModeOptions']},
-                'class': ['img-control-blend-mode', 'flex-item']
-            });
-        }
+        if(!this.media[key]) {
+            this.media[key] = this.initMedia(key);
+        }    
         const m = this.media[key];
-        console.log(m);
-        const cls = [];
-        if(m) {
-            for(const data of control_data) {
-                if(m[data['name']])
-                    data['value'] = m[data['name']];
-            }
-            const empty = !m['obj'] && !m['src'];
-            if(!empty) cls.push('not-empty');
-        }
-        const src = this.media[key]?.src ? this.media[key].src : '';
-        const [field, input] = renderFileField(id, key, src, {'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});
         const ex_cls = ['media-section'].concat(extraClass);
-        const controls = this.renderImageControls(id, control_data);
-        const section = this.renderSection('', displayName, [field, controls], ex_cls);
+        const [section, right] = this.renderSection('', displayName, [], ex_cls);
+        m.addTo(right);
         const delete_button = document.createElement('div');
         delete_button.className='delete-button media-delete-button btn small-btn';
         delete_button.addEventListener('click', ()=>{ 
             this.deleteItem('media', key, section); 
         });
         section.appendChild(delete_button);
-        this.fields.media[key] = input;
-        return [section, field];
+        // this.fields.media[key] = input;
+        return [section];
     }
     addMediaSection(key, displayName, extraClass=[]){
         key = key ? key : 'media-' + this.mediaIndex;
@@ -341,11 +293,6 @@ export default class Shape {
         this.mediaIndex++;
         const [section] = this.renderMediaSection(key, displayName, extraClass); 
         this.addMediaButton.parentNode.insertBefore(section, this.addMediaButton);
-        if(!this.media[key]) {
-            this.media[key] = this.initMedia(key);
-        }
-        
-        this.addMediaListener(key);
     }
     
     divToNl(nodes){
@@ -502,7 +449,7 @@ export default class Shape {
                         self.updateWatermark(idx, params);
                     }
                     item['el'].onkeydown = (e) => {
-                        this.updatePositionByKey(e, self.fields['watermarks'][idx]['shift'], (shift)=>this.updateWatermark(idx, {'shift': shift}, false));
+                        updatePositionByKey(e, self.fields['watermarks'][idx]['shift'], (shift)=>this.updateWatermark(idx, {'shift': shift}, false));
                     }
                     const counterpart_name = shift_direction === 'x' ? 'shift-y' : 'shift-x';
                     const counterpart = items.find((itm)=> itm.name.indexOf(counterpart_name) !== -1 );
@@ -513,7 +460,7 @@ export default class Shape {
                 
             }
         }));
-        const section = renderSection('', displayName, [textarea, ...control_items]);
+        const [section] = renderSection('', displayName, [textarea, ...control_items]);
         const delete_button = document.createElement('div');
         delete_button.className='delete-button watermark-delete-button btn small-btn';
         delete_button.addEventListener('click', ()=>{ 
@@ -552,22 +499,22 @@ export default class Shape {
 
         if(typeof cb === 'function') cb({rotate: input.value});
     }
-    updatePositionByKey(e, inputs, cb){
-        if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
-        e.preventDefault();
-        let val = e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
-        val *= e.shiftKey ? 10 : 1;
-        if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            if(!inputs.y.value) inputs.y.value = 0;
-            inputs.y.value = this.toFix(inputs.y.value) + val;
-        } else if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            if(!inputs.x.value) inputs.x.value = 0;
-            inputs.x.value = this.toFix(inputs.x.value) + val;
-        }
-        inputs.x.classList.add('pseudo-focused');
-        inputs.y.classList.add('pseudo-focused');
-        if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
-    }
+    // updatePositionByKey(e, inputs, cb){
+    //     if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
+    //     e.preventDefault();
+    //     let val = e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
+    //     val *= e.shiftKey ? 10 : 1;
+    //     if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    //         if(!inputs.y.value) inputs.y.value = 0;
+    //         inputs.y.value = this.toFix(inputs.y.value) + val;
+    //     } else if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    //         if(!inputs.x.value) inputs.x.value = 0;
+    //         inputs.x.value = this.toFix(inputs.x.value) + val;
+    //     }
+    //     inputs.x.classList.add('pseudo-focused');
+    //     inputs.y.classList.add('pseudo-focused');
+    //     if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
+    // }
     toFix(val, digits=2){
         let output = parseFloat(val).toFixed(digits);
         return parseFloat(output);
@@ -638,30 +585,6 @@ export default class Shape {
 	        this.control.appendChild(section);
         }
     }
-    renderFileField(key, extraClass={'wrapper': [], 'input': []}, extraAttr={'wrapper': null, 'input': null}){
-        let id = this.id + '-field-id-' + key;
-        let output = document.createElement('div');
-        let input = document.createElement('input');
-        let label = document.createElement('label');
-        let extraWrapperClass = extraClass['wrapper'] && extraClass['wrapper'].length ? ' ' + this.getClassString(extraClass['wrapper']) : '';
-        output.className = 'field-wrapper ' + id + '-wrapper' + extraWrapperClass;
-        if(extraAttr['wrapper']) output = this.addExtraAttr(output, extraAttr['wrapper']);
-        
-        let extraInputClass = extraClass['input'] && extraClass['input'].length ? ' ' + this.getClassString(extraClass['input']) : '';
-        input.className = 'field-id-' + key + extraInputClass;
-        input.id = id;
-        input.type = 'file';
-		input.setAttribute('image-idx', key);
-        if(this.media[key]?.src) input.setAttribute('data-file-src', this.media[key].src);
-        label.setAttribute('for', id);
-        
-		label.className = 'pseudo-upload';
-        label.innerText = 'Choose file';
-        output.appendChild(input);
-        output.appendChild(label);
-        this.fields.media[key] = input
-        return output;
-    }
     
     renderImageControls(id, control_data){
         return renderImageControls(id, control_data);
@@ -689,16 +612,7 @@ export default class Shape {
 		output.id = this.id + '-field-id-' + id;
         return output;
     }
-    readImage(idx, src, cb) {
-        let image = new Image();
-        image.onload = function (e) {
-            if(typeof cb === 'function') {
-                cb(idx, image);	
-            }
-                
-        };
-        image.src = src;
-    }
+    
     deleteItem(type, idx, panel_section, silent=false){
         if(type === 'watermark') {
             if(this.watermarks[idx]) {
@@ -714,7 +628,6 @@ export default class Shape {
             if(this.media[idx]) {
                 delete this.media[idx];
                 this.resetMedia(true);
-                console.log(this.media);
                 for(let key in this.media) {
                     if(key.indexOf('media-') === -1) continue;
                     this.addMediaSection(key, '');
@@ -749,67 +662,40 @@ export default class Shape {
         if(typeof cb === 'function')
             cb(idx, videoElement);	
     }
-    readImageUploaded(event, cb){
-        let input = event.target;
-		let key = input.getAttribute('image-idx');
+    // readImageUploaded(event, cb){
+    //     let input = event.target;
+	// 	let key = input.getAttribute('image-idx');
 
-        if (input.files && input.files[0]) {
-        	var FR = new FileReader();
-            FR.onload = function (e) {
-                this.readImage(key, e.target.result, (key, image)=>{
-                    input.classList.add('not-empty');
-                    if(typeof cb === 'function') cb(key, image);
-                });
-            }.bind(this);
-            FR.readAsDataURL(input.files[0]);
-            input.parentNode.parentNode.classList.add('viewing-image-control');
-        }
-    }
-    initMedia(){
+    //     if (input.files && input.files[0]) {
+    //     	var FR = new FileReader();
+    //         FR.onload = function (e) {
+    //             this.readImage(key, e.target.result, (key, image)=>{
+    //                 input.classList.add('not-empty');
+    //                 if(typeof cb === 'function') cb(key, image);
+    //             });
+    //         }.bind(this);
+    //         FR.readAsDataURL(input.files[0]);
+    //         input.parentNode.parentNode.classList.add('viewing-image-control');
+    //     }
+    // }
+    // initMedia(){
 
-    }
+    // }
     updateMedia(key, values){
         // console.log('Shape updateMedia', values);
-        let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
-        if(!obj) return false;
+        // let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
+        // if(!obj) return false;
 		if(!this.media[key]) {
 			this.media[key] = this.initMedia(key, values);
-		} else {
-            for(let prop in values) {
-                if(typeof this.media[key][prop] !== 'undefined')
-                    this.media[key][prop] = values[prop];
-            }
-        }
+		} 
+        // else {
+        //     for(let prop in values) {
+        //         if(typeof this.media[key][prop] !== 'undefined')
+        //             this.media[key][prop] = values[prop];
+        //     }
+        // }
 	}
-    updateMediaScale(imgScale, key, silent = false){
-        console.log('Shape updateMediaScale', key);
-        console.log(this.media[key])
-        if(!this.media[key]) return;
-        if(!imgScale) imgScale = 1;
-    	this.media[key].scale = imgScale;
-        if(this.media[key].obj)
-    	    this.updateMedia(key, { obj: this.media[key].obj}, silent)
-    };
-    updateMediaPositionX(imgShiftX, key, silent = false){
-        if(!this.media[key]) return;
-        if(!imgShiftX) imgShiftX = 0;
-    	this.media[key]['shift-x'] = parseFloat(imgShiftX);
-        if(this.media[key].obj)
-    	    this.updateMedia(key, { obj: this.media[key].obj}, silent)
-    };
-    updateMediaPositionY(imgShiftY, idx, silent = false){
-        if(!this.media[idx]) return;
-        if(!imgShiftY) imgShiftY = 0;
-    	this.media[idx]['shift-y'] = parseFloat(imgShiftY);
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
-    };
-    updateMediaBlendMode(mode, idx, silent=false){
-        if(!this.media[idx]) return;
-    	this.media[idx]['blend-mode'] = mode;
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj}, silent)
-    }
+    
     
     updateFrame(frame){
         frame = frame ? frame : this.generateFrame();
@@ -908,6 +794,7 @@ export default class Shape {
         } else {
             this.media = {};
         }
+        // console.log('resetMedia', this.media);
         this.fields.media = {};
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
@@ -918,7 +805,10 @@ export default class Shape {
         let reindexed = {};
         for(let key in this.media) {
             if(key.indexOf('media-') === 0) {
-                reindexed['media-' + index] = this.media[key];
+                const new_key = 'media-' + index;
+                const m = this.media[key];
+                m.updateKey(new_key);
+                reindexed[new_key] = m;
                 index++;
             } else {
                 reindexed[key] = this.media[key];
@@ -974,6 +864,22 @@ export default class Shape {
             this.updateCounterpartField(field, counterField);
 		}
         this.syncMedia();
+    }
+    onSave(){
+        // anything to clean up before saving?
+
+        /* clean up unsed media fields */
+        for(const key in this.media) {
+            if(this.media[key].isEmpty) delete this.media[key];
+        }
+        this.resetMedia(true);
+        console.log('-------');
+        console.log(this.media['media-1'].elements['file-input'].files.length);
+        // console.log('media', this.media);
+        for(let key in this.media) {
+            if(key.indexOf('media-') === -1) continue;
+            this.addMediaSection(key, '');
+        }
     }
 }
 
