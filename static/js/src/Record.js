@@ -270,7 +270,7 @@ export default class Record {
         active_canvas.draw();
     }
     applySavedFile(input, shapeObj){
-        console.log('applySavedFile', input);
+        // console.log('applySavedFile', input);
         let idx = input.getAttribute('image-idx');
         let id = input.id;
         let src = this.record_body['images'][id];
@@ -325,11 +325,11 @@ export default class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
-                console.log('media', media);
-                for(const m of media) {
-                    if(m.files && m.files[0]) console.log('file!')
-                    else console.log('no file!');
-                }
+                // console.log('media', media);
+                // for(const m of media) {
+                //     if(m.files && m.files[0]) console.log('file!')
+                //     else console.log('no file!');
+                // }
                 let media_num = media.length;
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {
@@ -381,7 +381,7 @@ export default class Record {
                         continue;
                     }
                     if(field.type === 'file') {
-                        console.log(field.id);
+                        // console.log(field.id);
                         if(field.files.length > 0) {
                             formData.append(field.id, field.files[0]);
                         } else if(field.getAttribute('data-file-src')) {
@@ -399,7 +399,7 @@ export default class Record {
                 record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
-        console.log(record_body['images']);
+        // console.log(record_body['images']);
         record_body = JSON.stringify(record_body);
         
         formData.append('record_body', record_body);

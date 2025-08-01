@@ -1,5 +1,6 @@
-import {initMediaStatic} from "./utils/lib.js"
+import MediaStatic from './MediaStatic.js'
 import Canvas from "./Canvas.js";
+import { generateFieldId } from './utils/lib.js';
 
 export default class CanvasStatic extends Canvas {
     constructor(wrapper, format, prefix, options){
@@ -8,49 +9,69 @@ export default class CanvasStatic extends Canvas {
         this.media = {};
         this.scale = 2;
         if(this.baseOptions['upload'])
-			this.media['base-image'] = this.initMedia('base-image', {isShapeColor: true});
+			this.media['base-image'] = this.initMedia('base-image', {isShapeColor: true, 'fit': 'cover'});
     }
-    initMedia(key, values={}){
-        console.log('initMedia')
-        if(!key || this.media[key]) return null;
-        return initMediaStatic(key, values);
+    initMedia(key, props={}, onUpload=null){
+        if(!key) return null;
+        const prefix = generateFieldId(this.id, key);
+        return new MediaStatic(key, prefix, this.draw.bind(this), onUpload, this.mediaOptions, props);
     }
-    updateMedia(idx, values, silent = false){
-        super.updateMedia(idx, values);
-        console.log('CanvasStatic updateMedia()', idx);
-        if(idx === 'base-image') {
-            let temp = document.createElement('canvas');
-            let temp_ctx = temp.getContext('2d');
-            temp.width = this.canvas.width;
-            temp.height = this.canvas.height;
+
+    // updateMedia(idx, values, silent = false){
+    //     super.updateMedia(idx, values);
+    //     console.log('CanvasStatic updateMedia()', idx);
+    //     if(idx === 'base-image') {
+    //         let temp = document.createElement('canvas');
+    //         let temp_ctx = temp.getContext('2d');
+    //         temp.width = this.canvas.width;
+    //         temp.height = this.canvas.height;
             
-            let length = this.canvas.width;
+    //         let length = this.canvas.width;
                 
-            let temp_scale = 1;
-            let temp_scaledW = this.media[idx].obj.width * temp_scale;
-            let temp_scaledH = this.media[idx].obj.height * temp_scale;
+    //         let temp_scale = 1;
+    //         let temp_scaledW = this.media[idx].obj.width * temp_scale;
+    //         let temp_scaledH = this.media[idx].obj.height * temp_scale;
             
-            if(this.media[idx].obj.width > this.media[idx].obj.height)
-            {
-                temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
-                temp_scaledW = this.media[idx].obj.width * temp_scale;
-                temp_scaledH = this.media[idx].obj.height * temp_scale;
-            }
-            else
-            {
-                temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
-                temp_scaledW = this.media[idx].obj.width * temp_scale;
-                temp_scaledH = this.media[idx].obj.height * temp_scale;
-            }
-            console.log(this.media[idx]);
-            this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx]['shift-x'];
+    //         if(this.media[idx].obj.width > this.media[idx].obj.height)
+    //         {
+    //             temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
+    //             temp_scaledW = this.media[idx].obj.width * temp_scale;
+    //             temp_scaledH = this.media[idx].obj.height * temp_scale;
+    //         }
+    //         else
+    //         {
+    //             temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
+    //             temp_scaledW = this.media[idx].obj.width * temp_scale;
+    //             temp_scaledH = this.media[idx].obj.height * temp_scale;
+    //         }
+    //         console.log(this.media[idx]);
+    //         this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx]['shift-x'];
             
-            this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx]['shift-y'] + 0;
+    //         this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx]['shift-y'] + 0;
             
-            temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
-            this.base = this.context.createPattern(temp, "no-repeat");
-        } 
-        if(!silent) this.draw();
+    //         temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
+    //         this.base = this.context.createPattern(temp, "no-repeat");
+    //     } 
+    //     if(!silent) this.draw();
+    // }
+    drawBase(){
+        console.log('draw base', this.base);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if(this.base === 'upload') {
+            const frame = {
+                'w': this.canvas.width,
+                'h': this.canvas.height,
+                'x': 0,
+                'y': 0
+            };
+            this.colorPattern = this.media['base-image'].generatePattern(this.context, this.canvas, frame);
+            console.log(this.colorPattern);
+            this.context.fillStyle = this.colorPattern;
+        } else {
+            this.context.fillStyle = this.base;
+        }
+        
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
     updateBase(base){
         super.updateBase(base);

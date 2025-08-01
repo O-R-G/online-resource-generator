@@ -53,6 +53,7 @@ export default class Canvas {
         for(let prop in this.baseOptions) {
             if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
         }
+        // this.mediaOptions = this.options['mediaOptions'] ?? {};
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
         this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
         this.devicePixelRatio = window.devicePixelRatio;
@@ -61,6 +62,7 @@ export default class Canvas {
         this.isInitRecording = false;
         this.fields = {};
         this.fields.media = {};
+        this.colorPattern = null;
         this.media = {};
         this.isdebug = false;
         this.r = 1;
@@ -662,40 +664,11 @@ export default class Canvas {
             const [base_section] = this.renderSelectSection('base', 'Base', { options: this.baseOptions });
             this.control_top.appendChild(base_section);
             if(this.baseOptions['upload']) {
-                const key = 'base-image';
-                const id = this.id + '-field-id-' + key;
-                let control_data = [
-                    { 
-                        'name': 'scale',
-                        'displayName': 'Scale',
-                        'id': id + '-scale',
-                        'input-type': 'number',
-                        'attr': {'flex': 'half', 'placeholder' : 'Scale (1)'},
-                        'meta': {begin: 1.0, step: 0.1},
-                        'class': ['img-control-scale', 'flex-item']
-                    },{ 
-                        'name': 'shift-x',
-                        'displayName': 'X',
-                        'id': id + '-shift-x',
-                        'input-type': 'number',
-                        'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
-                        'meta': {begin: 0, step: 1},
-                        'class': ['img-control-shift-x', 'flex-item']
-                    },{ 
-                        'name': 'shift-y',
-                        'displayName': 'Y',
-                        'id': id + '-shift-y',
-                        'input-type': 'number',
-                        'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
-                        'meta': {begin: 0, step: 1},
-                        'class': ['img-control-shift-y', 'flex-item']
-                    }
-                ];
-                const src = this.media[key]?.src ? this.media[key].src : '';
-                const [field, input] = renderFileField(id, key, src, {wrapper: ['flex-item']}, {wrapper: {flex: 'full'}});
-                let controls = this.renderImageControls(id, control_data);
-                let [section] = this.renderSection('', '', [field, controls], key + '-section');
-                this.fields.media[key] = input;
+                const m_key = 'base-image';
+                let [section, right] = this.renderSection('', '', [], m_key + '-section');
+                // this.fields.media[key] = input;
+                const m = this.media[m_key];
+                m.addTo(right);
                 this.control_top.appendChild(section);
             }
         }
@@ -731,14 +704,17 @@ export default class Canvas {
     	let sBase = this.control_top.querySelector('.field-id-base');
         if(sBase) {
             sBase.onchange = function(e){
+                console.log('base change', e.target.value);
                 let sec = e.target.parentNode.parentNode;
+                const m_key = 'base-image';
                 if(e.target.value === 'upload') {
-					this.color = 'upload';
+					this.base = 'upload';
+                    this.media[m_key].show();
 					sec.classList.add('viewing-base-image-section');
-				} else {
-                    console.log(this.media);
-                    const key = 'base-image';
-                    delete this.media[key];
+				} else {                    
+                    // delete this.media[key];
+                    this.media[m_key].hide();
+					this.colorPattern = null;
 					sec.classList.remove('viewing-base-image-section');
 					this.updateBase(e.target.value);
                     if(this.counterpart)
@@ -746,9 +722,9 @@ export default class Canvas {
 				}
             }.bind(this);
         }
-        const key = 'base-image';
+        // const key = 'base-image';
         // const id = this.id + '-field-id-' + key;
-        this.addMediaListener(key);
+        // this.addMediaListener(key);
 	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
@@ -785,75 +761,75 @@ export default class Canvas {
             this.pdfSizePopup.setAttribute('data-hidden', 1);
         }
     }
-    addMediaListener(key){
-		if(!key) return;
-		let input = this.fields.media[key];
-		if(!input) console.error('media field doesnt exist: ', key);
-		input.onclick = function (e) {
-			e.target.value = null;
-		}.bind(this);
-		input.onchange = function(e){
-			this.readImageUploaded(e, (key, image)=>{
-				this.updateMedia(key, {obj:image});
-			});
-		}.bind(this);
-		input.addEventListener('applySavedFile', (e)=>{
-			// console.log('canvas applySavedFile');
-			let idx = input.getAttribute('image-idx');
-            // if(idx === 'base-image' && this.base !== 'upload') {
-            //     console.log('not applying');
-            //     return;
-            // }
-			let src = input.getAttribute('data-file-src');
-            // update Media here?
-			this.readImage(idx, src, (idx, image)=>{
-                console.log('file read');
-				input.classList.add('not-empty');
-				this.updateMedia(idx, { obj: image});
-			});
-		});
-		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-		if(scale_input) {
-			scale_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				e.preventDefault();
-				// let scale = e.target.value >= 1 ? e.target.value : 1;
-				let scale = e.target.value;
-				this.updateMediaScale(scale, key, isSilent);
-			}.bind(this);
-		}	
-		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-		if(shift_x_input) {
-			shift_x_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(e.target.value, key, isSilent);
-			}.bind(this);
-			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, key, isSilent)
-				this.updateMediaPositionY(shift.y, key, isSilent)
-			});
-		}
-		if(shift_y_input) {
-			shift_y_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionY(e.target.value, key, isSilent);
-			}.bind(this);
-			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, key, isSilent)
-				this.updateMediaPositionY(shift.y, key, isSilent)
-			});
-		}
-		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-		if(blend_mode_input) {
-			blend_mode_input.onchange = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaBlendMode(e.target.value, key, isSilent);
-			}.bind(this);
-		}
-	}
+    // addMediaListener(key){
+	// 	if(!key) return;
+	// 	let input = this.fields.media[key];
+	// 	if(!input) console.error('media field doesnt exist: ', key);
+	// 	input.onclick = function (e) {
+	// 		e.target.value = null;
+	// 	}.bind(this);
+	// 	input.onchange = function(e){
+	// 		this.readImageUploaded(e, (key, image)=>{
+	// 			this.updateMedia(key, {obj:image});
+	// 		});
+	// 	}.bind(this);
+	// 	input.addEventListener('applySavedFile', (e)=>{
+	// 		// console.log('canvas applySavedFile');
+	// 		let idx = input.getAttribute('image-idx');
+    //         // if(idx === 'base-image' && this.base !== 'upload') {
+    //         //     console.log('not applying');
+    //         //     return;
+    //         // }
+	// 		let src = input.getAttribute('data-file-src');
+    //         // update Media here?
+	// 		this.readImage(idx, src, (idx, image)=>{
+    //             console.log('file read');
+	// 			input.classList.add('not-empty');
+	// 			this.updateMedia(idx, { obj: image});
+	// 		});
+	// 	});
+	// 	let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+	// 	if(scale_input) {
+	// 		scale_input.oninput = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			e.preventDefault();
+	// 			// let scale = e.target.value >= 1 ? e.target.value : 1;
+	// 			let scale = e.target.value;
+	// 			this.updateMediaScale(scale, key, isSilent);
+	// 		}.bind(this);
+	// 	}	
+	// 	let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+	// 	let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+	// 	if(shift_x_input) {
+	// 		shift_x_input.oninput = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionX(e.target.value, key, isSilent);
+	// 		}.bind(this);
+	// 		shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionX(shift.x, key, isSilent)
+	// 			this.updateMediaPositionY(shift.y, key, isSilent)
+	// 		});
+	// 	}
+	// 	if(shift_y_input) {
+	// 		shift_y_input.oninput = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionY(e.target.value, key, isSilent);
+	// 		}.bind(this);
+	// 		shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionX(shift.x, key, isSilent)
+	// 			this.updateMediaPositionY(shift.y, key, isSilent)
+	// 		});
+	// 	}
+	// 	let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+	// 	if(blend_mode_input) {
+	// 		blend_mode_input.onchange = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaBlendMode(e.target.value, key, isSilent);
+	// 		}.bind(this);
+	// 	}
+	// }
     readImage(idx, src, cb) {
         let image = new Image();
         image.onload = function (e) {
@@ -864,67 +840,67 @@ export default class Canvas {
         };
         image.src = src;
     }
-    readImageUploaded(event, cb){
-        let input = event.target;
-		let idx = input.getAttribute('image-idx');
+    // readImageUploaded(event, cb){
+    //     let input = event.target;
+	// 	let idx = input.getAttribute('image-idx');
 
-        if (input.files && input.files[0]) {
-        	var FR = new FileReader();
-            FR.onload = function (e) {
-                this.readImage(idx, e.target.result, (idx, image)=>{
-                    input.classList.add('not-empty');
-                    if(typeof cb === 'function') cb(idx, image);
-                });
-            }.bind(this);
-            FR.readAsDataURL(input.files[0]);
-            input.parentNode.parentNode.classList.add('viewing-image-control');
-        }
-    }
+    //     if (input.files && input.files[0]) {
+    //     	var FR = new FileReader();
+    //         FR.onload = function (e) {
+    //             this.readImage(idx, e.target.result, (idx, image)=>{
+    //                 input.classList.add('not-empty');
+    //                 if(typeof cb === 'function') cb(idx, image);
+    //             });
+    //         }.bind(this);
+    //         FR.readAsDataURL(input.files[0]);
+    //         input.parentNode.parentNode.classList.add('viewing-image-control');
+    //     }
+    // }
     initMedia(){
 
     }
-    updateMedia(key, values){
-        let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
-        console.log('updateMedia', key, values);
-        if(!obj) return false;
-		if(!this.media[key]) {
-			this.media[key] = this.initMedia(key, values);
-		} else {
-            for(let prop in values) {
-                if(typeof this.media[key][prop] !== 'undefined')
-                    this.media[key][prop] = values[prop];
-            }
-        }
-	}
-    updateMediaScale(imgScale, key, silent = false){
-        console.log('canvas updateMediaScale', imgScale);
-        console.log(this.media[key]);
-        if(!this.media[key]) return;
-        if(!imgScale) imgScale = 1;
-    	this.media[key].scale = imgScale;
-        if(this.media[key].obj)
-    	    this.updateMedia(key, { obj: this.media[key].obj }, silent)
-    };
-    updateMediaPositionX(imgShiftX, idx, silent = false){
-        if(!this.media[idx]) return;
-        if(!imgShiftX) imgShiftX = 0;
-    	this.media[idx]['shift-x'] = parseFloat(imgShiftX);
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
-    };
-    updateMediaPositionY(imgShiftY, idx, silent = false){
-        if(!this.media[idx]) return;
-        if(!imgShiftY) imgShiftY = 0;
-    	this.media[idx]['shift-y'] = parseFloat(imgShiftY);
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
-    };
-    updateMediaBlendMode(mode, idx, silent=false){
-        if(!this.media[idx]) return;
-    	this.media[idx]['blend-mode'] = mode;
-        if(this.media[idx].obj)
-    	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
-    }
+    // updateMedia(key, values){
+    //     let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
+    //     console.log('updateMedia', key, values);
+    //     if(!obj) return false;
+	// 	if(!this.media[key]) {
+	// 		this.media[key] = this.initMedia(key, values);
+	// 	} else {
+    //         for(let prop in values) {
+    //             if(typeof this.media[key][prop] !== 'undefined')
+    //                 this.media[key][prop] = values[prop];
+    //         }
+    //     }
+	// }
+    // updateMediaScale(imgScale, key, silent = false){
+    //     console.log('canvas updateMediaScale', imgScale);
+    //     console.log(this.media[key]);
+    //     if(!this.media[key]) return;
+    //     if(!imgScale) imgScale = 1;
+    // 	this.media[key].scale = imgScale;
+    //     if(this.media[key].obj)
+    // 	    this.updateMedia(key, { obj: this.media[key].obj }, silent)
+    // };
+    // updateMediaPositionX(imgShiftX, idx, silent = false){
+    //     if(!this.media[idx]) return;
+    //     if(!imgShiftX) imgShiftX = 0;
+    // 	this.media[idx]['shift-x'] = parseFloat(imgShiftX);
+    //     if(this.media[idx].obj)
+    // 	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
+    // };
+    // updateMediaPositionY(imgShiftY, idx, silent = false){
+    //     if(!this.media[idx]) return;
+    //     if(!imgShiftY) imgShiftY = 0;
+    // 	this.media[idx]['shift-y'] = parseFloat(imgShiftY);
+    //     if(this.media[idx].obj)
+    // 	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
+    // };
+    // updateMediaBlendMode(mode, idx, silent=false){
+    //     if(!this.media[idx]) return;
+    // 	this.media[idx]['blend-mode'] = mode;
+    //     if(this.media[idx].obj)
+    // 	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
+    // }
     
     updateBase(base){
         // console.log('updateBase', base);
@@ -956,19 +932,19 @@ export default class Canvas {
         inputs.y.classList.add('pseudo-focused');
         if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
     }
-	drawBase(){
-		if(!this.isThree)
-    	{
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    		this.context.fillStyle = this.base;
-    		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    	}
-    	else
-    	{
-    		this.renderer.setClearColor( new THREE.Color(this.base));
-    	}
-	}
+	// drawBase(){
+	// 	if(!this.isThree)
+    // 	{
+            
+            
+    // 	}
+    // 	else
+    // 	{
+    		
+    // 	}
+	// }
     draw(){
+        console.log('canvas draw');
         this.drawBase();
         for(let shape_id in this.shapes) {
             this.shapes[shape_id].draw();
@@ -1212,5 +1188,11 @@ export default class Canvas {
     }
     onSave(){
         // anything to clean up before saving?
+        if(this.base !== 'upload' && this.media['base-image']) {
+            this.media['base-image'].src = '';
+            this.media['base-image'].obj = null;
+            this.media['base-image'].checkEmpty();
+        }
+            
     }
 }

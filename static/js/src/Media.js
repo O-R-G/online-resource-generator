@@ -66,13 +66,12 @@ export default class Media{
         this.checkEmpty();
     }
     update(props, silent=false){  
+        console.log('media update')
         for(const key in props) {
             if(typeof this.props_template[key] === 'undefined') continue;
             this[key] = props[key];
         }
         this.checkEmpty();
-        // if(this.isEmpty) this.elements['file-input'].classList.remove('not-empty');
-        // else this.elements['file-input'].classList.add('not-empty');
         if(!silent) this.onUpdate();
     }
     render(parent){
@@ -227,6 +226,7 @@ export default class Media{
         image.src = src;
     }
     readImageUploaded(event, cb){
+        console.log('readImageUploaded');
         let input = event.target;
         if (input.files && input.files[0]) {
         	var FR = new FileReader();

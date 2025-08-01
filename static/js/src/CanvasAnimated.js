@@ -68,4 +68,7 @@ export default class CanvasAnimated extends Canvas {
             });
         })
     }
+    drawBase(){
+        this.renderer.setClearColor( new THREE.Color(this.base));
+    }
 }

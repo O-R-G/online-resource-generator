@@ -1,4 +1,3 @@
-// import {initMediaStatic} from "./utils/lib.js"
 import MediaStatic from './MediaStatic.js'
 import Shape from "./Shape.js";
 import { generateFieldId } from './utils/lib.js';
