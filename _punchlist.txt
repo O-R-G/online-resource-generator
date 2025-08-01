@@ -70,7 +70,8 @@ x unify text-handling (main texts and watermarks)
 + wrong watermark position for animated angolo
 + weird white edge of animated angolo
 + sync media
-  - shape color media can't be synced because applyImageAsMaterial() is called befroe draw() so the geometry is a BufferGeometry. 
+  - shape color media can't be synced because applyImageAsMaterial() is called before draw() so the geometry is a BufferGeometry. 
+  - sync media values (shift-x, shift-y, etc.)
 + the watermark placement changes also on teiger when you switch to animated threejs canvas.
 - when the input is cleaned, rotate doesnt update
 + scale, x, and y of media doesn't work after saving

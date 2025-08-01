@@ -1,12 +1,22 @@
 import * as THREE from "three";
 import Canvas from "./Canvas.js";
+import MediaAnimated from './MediaAnimated.js'
+import { generateFieldId, getValueByPixelRatio } from './utils/lib.js';
 
 export default class CanvasAnimated extends Canvas {
     constructor(wrapper, format, prefix, options, isThree = false){
         super(wrapper, format, prefix, options, isThree);
         this.isThree = true;
         this.scale = 1;
+        if(this.baseOptions['upload'])
+			this.media['base-image'] = this.initMedia('base-image', {isShapeColor: true, 'fit': 'cover'});
 	}
+    initMedia(key, props={}, onUpload=null){
+        if(!key) return null;
+        const prefix = generateFieldId(this.id, key);
+        return new MediaAnimated(key, prefix, this.draw.bind(this), onUpload, this.mediaOptions, props);
+    }
+    
     applyImageAsMaterial(idx, mesh, silent){
         const textureLoader = new THREE.TextureLoader();
         return new Promise((resolve, reject) => {
@@ -36,8 +46,8 @@ export default class CanvasAnimated extends Canvas {
                     scaleY *= imageAspect / geometryAspect;
                 }
 
-                const dev_x = this.media[idx].shiftX ? this.getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
-                const dev_y = this.media[idx].shiftY ? - this.getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
+                const dev_x = this.media[idx].shiftX ? getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
+                const dev_y = this.media[idx].shiftY ? - getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
                 
                 const uvArray = [];
                 const position = geometry.attributes.position;

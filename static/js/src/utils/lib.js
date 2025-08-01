@@ -62,3 +62,6 @@ export function updatePositionByKey(e, inputs, cb){
     inputs.y.classList.add('pseudo-focused');
     if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
 }
+export function getValueByPixelRatio(input){
+    return input * window.devicePixelRatio;
+}

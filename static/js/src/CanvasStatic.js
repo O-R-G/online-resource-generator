@@ -1,5 +1,5 @@
-import MediaStatic from './MediaStatic.js'
 import Canvas from "./Canvas.js";
+import MediaStatic from './MediaStatic.js'
 import { generateFieldId } from './utils/lib.js';
 
 export default class CanvasStatic extends Canvas {
@@ -55,9 +55,9 @@ export default class CanvasStatic extends Canvas {
     //     if(!silent) this.draw();
     // }
     drawBase(){
-        console.log('draw base', this.base);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         if(this.base === 'upload') {
+            if(!this.media['base-image'].obj) return;
             const frame = {
                 'w': this.canvas.width,
                 'h': this.canvas.height,
@@ -65,7 +65,6 @@ export default class CanvasStatic extends Canvas {
                 'y': 0
             };
             this.colorPattern = this.media['base-image'].generatePattern(this.context, this.canvas, frame);
-            console.log(this.colorPattern);
             this.context.fillStyle = this.colorPattern;
         } else {
             this.context.fillStyle = this.base;
@@ -85,7 +84,6 @@ export default class CanvasStatic extends Canvas {
 		this.draw();
 	}
     processStaticColorData(colorData) {
-        console.log('processStaticColorData');
 		if(colorData.type == 'solid'){
 			return colorData.code;
 		}

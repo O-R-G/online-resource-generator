@@ -270,10 +270,11 @@ export default class Record {
         active_canvas.draw();
     }
     applySavedFile(input, shapeObj){
-        // console.log('applySavedFile', input);
+        
         let idx = input.getAttribute('image-idx');
         let id = input.id;
         let src = this.record_body['images'][id];
+        
         if(!src) return false;
         src = media_relative_root + src;
         input.setAttribute('data-file-src', src);
@@ -325,11 +326,7 @@ export default class Record {
                     watermarks_num++;
                 }
                 let media = shape_control.querySelectorAll('.media-container input.not-empty');
-                // console.log('media', media);
-                // for(const m of media) {
-                //     if(m.files && m.files[0]) console.log('file!')
-                //     else console.log('no file!');
-                // }
+        
                 let media_num = media.length;
                 let shape_id = shape_control.getAttribute('data-shape-id');
                 let data = {

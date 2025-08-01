@@ -827,32 +827,40 @@ export default class Shape {
         return el;
     };
     syncMedia(){
-        const pattern = /media\-\d+/;
-        this.counterpart.resetMedia();
+        const m_key_pattern = /media\-\d+/;
+        // console.log('syncMedia 1', this.media);
         for(const key in this.media) {
-            let counter_key = key.match(pattern) ? key : this.fieldCounterparts[key];
+            if(this.media[key].isEmpty) delete this.media[key];
+        }
+        this.media = this.reindexMedia();
+        // console.log('syncMedia 2', this.media);
+        this.counterpart.media = {};
+        for(const key in this.media) {
+            let counter_key = key.match(m_key_pattern) ? key : this.fieldCounterparts[key];
+            console.log('counter_key', counter_key);
             if(!counter_key) continue;
             const media = this.media[key];
-            this.counterpart.updateMedia(counter_key, media);
-            if(!media.isShapeColor) {
-                this.counterpart.addMediaSection(counter_key);
-                let input = this.counterpart.fields.media[key];
-                let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-                let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-		        let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-                let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-                scale_input.value = media.scale;
-                shift_x_input.value = media['shift-x'];
-                shift_y_input.value = media['shift-y'];
-                if(blend_mode_input) {
-                    // for(const [option, idx] of blend_mode_input) {
-                    //     if(option.value === media['blend-mode']){
-                    //         blend_mode_input.selectedIndex = idx;
-                    //         break;
-                    //     }
-                    // }
-                }
-            }
+            console.log(media);
+            this.counterpart.media[counter_key] = this.counterpart.initMedia(key, media.getProps());
+            // if(!media.isShapeColor) {
+            //     this.counterpart.addMediaSection(counter_key);
+            //     let input = this.counterpart.fields.media[key];
+            //     let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+            //     let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+		    //     let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+            //     let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+            //     scale_input.value = media.scale;
+            //     shift_x_input.value = media['shift-x'];
+            //     shift_y_input.value = media['shift-y'];
+            //     if(blend_mode_input) {
+            //         // for(const [option, idx] of blend_mode_input) {
+            //         //     if(option.value === media['blend-mode']){
+            //         //         blend_mode_input.selectedIndex = idx;
+            //         //         break;
+            //         //     }
+            //         // }
+            //     }
+            // }
         }
     }
     sync(){
@@ -873,9 +881,6 @@ export default class Shape {
             if(this.media[key].isEmpty) delete this.media[key];
         }
         this.resetMedia(true);
-        console.log('-------');
-        console.log(this.media['media-1'].elements['file-input'].files.length);
-        // console.log('media', this.media);
         for(let key in this.media) {
             if(key.indexOf('media-') === -1) continue;
             this.addMediaSection(key, '');

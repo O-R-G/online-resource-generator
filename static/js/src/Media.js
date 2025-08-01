@@ -12,6 +12,18 @@ export default class Media{
         this.isShown = false;
         this.elements = {};
         this.dom = null;
+        this.shared_props = {
+            obj: null,
+            src: '',
+            x: 0,
+            y: 0,
+            'shift-x': 0,
+            'shift-y': 0,
+            scale: 1,
+            'blend-mode': 'normal',
+            fit: 'auto',
+            isShapeColor: false
+        }
         this.controls_data = this.generateControlsData();
     }
     generateControlsData(){
@@ -66,12 +78,12 @@ export default class Media{
         this.checkEmpty();
     }
     update(props, silent=false){  
-        console.log('media update')
         for(const key in props) {
             if(typeof this.props_template[key] === 'undefined') continue;
             this[key] = props[key];
         }
         this.checkEmpty();
+        // if(this.key === 'background-image') console.log(this.src);
         if(!silent) this.onUpdate();
     }
     render(parent){
@@ -226,7 +238,6 @@ export default class Media{
         image.src = src;
     }
     readImageUploaded(event, cb){
-        console.log('readImageUploaded');
         let input = event.target;
         if (input.files && input.files[0]) {
         	var FR = new FileReader();

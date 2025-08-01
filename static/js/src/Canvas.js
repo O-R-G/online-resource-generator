@@ -666,7 +666,6 @@ export default class Canvas {
             if(this.baseOptions['upload']) {
                 const m_key = 'base-image';
                 let [section, right] = this.renderSection('', '', [], m_key + '-section');
-                // this.fields.media[key] = input;
                 const m = this.media[m_key];
                 m.addTo(right);
                 this.control_top.appendChild(section);
@@ -704,7 +703,6 @@ export default class Canvas {
     	let sBase = this.control_top.querySelector('.field-id-base');
         if(sBase) {
             sBase.onchange = function(e){
-                console.log('base change', e.target.value);
                 let sec = e.target.parentNode.parentNode;
                 const m_key = 'base-image';
                 if(e.target.value === 'upload') {

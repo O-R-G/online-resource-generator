@@ -3,18 +3,7 @@ import Media from './Media.js';
 export default class MediaStatic extends Media{
     constructor(key, prefix, onUpdate, onUpload, options={}, props={}){
         super(key, prefix, onUpdate, onUpload, options);
-        this.props_template = {
-            obj: null,
-            src: '',
-            x: 0,
-            y: 0,
-            'shift-x': 0,
-            'shift-y': 0,
-            scale: 1,
-            'blend-mode': 'normal',
-            fit: 'auto',
-            isShapeColor: false
-        }
+        this.props_template = this.shared_props;
         this.isThree = false;
         this.init(props);
     }

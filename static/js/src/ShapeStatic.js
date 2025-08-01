@@ -1,5 +1,5 @@
-import MediaStatic from './MediaStatic.js'
 import Shape from "./Shape.js";
+import MediaStatic from './MediaStatic.js'
 import { generateFieldId } from './utils/lib.js';
 
 export default class ShapeStatic extends Shape {
@@ -48,6 +48,7 @@ export default class ShapeStatic extends Shape {
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
+		console.log(this.media['background-image'].isEmpty);
 	}
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
@@ -1476,17 +1477,18 @@ export default class ShapeStatic extends Shape {
 	
 	syncMedia(){
 		super.syncMedia();
-		let idx = 'background-image';
-		if(this.color instanceof CanvasPattern && this.media[idx]) {
-			let c_idx = this.fieldCounterparts[idx];
-			this.counterpart.updateMedia(c_idx, {obj: this.media[idx].img, src: this.media[idx].src});
-			if(this.counterpart.fields.media[c_idx]) {
-				if(this.fields.media[idx].getAttribute('data-file-src')) {
-					this.counterpart.fields.media[c_idx].setAttribute('data-file-src', this.fields.media[idx].getAttribute('data-file-src'));
-				}
-			}
+		console.log(this.counterpart.media);
+		// let idx = 'background-image';
+		// if(this.color instanceof CanvasPattern && this.media[idx]) {
+		// 	let c_idx = this.fieldCounterparts[idx];
+		// 	this.counterpart.updateMedia(c_idx, {obj: this.media[idx].img, src: this.media[idx].src});
+		// 	if(this.counterpart.fields.media[c_idx]) {
+		// 		if(this.fields.media[idx].getAttribute('data-file-src')) {
+		// 			this.counterpart.fields.media[c_idx].setAttribute('data-file-src', this.fields.media[idx].getAttribute('data-file-src'));
+		// 		}
+		// 	}
 				
-		}
+		// }
 	}
 	// getDisplayValue(input){
 	// 	return input / this.canvasObj.scale;

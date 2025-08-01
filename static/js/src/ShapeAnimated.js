@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import Shape from "./Shape.js";
 import {Text} from 'troika-three-text';
+import MediaAnimated from './MediaAnimated.js'
+import { generateFieldId, getValueByPixelRatio } from './utils/lib.js';
 
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
@@ -97,8 +99,8 @@ export default class ShapeAnimated extends Shape {
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
 		this.startTime = null;
-		this.media['front-background-image'] = this.initMedia('front-background-image', {mesh: {front: this.mesh_front, back: null}, isShapeColor: true});
-		this.media['back-background-image'] = this.initMedia('back-background-image', {mesh: {front: null, back: this.mesh_back}, isShapeColor: true});
+		this.media['front-background-image'] = this.initMedia('front-background-image', {mesh: {front: this.mesh_front, back: null}, isShapeColor: true, fit: 'cover'});
+		this.media['back-background-image'] = this.initMedia('back-background-image', {mesh: {front: null, back: this.mesh_back}, isShapeColor: true, fit: 'cover'});
 	}
 	init(canvasObj){
 		super.init(canvasObj);
@@ -151,10 +153,10 @@ export default class ShapeAnimated extends Shape {
 		
 		super.updateShape(shape);
 		this.resetExtraShapes();
-		this.padding = this.getValueByPixelRatio(this.padding);
+		this.padding = getValueByPixelRatio(this.padding);
 		for(const prop in this.innerPadding)
-			this.innerPadding[prop] = this.getValueByPixelRatio(this.innerPadding[prop]);
-		this.cornerRadius = this.getValueByPixelRatio(this.cornerRadius);
+			this.innerPadding[prop] = getValueByPixelRatio(this.innerPadding[prop]);
+		this.cornerRadius = getValueByPixelRatio(this.cornerRadius);
 		this.drawShape();
 		this.updateTextMeshByShape(shape);
 		let sWatermark_panels = this.control.querySelectorAll('.watermarks-container .panel-section');
@@ -170,13 +172,13 @@ export default class ShapeAnimated extends Shape {
 		if(this.mesh_front_text) {
 			this.mesh_front_text.maxWidth = this.maxWidth;
 			if(shape.base === 'triangle') 
-				this.mesh_front_text.y += this.getValueByPixelRatio( -110 );
+				this.mesh_front_text.y += getValueByPixelRatio( -110 );
 			this.mesh_front_text.needsUpdate = true;
 		}
 		if(this.mesh_back_text) {
 			this.mesh_back_text.maxWidth = this.maxWidth;
 			if(shape.base === 'triangle') 
-				this.mesh_back_text.y += this.getValueByPixelRatio( -110 );
+				this.mesh_back_text.y += getValueByPixelRatio( -110 );
 			this.mesh_back_text.needsUpdate = true;
 		}
 	}
@@ -204,11 +206,11 @@ export default class ShapeAnimated extends Shape {
 		for(let arc of arcs) {
 			for(let prop in arc) {
 				if(prop === 'from' || prop === 'to') continue;
-				arc[prop] = this.getValueByPixelRatio(arc[prop]);
+				arc[prop] = getValueByPixelRatio(arc[prop]);
 			}
 		}
 		let m = side / ((Math.abs(arcs[0]['x']) + arcs[0]['r']) * 2);
-		let dev_y = this.getValueByPixelRatio(412) * m;
+		let dev_y = getValueByPixelRatio(412) * m;
 		path_front.arc(this.shapeCenter.x + arcs[0].x * m, this.shapeCenter.y + arcs[0].y * m, arcs[0].r * m, arcs[0].from,arcs[0].to, true);
 		path_front.moveTo(this.shapeCenter.x, this.shapeCenter.y);
 		path_front.arc(this.shapeCenter.x + arcs[1].x * m, this.shapeCenter.y + arcs[1].y * m, arcs[1].r * m, arcs[1].from,arcs[1].to, true);
@@ -286,7 +288,6 @@ export default class ShapeAnimated extends Shape {
 		// this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
-		console.log('drawRectangle');
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
@@ -447,8 +448,8 @@ export default class ShapeAnimated extends Shape {
 		// Outer rectangle
 		const paddingX = this.padding;
 		const paddingY = this.padding;
-		const thicknessX = this.getValueByPixelRatio(this.shape.thickness[0]),
-		thicknessY = this.getValueByPixelRatio(this.shape.thickness[1]);
+		const thicknessX = getValueByPixelRatio(this.shape.thickness[0]),
+		thicknessY = getValueByPixelRatio(this.shape.thickness[1]);
 		const w = this.frame.w - paddingX * 2;
 		const h = this.frame.h - paddingY * 2;
 		const inner_w = w - thicknessX * 2;
@@ -479,8 +480,8 @@ export default class ShapeAnimated extends Shape {
 drawAngoloCornerPath() {
     const paddingX = this.padding;
     const paddingY = this.padding;
-	const thicknessX = this.getValueByPixelRatio(this.shape.thickness[0]),
-		thicknessY = this.getValueByPixelRatio(this.shape.thickness[1]);
+	const thicknessX = getValueByPixelRatio(this.shape.thickness[0]),
+		thicknessY = getValueByPixelRatio(this.shape.thickness[1]);
     const w = this.frame.w - paddingX * 2;
     const h = this.frame.h - paddingY * 2;
     const size = Math.min(w, h) / 3;
@@ -530,17 +531,15 @@ drawNone(){
 		};
 	}
 	
-	getValueByPixelRatio(input){
-		return input * window.devicePixelRatio;
-	}
+	
 	write(str = '', typography=false, material, align = 'center', animationName = false, isBack = false, shift=null, font=null, rad=0, sync = false, renderOrder=0){
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
-		shift.x = shift.x ? this.getValueByPixelRatio(shift.x) : 0;
-		shift.y = shift.y ? this.getValueByPixelRatio(shift.y) : 0;
-		let lineHeight = this.getValueByPixelRatio(parseFloat(typography['lineHeight']));
+		shift.x = shift.x ? getValueByPixelRatio(shift.x) : 0;
+		shift.y = shift.y ? getValueByPixelRatio(shift.y) : 0;
+		let lineHeight = getValueByPixelRatio(parseFloat(typography['lineHeight']));
 		let line_num = str.split("\n").length;
 		rad = rad ? -rad : 0;
 		let output = new Text();
@@ -662,7 +661,7 @@ drawNone(){
 
 			let x = 0;
 			let y = 0;
-			let y_dev = this.getValueByPixelRatio(-120);
+			let y_dev = getValueByPixelRatio(-120);
 			let this_padding = this.padding;
 			let inner_p_x = this.innerPadding.x;
 			let inner_p_y = this.innerPadding.y;
@@ -794,7 +793,7 @@ drawNone(){
        		}
     		else if(align.indexOf('bottom') !== -1){
     			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
-				y += (lineHeight - this.getValueByPixelRatio(parseFloat(typography['size'])));
+				y += (lineHeight - getValueByPixelRatio(parseFloat(typography['size'])));
 				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180);
     		}
 			output.position.x = x + shift.x;
@@ -803,33 +802,23 @@ drawNone(){
 		if(align.indexOf('top') !== -1)
 			output.position.y -= line_num / 2 * lineHeight;
 		else if(align.indexOf('bottom') !== -1)
-			output.position.y += (line_num / 2 * lineHeight - (lineHeight - this.getValueByPixelRatio(parseFloat(typography['size']))));
+			output.position.y += (line_num / 2 * lineHeight - (lineHeight - getValueByPixelRatio(parseFloat(typography['size']))));
 		if(animationName)
 			output.position.z = 0.1;
 		output.sync();
 		return output;
 	}
-	initMedia(key, values={}){
-		if(!key || this.media[key]) return null;
-		let output = {
-			obj: null,
-			x: 0,
-			y: 0,
-			'shift-y': 0,
-			'shift-x': 0,
-			scale: 1,
-			'blend-mode': 'normal',
-			mesh: {
-				front: this.createMesh('media-' + key),
-				back: this.createMesh('media-' + key)
-			},
-			isShapeColor: false
-		};
-		for(const prop in values) {
-			if(typeof output[prop] === 'undefined') continue;
-			output[prop] = values[prop];
+	initMedia(key, props={}, onUpload=null){
+		if(!key) return null;
+		const prefix = generateFieldId(this.id, key);
+		if(!props['mesh']) {
+			let mesh = {
+				front: this.createMesh(key),
+				back: this.createMesh(key)
+			};
+			props['mesh'] = mesh;
 		}
-		return output;
+		return new MediaAnimated(key, prefix, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props);
 	}
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
 		if(!text_mesh) return;
@@ -848,7 +837,7 @@ drawNone(){
 		let fontData = this.fonts[font['name']] ? this.fonts[font['name']] : '';
 		output.font = fontData['font'];
 		output.path = font['path'];
-		output.size = this.getValueByPixelRatio(size);
+		output.size = getValueByPixelRatio(size);
 		output.lineHeight = typography['lineHeight'] / size;
 		output.letterSpacing = typography['letterSpacing'] / size;
 		return output;
@@ -938,9 +927,9 @@ drawNone(){
     }
 	updateFrontTextPositionX(silent=false){
 		if(!this.mesh_front_text) return;
-		// let dev = this.getValueByPixelRatio(-3);
+		// let dev = getValueByPixelRatio(-3);
 		let x = this.frontTextPosition === 'align-left' ? - this.frame.w / 2 + this.padding + this.innerPadding.x : 0;
-		x += parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) ? parseFloat(this.getValueByPixelRatio(this.frontTextShiftX)) : 0;
+		x += parseFloat(getValueByPixelRatio(this.frontTextShiftX)) ? parseFloat(getValueByPixelRatio(this.frontTextShiftX)) : 0;
 
 		this.mesh_front_text.position.x = x;
 		this.mesh_front_text.needsUpdate = true;
@@ -948,22 +937,22 @@ drawNone(){
 	}
 	updateFrontTextPositionY(silent=false){
 		let y = parseFloat(this.frontTextShiftY) ? parseFloat(this.frontTextShiftY) : 0;
-		this.mesh_front_text.position.y = this.getValueByPixelRatio(y);
+		this.mesh_front_text.position.y = getValueByPixelRatio(y);
 		this.mesh_front_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextPositionX(silent=false){
 		if(!this.mesh_back_text) return;
-		let dev = this.getValueByPixelRatio(-3);
+		let dev = getValueByPixelRatio(-3);
 		let x = this.backTextPosition === 'align-left' ? - this.textBoxWidth / 2 + dev : 0;
-		x += parseFloat(this.getValueByPixelRatio(this.backTextShiftX)) ? parseFloat(this.getValueByPixelRatio(this.backTextShiftX)) : 0;
+		x += parseFloat(getValueByPixelRatio(this.backTextShiftX)) ? parseFloat(getValueByPixelRatio(this.backTextShiftX)) : 0;
 		this.mesh_back_text.position.x = x;
 		this.mesh_back_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextPositionY(silent=false){
 		let y = parseFloat(this.backTextShiftY) ? parseFloat(this.backTextShiftY) : 0;
-		this.mesh_back_text.position.y = this.getValueByPixelRatio(-y);
+		this.mesh_back_text.position.y = getValueByPixelRatio(-y);
 		this.mesh_back_text.needsUpdate = true;
 		if(!silent) this.canvasObj.draw();
 	}
@@ -977,7 +966,7 @@ drawNone(){
 	updateShapeShiftY(y, silent = false){
 		y = y === '' ? 0 : parseFloat(y);
 		if(isNaN(y)) return;
-		// y = this.getValueByPixelRatio(y);
+		// y = getValueByPixelRatio(y);
 		this.shapeShiftY = y;
 		this.setGroupPosition();
         if(!silent) this.canvasObj.draw();
@@ -1148,19 +1137,18 @@ drawNone(){
 		if(name) output.name = name;
 		return output;
 	}
-	async updateMedia(key, values, silent = false, isBack = false, isVideo = false){
-		super.updateMedia(key, values, silent);
-		if(isVideo) {
-			this.applyVideoAsMaterial(key, silent, isBack)
-		}
-		else {
-			await this.applyImageAsMaterial(key)
-			if(!silent) this.canvasObj.draw();
-		}
-	}
+	// async updateMedia(key, values, silent = false, isBack = false, isVideo = false){
+	// 	super.updateMedia(key, values, silent);
+	// 	if(isVideo) {
+	// 		this.applyVideoAsMaterial(key, silent, isBack)
+	// 	}
+	// 	else {
+	// 		await this.applyImageAsMaterial(key)
+	// 		if(!silent) this.canvasObj.draw();
+	// 	}
+	// }
 	async applyImageAsMaterial(key){
 		const media = this.media[key];
-		console.log(key, this.media)
 		const textureLoader = new THREE.TextureLoader();
 		return new Promise((resolve, reject) => {
 			try{
@@ -1192,8 +1180,8 @@ drawNone(){
 							} else {
 								scaleY *= imageAspect / geometryAspect;
 							}
-							const dev_x = media['shift-x'] ? this.getValueByPixelRatio(media['shift-x']) * scaleX / geomWidth : 0;
-							const dev_y = media['shift-y'] ? - this.getValueByPixelRatio(media['shift-y']) * scaleY / geomHeight : 0;
+							const dev_x = media['shift-x'] ? getValueByPixelRatio(media['shift-x']) * scaleX / geomWidth : 0;
+							const dev_y = media['shift-y'] ? - getValueByPixelRatio(media['shift-y']) * scaleY / geomHeight : 0;
 							const position = geometry.attributes.position;
 							const max = bbox.max;
 							const min = bbox.min;
@@ -1220,16 +1208,16 @@ drawNone(){
 							let scaleX = 1, 
 								scaleY = 1, 
 								scale = media.scale,
-								width = this.getValueByPixelRatio(imageWidth) * scale, 
-								height = this.getValueByPixelRatio(imageHeight) * scale,
+								width = getValueByPixelRatio(imageWidth) * scale, 
+								height = getValueByPixelRatio(imageHeight) * scale,
 								geometry = new THREE.PlaneGeometry(width, height),
 								uvArray = [];
 							mesh.geometry = geometry;
 							geometry.computeBoundingBox();
 							let bbox = geometry.boundingBox;
 							
-							const dev_x = media['shift-x'] ? this.getValueByPixelRatio(media['shift-x']) * scaleX : 0;
-							const dev_y = media['shift-y'] ? - this.getValueByPixelRatio(media['shift-y']) * scaleY : 0;
+							const dev_x = media['shift-x'] ? getValueByPixelRatio(media['shift-x']) * scaleX : 0;
+							const dev_y = media['shift-y'] ? - getValueByPixelRatio(media['shift-y']) * scaleY : 0;
 							
 							const position = geometry.attributes.position;
 							const max = bbox.max;
@@ -1253,8 +1241,8 @@ drawNone(){
 								mesh.initialized = true;
 								mesh.position.z = 0.5;
 							}
-							const x = (width - this.getValueByPixelRatio(this.canvas.width)) / 2 + dev_x,
-							y  = - (height - this.getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
+							const x = (width - getValueByPixelRatio(this.canvas.width)) / 2 + dev_x,
+							y  = - (height - getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
 							mesh.position.x = x;
 							mesh.position.y = y;
 						}
@@ -1310,12 +1298,13 @@ drawNone(){
 		
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
 			if(this.media['front-background-image']) {
-				this.updateMedia('front-background-image', { obj: this.media['front-background-image'].obj});
+				this.media['front-background-image'].draw();
 			}
 		}
 		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
 			if(this.media['back-background-image']) {
-				this.updateMedia('back-background-image', { obj: this.media['back-background-image'].obj}, false, false);
+				this.media['back-background-image'].draw();
+				// this.updateMedia('back-background-image', { obj: this.media['back-background-image'].obj}, false, false);
 			}
 		}
 	}
@@ -1383,6 +1372,8 @@ drawNone(){
 				this.group_front.add(this.mesh_front);
 		}
 		
+		
+		this.drawImages();
 		for(const key in this.media) {
 			if(this.media[key].isShapeColor) continue;
 			if(this.media[key].mesh.front)
@@ -2331,73 +2322,73 @@ drawNone(){
 				this.updateAnimationSpeed(e.target.value);  
 			}.bind(this);
 		}
-		for(let key in this.fields.media) {
-			this.addMediaListener(key);
-		}
+		// for(let key in this.fields.media) {
+		// 	this.addMediaListener(key);
+		// }
 	}
-	addMediaListener(key){
-		if(!key || !this.media[key]) return;
-		let input = this.fields.media[key];
-		if(!input) console.error('media field doesnt exist: ', key);
-		input.onclick = function (e) {
-			e.target.value = null;
-		}.bind(this);
-		input.onchange = function(e){
-			this.readImageUploaded(e, (key, image)=>{
-				this.updateMedia(key, {obj: image})
-			});
-		}.bind(this);
-		input.addEventListener('applySavedFile', (e)=>{
+	// addMediaListener(key){
+	// 	if(!key || !this.media[key]) return;
+	// 	let input = this.fields.media[key];
+	// 	if(!input) console.error('media field doesnt exist: ', key);
+	// 	input.onclick = function (e) {
+	// 		e.target.value = null;
+	// 	}.bind(this);
+	// 	input.onchange = function(e){
+	// 		this.readImageUploaded(e, (key, image)=>{
+	// 			this.updateMedia(key, {obj: image})
+	// 		});
+	// 	}.bind(this);
+	// 	input.addEventListener('applySavedFile', (e)=>{
 			
-			let idx = input.getAttribute('image-idx');
-			let src = input.getAttribute('data-file-src');
-			this.readImage(idx, src, (idx, image)=>{
-				input.classList.add('not-empty');
-				this.updateMedia(idx, { obj: image});
-			});
-		});
-		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-		if(scale_input) {
-			scale_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				e.preventDefault();
-				// let scale = e.target.value >= 1 ? e.target.value : 1;
-				let scale = e.target.value;
-				this.updateMediaScale(scale, key, isSilent);
-			}.bind(this);
-		}	
-		let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-		let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-		if(shift_x_input) {
-			shift_x_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(e.target.value, key, isSilent);
-			}.bind(this);
-			shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, key, isSilent)
-				this.updateMediaPositionY(shift.y, key, isSilent)
-			});
-		}
-		if(shift_y_input) {
-			shift_y_input.oninput = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionY(e.target.value, key, isSilent);
-			}.bind(this);
-			shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaPositionX(shift.x, key, isSilent)
-				this.updateMediaPositionY(shift.y, key, isSilent)
-			});
-		}
-		let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-		if(blend_mode_input) {
-			blend_mode_input.onchange = function(e){
-				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				this.updateMediaBlendMode(e.target.value, key, isSilent);
-			}.bind(this);
-		}
-	}
+	// 		let idx = input.getAttribute('image-idx');
+	// 		let src = input.getAttribute('data-file-src');
+	// 		this.readImage(idx, src, (idx, image)=>{
+	// 			input.classList.add('not-empty');
+	// 			this.updateMedia(idx, { obj: image});
+	// 		});
+	// 	});
+	// 	let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
+	// 	if(scale_input) {
+	// 		scale_input.oninput = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			e.preventDefault();
+	// 			// let scale = e.target.value >= 1 ? e.target.value : 1;
+	// 			let scale = e.target.value;
+	// 			this.updateMediaScale(scale, key, isSilent);
+	// 		}.bind(this);
+	// 	}	
+	// 	let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
+	// 	let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
+	// 	if(shift_x_input) {
+	// 		shift_x_input.oninput = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionX(e.target.value, key, isSilent);
+	// 		}.bind(this);
+	// 		shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionX(shift.x, key, isSilent)
+	// 			this.updateMediaPositionY(shift.y, key, isSilent)
+	// 		});
+	// 	}
+	// 	if(shift_y_input) {
+	// 		shift_y_input.oninput = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionY(e.target.value, key, isSilent);
+	// 		}.bind(this);
+	// 		shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaPositionX(shift.x, key, isSilent)
+	// 			this.updateMediaPositionY(shift.y, key, isSilent)
+	// 		});
+	// 	}
+	// 	let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
+	// 	if(blend_mode_input) {
+	// 		blend_mode_input.onchange = function(e){
+	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
+	// 			this.updateMediaBlendMode(e.target.value, key, isSilent);
+	// 		}.bind(this);
+	// 	}
+	// }
     updateFrame(frame=null, silent = false)
     {
 		silent = false;
@@ -2414,13 +2405,13 @@ drawNone(){
     	if(!silent) this.canvasObj.draw();
     }
 	setGroupPosition(){
-		this.group.position.x = this.getValueByPixelRatio(this.shapeShiftX);
+		this.group.position.x = getValueByPixelRatio(this.shapeShiftX);
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			// this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
-			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY);
+			// this.group.position.y = getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
+			this.group.position.y = getValueByPixelRatio(-this.shapeShiftY);
 		} else {
-			// this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
-			this.group.position.y = this.getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
+			// this.group.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
+			this.group.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
 		}
 	}
 	generateShapeCenter(){
@@ -2431,15 +2422,15 @@ drawNone(){
 			return output;
 		} else if(shape_num === 2) {
 			let canvas_h = this.canvasObj.canvas.height;
-			output.y = this.shape_index == 0 ? this.getValueByPixelRatio(canvas_h / 4 + this.shapeShiftY) : this.getValueByPixelRatio(- canvas_h / 4 + this.shapeShiftY);
+			output.y = this.shape_index == 0 ? getValueByPixelRatio(canvas_h / 4 + this.shapeShiftY) : getValueByPixelRatio(- canvas_h / 4 + this.shapeShiftY);
 		}
 		
 		return output;
 	}
 	generateFrame(){
 		let output = {};
-        let unit_w = this.getValueByPixelRatio(this.canvasObj.canvas.width);
-		let unit_h = this.getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
+        let unit_w = getValueByPixelRatio(this.canvasObj.canvas.width);
+		let unit_h = getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
 		// console.log('generateFrame', this.canvasObj.canvas.width, unit_w);
 		output.w = unit_w;
 		output.h = unit_h;
@@ -2456,6 +2447,14 @@ drawNone(){
 
         this.canvasObj.counterpart.draw();
     }
+	drawImages(){
+		for(let key in this.media) {
+			const m = this.media[key];
+			// if(m.isShapeColor) continue;
+			m.draw();
+		}
+		// this.context.globalCompositeOperation = 'normal';
+	}
 	// syncImgs(){
 	// 	super.syncImgs();
 	// 	if(this.mesh_front.material.map instanceof THREE.Texture && this.media['front-background-image']) {
