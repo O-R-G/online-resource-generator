@@ -722,28 +722,14 @@ export default class Shape {
         counter_field.dispatchEvent(new CustomEvent('change', {detail: {isSilent: true, isSyncing: true}}));
         counter_field.dispatchEvent(new CustomEvent('input',  {detail: {isSilent: true, isSyncing: true}}));
     }
-    updateCounterpartSelectField(field, index)
-    {
-        if(!this.counterpart || !field) return;
-        let f = field;
-        if(typeof f === 'string') {
-            if(!this.counterpart.fields[f]) return false;
-            f = this.counterpart.fields[field];
-        }
+    updateCounterpartSelectField(field, index) {
+        if(!this.counterpart) return;
+        let f = typeof field === 'string' ? this.counterpart.fields[field] : field;
+        if(!f) return false;
         f.selectedIndex = index;
-        
-    }
-    updateCounterpartTextField(field, value)
-    {
-        if(!this.counterpart || !field) return;
-        if(typeof field === 'string' && this.counterpart.fields[field])
-            this.counterpart.fields[field].value = value;
-        else if (typeof field === 'object')
-            field.value = value;
     }
 
     updateCounterpartWatermarks(silent=false){
-
         this.fields.watermarks.forEach(function(this_watermark, i){
             if(!this.counterpart.fields.watermarks[i])
                 this.counterpart.addWatermark();
@@ -792,9 +778,12 @@ export default class Shape {
         if(fieldOnly) {
             this.media = this.reindexMedia();
         } else {
-            this.media = {};
+            for(const key in this.media) {
+                const m = this.media[key];
+                if(m.isShapeColor) continue;
+                delete this.media[key];
+            }
         }
-        // console.log('resetMedia', this.media);
         this.fields.media = {};
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
@@ -804,14 +793,15 @@ export default class Shape {
         let index = 1;
         let reindexed = {};
         for(let key in this.media) {
-            if(key.indexOf('media-') === 0) {
+            const m = this.media[key];
+            if(m.isShapeColor) {
+                reindexed[key] = this.media[key];
+            } else {
                 const new_key = 'media-' + index;
                 const m = this.media[key];
                 m.updateKey(new_key);
                 reindexed[new_key] = m;
                 index++;
-            } else {
-                reindexed[key] = this.media[key];
             }
         }
         return reindexed;
@@ -828,46 +818,33 @@ export default class Shape {
     };
     syncMedia(){
         const m_key_pattern = /media\-\d+/;
-        // console.log('syncMedia 1', this.media);
         for(const key in this.media) {
-            if(this.media[key].isEmpty) delete this.media[key];
+            if(!this.media[key].isShapeColor && this.media[key].isEmpty) delete this.media[key];
         }
         this.media = this.reindexMedia();
-        // console.log('syncMedia 2', this.media);
-        this.counterpart.media = {};
+        this.counterpart.resetMedia();
         for(const key in this.media) {
             let counter_key = key.match(m_key_pattern) ? key : this.fieldCounterparts[key];
-            console.log('counter_key', counter_key);
             if(!counter_key) continue;
             const media = this.media[key];
-            console.log(media);
-            this.counterpart.media[counter_key] = this.counterpart.initMedia(key, media.getProps());
-            // if(!media.isShapeColor) {
-            //     this.counterpart.addMediaSection(counter_key);
-            //     let input = this.counterpart.fields.media[key];
-            //     let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-            //     let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-		    //     let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-            //     let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-            //     scale_input.value = media.scale;
-            //     shift_x_input.value = media['shift-x'];
-            //     shift_y_input.value = media['shift-y'];
-            //     if(blend_mode_input) {
-            //         // for(const [option, idx] of blend_mode_input) {
-            //         //     if(option.value === media['blend-mode']){
-            //         //         blend_mode_input.selectedIndex = idx;
-            //         //         break;
-            //         //     }
-            //         // }
-            //     }
-            // }
+            const props = media.getProps();
+            const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
+            props.x = calibrated_x;
+            props.y = calibrated_y;
+            if(this.counterpart.media[counter_key]) {
+                this.counterpart.media[counter_key].update(props);
+            } else {
+                this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
+            }
+            if(!media.isShapeColor) {
+                this.counterpart.addMediaSection(counter_key, '');
+            }
         }
     }
     sync(){
         for(const name in this.fieldCounterparts) {
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
-            
 			if(!counterField || !field) continue;
             this.updateCounterpartField(field, counterField);
 		}

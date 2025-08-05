@@ -269,30 +269,11 @@ textarea + select
 {
     display: block;
 }
-/* #main[format="post"] [data-is-three="false"] canvas,
-#main[format="post"] [data-is-three="true"] canvas
-{
-    height: 540px;
-}
-#main[format="story"] [data-is-three="false"] canvas,
-#main[format="story"] [data-is-three="true"] canvas
-{
-    height: 960px;
-} */
 #main[data-canvas-status="initializing"] .org-main-canvas {
     position: absolute;
     display: block;
 }
-[data-is-three='true']
-{
-    display: none;
-}
-.viewing-three [data-is-three='true']
-{
-    display: block;
-}
-.viewing-three [data-is-three='false']
-{
+.generator-container.hidden {
     display: none;
 }
 .panel-section,

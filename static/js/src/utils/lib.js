@@ -65,3 +65,29 @@ export function updatePositionByKey(e, inputs, cb){
 export function getValueByPixelRatio(input){
     return input * window.devicePixelRatio;
 }
+export function convertStaticPostionToAnimated(x, y, canvas_width, canvas_height){
+    const ouptut = {
+        x: x ? x - canvas_width / 2 : '',
+        y: y ? canvas_height / 2 - y : '',
+    }
+    return ouptut;
+}
+export function convertAnimatedPostionToStatic(x, y, canvas_width, canvas_height){
+    const ouptut = {
+        x: x ? x + canvas_width / 2 : '',
+        y: y ? canvas_height / 2 - y : '',
+    }
+    return ouptut;
+}
+export function getAncestorByClass(child, className){
+    const finds = Array.isArray(className) ? className : [className];
+    for(const cls of finds) 
+        if(child.classList.contains(cls)) return child;
+    let output = child;
+    do{
+        output = output.parentNode;
+        for(const cls of finds) 
+            if(output.classList.contains(cls)) return output;
+    } while( output != document.body )
+    return null;
+}

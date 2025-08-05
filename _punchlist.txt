@@ -76,7 +76,7 @@ x unify text-handling (main texts and watermarks)
 - when the input is cleaned, rotate doesnt update
 + scale, x, and y of media doesn't work after saving
 + media-removing button removes all the custom media fields
-- apply the updates on the media fields to the animated shape and canvas.
++ apply the updates on the media fields to the animated shape and canvas.
 - handle base image and shape image in the prop media if the base is switched to a solid color better
 - three js mix blend mode for images
 - gradient doesn't work for base

@@ -1,6 +1,6 @@
 import Canvas from "./Canvas.js";
 import MediaStatic from './MediaStatic.js'
-import { generateFieldId } from './utils/lib.js';
+import { generateFieldId, convertAnimatedPostionToStatic } from './utils/lib.js';
 
 export default class CanvasStatic extends Canvas {
     constructor(wrapper, format, prefix, options){
@@ -11,49 +11,57 @@ export default class CanvasStatic extends Canvas {
         if(this.baseOptions['upload'])
 			this.media['base-image'] = this.initMedia('base-image', {isShapeColor: true, 'fit': 'cover'});
     }
+    init(){
+        if(this.initialized) return;
+        super.init();
+        this.context = this.canvas.getContext('2d');
+        for(let shape_id in this.shapes) {
+            if(!this.shapes[shape_id].initialized) {
+                this.shapes[shape_id].init(this);
+            }
+        }
+        this.addListenersTop();
+        if(!this.active) this.hide();
+        this.initialized = true;
+    }
+    addListenersTop(){
+        super.addListenersTop();
+        // let sBase = this.control_top.querySelector('.field-id-base');
+        if(this.fields['base']) {
+            this.fields['base'].onchange = function(e){
+                let sec = e.target.parentNode.parentNode;
+                const m_key = 'base-image';
+                if(e.target.value === 'upload') {
+					this.base = 'upload';
+                    this.media[m_key].show();
+					sec.classList.add('viewing-base-image-section');
+				} else {                    
+                    // delete this.media[key];
+                    this.media[m_key].hide();
+					this.colorPattern = null;
+					sec.classList.remove('viewing-base-image-section');
+					this.updateBase(e.target.value);
+				}
+            }.bind(this);
+        }
+    }
     initMedia(key, props={}, onUpload=null){
         if(!key) return null;
         const prefix = generateFieldId(this.id, key);
-        return new MediaStatic(key, prefix, this.draw.bind(this), onUpload, this.mediaOptions, props);
+        console.log('initMedia', this.canvas);
+        return new MediaStatic(key, prefix, this.canvas, this.draw.bind(this), onUpload, this.mediaOptions, props);
     }
-
-    // updateMedia(idx, values, silent = false){
-    //     super.updateMedia(idx, values);
-    //     console.log('CanvasStatic updateMedia()', idx);
-    //     if(idx === 'base-image') {
-    //         let temp = document.createElement('canvas');
-    //         let temp_ctx = temp.getContext('2d');
-    //         temp.width = this.canvas.width;
-    //         temp.height = this.canvas.height;
-            
-    //         let length = this.canvas.width;
-                
-    //         let temp_scale = 1;
-    //         let temp_scaledW = this.media[idx].obj.width * temp_scale;
-    //         let temp_scaledH = this.media[idx].obj.height * temp_scale;
-            
-    //         if(this.media[idx].obj.width > this.media[idx].obj.height)
-    //         {
-    //             temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
-    //             temp_scaledW = this.media[idx].obj.width * temp_scale;
-    //             temp_scaledH = this.media[idx].obj.height * temp_scale;
-    //         }
-    //         else
-    //         {
-    //             temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
-    //             temp_scaledW = this.media[idx].obj.width * temp_scale;
-    //             temp_scaledH = this.media[idx].obj.height * temp_scale;
-    //         }
-    //         console.log(this.media[idx]);
-    //         this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx]['shift-x'];
-            
-    //         this.media[idx].y = this.canvas.height / 2 - temp_scaledH / 2 - this.media[idx]['shift-y'] + 0;
-            
-    //         temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
-    //         this.base = this.context.createPattern(temp, "no-repeat");
-    //     } 
-    //     if(!silent) this.draw();
-    // }
+    setFieldCounterparts(){
+		/* 
+			the prop names are static field names 
+			the values are animated field names
+		*/
+		this.fieldCounterparts['base'] = 'base';
+        this.fieldCounterparts['base-image'] = 'base-image';
+        this.fieldCounterparts['base-image-scale'] = 'base-image-scale';
+        this.fieldCounterparts['base-image-shift-x'] = 'base-image-shift-x';
+        this.fieldCounterparts['base-image-shift-y'] = 'base-image-shift-y';
+	}
     drawBase(){
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         if(this.base === 'upload') {
@@ -73,7 +81,6 @@ export default class CanvasStatic extends Canvas {
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
     updateBase(base){
-        super.updateBase(base);
         let colorData = this.baseOptions[base].color;
         if( colorData['type'] == 'solid' || 
             colorData['type'] == 'gradient')
@@ -114,4 +121,7 @@ export default class CanvasStatic extends Canvas {
             return output;
 		}
 	}
+    calibratePosition(x, y){
+        return convertAnimatedPostionToStatic(x, y, this.canvas.width, this.canvas.height)
+    }
 }

@@ -3,8 +3,8 @@ import Media from './Media.js';
 import { getValueByPixelRatio } from './utils/lib.js';
 
 export default class MediaAnimated extends Media{
-    constructor(key, prefix, onUpdate, onUpload, options={}, props={}){
-        super(key, prefix, onUpdate, onUpload, options);
+    constructor(key, prefix, canvas, onUpdate, onUpload, options={}, props={}){
+        super(key, prefix, canvas, onUpdate, onUpload, options);
         this.props_template = {
             ...this.shared_props, 
             mesh: null
@@ -13,13 +13,16 @@ export default class MediaAnimated extends Media{
         this.isVideo = this.false;
         this.init(props);
     }
-    update(props, silent){
+    update(props, silent=false){
+        console.log('animated m update', silent);
         super.update(props, silent);
+        
     }
     render(parent){
         return super.render(parent);
     }
     async applyImageAsMaterial(){
+        console.log('applyImageAsMaterial', this.key);
         const textureLoader = new THREE.TextureLoader();
         return new Promise((resolve, reject) => {
             try{
@@ -70,7 +73,13 @@ export default class MediaAnimated extends Media{
                             }
                             geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
                             geometry.attributes.uv.needsUpdate = true;
+                            if(!mesh.initialized) {
+                                mesh.initialized = true;
+                            }
                             mesh.material = material;
+                            mesh.material.depthTest = false;
+                            mesh.material.depthWrite = false;
+                            mesh.material.needsUpdate = true;
                         }
                     } else {
                         for(const key in this.mesh){
@@ -116,6 +125,7 @@ export default class MediaAnimated extends Media{
                             y  = - (height - getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
                             mesh.position.x = x;
                             mesh.position.y = y;
+                            mesh.material.needsUpdate = true;
                         }
                     }							
                     resolve();
@@ -144,7 +154,8 @@ export default class MediaAnimated extends Media{
     updateBlendMode(value, silent=false){
     	this.update({'blend-mode': value}, silent);
     }
-    async draw(context){
+    
+    async draw(){
         if(!this.obj) return;
         if(this.isVideo) {
             this.applyVideoAsMaterial();
@@ -154,7 +165,4 @@ export default class MediaAnimated extends Media{
             // if(!silent) this.canvasObj.draw();
         }
     }
-    // drawShapeColor(context, canvas, frame){
-    //     return this.generatePattern(context, canvas, frame);
-    // }
 }

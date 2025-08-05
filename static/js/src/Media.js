@@ -1,10 +1,11 @@
-import {getClassString, addExtraAttr, updatePositionByKey} from "./utils/lib.js"
+import {getClassString, addExtraAttr, updatePositionByKey, getAncestorByClass} from "./utils/lib.js"
 import {renderNumeralSection, renderSelectSection} from "./utils/render.js"
 export default class Media{
-    constructor(key, prefix, onUpdate, onUpload, options){
+    constructor(key, prefix, canvas, onUpdate, onUpload, options){
         this.initialized = false;
         this.key = key;
         this.prefix = prefix;
+        this.canvas = canvas;
         this.onUpdate = onUpdate;
         this.onUpload = onUpload;
         this.options = options;
@@ -77,16 +78,45 @@ export default class Media{
         this.render();
         this.checkEmpty();
     }
-    update(props, silent=false){  
+    syncMedia(){
+        const m_key_pattern = /media\-\d+/;
+        for(const key in this.media) {
+            if(!this.media[key].isShapeColor && this.media[key].isEmpty) delete this.media[key];
+        }
+        this.media = this.reindexMedia();
+        this.counterpart.resetMedia();
+        for(const key in this.media) {
+            let counter_key = key.match(m_key_pattern) ? key : this.fieldCounterparts[key];
+            if(!counter_key) continue;
+            const media = this.media[key];
+            const props = media.getProps();
+            const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
+            props.x = calibrated_x;
+            props.y = calibrated_y;
+            if(this.counterpart.media[counter_key]) {
+                console.log('updating...');
+                this.counterpart.media[counter_key].update(props);
+            } else {
+                console.log('not updating...');
+                console.log(this.counterpart.media);
+                this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
+            }
+            if(!media.isShapeColor) {
+                this.counterpart.addMediaSection(counter_key, '');
+            }
+        }
+    }
+    update(props, silent){  
         for(const key in props) {
             if(typeof this.props_template[key] === 'undefined') continue;
             this[key] = props[key];
         }
         this.checkEmpty();
-        // if(this.key === 'background-image') console.log(this.src);
+        if(this.onUpdate === null)
+            console.log(this.key);
         if(!silent) this.onUpdate();
     }
-    render(parent){
+    render(){
         const cls = [];
         const [field, input] = this.renderFileField({'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});
         this.elements['file-input'] = input;
@@ -161,7 +191,6 @@ export default class Media{
 		}.bind(this);
 		this.elements['file-input'].onchange = function(e){
 			this.readImageUploaded(e, (image)=>{
-                
                 if(typeof this.onUpload === 'function')
                     this.onUpload(image);
                 else
@@ -184,7 +213,6 @@ export default class Media{
 		if(this.elements['shift-x']) {
 			this.elements['shift-x'].oninput = function(e){
                 let isSilent = e && e.detail ? e.detail.isSilent : false;
-                // console.log('isSilent', isSilent);
 				this.updatePositionX(e.target.value, isSilent);
 			}.bind(this);
 		}
@@ -251,10 +279,17 @@ export default class Media{
         }
     }
     show(){
+        console.log('show');
         this.isShown = true;
+        const section = getAncestorByClass(this.dom, 'base-image-section');
+        if(section)
+            section.style.display = 'block';
     }
     hide(){
         this.isShown = false;
+        const section = getAncestorByClass(this.dom, 'base-image-section');
+        if(section)
+            section.style.display = 'none';
     }
     getProps(){
         const output = {};

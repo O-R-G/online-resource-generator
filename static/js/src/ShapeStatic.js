@@ -1,6 +1,6 @@
 import Shape from "./Shape.js";
 import MediaStatic from './MediaStatic.js'
-import { generateFieldId } from './utils/lib.js';
+import { generateFieldId, updatePositionByKey, convertAnimatedPostionToStatic } from './utils/lib.js';
 
 export default class ShapeStatic extends Shape {
 	constructor(prefix = '', canvasObj, options, format, shape_index=0){
@@ -30,15 +30,16 @@ export default class ShapeStatic extends Shape {
 		this.timer_shape = null;
 		this.customGraphic = [];
 		this.initRecording = false;
-		
+		this.canvas = canvasObj.canvas;
 		if(this.options.colorOptions['upload']) {
 			const key = 'background-image';
 			this.media['background-image'] = this.initMedia(key, {isShapeColor: true, 'fit': 'cover'});
 		}
+		
 	}
 	init(canvasObj) {
 		super.init(canvasObj);
-		this.canvas = canvasObj.canvas;
+		
 		this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();
 		this.shapeCenter.x = this.frame.x + this.frame.w / 2 + this.shapeShiftX;
@@ -48,7 +49,6 @@ export default class ShapeStatic extends Shape {
 	    this.addListeners();
 	    this.updateShape(this.shape, true);
 		this.preWrite();
-		console.log(this.media['background-image'].isEmpty);
 	}
 	updateCanvasSize() {
 		this.canvasW = this.canvas.width;
@@ -1242,7 +1242,7 @@ export default class ShapeStatic extends Shape {
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateShapeShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['shape-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+			this.fields['shape-shift-x'].onkeydown = e => updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
 				this.updateShapeShiftX(shift.x)
 				this.updateShapeShiftY(shift.y)
 			});
@@ -1255,7 +1255,7 @@ export default class ShapeStatic extends Shape {
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateShapeShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['shape-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+			this.fields['shape-shift-y'].onkeydown = e => updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
 				this.updateShapeShiftX(shift.x)
 				this.updateShapeShiftY(shift.y)
 			});
@@ -1267,8 +1267,7 @@ export default class ShapeStatic extends Shape {
 		if(this.fields['animation']) {
 			this.fields['animation'].onchange = function(e){				
 				if(e.target.value !== 'none') {
-					document.body.classList.add('viewing-three');
-					this.canvasObj.sync();
+					this.canvasObj.deactivate();
 				}
 			}.bind(this);
 		}
@@ -1314,7 +1313,7 @@ export default class ShapeStatic extends Shape {
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateTextShiftX(e.target.value, isSilent);
 			}.bind(this);
-			this.fields['text-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
+			this.fields['text-shift-x'].onkeydown = e => updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
 				this.updateTextShiftX(shift.x)
 				this.updateTextShiftY(shift.y)
 			});
@@ -1329,7 +1328,7 @@ export default class ShapeStatic extends Shape {
 				
 				this.updateTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['text-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
+			this.fields['text-shift-y'].onkeydown = e => updatePositionByKey(e, {x: this.fields['text-shift-x'], y:this.fields['text-shift-y']}, (shift)=>{
 				this.updateTextShiftX(shift.x)
 				this.updateTextShiftY(shift.y)
 			});
@@ -1360,9 +1359,11 @@ export default class ShapeStatic extends Shape {
 	initMedia(key, props={}, onUpload=null){
 		if(!key) return null;
 		const prefix = generateFieldId(this.id, key);
-		return new MediaStatic(key, prefix, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props);
+		return new MediaStatic(key, prefix, this.canvas, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props);
 	}
-    
+	calibratePosition(x, y){
+		return convertAnimatedPostionToStatic(x, y, this.canvas.width, this.canvas.height)
+	}
     updateFrame(frame = null, silent = false){
 		frame = frame ? frame : this.generateFrame();
     	super.updateFrame(frame);
@@ -1392,13 +1393,14 @@ export default class ShapeStatic extends Shape {
     }
     sync(){
 		if(!this.counterpart) return;
-
 		let isSilent = true;
 		super.sync();
     	super.updateCounterpartWatermarks(isSilent);
-		// return;
 		this.canvasObj.counterpart.draw();
     }
+	syncMedia(){
+		super.syncMedia();
+	}
     updateTextPosition(position, silent = false){
         this.textPosition = position;
         if(!silent) this.canvasObj.draw();
@@ -1475,21 +1477,7 @@ export default class ShapeStatic extends Shape {
 		this.context.globalCompositeOperation = 'normal';
 	}
 	
-	syncMedia(){
-		super.syncMedia();
-		console.log(this.counterpart.media);
-		// let idx = 'background-image';
-		// if(this.color instanceof CanvasPattern && this.media[idx]) {
-		// 	let c_idx = this.fieldCounterparts[idx];
-		// 	this.counterpart.updateMedia(c_idx, {obj: this.media[idx].img, src: this.media[idx].src});
-		// 	if(this.counterpart.fields.media[c_idx]) {
-		// 		if(this.fields.media[idx].getAttribute('data-file-src')) {
-		// 			this.counterpart.fields.media[c_idx].setAttribute('data-file-src', this.fields.media[idx].getAttribute('data-file-src'));
-		// 		}
-		// 	}
-				
-		// }
-	}
+	
 	// getDisplayValue(input){
 	// 	return input / this.canvasObj.scale;
 	// }

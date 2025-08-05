@@ -1,13 +1,13 @@
 import Media from './Media.js';
 
 export default class MediaStatic extends Media{
-    constructor(key, prefix, onUpdate, onUpload, options={}, props={}){
-        super(key, prefix, onUpdate, onUpload, options);
+    constructor(key, prefix, canvas, onUpdate, onUpload, options={}, props={}){
+        super(key, prefix, canvas, onUpdate, onUpload, options);
         this.props_template = this.shared_props;
         this.isThree = false;
         this.init(props);
     }
-    update(props, silent){
+    update(props, silent=false){
         super.update(props, silent);
     }
     render(parent){
@@ -18,8 +18,9 @@ export default class MediaStatic extends Media{
         let temp_ctx = temp.getContext('2d');
         temp.width = canvas.width;
         temp.height = canvas.height;
-            
+        console.log(`canvas size: ${canvas.width} x ${canvas.height}`);
         let final_scale = this.scale;
+        console.log(`this.scale: ${this.scale}`);
         const frame_ratio = frame.h / frame.w; 
         const media_ratio = this.obj.height / this.obj.width; 
         if(frame_ratio > media_ratio) {
@@ -51,8 +52,9 @@ export default class MediaStatic extends Media{
     updateBlendMode(value, silent=false){
     	this.update({'blend-mode': value}, silent);
     }
-    draw(context){
-        if(!this.obj) return;
+    draw(){
+        if(!this.obj || this.isShapeColor) return;
+        const context = this.canvas.getContext('2d');
         context.globalCompositeOperation = this['blend-mode'] ? this['blend-mode'] : 'normal';
         context.drawImage(this.obj, (this.x + this['shift-x']), (this.y - this['shift-y']), this.obj.width * this.scale, this.obj.height * this.scale);
         context.globalCompositeOperation = 'normal';

@@ -53,7 +53,9 @@ async function init(data, cb){
             data[id]['canvas']['shapes'][Object.keys(data[id]['canvas']['shapes'])[i]].addCounterpart(c['canvas']['shapes'][Object.keys(c['canvas']['shapes'])[i]]);
         }
     }
-    data[Object.keys(data)[0]]['canvas'].draw();
+    const active_canvas = data[Object.keys(data)[0]]['canvas'];
+    active_canvas.activate();
+    // data[Object.keys(data)[0]]['canvas'].draw();
     
     // let uri = location.pathname.split('/');
     new Record(main, record_id, canvases);

@@ -1,19 +1,21 @@
 import * as THREE from "three";
 import Shape from "./Shape.js";
 import {Text} from 'troika-three-text';
-import MediaAnimated from './MediaAnimated.js'
-import { generateFieldId, getValueByPixelRatio } from './utils/lib.js';
+// import MediaAnimated from './MediaAnimated.js'
+import { generateFieldId, getValueByPixelRatio, updatePositionByKey, convertStaticPostionToAnimated } from './utils/lib.js';
+import { createMesh, createGroup, initMediaAnimated, processStaticColorData, generateGradient, generateGridPattern } from './utils/lib-animated.js';
+
 
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		this.group_front = this.createGroup('group_front');
-		this.mesh_front = this.createMesh('mesh_front');
+		this.group_front = createGroup('group_front');
+		this.group_front.renderOrder = 2;
+		this.mesh_front = createMesh('mesh_front');
 		this.mesh_front.material = this.processColor(Object.values(this.options.colorOptions)[0].color);
 		this.mesh_front.initialized = true;
 		this.group_front.add(this.mesh_front);
 		this.secondary_mesh_front = null;
-		this.geometry_front = null;
 		
 		this.shapes_mesh_front = {};
 		this.shapes_geometry_front = {};
@@ -24,13 +26,13 @@ export default class ShapeAnimated extends Shape {
 		this.frontFont = this.getDefaultOption(this.options.fontOptions);
 		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 		
-		this.group_back = this.createGroup('group_back');
-		this.mesh_back = this.createMesh('mesh_back');
+		this.group_back = createGroup('group_back');
+		this.mesh_back = createMesh('mesh_back');
 		this.mesh_back.material = this.processColor(Object.values(this.options.colorOptions)[1].color);
 		this.mesh_back.initialized = true;
 		this.group_back.add(this.mesh_back);
 		this.mesh_arr_back = [];
-		this.geometry_back_uvs = null;
+		// this.geometry_back_uvs = null;
 		this.mesh_back_text = null;
 		this.shapes_mesh_back = {};
 		this.shapes_geometry_back = {};
@@ -99,13 +101,14 @@ export default class ShapeAnimated extends Shape {
 		this.frontWatermarkGroup = new THREE.Group();
 		this.backWatermarkGroup = new THREE.Group();
 		this.startTime = null;
+		this.canvas = canvasObj.canvas;
 		this.media['front-background-image'] = this.initMedia('front-background-image', {mesh: {front: this.mesh_front, back: null}, isShapeColor: true, fit: 'cover'});
 		this.media['back-background-image'] = this.initMedia('back-background-image', {mesh: {front: null, back: this.mesh_back}, isShapeColor: true, fit: 'cover'});
 	}
 	init(canvasObj){
 		super.init(canvasObj);
-		this.canvas = canvasObj.canvas;
-		this.context = this.canvas.getContext("2d");
+		
+		// this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();		
 		this.control.classList.add('animated-shape-control');
 		this.renderer = this.canvasObj.renderer;
@@ -113,7 +116,8 @@ export default class ShapeAnimated extends Shape {
 		this.camera = this.canvasObj.camera;	
 		// this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
 		this.scale = new THREE.Vector3(1, 1, 1);
-		this.group = new THREE.Group();
+		this.group = createGroup('main-group');
+		this.group.renderOrder = 2;
 		this.setGroupPosition();
 		this.drawShape();
 		this.renderControl();
@@ -121,7 +125,7 @@ export default class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-		this.context = this.canvas.getContext("2d");
+		// this.context = this.canvas.getContext("2d");
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
@@ -284,8 +288,6 @@ export default class ShapeAnimated extends Shape {
 		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.8;
 		this.mesh_front.geometry = new THREE.CircleGeometry( this_r, 64);
 		this.mesh_back.geometry = new THREE.CircleGeometry( this_r, 64);
-		// this.mesh_front.geometry_uvs = this.mesh_front.geometry.attributes.uv.array;
-		// this.geometry_back_uvs = this.geometry_back.attributes.uv.array;
 	}
 	drawRectangle(){
 		let this_r = this.cornerRadius;
@@ -811,15 +813,9 @@ drawNone(){
 	initMedia(key, props={}, onUpload=null){
 		if(!key) return null;
 		const prefix = generateFieldId(this.id, key);
-		if(!props['mesh']) {
-			let mesh = {
-				front: this.createMesh(key),
-				back: this.createMesh(key)
-			};
-			props['mesh'] = mesh;
-		}
-		return new MediaAnimated(key, prefix, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props);
+		return initMediaAnimated(key, prefix, this.canvas, this.draw.bind(this), onUpload, this.mediaOptions, props);
 	}
+	
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
 		if(!text_mesh) return;
 		let fontData = this.processFontData(typography, font, isBack);
@@ -976,18 +972,18 @@ drawNone(){
 		let output;
 		if(color['type'] == 'solid' || color['type'] == 'transparent')
 		{
-			let params = this.processStaticColorData(color);
+			let params = processStaticColorData(color);
 			output = new THREE.MeshBasicMaterial( params );
 		}
 		else if(color['type'] == 'gradient')
 		{
-			output = this.generateGradient(this.mesh_front.geometry, color['code'], color['angle']);
+			output = generateGradient(this.mesh_front.geometry, color['code'], color['angle']);
 			
 		}
 		else if(color['type'] == 'special')
 		{
 			if(color['colorName'].indexOf('blue-red') !== -1 ) {
-				output = this.generateGridPattern(color['code'], color['size']);
+				output = generateGridPattern(color['code'], color['size']);
 			}
 			
 		}
@@ -1126,27 +1122,7 @@ drawNone(){
 		texture.offset.set(offsetX, offsetY);
 		texture.repeat.set(repeatX, repeatY);
 	}
-	createMesh(name=''){
-		const output = new THREE.Mesh();
-		if(name) output.name = name;
-		output.initialized = false;
-		return output;
-	}
-	createGroup(name=''){
-		const output = new THREE.Group();
-		if(name) output.name = name;
-		return output;
-	}
-	// async updateMedia(key, values, silent = false, isBack = false, isVideo = false){
-	// 	super.updateMedia(key, values, silent);
-	// 	if(isVideo) {
-	// 		this.applyVideoAsMaterial(key, silent, isBack)
-	// 	}
-	// 	else {
-	// 		await this.applyImageAsMaterial(key)
-	// 		if(!silent) this.canvasObj.draw();
-	// 	}
-	// }
+	
 	async applyImageAsMaterial(key){
 		const media = this.media[key];
 		const textureLoader = new THREE.TextureLoader();
@@ -1255,28 +1231,9 @@ drawNone(){
 			
 		})
 	}
-	processStaticColorData(colorData){
-		var output = {}; // params of material
-		let color = '';
-		if(colorData['code'].length == 4 && colorData['code'].indexOf('#') !== -1)
-		{
-			for(let i = 1; i <= 3; i++)
-				color += colorData['code'][i] + colorData['code'][i];
-			color = '#' + color;
-		}
-		else
-			color = colorData['code'];
-		output['color'] = new THREE.Color(color);
-		if(colorData.type == 'transparent')
-		{
-			output['transparent'] = true;
-			output['opacity'] = colorData.opacity;
-
-		}
-		return output;
-	}
 	drawShape()
 	{
+		
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
@@ -1294,30 +1251,16 @@ drawNone(){
 		else if(this.shape.base == 'none') {
 			this.drawNone();
 		}
-			
-		
-		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
-			if(this.media['front-background-image']) {
-				this.media['front-background-image'].draw();
-			}
-		}
-		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
-			if(this.media['back-background-image']) {
-				this.media['back-background-image'].draw();
-				// this.updateMedia('back-background-image', { obj: this.media['back-background-image'].obj}, false, false);
-			}
-		}
 	}
 	actualDraw (animate = true){
-		let sync = !animate;
-		this.scene.add( this.group );
+		// console.log('actualDraw');
 		
+		let sync = !animate;
+		// this.scene.add( this.group );
+		this.scene.add( this.group );
 		this.addExtraShapeMeshes(this.group_front, this.shapes_geometry_front, this.shapes_material_front);
 		this.addExtraShapeMeshes(this.group_back, this.shapes_geometry_back, this.shapes_material_back, true);
 
-		// if(this.frontWatermarkGroup.parent !== this.mesh_front) {
-		// 	this.mesh_front.add(this.frontWatermarkGroup);
-		// }
 		if(this.frontWatermarkGroup.parent !== this.group_front) {
 			this.group_front.add(this.frontWatermarkGroup);
 		}
@@ -1341,7 +1284,7 @@ drawNone(){
 				if(this.shape.watermarkPositions == 'all' || this.shape.watermarkPositions.includes(el.position))
 				{
 					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
-					let thisMaterial = new THREE.MeshBasicMaterial(this.processStaticColorData(thisColor));
+					let thisMaterial = new THREE.MeshBasicMaterial(processStaticColorData(thisColor));
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
 					let renderOrder = i;
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
@@ -1371,8 +1314,20 @@ drawNone(){
 			if(this.mesh_front.parent !== this.group_front)
 				this.group_front.add(this.mesh_front);
 		}
-		
-		
+		// console.log(this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload')
+		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
+			console.log(this.media);
+			if(this.media['front-background-image']) {
+				console.log('drawShape 2')
+				this.media['front-background-image'].draw();
+			}
+		}
+		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
+			if(this.media['back-background-image']) {
+				this.media['back-background-image'].draw();
+				// this.updateMedia('back-background-image', { obj: this.media['back-background-image'].obj}, false, false);
+			}
+		}
 		this.drawImages();
 		for(const key in this.media) {
 			if(this.media[key].isShapeColor) continue;
@@ -1386,9 +1341,14 @@ drawNone(){
 	}
 	
 	draw (animate = true){
+		// console.log('animated draw()')
+		// console.log(this.fields);
+		// console.log(this.fields['shape-front-color'].value);
 		this.resetGroups();
 		this.resetAnimation();
 		this.isForward = true;
+		this.drawShape();
+		// this.updateFrontColor();
 		this.actualDraw(animate);
 	}
 	addExtraShapeMeshes(main_mesh, geometry_arr, metarial_arr, isBack = false){
@@ -1398,7 +1358,7 @@ drawNone(){
 				
 				if(!material) continue;
 				// const mesh = new THREE.Mesh( geometry_arr[key], material );
-				const mesh = this.createMesh(`extra-shape-${key}-${isBack ? 'back' : 'front'}`);
+				const mesh = createMesh(`extra-shape-${key}-${isBack ? 'back' : 'front'}`);
 				mesh.material = material;
 				mesh.geometry = geometry_arr[key];
 				mesh.position.z = 0.5;
@@ -1406,139 +1366,14 @@ drawNone(){
 			}
 		}
 	}
-	generateThreeColorsGradient(uniforms, angle){
-		uniforms.measure = Math.abs(uniforms.bboxMax.value.x * 2);
-		let material_gradient = new THREE.ShaderMaterial({
-		uniforms: uniforms,
-		vertexShader: `
-			uniform vec3 bboxMin;
-			uniform vec3 bboxMax;
-
-			varying vec2 vUv;
-
-			void main() {
-				vUv.y = (position.y - bboxMin.y) / (bboxMax.y - bboxMin.y) * .5;
-				vUv.x = (position.x - bboxMin.x) / (bboxMax.x - bboxMin.x) * .5;
-				gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-			}
-		`,
-		fragmentShader: `
-			uniform vec3 color1;
-			uniform vec3 color2;
-			uniform vec3 color3;
-			uniform float measure;
-
-			varying vec2 vUv;
-
-			void main() {
-				if( vUv.x + vUv.y < .5 )
-				{
-					gl_FragColor = vec4(mix(color1, color2, (vUv.x+vUv.y) * 2. ), 1.0);
-				}
-				else
-					gl_FragColor = vec4(mix(color3, color2, (1. - (vUv.x+vUv.y)) * 2. ), 1.0);
-				
-			}
-		`
-		});
-		return material_gradient;
-	}
-	generateTwoColorsGradient(uniforms, angle){
-		if(angle == 45)
-		{
-			var vertexShader = `
-				uniform vec3 bboxMin;
-				uniform vec3 bboxMax;
-
-				varying vec2 vUv;
-
-				void main() {
-					vUv.y = (position.y - bboxMin.y) / (bboxMax.y - bboxMin.y) / 2. ;
-					vUv.x = (position.x - bboxMin.x) / (bboxMax.x - bboxMin.x) / 2. ;
-					gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-				}
-			`;
-			var fragmentShader = `
-				uniform vec3 color1;
-				uniform vec3 color2;
-
-				varying vec2 vUv;
-
-				void main() {
-					gl_FragColor = vec4(mix(color1, color2, vUv.x+vUv.y), 1.0);
-				}
-			`;
-		}
-		else if(angle == 90)
-		{
-			var vertexShader = `
-				uniform vec3 bboxMin;
-				uniform vec3 bboxMax;
-
-				varying vec2 vUv;
-
-				void main() {
-					vUv.y = (position.y - bboxMin.y) / (bboxMax.y - bboxMin.y) ;
-					vUv.x = (position.x - bboxMin.x) / (bboxMax.x - bboxMin.x) ;
-					gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-				}
-			`;
-			var fragmentShader = `
-				uniform vec3 color1;
-				uniform vec3 color2;
-
-				varying vec2 vUv;
-
-				void main() {
-					gl_FragColor = vec4(mix(color1, color2, vUv.y), 1.0);
-				}
-			`;
-		}
-		let material_gradient = new THREE.ShaderMaterial({
-			uniforms: uniforms,
-			vertexShader: vertexShader,
-			fragmentShader: fragmentShader
-		});
-		return material_gradient;
-	}
-	generateGradient(geometry, colors, angle){
-		angle = typeof angle === undefined ? 90 : angle;
-		geometry.computeBoundingBox();
-		let uniforms = {};
-
-		colors.forEach(function(el, i){
-			uniforms['color' + (i + 1)] = {};
-			uniforms['color' + (i + 1)].value = new THREE.Color(el);
-		});
-
-		uniforms.bboxMin = {};
-		uniforms.bboxMin.value = geometry.boundingBox.min;
-		uniforms.bboxMax = {};
-		uniforms.bboxMax.value = geometry.boundingBox.max;
-
-		if(colors.length == 2)
-			return this.generateTwoColorsGradient(uniforms, angle);
-		else if(colors.length == 3)
-			return this.generateThreeColorsGradient(uniforms, angle);
-	}
-	generateGridPattern(colors, size){
-		let m = [];
-		// let num = (this.canvas.width) / size;
-		let num = 8;
-		let g = new THREE.PlaneGeometry( 540, 540, 8, 8 );
-		m.push(new THREE.MeshBasicMaterial({color: 'rgb(0,0,255)'}));
-		m.push(new THREE.MeshBasicMaterial({color: 'rgb(255,0,0)'}));
-		for(let i = 0; i < num; i++ ) {
-			for(let j = 0; j < num; j++){
-				let mIdx = i % 2 == 0 ? (j % 2 == 0 ? m[0] : m[1]) : (j % 2 == 0 ? m[1] : m[0]);
-				g.addGroup(i, 1, mIdx)
-			}
-		}
-		let output = new THREE.Mesh( g, m);
-		return output;
-	}
 	resetAnimation(){
 		cancelAnimationFrame(this.timer);
+		this.group_front.rotation.x = 0;
+		this.group_front.rotation.y = 0;
+		this.group_front.rotation.z = 0;
+		this.group_back.rotation.x = 0;
+		this.group_back.rotation.y = 0;
+		this.group_back.rotation.z = 0;
 		this.timer = null;
 		this.startTime = null;
 		this.timer_delaySaveVideo = null;
@@ -1546,19 +1381,10 @@ drawNone(){
         this.renderer.render( this.scene, this.camera );
 	}
 	resetGroups(){
-		// this.disposeHierarchy(this.group);
-		// this.disposeHierarchy(this.group_front);
-		// this.disposeHierarchy(this.mesh_front);
-		// this.mesh_front.material.dispose();
-		// this.mesh_front.geometry.dispose();
 		this.disposeHierarchy(this.group_front);
 		this.group_front.rotation.x = 0;
 		this.group_front.rotation.y = 0;
 		this.group_front.rotation.z = 0;
-		// this.disposeHierarchy(this.group_back);
-		// this.disposeHierarchy(this.mesh_back);
-		// this.mesh_front.material.dispose();
-		// this.mesh_front.geometry.dispose();
 		this.disposeHierarchy(this.group_back);
 		this.group_back.rotation.x = 0;
 		this.group_back.rotation.y = 0;
@@ -1671,27 +1497,26 @@ drawNone(){
 			trash.parent.remove(trash);
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
+		// const switchCanvas = (this.animationName !== 'none' && animationData !== 'none') || (this.animationName === 'none' && animationData === 'none')
 		this.animationName = animationData;
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
 		{
 			return;
 		}
-		let isAllNone = true;
-		for(let shape_id in this.canvasObj.shapes) {
-			let shape = this.canvasObj.shapes[shape_id];
-			if(shape.animationName !== 'none'){
-				isAllNone = false;
-			}
-		}
-		if(isAllNone && !syncing) {
-			if(!syncing) {
-				document.body.classList.remove('viewing-three');
-				this.canvasObj.sync();
-			} else {
-				document.body.classList.add('viewing-three');
-			}
-			
+		
+		// let isAllNone = true;
+		// for(let shape_id in this.canvasObj.shapes) {
+		// 	let shape = this.canvasObj.shapes[shape_id];
+		// 	if(shape.animationName !== 'none'){
+		// 		isAllNone = false;
+		// 	}
+		// }
+		let isAllNone = Object.keys(this.canvasObj.shapes).filter((key)=> this.canvasObj.shapes[key].animationName !== 'none' ).length === 0;
+		console.log('isAllNone', isAllNone);
+		if(syncing) return; 
+		if(isAllNone) {
+			this.canvasObj.deactivate();
 		}
 	}
 	updateAnimationSpeed(speed, silent = false){
@@ -1820,6 +1645,10 @@ drawNone(){
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
+		if(!this[this.animationName]) {
+			console.log(`${this.animationName} is not an animation of ShapeAnimated`)
+			return;
+		}
 		if(!this.startTime) {
 			this.startTime = timestamp;
 		}
@@ -1914,7 +1743,8 @@ drawNone(){
 	  			this.group.remove( this.group_back );
 	  		}
 	  	}
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
+		// this.renderer.render( this.scene, this.camera );
 	}
 	flipEase(){
 		this.timer = requestAnimationFrame( this.flipEase.bind(this) );
@@ -1950,8 +1780,6 @@ drawNone(){
 	rotate(progress){
 		this.group_front.rotation.z = -progress * Math.PI * 2;
 		this.group_back.rotation.z  = -progress * Math.PI * 2;
-		this.mesh_front.rotation.z = -progress * Math.PI * 2;
-		this.mesh_back.rotation.z  = -progress * Math.PI * 2;
 		this.renderer.render( this.scene, this.camera );
 	}
 	rotateEaseOut(progress){
@@ -2141,7 +1969,7 @@ drawNone(){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateFrontTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['text-front-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
+			this.fields['text-front-shift-x'].onkeydown = e => updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
 				this.updateFrontTextShiftX(shift.x)
 				this.updateFrontTextShiftY(shift.y)
 			});
@@ -2154,7 +1982,7 @@ drawNone(){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateFrontTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['text-front-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
+			this.fields['text-front-shift-y'].onkeydown = e => updatePositionByKey(e, {x: this.fields['text-front-shift-x'], y:this.fields['text-front-shift-y']}, (shift)=>{
 				this.updateFrontTextShiftX(shift.x);
 				this.updateFrontTextShiftY(shift.y);
 			});
@@ -2167,7 +1995,7 @@ drawNone(){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateBackTextShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['text-back-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
+			this.fields['text-back-shift-x'].onkeydown = e => updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
 				this.updateBackTextShiftX(shift.x)
 				this.updateBackTextShiftY(shift.y)
 			});
@@ -2180,7 +2008,7 @@ drawNone(){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateBackTextShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['text-back-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
+			this.fields['text-back-shift-y'].onkeydown = e => updatePositionByKey(e, {x: this.fields['text-back-shift-x'], y:this.fields['text-back-shift-y']}, (shift)=>{
 				this.updateBackTextShiftX(shift.x);
 				this.updateBackTextShiftY(shift.y);
 			});
@@ -2193,7 +2021,7 @@ drawNone(){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateShapeShiftX(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['shape-shift-x'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+			this.fields['shape-shift-x'].onkeydown = e => updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
 				this.updateShapeShiftX(shift.x)
 				this.updateShapeShiftY(shift.y)
 			});
@@ -2206,7 +2034,7 @@ drawNone(){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				this.updateShapeShiftY(parseInt(e.target.value), isSilent);
 			}.bind(this);
-			this.fields['shape-shift-y'].onkeydown = e => this.updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
+			this.fields['shape-shift-y'].onkeydown = e => updatePositionByKey(e, {x: this.fields['shape-shift-x'], y:this.fields['shape-shift-y']}, (shift)=>{
 				this.updateShapeShiftX(shift.x)
 				this.updateShapeShiftY(shift.y)
 			});
@@ -2229,12 +2057,7 @@ drawNone(){
 			this.updateBackTypography(e.target.value, isSilent);
 	    }.bind(this);
 
-	    
-
-	    // let sShape_front_color = this.control.querySelector('.field-id-shape-front-color');
-		// console.log(this.control);
 	    this.fields['shape-front-color'].onchange = function(e){
-			// let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
 			if(shape_color === 'upload') {
 				this.updateFrontColor('upload');
@@ -2246,12 +2069,12 @@ drawNone(){
 					this.options.colorOptions[shape_color]['color']['type'] == 'special')
 				{
 					this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
-					this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-					this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
-					if(this.options.colorOptions[shape_color] !== undefined){
-						// this.updateCounterpartSelect(sShape_color, shape_color);
-						// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-					}
+					// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
+					// this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
+					// if(this.options.colorOptions[shape_color] !== undefined){
+					// 	// this.updateCounterpartSelect(sShape_color, shape_color);
+					// 	// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
+					// }
 				}
 				else if(this.options.colorOptions[shape_color]['color']['type'] == 'special')
 				{
@@ -2364,7 +2187,7 @@ drawNone(){
 	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
 	// 			this.updateMediaPositionX(e.target.value, key, isSilent);
 	// 		}.bind(this);
-	// 		shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+	// 		shift_x_input.onkeydown = e => updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
 	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
 	// 			this.updateMediaPositionX(shift.x, key, isSilent)
 	// 			this.updateMediaPositionY(shift.y, key, isSilent)
@@ -2375,7 +2198,7 @@ drawNone(){
 	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
 	// 			this.updateMediaPositionY(e.target.value, key, isSilent);
 	// 		}.bind(this);
-	// 		shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
+	// 		shift_y_input.onkeydown = e => updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
 	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
 	// 			this.updateMediaPositionX(shift.x, key, isSilent)
 	// 			this.updateMediaPositionY(shift.y, key, isSilent)
@@ -2399,7 +2222,8 @@ drawNone(){
 			this.group.remove(this.group_front);
 			this.group.remove(this.group_back);
 			this.scene.remove(this.group);
-			this.group = this.createGroup('main-group');
+			this.group = createGroup('main-group');
+			this.group.renderOrder = 2;
 			this.setGroupPosition();
 		}
     	if(!silent) this.canvasObj.draw();
@@ -2431,7 +2255,6 @@ drawNone(){
 		let output = {};
         let unit_w = getValueByPixelRatio(this.canvasObj.canvas.width);
 		let unit_h = getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
-		// console.log('generateFrame', this.canvasObj.canvas.width, unit_w);
 		output.w = unit_w;
 		output.h = unit_h;
         this.shapeCenter = this.generateShapeCenter();
@@ -2439,6 +2262,9 @@ drawNone(){
         output.y = this.shapeCenter.y;
 		return output;
 	}
+	calibratePosition(x, y){
+        return convertStaticPostionToAnimated(x, y, this.canvas.width, this.canvas.height)
+    }
     sync(){
 		if(!this.counterpart) return;
     	let isSilent = true;
@@ -2447,29 +2273,16 @@ drawNone(){
 
         this.canvasObj.counterpart.draw();
     }
+	syncMedia(){
+		super.syncMedia();
+	}
 	drawImages(){
 		for(let key in this.media) {
 			const m = this.media[key];
-			// if(m.isShapeColor) continue;
+			if(m.isShapeColor) continue;
 			m.draw();
 		}
-		// this.context.globalCompositeOperation = 'normal';
 	}
-	// syncImgs(){
-	// 	super.syncImgs();
-	// 	if(this.mesh_front.material.map instanceof THREE.Texture && this.media['front-background-image']) {
-	// 		let idx = this.fieldCounterparts['front-background-image'];
-	// 		this.counterpart.updateMedia(idx, {obj: this.media['front-background-image'].obj});
-	// 	}
-	// }
-	// updateMediaScale(scale, key, isSilent) {
-	// 	super.updateMediaScale(scale, key, isSilent);
-	// 	const m = this.media[key];
-	// 	for(const mesh_key in m.mesh){
-	// 		const mesh = m.mesh[mesh_key];
-	// 		mesh.geometry.width;
-	// 	}
-	// }
 	async readVideoUploaded(event, cb){
 		const file = event.target.files[0];
 		const videoURL = URL.createObjectURL(file);

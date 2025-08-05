@@ -151,10 +151,13 @@ export default class Record {
             let isThree = canvas_data['isThree'];
             let active = canvas_data['active'];
 
-            if(isThree && active) document.body.classList.add('viewing-three');
+            // if(isThree && active) document.body.classList.add('viewing-three');
+            // if(!active) 
             if(active) {
                 active_canvas = this.canvasObjs[canvas_id];
                 this.canvasObjs[canvas_id].show();
+            } else {
+                this.canvasObjs[canvas_id].hide();
             }
             if(Object.keys(canvas_data['shape-controls']).length > 1 && !hasSecondShape) {
                 hasSecondShape = true;

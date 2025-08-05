@@ -37,23 +37,24 @@ import { jsPDF } from "jspdf";
 import { Canvg } from 'canvg';
 
 export default class Canvas {
-	constructor(wrapper, format, prefix, options){
+	constructor(wrapper, format, prefix, options, active=false){
         this.initialized = false;
 		for(const property in options){
 			this[property] = options[property];
 		}
 		this.wrapper = wrapper;
+        this.container = this.wrapper.parentNode.parentNode;
 		this.format = format;
 		this.prefix = prefix;
         this.id = prefix + '-canvas';
-        this.container = this.wrapper.parentNode.parentNode;
+        this.active = active;
+        
 		this.chunks = [];
 		this.shapes = {};
         this.base = null;
         for(let prop in this.baseOptions) {
             if(this.baseOptions[prop]['default']) this.base = this.baseOptions[prop].color.code;
         }
-        // this.mediaOptions = this.options['mediaOptions'] ?? {};
         if(!this.base) this.base = Object.values(this.baseOptions)[0].color.code;
         this.formatUnit = this.getDefaultOption(this.formatUnitOptions).value;
         this.devicePixelRatio = window.devicePixelRatio;
@@ -88,38 +89,17 @@ export default class Canvas {
         this.canvasResizeListeners = [
             this.checkWrapperWidth.bind(this)
         ]
+        this.canvas = this.createCanvas();
 	}
 	init(){
-        if(this.initialized) return;
-        
-		this.canvas = this.createCanvas();
-        if(!this.isThree)
-            this.context = this.canvas.getContext('2d');
+		
         this.wrapper.appendChild(this.canvas);
-        if(!this.isThree) {
-            if(this.format !== 'custom') {
-                this.setCanvasSize(
-                    {
-                        'width': this.formatOptions[this.format].w,
-                        'height': this.formatOptions[this.format].h
-                    }
-                );
-            } else {
-                this.setCanvasSize(
-                    {
-                        'width': this.formatOptions[this.format].w,
-                        'height': this.formatOptions[this.format].h
-                    }
-                );
+        this.setCanvasSize(
+            {
+                'width': this.formatOptions[this.format].w,
+                'height': this.formatOptions[this.format].h
             }
-        } else  {
-            this.setCanvasSize(
-                {
-                    'width': this.formatOptions[this.format].w,
-                    'height': this.formatOptions[this.format].h
-                }
-            );
-        }
+        );
         
         this.autoRecordingQueue = [];
         this.autoRecordingQueueIdx = 0;
@@ -127,7 +107,8 @@ export default class Canvas {
         this.isAutoRecording = false;
         this.readyState = 0;
         this.textAmount = 0;
-		if(this.isThree) this.initThree();
+        this.fieldCounterparts = {};
+        this.setFieldCounterparts();
 		this.canvas_stream = this.canvas.captureStream(this.framerate); // fps
 	    try{
 	    	this.media_recorder = new MediaRecorder(this.canvas_stream, { mimeType: "video/mp4;codecs=avc1" }); // safari
@@ -143,42 +124,10 @@ export default class Canvas {
 	    	alert('This page works on browsers that support MediaRecorder only.');
             return false;
 	    }
-        for(let shape_id in this.shapes) {
-            if(!this.shapes[shape_id].initialized) {
-                this.shapes[shape_id].init(this);
-            }
-        }
-        this.initialized = true;
+        
         this.addWindowResizeListeners();
         this.addLoadedListeners();
         this.addCanvasResizeListeners();
-	}
-	initThree(){
-        let width =  this.formatOptions[this.format].w / this.devicePixelRatio;
-        let height =  this.formatOptions[this.format].h / this.devicePixelRatio;
-        this.canvas.style.width = `${width * this.devicePixelRatio}px`;
-        this.canvas.style.height = `${height * this.devicePixelRatio}px`;
-        this.canvas.style.transform = `scale(${this.scale / 2})`;
-        this.canvas.style.transformOrigin = `0 0`;
-        this.setRenderer();
-        this.scene = new THREE.Scene();
-		// this.aspect = 1;  // the canvas default
-        this.aspect = width / height;
-		// this.fov = 10;
-        this.fov = 10 / this.aspect;
-        this.setCamera();
-
-        /* if the window is dragged into a different screen... */
-        this.windowResizeListeners.push(()=>{
-            if(window.devicePixelRatio !== this.devicePixelRatio) {
-                this.initialized = false;
-                this.canvas.parentNode.removeChild(this.canvas);
-                this.init();
-                for(const shape of this.shapes)
-                    shape.init(this.canvas);
-            }
-		});
-        // window.addEventListener('resize', )
 	}
     createCanvas(){
         const canvas = document.createElement('canvas');
@@ -187,28 +136,7 @@ export default class Canvas {
         canvas.className = "org-main-canvas";
         return canvas;
     }
-    setRenderer(){
-        if(!this.initialized) {
-            this.renderer = new THREE.WebGLRenderer({
-                'canvas': this.canvas, 
-                'antialias': true,
-                'preserveDrawingBuffer': true 
-            });
-            this.renderer.setSize( this.canvas.width, this.canvas.height, false);
-            this.renderer.setPixelRatio( this.devicePixelRatio );
-            this.canvas.width = this.canvas.width / this.devicePixelRatio;
-            this.canvas.height = this.canvas.height / this.devicePixelRatio;
-        }
-        this.renderer.setSize( this.canvas.width / this.devicePixelRatio, this.canvas.height / this.devicePixelRatio, false);
-    }
-    setCamera(){
-        let z = this.canvas.width * 5.71 * this.devicePixelRatio;
-		this.near = z - this.canvas.width / this.scale * this.devicePixelRatio;
-		this.far = z + this.canvas.width / this.scale * this.devicePixelRatio;
-		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
-		this.camera.position.set(0, 0, z);
-        this.camera.updateProjectionMatrix();
-    }
+    
     updateAutoRecordingQueue()
     {
         let pattern = /\[(.*?)\]/g;
@@ -700,30 +628,6 @@ export default class Canvas {
         this.addListenersBottom();
     }
     addListenersTop(){
-    	let sBase = this.control_top.querySelector('.field-id-base');
-        if(sBase) {
-            sBase.onchange = function(e){
-                let sec = e.target.parentNode.parentNode;
-                const m_key = 'base-image';
-                if(e.target.value === 'upload') {
-					this.base = 'upload';
-                    this.media[m_key].show();
-					sec.classList.add('viewing-base-image-section');
-				} else {                    
-                    // delete this.media[key];
-                    this.media[m_key].hide();
-					this.colorPattern = null;
-					sec.classList.remove('viewing-base-image-section');
-					this.updateBase(e.target.value);
-                    if(this.counterpart)
-                        this.counterpart.updateBase(e.target.value);
-				}
-            }.bind(this);
-        }
-        // const key = 'base-image';
-        // const id = this.id + '-field-id-' + key;
-        // this.addMediaListener(key);
-	    
         let sCustomWidth = this.control_top.querySelector('#custom-width-input');
         if(sCustomWidth) sCustomWidth.onchange = () => {
             this.setCanvasSize({width: parseInt(sCustomWidth.value)}, null, false);
@@ -759,75 +663,6 @@ export default class Canvas {
             this.pdfSizePopup.setAttribute('data-hidden', 1);
         }
     }
-    // addMediaListener(key){
-	// 	if(!key) return;
-	// 	let input = this.fields.media[key];
-	// 	if(!input) console.error('media field doesnt exist: ', key);
-	// 	input.onclick = function (e) {
-	// 		e.target.value = null;
-	// 	}.bind(this);
-	// 	input.onchange = function(e){
-	// 		this.readImageUploaded(e, (key, image)=>{
-	// 			this.updateMedia(key, {obj:image});
-	// 		});
-	// 	}.bind(this);
-	// 	input.addEventListener('applySavedFile', (e)=>{
-	// 		// console.log('canvas applySavedFile');
-	// 		let idx = input.getAttribute('image-idx');
-    //         // if(idx === 'base-image' && this.base !== 'upload') {
-    //         //     console.log('not applying');
-    //         //     return;
-    //         // }
-	// 		let src = input.getAttribute('data-file-src');
-    //         // update Media here?
-	// 		this.readImage(idx, src, (idx, image)=>{
-    //             console.log('file read');
-	// 			input.classList.add('not-empty');
-	// 			this.updateMedia(idx, { obj: image});
-	// 		});
-	// 	});
-	// 	let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-	// 	if(scale_input) {
-	// 		scale_input.oninput = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			e.preventDefault();
-	// 			// let scale = e.target.value >= 1 ? e.target.value : 1;
-	// 			let scale = e.target.value;
-	// 			this.updateMediaScale(scale, key, isSilent);
-	// 		}.bind(this);
-	// 	}	
-	// 	let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-	// 	let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-	// 	if(shift_x_input) {
-	// 		shift_x_input.oninput = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionX(e.target.value, key, isSilent);
-	// 		}.bind(this);
-	// 		shift_x_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionX(shift.x, key, isSilent)
-	// 			this.updateMediaPositionY(shift.y, key, isSilent)
-	// 		});
-	// 	}
-	// 	if(shift_y_input) {
-	// 		shift_y_input.oninput = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionY(e.target.value, key, isSilent);
-	// 		}.bind(this);
-	// 		shift_y_input.onkeydown = e => this.updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionX(shift.x, key, isSilent)
-	// 			this.updateMediaPositionY(shift.y, key, isSilent)
-	// 		});
-	// 	}
-	// 	let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-	// 	if(blend_mode_input) {
-	// 		blend_mode_input.onchange = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaBlendMode(e.target.value, key, isSilent);
-	// 		}.bind(this);
-	// 	}
-	// }
     readImage(idx, src, cb) {
         let image = new Image();
         image.onload = function (e) {
@@ -838,82 +673,6 @@ export default class Canvas {
         };
         image.src = src;
     }
-    // readImageUploaded(event, cb){
-    //     let input = event.target;
-	// 	let idx = input.getAttribute('image-idx');
-
-    //     if (input.files && input.files[0]) {
-    //     	var FR = new FileReader();
-    //         FR.onload = function (e) {
-    //             this.readImage(idx, e.target.result, (idx, image)=>{
-    //                 input.classList.add('not-empty');
-    //                 if(typeof cb === 'function') cb(idx, image);
-    //             });
-    //         }.bind(this);
-    //         FR.readAsDataURL(input.files[0]);
-    //         input.parentNode.parentNode.classList.add('viewing-image-control');
-    //     }
-    // }
-    initMedia(){
-
-    }
-    // updateMedia(key, values){
-    //     let obj = values['obj'] ? values['obj'] : (this.media[key] ? this.media[key].obj : null);
-    //     console.log('updateMedia', key, values);
-    //     if(!obj) return false;
-	// 	if(!this.media[key]) {
-	// 		this.media[key] = this.initMedia(key, values);
-	// 	} else {
-    //         for(let prop in values) {
-    //             if(typeof this.media[key][prop] !== 'undefined')
-    //                 this.media[key][prop] = values[prop];
-    //         }
-    //     }
-	// }
-    // updateMediaScale(imgScale, key, silent = false){
-    //     console.log('canvas updateMediaScale', imgScale);
-    //     console.log(this.media[key]);
-    //     if(!this.media[key]) return;
-    //     if(!imgScale) imgScale = 1;
-    // 	this.media[key].scale = imgScale;
-    //     if(this.media[key].obj)
-    // 	    this.updateMedia(key, { obj: this.media[key].obj }, silent)
-    // };
-    // updateMediaPositionX(imgShiftX, idx, silent = false){
-    //     if(!this.media[idx]) return;
-    //     if(!imgShiftX) imgShiftX = 0;
-    // 	this.media[idx]['shift-x'] = parseFloat(imgShiftX);
-    //     if(this.media[idx].obj)
-    // 	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
-    // };
-    // updateMediaPositionY(imgShiftY, idx, silent = false){
-    //     if(!this.media[idx]) return;
-    //     if(!imgShiftY) imgShiftY = 0;
-    // 	this.media[idx]['shift-y'] = parseFloat(imgShiftY);
-    //     if(this.media[idx].obj)
-    // 	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
-    // };
-    // updateMediaBlendMode(mode, idx, silent=false){
-    //     if(!this.media[idx]) return;
-    // 	this.media[idx]['blend-mode'] = mode;
-    //     if(this.media[idx].obj)
-    // 	    this.updateMedia(idx, { obj: this.media[idx].obj }, silent)
-    // }
-    
-    updateBase(base){
-        // console.log('updateBase', base);
-        // let colorData = this.baseOptions[base];
-        // console.log(colorData);
-        // if( colorData['type'] == 'solid' || 
-        //     colorData['type'] == 'gradient')
-        // {
-
-        //     this.base = this.processStaticColorData(colorData);
-		// 	if(!silent) this.draw();
-        // }
-    	// // this.base = base;
-		// this.draw();
-	}
     updatePositionByKey(e, inputs, cb){
         if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
         e.preventDefault();
@@ -930,26 +689,17 @@ export default class Canvas {
         inputs.y.classList.add('pseudo-focused');
         if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
     }
-	// drawBase(){
-	// 	if(!this.isThree)
-    // 	{
-            
-            
-    // 	}
-    // 	else
-    // 	{
-    		
-    // 	}
-	// }
     draw(){
         console.log('canvas draw');
         this.drawBase();
-        for(let shape_id in this.shapes) {
-            this.shapes[shape_id].draw();
+        for(let shape of Object.values(this.shapes)) {
+            shape.draw();
+        }
+        for(let m of Object.values(this.media)) {
+            m.draw();
         }
     }
     animate(isSilent = false){
-        // isSilent = true;
         for(let shape_id in this.shapes) {
             let el = this.shapes[shape_id];
             if(this.isThree) el.initAnimate(el.animationName, isSilent);
@@ -967,13 +717,11 @@ export default class Canvas {
     addCounterpart(obj)
     {
         this.counterpart = obj;
-        // if(obj.isThree) this.downloadVideoButton.style.display = 'block';
     }
     changeFormat(event, currentFormat, toConfirm=true){
         let el = event ? event.target : this.control_wrapper.querySelector('.field-id-format');
         currentFormat = currentFormat ? currentFormat : el.value;
         let redirect = new URL(window.location.href);
-        // Set or update the 'format' parameter
         redirect.searchParams.set('format', el.value);
         redirect = redirect.toString();
         
@@ -1056,24 +804,102 @@ export default class Canvas {
 
     sync(){
         if(!this.counterpart) return;
-        if(this.fields['base'])
-            this.counterpart.fields['base'].selectedIndex = this.fields['base'].selectedIndex;
-        this.counterpart.fields['format'].value = this.fields['format'].value;
-        if(this.format === 'custom') {
-            this.counterpart.fields['custom-width-input'].value = this.fields['custom-width-input'].value;
-            this.counterpart.fields['custom-height-input'].value = this.fields['custom-height-input'].value;
-            this.counterpart.setCanvasSize({'width': this.fields['custom-width-input'].value, 'height': this.fields['custom-height-input'].value}, null, false);
-        } else {
-            this.counterpart.setCanvasSize({'width': this.canvas.width, 'height': this.canvas.height}, null, false);
-        }
+        for(const name in this.fieldCounterparts) {
+            console.log(name);
+			let field = this.fields[name];
+			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
+			if(!counterField || !field) continue;
+            this.updateCounterpartField(field, counterField);
+		}
         for(let shape_id in this.shapes) {
             let shape = this.shapes[shape_id];
             shape.sync();
         }
+        this.syncMedia();
+    }
+    updateCounterpartField(field, counter_field){
+        let tagName = field.tagName.toLowerCase();
+        if(tagName === 'select') {
+            let val = field.value;
+            if(val !== counter_field.value) {
+                let options = counter_field.querySelectorAll('option');
+                for(const [index, option] of options.entries()) {
+                    if(option.value === val) {
+                        this.updateCounterpartSelectField(counter_field, index);
+                        break;
+                    }
+                }
+            }
+        } else if(tagName === 'textarea' || tagName === 'input') {
+            let val = field.value;
+            if(!val) return;
+            counter_field.value = val;
+        }
+        counter_field.dispatchEvent(new CustomEvent('change', {detail: {isSilent: true, isSyncing: true}}));
+        counter_field.dispatchEvent(new CustomEvent('input',  {detail: {isSilent: true, isSyncing: true}}));
+    }
+    updateCounterpartSelectField(field, index) {
+        if(!this.counterpart) return;
+        let f = typeof field === 'string' ? this.counterpart.fields[field] : field;
+        if(!f) return false;
+        f.selectedIndex = index;
+    }
+    syncMedia(){
+        const m_key_pattern = /media\-\d+/;
+        for(const key in this.media) {
+            if(!this.media[key].isShapeColor && this.media[key].isEmpty) delete this.media[key];
+        }
+        this.media = this.reindexMedia();
+        this.counterpart.resetMedia();
+        for(const key in this.media) {
+            let counter_key = key.match(m_key_pattern) ? key : this.fieldCounterparts[key];
+            if(!counter_key) continue;
+            const media = this.media[key];
+            const props = media.getProps();
+            const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
+            props.x = calibrated_x;
+            props.y = calibrated_y;
+            if(this.counterpart.media[counter_key]) {
+                this.counterpart.media[counter_key].update(props);
+            } else {
+                this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
+            }
+            if(!media.isShapeColor) {
+                this.counterpart.addMediaSection(counter_key, '');
+            }
+        }
+    }
+    resetMedia(fieldOnly=false){
+        this.mediaIndex = 1;
+        if(fieldOnly) {
+            this.media = this.reindexMedia();
+        } else {
+            for(const key in this.media) {
+                const m = this.media[key];
+                if(m.isShapeColor) continue;
+                delete this.media[key];
+            }
+        }
+    }
+    reindexMedia(){
+        let index = 1;
+        let reindexed = {};
+        for(let key in this.media) {
+            const m = this.media[key];
+            if(m.isShapeColor) {
+                reindexed[key] = this.media[key];
+            } else {
+                const new_key = 'media-' + index;
+                const m = this.media[key];
+                m.updateKey(new_key);
+                reindexed[new_key] = m;
+                index++;
+            }
+        }
+        return reindexed;
     }
     setCanvasSize(size, callback, silent=true, rescale=false){
         let updated = false;
-
         if(size.width) {
             updated = true;
             this.canvas.width = size.width;
@@ -1182,7 +1008,31 @@ export default class Canvas {
         }
     }
     show(){
+        this.container.classList.remove('hidden');
         this.checkWrapperWidth();
+    }
+    hide(){
+        this.container.classList.add('hidden');
+    }
+    activate(){
+        if(this.active) return;
+        this.active = true;
+        this.show();
+        if(this.counterpart.active)
+            this.counterpart.hide();
+        this.draw();
+    }
+    deactivate(){
+        if(!this.active) return;
+        this.active = false;
+        this.sync();
+        this.hide();
+        // for(const shape of Object.values(this.shapes))
+        //     shape.sync();
+        if(!this.counterpart.active) {
+            this.counterpart.activate();
+        } else
+            this.counterpart.draw();
     }
     onSave(){
         // anything to clean up before saving?
