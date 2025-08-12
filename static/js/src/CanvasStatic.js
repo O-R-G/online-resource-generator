@@ -3,8 +3,8 @@ import MediaStatic from './MediaStatic.js'
 import { generateFieldId, convertAnimatedPostionToStatic } from './utils/lib.js';
 
 export default class CanvasStatic extends Canvas {
-    constructor(wrapper, format, prefix, options){
-        super(wrapper, format, prefix, options);
+    constructor(wrapper, format, prefix, options, active){
+        super(wrapper, format, prefix, options, active);
         this.isThree = false;
         this.media = {};
         this.scale = 2;
@@ -36,7 +36,6 @@ export default class CanvasStatic extends Canvas {
                     this.media[m_key].show();
 					sec.classList.add('viewing-base-image-section');
 				} else {                    
-                    // delete this.media[key];
                     this.media[m_key].hide();
 					this.colorPattern = null;
 					sec.classList.remove('viewing-base-image-section');
@@ -48,7 +47,6 @@ export default class CanvasStatic extends Canvas {
     initMedia(key, props={}, onUpload=null){
         if(!key) return null;
         const prefix = generateFieldId(this.id, key);
-        console.log('initMedia', this.canvas);
         return new MediaStatic(key, prefix, this.canvas, this.draw.bind(this), onUpload, this.mediaOptions, props);
     }
     setFieldCounterparts(){
@@ -123,5 +121,8 @@ export default class CanvasStatic extends Canvas {
 	}
     calibratePosition(x, y){
         return convertAnimatedPostionToStatic(x, y, this.canvas.width, this.canvas.height)
+    }
+    sync(){
+        super.sync();
     }
 }

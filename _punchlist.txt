@@ -80,4 +80,6 @@ x unify text-handling (main texts and watermarks)
 - handle base image and shape image in the prop media if the base is switched to a solid color better
 - three js mix blend mode for images
 - gradient doesn't work for base
+- when updated, make sure the triangle corner radius is half of the previous value
++ saved text doesnt show up
 + mobile css

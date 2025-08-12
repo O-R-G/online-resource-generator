@@ -5,20 +5,12 @@ import { generateFieldId, getValueByPixelRatio, convertStaticPostionToAnimated }
 import { createMesh, initMediaAnimated, processStaticColorData, generateGradient, generateGridPattern } from './utils/lib-animated.js';
 
 export default class CanvasAnimated extends Canvas {
-    constructor(wrapper, format, prefix, options, isThree = false){
-        super(wrapper, format, prefix, options, isThree);
+    constructor(wrapper, format, prefix, options, active){
+        super(wrapper, format, prefix, options, active);
         this.isThree = true;
         this.scale = 1;
         this.mesh_base = createMesh('mesh_base');
-        let path = this.drawRectanglePath();
-        console.log(path);
-        // this.mesh_front.geometry = 
-        this.mesh_base.geometry = new THREE.ShapeGeometry(path);
         this.mesh_base.renderOrder = 0;
-        // this.mesh_base.position.z = -1;
-        this.scene_base = new THREE.Scene();
-        this.scene_camera = new THREE.Camera();
-        this.scene_base.add(this.mesh_base);
         if(this.baseOptions['upload'])
 			this.media['base-image'] = this.initMedia('base-image', {mesh: {front: this.mesh_base, back: null}, isShapeColor: true, 'fit': 'cover'});
 	}
@@ -30,15 +22,17 @@ export default class CanvasAnimated extends Canvas {
         this.canvas.style.width = `${width * this.devicePixelRatio}px`;
         this.canvas.style.height = `${height * this.devicePixelRatio}px`;
         this.canvas.style.transform = `scale(${this.scale / 2})`;
-        this.canvas.style.transformOrigin = `0 0`;
-        
-        // this.mesh_base.geometry = new THREE.PlaneGeometry(this.canvas.width, this.canvas.height)
-        
+        this.canvas.style.transformOrigin = `0 0`;        
         this.setRenderer();
         this.scene = new THREE.Scene();
-        this.aspect = width / height;
+        this.scene_base = new THREE.Scene();
+        this.aspect = width / height; 
         this.fov = 10 / this.aspect;
         this.setCamera();
+        this.scene_base.add(this.mesh_base);
+        let path = this.drawRectanglePath();
+        this.mesh_base.geometry = new THREE.ShapeGeometry(path);
+        
 
         /* if the window is dragged into a different screen... */
         this.windowResizeListeners.push(()=>{
@@ -72,32 +66,20 @@ export default class CanvasAnimated extends Canvas {
     initMedia(key, props={}, onUpload=null){
         if(!key) return null;
         const prefix = generateFieldId(this.id, key);
-        console.log('initMedia', this.canvas);
         return initMediaAnimated(key, prefix, this.canvas, this.draw.bind(this), onUpload, this.mediaOptions, props);
     }
     updateBase(color, silent = false){
-        // const base_field = this.fields['base'];
-		// let sec = base_field.parentNode.parentNode;
-        console.log('updateBase', color);
-		if(color === 'upload') {
-            
-			// sec.classList.add('viewing-shape-image-section');
+        if(color === 'upload') {
             this.media['base-image'].show();
             this.base = 'upload';
-		} else  {
-			// sec.classList.remove('viewing-shape-image-section');
-            this.base = color.code;
+		} else {
             this.media['base-image'].hide();
-			// this.shapeMethod = 'draw';
-			// if(color['type'] == 'special') {
-			// 	this.mesh_base = this.processColor(color);
-			// } else  {
-			// 	if(this.mesh_base.material) 
-			// 		this.mesh_base.material.dispose();
-			// 	this.mesh_base.material = this.processColor(color);
-			// 	this.mesh_base.material.needsUpdate = true;
-			// }
-			
+            this.base = color;
+            if(color.type === 'gradient') {
+                this.mesh_base.material = this.processColor(color);
+            } else
+                this.base = color.code;
+            
 			if(!silent) this.draw();
 		}
 	}
@@ -108,7 +90,7 @@ export default class CanvasAnimated extends Canvas {
             output = new THREE.MeshBasicMaterial( params );
         }
         else if(color['type'] == 'gradient') {
-            output = generateGradient(this.mesh_front.geometry, color['code'], color['angle']);
+            output = generateGradient(this.mesh_base.geometry, color['code'], color['angle']);
         }
         else if(color['type'] == 'special') {
             if(color['colorName'].indexOf('blue-red') !== -1 ) {
@@ -117,77 +99,12 @@ export default class CanvasAnimated extends Canvas {
         }
         return output;
     }
-    applyImageAsMaterial(idx, mesh, silent){
-        const textureLoader = new THREE.TextureLoader();
-        return new Promise((resolve, reject) => {
-            textureLoader.load(this.media[idx].obj.src, (texture) => {
-                // Set texture filtering
-                console.log(texture.image);
-                texture.magFilter = THREE.LinearFilter;
-                texture.minFilter = THREE.LinearFilter;
-                texture.colorSpace = THREE.SRGBColorSpace;
-                let material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-                mesh.material = material;
-                mesh.needsUpdate = true;
-                let geometry = mesh.geometry;
-
-                const imageAspect = texture.image.width / texture.image.height;
-                geometry.computeBoundingBox();
-                const bbox = geometry.boundingBox;
-                const geomWidth = bbox.max.x - bbox.min.x;
-                const geomHeight = bbox.max.y - bbox.min.y;
-                const geometryAspect = geomWidth / geomHeight;
-
-                let scaleX = 1 / this.media[idx].scale;
-                let scaleY = 1 / this.media[idx].scale;
-
-                if (imageAspect > geometryAspect) {
-                    scaleX *= geometryAspect / imageAspect;
-                } else {
-                    scaleY *= imageAspect / geometryAspect;
-                }
-
-                const dev_x = this.media[idx].shiftX ? getValueByPixelRatio(this.media[idx].shiftX) * scaleX / geomWidth : 0;
-                const dev_y = this.media[idx].shiftY ? - getValueByPixelRatio(this.media[idx].shiftY) * scaleY / geomHeight : 0;
-                
-                const uvArray = [];
-                const position = geometry.attributes.position;
-                const max = bbox.max;
-                const min = bbox.min;
-
-                for (let i = 0; i < position.count; i++) {
-                    const x = position.getX(i);
-                    const y = position.getY(i);
-            
-                    let u = (x - min.x) / (max.x - min.x);
-                    let v = (y - min.y) / (max.y - min.y);
-                    u = u * scaleX + (1 - scaleX) / 2 - dev_x;
-                    v = v * scaleY + (1 - scaleY) / 2 + dev_y;
-
-                    // if (u < 0 || u > 1 || v < 0 || v > 1) {
-                    // 	u = Math.max(Math.min(u, 1), 0);
-                    // 	v = Math.max(Math.min(v, 1), 0);
-                    // }
-                    uvArray.push(u, v);
-                }
-
-                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-                geometry.attributes.uv.needsUpdate = true;
-                
-                if(!silent) this.draw();
-                resolve(material);
-            });
-        })
-    }
     drawBase(){
         if(this.base === 'upload') {
-            // console.log('adding mesh_base');
-            console.log(this.media['base-image'].mesh);
             this.scene_base.add(this.media['base-image'].mesh.front);
-        } else {   
-            // if(this.mesh_base.parent == this.scene) {
-            //     this.scene.remove(this.mesh_base);
-            // }
+        } else if(this.base.type == 'gradient'){
+             this.scene_base.add(this.mesh_base);
+        }else { 
             this.renderer.setClearColor( new THREE.Color(this.base));
         }
             
@@ -213,6 +130,10 @@ export default class CanvasAnimated extends Canvas {
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
 		this.camera.position.set(0, 0, z);
         this.camera.updateProjectionMatrix();
+
+        this.camera_base = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+		this.camera_base.position.set(0, 0, z);
+        this.camera_base.updateProjectionMatrix();
     }
     setFieldCounterparts(){
 		/* 
@@ -229,31 +150,25 @@ export default class CanvasAnimated extends Canvas {
         return convertStaticPostionToAnimated(x, y, this.canvas.width, this.canvas.height)
     }
     render(){
-        // In your render loop:
-        if(this.base === 'upload' && !this.media['base-image'].isEmpty) {
-            console.log('rendering base')
+        this.renderer.clear(true, true, true);
+        if( (this.base === 'upload' && !this.media['base-image'].isEmpty) || this.base.type === 'gradient' ) {
             this.renderer.autoClear = false;
-            this.renderer.clear();
-            this.renderer.render(this.scene_base, this.scene_camera);
-            console.log(this.scene_base);
-            // this.renderer.render(this.mainScene, this.mainCamera);
+            this.renderer.render(this.scene_base, this.camera_base);
+            this.renderer.clearDepth();
         }
         for(const shape of Object.values(this.shapes))
             this.renderer.render(shape.scene, shape.camera);
-        
+        this.renderer.autoClear = true;
     }
     draw(){
         super.draw();
         this.render();
     }
     drawRectanglePath(w,h){
-        w = w ? w : this.canvas.width;
-        h = h ? h : this.canvas.height;
-        console.log(w, h);
+        w = w ? w : getValueByPixelRatio(this.canvas.width);
+        h = h ? h : getValueByPixelRatio(this.canvas.height);
         const output = new THREE.Shape();
         let this_r = 0;
-
-        
         output.moveTo(0 - w / 2, 0 + h / 2 + this_r);
         output.lineTo(0 + w / 2, 0 + h / 2 + this_r);
         output.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);

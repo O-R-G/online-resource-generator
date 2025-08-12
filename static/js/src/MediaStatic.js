@@ -14,13 +14,13 @@ export default class MediaStatic extends Media{
         return super.render(parent);
     }
     generatePattern(context, canvas, frame){
+        console.log(frame)
+        if(!this.obj) return null;
         let temp = document.createElement('canvas');
         let temp_ctx = temp.getContext('2d');
         temp.width = canvas.width;
         temp.height = canvas.height;
-        console.log(`canvas size: ${canvas.width} x ${canvas.height}`);
         let final_scale = this.scale;
-        console.log(`this.scale: ${this.scale}`);
         const frame_ratio = frame.h / frame.w; 
         const media_ratio = this.obj.height / this.obj.width; 
         if(frame_ratio > media_ratio) {
@@ -53,7 +53,7 @@ export default class MediaStatic extends Media{
     	this.update({'blend-mode': value}, silent);
     }
     draw(){
-        if(!this.obj || this.isShapeColor) return;
+        if(!this.obj || this.isShapeColor || !this.isShown) return;
         const context = this.canvas.getContext('2d');
         context.globalCompositeOperation = this['blend-mode'] ? this['blend-mode'] : 'normal';
         context.drawImage(this.obj, (this.x + this['shift-x']), (this.y - this['shift-y']), this.obj.width * this.scale, this.obj.height * this.scale);

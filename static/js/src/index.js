@@ -10,7 +10,9 @@ import ORGFontLoader from "./ORGFontLoader.js";
 const main = document.getElementById('main');
 main.setAttribute('canvas-status', 'initializing');
 if(!main.getAttribute('format') || typeof formatOptions[main.getAttribute('format')] === 'undefined') main.setAttribute('format', Object.keys(formatOptions)[0]);
+
 async function init(data, cb){
+    let active_canvas = null;
     const fontLoader = new ORGFontLoader(fonts, '');
     let format = main.getAttribute('format');
     main.setAttribute('format', format);
@@ -53,11 +55,10 @@ async function init(data, cb){
             data[id]['canvas']['shapes'][Object.keys(data[id]['canvas']['shapes'])[i]].addCounterpart(c['canvas']['shapes'][Object.keys(c['canvas']['shapes'])[i]]);
         }
     }
-    const active_canvas = data[Object.keys(data)[0]]['canvas'];
-    active_canvas.activate();
-    // data[Object.keys(data)[0]]['canvas'].draw();
-    
-    // let uri = location.pathname.split('/');
+    if(!record_id) {
+        active_canvas = data[Object.keys(data)[0]]['canvas'];
+        active_canvas.activate();
+    }
     new Record(main, record_id, canvases);
     main.setAttribute('canvas-status', 'initialized');
     if(typeof cb === 'function') cb();
@@ -88,7 +89,6 @@ function loadCustomScripts(scriptsObj, hook, cb){
     let firstScript = document.querySelector('script');
     let count = 0;
     for(let item of scriptsObj[hook]) {
-        // console.log(localtion)
         let src = '/online-resource-generator/static/js/custom/' + item['name'] + '.js';
         let s = document.createElement('script');
         s.onload = ()=>{

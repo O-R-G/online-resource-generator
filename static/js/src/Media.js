@@ -10,7 +10,7 @@ export default class Media{
         this.onUpload = onUpload;
         this.options = options;
         this.isEmpty = true;
-        this.isShown = false;
+        this.isShown = true;
         this.elements = {};
         this.dom = null;
         this.shared_props = {
@@ -78,42 +78,12 @@ export default class Media{
         this.render();
         this.checkEmpty();
     }
-    syncMedia(){
-        const m_key_pattern = /media\-\d+/;
-        for(const key in this.media) {
-            if(!this.media[key].isShapeColor && this.media[key].isEmpty) delete this.media[key];
-        }
-        this.media = this.reindexMedia();
-        this.counterpart.resetMedia();
-        for(const key in this.media) {
-            let counter_key = key.match(m_key_pattern) ? key : this.fieldCounterparts[key];
-            if(!counter_key) continue;
-            const media = this.media[key];
-            const props = media.getProps();
-            const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
-            props.x = calibrated_x;
-            props.y = calibrated_y;
-            if(this.counterpart.media[counter_key]) {
-                console.log('updating...');
-                this.counterpart.media[counter_key].update(props);
-            } else {
-                console.log('not updating...');
-                console.log(this.counterpart.media);
-                this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
-            }
-            if(!media.isShapeColor) {
-                this.counterpart.addMediaSection(counter_key, '');
-            }
-        }
-    }
     update(props, silent){  
         for(const key in props) {
             if(typeof this.props_template[key] === 'undefined') continue;
             this[key] = props[key];
         }
         this.checkEmpty();
-        if(this.onUpdate === null)
-            console.log(this.key);
         if(!silent) this.onUpdate();
     }
     render(){
@@ -225,7 +195,6 @@ export default class Media{
         if(this.elements['shift-x'] && this.elements['shift-y'] ) {
             this.elements['shift-x'].onkeydown = e => updatePositionByKey(e, {x: this.elements['shift-x'], y: this.elements['shift-y']}, (shift)=>{
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-                // console.log('isSilent', isSilent);
 				this.updatePositionX(shift.x, isSilent)
 				this.updatePositionY(shift.y, isSilent)
 			});
@@ -279,7 +248,6 @@ export default class Media{
         }
     }
     show(){
-        console.log('show');
         this.isShown = true;
         const section = getAncestorByClass(this.dom, 'base-image-section');
         if(section)

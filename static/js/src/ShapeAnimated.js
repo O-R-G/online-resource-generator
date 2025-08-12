@@ -350,7 +350,7 @@ export default class ShapeAnimated extends Shape {
 	}
 	drawTrianglePath(){
 		const output = new THREE.Shape();
-		let this_r = this.cornerRadius / 2;
+		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		const w = Math.min(this.frame.w, this.frame.h);
 		
@@ -750,7 +750,7 @@ drawNone(){
 								txt.needsUpdate = true;
 								txt.sync();
 							}
-							this.renderer.render(this.scene, this.camera);
+							this.canvasObj.render();
 							synced = 0;
 						}
 					});
@@ -1253,17 +1253,13 @@ drawNone(){
 		}
 	}
 	actualDraw (animate = true){
-		// console.log('actualDraw');
-		
 		let sync = !animate;
-		// this.scene.add( this.group );
 		this.scene.add( this.group );
 		this.addExtraShapeMeshes(this.group_front, this.shapes_geometry_front, this.shapes_material_front);
 		this.addExtraShapeMeshes(this.group_back, this.shapes_geometry_back, this.shapes_material_back, true);
 
-		if(this.frontWatermarkGroup.parent !== this.group_front) {
+		if(this.frontWatermarkGroup.parent !== this.group_front) 
 			this.group_front.add(this.frontWatermarkGroup);
-		}
 			
 		if(this.backWatermarkGroup.parent !== this.group_back)
 			this.group_back.add(this.backWatermarkGroup);
@@ -1314,18 +1310,14 @@ drawNone(){
 			if(this.mesh_front.parent !== this.group_front)
 				this.group_front.add(this.mesh_front);
 		}
-		// console.log(this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload')
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
-			console.log(this.media);
 			if(this.media['front-background-image']) {
-				console.log('drawShape 2')
 				this.media['front-background-image'].draw();
 			}
 		}
 		if(this.fields['shape-back-color'] && this.fields['shape-back-color'].value === 'upload') {
 			if(this.media['back-background-image']) {
 				this.media['back-background-image'].draw();
-				// this.updateMedia('back-background-image', { obj: this.media['back-background-image'].obj}, false, false);
 			}
 		}
 		this.drawImages();
@@ -1341,14 +1333,10 @@ drawNone(){
 	}
 	
 	draw (animate = true){
-		// console.log('animated draw()')
-		// console.log(this.fields);
-		// console.log(this.fields['shape-front-color'].value);
 		this.resetGroups();
 		this.resetAnimation();
 		this.isForward = true;
 		this.drawShape();
-		// this.updateFrontColor();
 		this.actualDraw(animate);
 	}
 	addExtraShapeMeshes(main_mesh, geometry_arr, metarial_arr, isBack = false){
@@ -1378,7 +1366,7 @@ drawNone(){
 		this.startTime = null;
 		this.timer_delaySaveVideo = null;
         this.easeAngleInterval = this.easeAngleInitial;
-        this.renderer.render( this.scene, this.camera );
+        this.canvasObj.render();
 	}
 	resetGroups(){
 		this.disposeHierarchy(this.group_front);
@@ -1513,7 +1501,6 @@ drawNone(){
 		// 	}
 		// }
 		let isAllNone = Object.keys(this.canvasObj.shapes).filter((key)=> this.canvasObj.shapes[key].animationName !== 'none' ).length === 0;
-		console.log('isAllNone', isAllNone);
 		if(syncing) return; 
 		if(isAllNone) {
 			this.canvasObj.deactivate();
@@ -1641,7 +1628,7 @@ drawNone(){
 		} else {
 			this.resetGroups();
 		}
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 		if(!isSilent) this.animate(performance.now());
 	}
 	animate(timestamp){
@@ -1663,7 +1650,7 @@ drawNone(){
 		}
 	}
 	rest(progress){
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	spin(progress){
 		this.group_front.rotation.y = progress * Math.PI * 2;
@@ -1687,7 +1674,7 @@ drawNone(){
 	  		}
 	  	}
 
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	// spinEase(){
 	// 	this.timer = requestAnimationFrame( this.spinEase.bind(this) );
@@ -1719,7 +1706,7 @@ drawNone(){
 	//   		}
 	//   	}
 
-	//     this.renderer.render( this.scene, this.camera );
+	//     this.canvasObj.render();
 	// }
 	flip(progress){
 		this.group_front.rotation.x = progress * Math.PI * 2;
@@ -1744,7 +1731,7 @@ drawNone(){
 	  		}
 	  	}
 		this.canvasObj.render();
-		// this.renderer.render( this.scene, this.camera );
+		// this.canvasObj.render();
 	}
 	flipEase(){
 		this.timer = requestAnimationFrame( this.flipEase.bind(this) );
@@ -1775,12 +1762,12 @@ drawNone(){
 	  			this.group.remove( this.group_back );
 	  		}
 	  	}
-	    this.renderer.render( this.scene, this.camera );
+	    this.canvasObj.render();
 	}
 	rotate(progress){
 		this.group_front.rotation.z = -progress * Math.PI * 2;
 		this.group_back.rotation.z  = -progress * Math.PI * 2;
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	rotateEaseOut(progress){
 		if(progress >= 1) {
@@ -1800,7 +1787,7 @@ drawNone(){
 			this.group_back.rotation.z = angle;
 		}
 
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	easeOutCubic(t){
 		return 1 - Math.pow(1 - t, 3);
@@ -1811,7 +1798,7 @@ drawNone(){
 	rotateBackward(progress){
 		this.group_front.rotation.z = progress * Math.PI * 2;
 		this.group_back.rotation.z  = progress * Math.PI * 2;
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	rotateBackwardEaseOut(progress){
 		if(progress >= 1) {
@@ -1831,7 +1818,7 @@ drawNone(){
 			this.group_back.rotation.z = angle;
 		}
 
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	fadeIn(progress){
 		// let fade_finish = this.fadeInDelay / this.animationSpeed / this.animationDuration;
@@ -1858,7 +1845,7 @@ drawNone(){
 				}
 			});
 		}
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
 	fadeOut(progress){
 		let delay_progress = this.fadeOutDelayBase / this.animationSpeed / this.animationDuration;
@@ -1880,7 +1867,7 @@ drawNone(){
 				}
 			});
 		}
-		this.renderer.render( this.scene, this.camera );
+		this.canvasObj.render();
 	}
     checkWatermarkPosition(position, label){
     	super.checkWatermarkPosition(position, label);

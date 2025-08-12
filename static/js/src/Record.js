@@ -148,11 +148,7 @@ export default class Record {
             }
                 
             let canvas_data = this.record_body[canvas_id];
-            let isThree = canvas_data['isThree'];
             let active = canvas_data['active'];
-
-            // if(isThree && active) document.body.classList.add('viewing-three');
-            // if(!active) 
             if(active) {
                 active_canvas = this.canvasObjs[canvas_id];
                 this.canvasObjs[canvas_id].show();
@@ -173,6 +169,7 @@ export default class Record {
                 if (!common_control) continue;
                 let fields = data['fields'];
                 for (let field of fields) {
+                    
                     if(!field['id']) continue;
                     let field_element = common_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
@@ -189,12 +186,18 @@ export default class Record {
                     if (field_element.tagName.toLowerCase() == 'textarea') 
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
+                        if(field.id === 'animated-canvas-field-id-base')
+                            console.log('yaya', field_element.value);
                         for(let i = 0; i < field_element.options.length; i++) {
+                            if(field.id === 'animated-canvas-field-id-base')
+                                console.log(field_element.options[i].value);
                             if (field_element.options[i].value === field_element.value) {
                                 field_element.selectedIndex = i;
                                 break;
                             }
                         }
+                        if(field.id === 'animated-canvas-field-id-base')
+                            console.log('yaya', field_element.selectedIndex);
                     }
 
                     if(active) active_canvas_fields.push(field_element);
@@ -222,7 +225,6 @@ export default class Record {
                     }
                     let field_element = shape_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
-                    
                     if(field_element.type === 'file') {
                         if(this.record_body['images'][field_element.id]) {
                             this.applySavedFile(field_element, shapeObj);
@@ -249,11 +251,10 @@ export default class Record {
                 }
             }
         }
-        // console.log(this.record_body['images']);
         if(this.record_body['images']) {
             for(let field_id in this.record_body['images'] ){
                 let el = document.getElementById(field_id);
-                // console.log(el)
+                console.log(el)
                 if(!el) continue;
                 this.applySavedFile(el);
     
@@ -269,15 +270,16 @@ export default class Record {
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
             field_element.dispatchEvent(new CustomEvent('input', {'detail': {'isSilent': true}}));
         }
-       
-        active_canvas.draw();
+        console.log(active_canvas);
+        active_canvas.activate();
+        // active_canvas.draw();
     }
-    applySavedFile(input, shapeObj){
+    applySavedFile(input){
         
         let idx = input.getAttribute('image-idx');
         let id = input.id;
         let src = this.record_body['images'][id];
-        
+        console.log(src);
         if(!src) return false;
         src = media_relative_root + src;
         input.setAttribute('data-file-src', src);
@@ -315,7 +317,7 @@ export default class Record {
             let isThree = container.getAttribute('data-is-three') == 'true';
             record_body[canvas_id] = {
                 isThree: isThree,
-                active: (document.body.classList.contains('viewing-three') && isThree) || (!document.body.classList.contains('viewing-three') && !isThree),
+                active: container.classList.contains('active'),
                 'common-controls': {},
                 'shape-controls': {},
             }
@@ -354,12 +356,6 @@ export default class Record {
                     } else {
                         if(!field.value) continue;
                         data['fields'].push(this.formatField(field));
-                        if ( (!document.body.classList.contains('viewing-three') && field.classList.contains('field-id-text')) ||
-                             (document.body.classList.contains('viewing-three') && field.classList.contains('field-id-text-front')) 
-                        ) {
-                            record_name = field.value;
-                        }
-                            
                     }
                     
                 }
@@ -367,6 +363,7 @@ export default class Record {
             }
             let common_controls = container.querySelectorAll('.common-control');
             for(let common_control of common_controls) {
+                
                 let data = {
                     'id': common_control['id'],
                     'type': 'common_control',
@@ -375,11 +372,14 @@ export default class Record {
                     'add_second_shape_button': null
                 }
                 let fields = common_control.querySelectorAll('select, input, textarea');
+
                 for(let field of fields) {
                     if(field.classList.contains('second-shape-button')) {
                         record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
                         continue;
                     }
+                    if(field.id === 'animated-canvas-field-id-base')
+                        console.log('yaya', field.value);
                     if(field.type === 'file') {
                         // console.log(field.id);
                         if(field.files.length > 0) {
@@ -399,9 +399,7 @@ export default class Record {
                 record_body[canvas_id]['common-controls'][common_control['id']] = data;
             }
         }
-        // console.log(record_body['images']);
-        record_body = JSON.stringify(record_body);
-        
+        record_body = JSON.stringify(record_body);        
         formData.append('record_body', record_body);
         formData.append('record_name', record_name);
         formData.append('record_id', this.record_id);

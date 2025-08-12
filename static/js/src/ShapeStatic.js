@@ -29,6 +29,7 @@ export default class ShapeStatic extends Shape {
 		this.timer_position = null;
 		this.timer_shape = null;
 		this.customGraphic = [];
+		this.shapeArea = {x: 0, y: 0, w: 0, h: 0};
 		this.initRecording = false;
 		this.canvas = canvasObj.canvas;
 		if(this.options.colorOptions['upload']) {
@@ -899,9 +900,8 @@ export default class ShapeStatic extends Shape {
 			w = side - paddingX * 2;
 			h = side - paddingY * 2;
 		}
+		console.log(w, h);
 		this.updateSize(w, h);
-		// let w = this.size.width;
-		// let h = this.size.height;
 		ctx = ctx ? ctx : this.context;
 		this.context.beginPath();
         this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + this.cornerRadius, this.cornerRadius, Math.PI, 3 * Math.PI / 2);
@@ -909,6 +909,13 @@ export default class ShapeStatic extends Shape {
         this.context.arc((this.shapeCenter.x - w / 2) + w - this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, 0, Math.PI / 2);
         this.context.arc((this.shapeCenter.x - w / 2) + this.cornerRadius, (this.shapeCenter.y - h / 2) + h - this.cornerRadius, this.cornerRadius, Math.PI / 2, Math.PI);
         this.context.closePath();
+
+		this.shapeArea = {
+			x: this.shapeCenter.x - w / 2,
+			y: this.shapeCenter.y - h / 2,
+			w: w,
+			h: h
+		}
 	}
 	
 	drawCircle(){
@@ -927,11 +934,19 @@ export default class ShapeStatic extends Shape {
 		this.context.arc(this.shapeCenter.x, this.shapeCenter.y, r, 0, 2 * Math.PI, true);
 		this.context.closePath();
 		this.updateSize(r, r);
+		this.shapeArea = {
+			x: this.shapeCenter.x - r,
+			y: this.shapeCenter.y - r,
+			w: r * 2,
+			h: r * 2
+		}
 	}
 	drawTriangle(){
         this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
         this.drawTrianglePath();
+		
         this.context.fill();
+		this.drawTrianglePathWithoutCornerRadius();
     }
     clipTriangle(){
         this.drawTrianglePath();
@@ -939,32 +954,72 @@ export default class ShapeStatic extends Shape {
     }
 	drawTrianglePath(){
 		let this_padding = this.padding;
+		console.log(this.cornerRadius);
 		let w = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
         let h = w * 1.732 / 2 ;
+		console.log(w, h);
+		this.updateSize(w, h);
         let trangleCenter = {
         	x: this.shapeCenter.x,
         	y: this.shapeCenter.y + h / 8 // not sure why it's h/8... should be h/6?
         }
-		this.updateSize(w, h);
+		
 		this.textBoxWidth = (w - this.innerPadding.x * 2) * 0.6;
 		this.context.beginPath();
         this.context.arc(
-			trangleCenter.x - w / 2 + this.cornerRadius * 1.732 / 2, 
-			trangleCenter.y + h / 3 - this.cornerRadius / 2, 
-			this.cornerRadius / 2, 
+			trangleCenter.x - w / 2 + this.cornerRadius * 1.732, 
+			trangleCenter.y + h / 3 - this.cornerRadius, 
+			this.cornerRadius, 
 			Math.PI / 2, 7 * Math.PI / 6
 		);
         this.context.arc(
 			trangleCenter.x, 
-			trangleCenter.y - h * 2 / 3 + this.cornerRadius, 
-			this.cornerRadius / 2, 7 * Math.PI / 6, 11 * Math.PI / 6);
+			trangleCenter.y - h * 2 / 3 + this.cornerRadius * 2, 
+			this.cornerRadius, 7 * Math.PI / 6, 11 * Math.PI / 6
+		);
         this.context.arc(
-			trangleCenter.x + w / 2 - this.cornerRadius * 1.732 / 2, 
-			trangleCenter.y + h / 3 - this.cornerRadius / 2, 
-			this.cornerRadius / 2, 
+			trangleCenter.x + w / 2 - this.cornerRadius * 1.732, 
+			trangleCenter.y + h / 3 - this.cornerRadius, 
+			this.cornerRadius, 
 			11 * Math.PI / 6, Math.PI / 2
 		);
         this.context.closePath();
+
+		let real_w = (w / 2 - this.cornerRadius * 1.732 + this.cornerRadius) * 2,
+			real_h = h - this.cornerRadius;
+		this.shapeArea = {
+			x: this.shapeCenter.x - real_w / 2,
+			y: trangleCenter.y - h * 2 / 3 + this.cornerRadius,
+			w: real_w,
+			h: real_h
+		}
+	}
+	drawTrianglePathWithoutCornerRadius(){
+		let this_padding = this.padding;
+		console.log(this.cornerRadius);
+		let w = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
+        let h = w * 1.732 / 2 ;
+		console.log(w, h);
+		let trangleCenter = {
+        	x: this.shapeCenter.x,
+        	y: this.shapeCenter.y + h / 8 // not sure why it's h/8... should be h/6?
+        }
+		this.context.beginPath();
+        this.context.moveTo(
+			trangleCenter.x - w / 2, 
+			trangleCenter.y + h / 3
+		);
+		this.context.lineTo(
+			trangleCenter.x, 
+			trangleCenter.y - h * 2 / 3
+		);
+		this.context.lineTo(
+			trangleCenter.x + w / 2, 
+			trangleCenter.y + h / 3 
+		);
+		this.context.closePath();
+		this.context.strokeStyle = '#0f0';
+		this.context.stroke();
 	}
 	drawHeart() {
 		let this_padding = this.padding;
@@ -1168,7 +1223,7 @@ export default class ShapeStatic extends Shape {
 
 	draw(){
 		if(this.color === 'upload') {
-			this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.frame);
+			this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.shapeArea);
 		}
 		if(this.shapeMethod == 'draw')
 		{
@@ -1476,10 +1531,5 @@ export default class ShapeStatic extends Shape {
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}
-	
-	
-	// getDisplayValue(input){
-	// 	return input / this.canvasObj.scale;
-	// }
 }
 

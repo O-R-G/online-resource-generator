@@ -690,7 +690,6 @@ export default class Canvas {
         if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
     }
     draw(){
-        console.log('canvas draw');
         this.drawBase();
         for(let shape of Object.values(this.shapes)) {
             shape.draw();
@@ -805,7 +804,6 @@ export default class Canvas {
     sync(){
         if(!this.counterpart) return;
         for(const name in this.fieldCounterparts) {
-            console.log(name);
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
 			if(!counterField || !field) continue;
@@ -1009,17 +1007,18 @@ export default class Canvas {
     }
     show(){
         this.container.classList.remove('hidden');
+        this.container.classList.add('active');
         this.checkWrapperWidth();
     }
     hide(){
         this.container.classList.add('hidden');
+        this.container.classList.remove('active');
     }
     activate(){
         if(this.active) return;
         this.active = true;
         this.show();
-        if(this.counterpart.active)
-            this.counterpart.hide();
+        this.counterpart.deactivate();
         this.draw();
     }
     deactivate(){
@@ -1027,12 +1026,7 @@ export default class Canvas {
         this.active = false;
         this.sync();
         this.hide();
-        // for(const shape of Object.values(this.shapes))
-        //     shape.sync();
-        if(!this.counterpart.active) {
-            this.counterpart.activate();
-        } else
-            this.counterpart.draw();
+        this.counterpart.activate();
     }
     onSave(){
         // anything to clean up before saving?

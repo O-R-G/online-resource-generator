@@ -14,15 +14,12 @@ export default class MediaAnimated extends Media{
         this.init(props);
     }
     update(props, silent=false){
-        console.log('animated m update', silent);
         super.update(props, silent);
-        
     }
     render(parent){
         return super.render(parent);
     }
     async applyImageAsMaterial(){
-        console.log('applyImageAsMaterial', this.key);
         const textureLoader = new THREE.TextureLoader();
         return new Promise((resolve, reject) => {
             try{
@@ -156,13 +153,12 @@ export default class MediaAnimated extends Media{
     }
     
     async draw(){
-        if(!this.obj) return;
+        if((!this.obj && !this.src) || !this.isShown) return;
         if(this.isVideo) {
             this.applyVideoAsMaterial();
         }
         else {
             await this.applyImageAsMaterial()
-            // if(!silent) this.canvasObj.draw();
         }
     }
 }
