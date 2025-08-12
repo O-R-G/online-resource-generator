@@ -63,23 +63,24 @@ x unify text-handling (main texts and watermarks)
 + shape "angoli" for animated shapes
 + custom base image can not be saved
 - update old database: media-1-shift-x => static-shape-0-field-id-media-1-shift-x
-- make sure the key of base in the saved records is a word instead of a hex code
++ make sure the key of base in the saved records is a word instead of a hex code
 + pdf generation is not working
 + update the text of the "Choose file" button when a file has been selected
 + make media work for the animated canvas
 + wrong watermark position for animated angolo
 + weird white edge of animated angolo
 + sync media
-  - shape color media can't be synced because applyImageAsMaterial() is called before draw() so the geometry is a BufferGeometry. 
-  - sync media values (shift-x, shift-y, etc.)
+  + shape color media can't be synced because applyImageAsMaterial() is called before draw() so the geometry is a BufferGeometry. 
+  + sync media values (shift-x, shift-y, etc.)
 + the watermark placement changes also on teiger when you switch to animated threejs canvas.
 - when the input is cleaned, rotate doesnt update
 + scale, x, and y of media doesn't work after saving
 + media-removing button removes all the custom media fields
 + apply the updates on the media fields to the animated shape and canvas.
-- handle base image and shape image in the prop media if the base is switched to a solid color better
++ handle base image and shape image in the prop media if the base is switched to a solid color better
 - three js mix blend mode for images
-- gradient doesn't work for base
++ gradient doesn't work for base
 - when updated, make sure the triangle corner radius is half of the previous value
+- angolo corner doesn't show up when the shape color is an image on animated shapes
 + saved text doesnt show up
 + mobile css
