@@ -750,12 +750,10 @@ export class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		let temp = str.split('\n');
-		// console.log(str);
+		
 		for(let i = 0; i < temp.length; i++) {
 			const segments = this.getSegments(temp[i], color);
-			// console.log('segments', segments);
 			let lns = this.breakSegmentsIntoLinesByWidth(segments, this.textBoxWidth);
-			// console.log(lns);
 			for(let l of lns) output.push(l);
 		}
 		return output;
@@ -768,11 +766,8 @@ export class ShapeStatic extends Shape {
 		let temp, seg_color, seg_style;
 		let isSorting = true;
 		const words = [];
-		// console.log(segments);
 		for(let i = 0; i < segments.length; i++) {
 			let seg = segments[i];
-			// let words_temp = seg['content'].split(' ').filter((word)=>{ return word !== ''; });
-			// console.log(seg, words_temp);
 			let words_temp = seg['content'].split(' ');
 			for(let j = 0; j < words_temp.length; j++) {
 				const word_temp = words_temp[j];
@@ -794,16 +789,12 @@ export class ShapeStatic extends Shape {
 		for(let i = 0; i < words.length; i++ ) {
 			const word = words[i];
 			temp = line ? line + ' ' + word['content'] : word['content'];
-			// if(word['content'] === 'qweee') console.log(temp);
 			this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
 			let m = this.context.measureText(temp);
-			if(word['content'] === '') console.log(line);
 			if( m.width <= width ) { 
 				line = line ? line + ' ' + word['content'] : word['content'];
 				
 				seg_unit.content += word['content'] === '' ? ' ' : (seg_unit.content ? ' ' + word['content'] : word['content']);
-				// if(word === '') console.log(seg_unit.content)
-				// if(word['content'] === 'qweee') console.log('qweee', seg_unit);
 				line_unit.width = m.width;
 				if((  i !== words.length - 1 && (seg_unit['color'] != words[i+1]['color'] || seg_unit['style'] != words[i+1]['style'])  )) {
 					line_unit['segs'].push(seg_unit);
@@ -816,11 +807,11 @@ export class ShapeStatic extends Shape {
 				}
 				continue;
 			}
-			
-			line_unit['segs'].push(seg_unit);
-			output.push(line_unit);
+			if(seg_unit['content'] !== '') {
+				line_unit['segs'].push(seg_unit);
+				output.push(line_unit);
+			}
 			seg_unit = word;
-			
 			line = word['content'];
 			temp = line;
 			m = this.context.measureText(temp);
