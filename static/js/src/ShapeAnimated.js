@@ -9,12 +9,14 @@ import { createMesh, createGroup, initMediaAnimated, processStaticColorData, gen
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
 		super(prefix, canvasObj, options, format, shape_index);
-		this.group_front = createGroup('group_front');
+		this.group_front = createGroup('group-front');
 		this.group_front.renderOrder = 2;
-		this.mesh_front = createMesh('mesh_front');
+		this.group_front_shape = createGroup('group-front-shape');
+		this.mesh_front = createMesh('mesh-front');
 		this.mesh_front.material = this.processColor(Object.values(this.options.colorOptions)[0].color);
 		this.mesh_front.initialized = true;
-		this.group_front.add(this.mesh_front);
+		this.group_front_shape.add(this.mesh_front);
+		this.group_front.add(this.group_front_shape);
 		this.secondary_mesh_front = null;
 		
 		this.shapes_mesh_front = {};
@@ -26,11 +28,13 @@ export default class ShapeAnimated extends Shape {
 		this.frontFont = this.getDefaultOption(this.options.fontOptions);
 		this.frontTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 		
-		this.group_back = createGroup('group_back');
-		this.mesh_back = createMesh('mesh_back');
+		this.group_back = createGroup('group-back');
+		this.group_back_shape = createGroup('group-back-shape');
+		this.mesh_back = createMesh('mesh-back');
 		this.mesh_back.material = this.processColor(Object.values(this.options.colorOptions)[1].color);
 		this.mesh_back.initialized = true;
-		this.group_back.add(this.mesh_back);
+		this.group_back_shape.add(this.mesh_back);
+		this.group_back.add(this.group_back_shape);
 		this.mesh_arr_back = [];
 		// this.geometry_back_uvs = null;
 		this.mesh_back_text = null;
@@ -118,7 +122,7 @@ export default class ShapeAnimated extends Shape {
 		this.scale = new THREE.Vector3(1, 1, 1);
 		this.group = createGroup('main-group');
 		this.group.renderOrder = 2;
-		this.setGroupPosition();
+		this.setShapeGroupPosition();
 		this.drawShape();
 		this.renderControl();
 	    this.addListeners();
@@ -956,7 +960,7 @@ drawNone(){
 		x = x === '' ? 0 : parseFloat(x);
 		if(isNaN(x)) return;
 		this.shapeShiftX = x;
-		this.setGroupPosition();
+		this.setShapeGroupPosition();
         if(!silent) this.canvasObj.draw();
     }
 	updateShapeShiftY(y, silent = false){
@@ -964,7 +968,7 @@ drawNone(){
 		if(isNaN(y)) return;
 		// y = getValueByPixelRatio(y);
 		this.shapeShiftY = y;
-		this.setGroupPosition();
+		this.setShapeGroupPosition();
         if(!silent) this.canvasObj.draw();
     }
 	processColor(color)
@@ -1255,21 +1259,20 @@ drawNone(){
 	actualDraw (animate = true){
 		let sync = !animate;
 		this.scene.add( this.group );
-		this.addExtraShapeMeshes(this.group_front, this.shapes_geometry_front, this.shapes_material_front);
-		this.addExtraShapeMeshes(this.group_back, this.shapes_geometry_back, this.shapes_material_back, true);
+		
 
-		if(this.frontWatermarkGroup.parent !== this.group_front) 
-			this.group_front.add(this.frontWatermarkGroup);
+		if(this.frontWatermarkGroup.parent !== this.group_front_shape) 
+			this.group_front_shape.add(this.frontWatermarkGroup);
 			
-		if(this.backWatermarkGroup.parent !== this.group_back)
-			this.group_back.add(this.backWatermarkGroup);
+		if(this.backWatermarkGroup.parent !== this.group_back_shape)
+			this.group_back_shape.add(this.backWatermarkGroup);
 		this.mesh_front_text = this.write( this.frontText, this.frontTypography, this.material_front_text, this.frontTextPosition, this.animationName, false, null, this.frontFont, 0, sync );
 		if(this.mesh_front_text) {
-			this.group_front.add(this.mesh_front_text)
+			this.group_front_shape.add(this.mesh_front_text)
 		}
 		this.mesh_back_text = this.write( this.backText, this.backTypography, this.material_back_text, this.backTextPosition, this.animationName, true, null, this.backFont, 0, sync );
 		if(this.mesh_back_text) {
-			this.group_back.add(this.mesh_back_text);
+			this.group_back_shape.add(this.mesh_back_text);
 		}
 		if( this.shape.watermarkPositions !== undefined)
 		{
@@ -1294,10 +1297,9 @@ drawNone(){
 		
 		if(this.animationName == 'none') return;
 		let animationName = animate ? this.animationName : 'rest-front';
-		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group_back) {
+		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group_back_shape) {
 			if(this.group_back.parent !== this.group)
-				this.group.add(this.group_back);
-			
+				this.group.add(this.group_back);	
 		}
 		else  {
 			if(this.group_front.parent !== this.group)
@@ -1305,10 +1307,14 @@ drawNone(){
 			
 		}
 		if(this.shape.base !== 'none') {
-			if(this.mesh_back.parent !== this.group_back)
-				this.group_back.add(this.mesh_back);
-			if(this.mesh_front.parent !== this.group_front)
-				this.group_front.add(this.mesh_front);
+			if(this.mesh_back.parent !== this.group_back_shape)
+				this.group_back_shape.add(this.mesh_back);
+			if(this.mesh_front.parent !== this.group_front_shape)
+				this.group_front_shape.add(this.mesh_front);
+			if(this.group_back_shape.parent !== this.group_back)
+				this.group_back.add(this.group_back_shape);
+			if(this.group_front_shape.parent !== this.group_front)
+				this.group_front.add(this.group_front_shape);
 		}
 		if( this.fields['shape-front-color'] && this.fields['shape-front-color'].value === 'upload'  ) {
 			if(this.media['front-background-image']) {
@@ -1320,6 +1326,9 @@ drawNone(){
 				this.media['back-background-image'].draw();
 			}
 		}
+		this.addExtraShapeMeshes(this.group_front_shape, this.shapes_geometry_front, this.shapes_material_front);
+		this.addExtraShapeMeshes(this.group_back_shape, this.shapes_geometry_back, this.shapes_material_back, true);
+		// console.log(this.mesh_front.children);
 		this.drawImages();
 		for(const key in this.media) {
 			if(this.media[key].isShapeColor) continue;
@@ -1328,8 +1337,8 @@ drawNone(){
 			if(this.media[key].mesh.back)
 				this.group_back.add(this.media[key].mesh.back);
 		}
+		
 		this.initAnimate(animationName);
-		 
 	}
 	
 	draw (animate = true){
@@ -2211,18 +2220,18 @@ drawNone(){
 			this.scene.remove(this.group);
 			this.group = createGroup('main-group');
 			this.group.renderOrder = 2;
-			this.setGroupPosition();
+			this.setShapeGroupPosition();
 		}
     	if(!silent) this.canvasObj.draw();
     }
-	setGroupPosition(){
-		this.group.position.x = getValueByPixelRatio(this.shapeShiftX);
+	setShapeGroupPosition(){
+		this.group_front_shape.position.x = getValueByPixelRatio(this.shapeShiftX);
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
 			// this.group.position.y = getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
-			this.group.position.y = getValueByPixelRatio(-this.shapeShiftY);
+			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY);
 		} else {
 			// this.group.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
-			this.group.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
+			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
 		}
 	}
 	generateShapeCenter(){

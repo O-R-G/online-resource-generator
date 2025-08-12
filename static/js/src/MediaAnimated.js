@@ -16,6 +16,9 @@ export default class MediaAnimated extends Media{
     update(props, silent=false){
         super.update(props, silent);
     }
+    sync(props, silent=false){
+        super.sync(props, silent);
+    }
     render(parent){
         return super.render(parent);
     }
@@ -79,6 +82,7 @@ export default class MediaAnimated extends Media{
                             mesh.material.needsUpdate = true;
                         }
                     } else {
+                        console.log('not shape color', this.key);
                         for(const key in this.mesh){
                             const mesh = this.mesh[key];
                             if(!mesh) continue;
@@ -95,7 +99,7 @@ export default class MediaAnimated extends Media{
                             
                             const dev_x = this['shift-x'] ? getValueByPixelRatio(this['shift-x']) * scaleX : 0;
                             const dev_y = this['shift-y'] ? - getValueByPixelRatio(this['shift-y']) * scaleY : 0;
-                            
+                            console.log('dev', dev_x, dev_y);
                             const position = geometry.attributes.position;
                             const max = bbox.max;
                             const min = bbox.min;
@@ -120,6 +124,7 @@ export default class MediaAnimated extends Media{
                             }
                             const x = (width - getValueByPixelRatio(this.canvas.width)) / 2 + dev_x,
                             y  = - (height - getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
+                            console.log('x', x);
                             mesh.position.x = x;
                             mesh.position.y = y;
                             mesh.material.needsUpdate = true;
@@ -153,6 +158,8 @@ export default class MediaAnimated extends Media{
     }
     
     async draw(){
+        if(this.key === 'front-background-image') console.log('front-background-image draw');
+        // console.log(this.key, this['shift-x'], this.x);
         if((!this.obj && !this.src) || !this.isShown) return;
         if(this.isVideo) {
             this.applyVideoAsMaterial();

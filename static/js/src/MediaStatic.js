@@ -10,11 +10,13 @@ export default class MediaStatic extends Media{
     update(props, silent=false){
         super.update(props, silent);
     }
+    sync(props, silent=false){
+        super.sync(props, silent);
+    }
     render(parent){
         return super.render(parent);
     }
     generatePattern(context, canvas, frame){
-        console.log(frame)
         if(!this.obj) return null;
         let temp = document.createElement('canvas');
         let temp_ctx = temp.getContext('2d');
@@ -28,8 +30,9 @@ export default class MediaStatic extends Media{
         } else {
             final_scale *= frame.w / this.obj.width;
         }
-        let final_width = this.obj.width * final_scale, final_height = this.obj.height * final_scale;
-        this.x = temp.width / 2 - final_width / 2 + this['shift-x'];
+        let final_width = this.obj.width * final_scale, 
+            final_height = this.obj.height * final_scale;
+        this.x = frame.w / 2 - final_width / 2 + this['shift-x'] + frame.x;
         this.y = frame.h / 2 - final_height / 2 - this['shift-y'] + frame.y;
         temp_ctx.drawImage(this.obj, this.x, this.y, final_width, final_height);
         return context.createPattern(temp, "no-repeat");

@@ -831,8 +831,9 @@ export default class Shape {
             const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
             props.x = calibrated_x;
             props.y = calibrated_y;
+            console.log(key, this.counterpart.media[counter_key]);
             if(this.counterpart.media[counter_key]) {
-                this.counterpart.media[counter_key].update(props);
+                this.counterpart.media[counter_key].sync(props, true);
             } else {
                 this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
             }

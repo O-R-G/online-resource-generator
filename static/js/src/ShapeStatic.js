@@ -869,24 +869,26 @@ export default class ShapeStatic extends Shape {
     	super.checkWatermarkPosition(position, label);
     }
 	drawRectangle(){
-		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
-            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
-        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
+		// if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+        //     this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+		// this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+        // this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawRectanglePath();
+		this.applyFillStyle();
         this.context.fill();
 	}
 	clipRectangle(ctx = null){
 		ctx = ctx ? ctx : this.context;
-		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
-            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-        this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+		// if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+        //     this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+        
 		this.drawRectanglePath();
         ctx.clip();
 	}
 	drawRectanglePath(ctx = null){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
         let paddingX = this.padding;
         let paddingY = this.padding;
 
@@ -900,7 +902,6 @@ export default class ShapeStatic extends Shape {
 			w = side - paddingX * 2;
 			h = side - paddingY * 2;
 		}
-		console.log(w, h);
 		this.updateSize(w, h);
 		ctx = ctx ? ctx : this.context;
 		this.context.beginPath();
@@ -919,8 +920,8 @@ export default class ShapeStatic extends Shape {
 	}
 	
 	drawCircle(){
-	    this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
-		this.drawCirclePath()
+		this.drawCirclePath();
+		this.applyFillStyle();
 	    this.context.fill();
 	}
 	clipCircle(){
@@ -942,11 +943,9 @@ export default class ShapeStatic extends Shape {
 		}
 	}
 	drawTriangle(){
-        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
         this.drawTrianglePath();
-		
+		this.applyFillStyle();
         this.context.fill();
-		this.drawTrianglePathWithoutCornerRadius();
     }
     clipTriangle(){
         this.drawTrianglePath();
@@ -954,10 +953,8 @@ export default class ShapeStatic extends Shape {
     }
 	drawTrianglePath(){
 		let this_padding = this.padding;
-		console.log(this.cornerRadius);
 		let w = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
         let h = w * 1.732 / 2 ;
-		console.log(w, h);
 		this.updateSize(w, h);
         let trangleCenter = {
         	x: this.shapeCenter.x,
@@ -994,49 +991,23 @@ export default class ShapeStatic extends Shape {
 			h: real_h
 		}
 	}
-	drawTrianglePathWithoutCornerRadius(){
-		let this_padding = this.padding;
-		console.log(this.cornerRadius);
-		let w = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
-        let h = w * 1.732 / 2 ;
-		console.log(w, h);
-		let trangleCenter = {
-        	x: this.shapeCenter.x,
-        	y: this.shapeCenter.y + h / 8 // not sure why it's h/8... should be h/6?
-        }
-		this.context.beginPath();
-        this.context.moveTo(
-			trangleCenter.x - w / 2, 
-			trangleCenter.y + h / 3
-		);
-		this.context.lineTo(
-			trangleCenter.x, 
-			trangleCenter.y - h * 2 / 3
-		);
-		this.context.lineTo(
-			trangleCenter.x + w / 2, 
-			trangleCenter.y + h / 3 
-		);
-		this.context.closePath();
-		this.context.strokeStyle = '#0f0';
-		this.context.stroke();
-	}
 	drawHeart() {
 		let this_padding = this.padding;
-		this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
+		// this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		let side = Math.min(this.frame.w, this.frame.h) - this_padding * 2;
+		const radius = 280;
 		let arcs = [
 			{
 				x: -192,
 				y: -143.56,
-				r: 280,
+				r: radius,
 				from: 3 * Math.PI / 4,
 				to: 7 * Math.PI / 4
 			},
 			{
 				x: 192,
 				y: -143.56,
-				r: 280,
+				r: radius,
 				from: 5 * Math.PI / 4,
 				to: Math.PI / 4
 			}
@@ -1048,11 +1019,22 @@ export default class ShapeStatic extends Shape {
 		this.context.arc(this.shapeCenter.x + arcs[1].x * m, this.shapeCenter.y + arcs[1].y * m, arcs[1].r * m, arcs[1].from,arcs[1].to);
 		this.context.lineTo(this.shapeCenter.x, this.shapeCenter.y + dev_y * m);
 		this.context.closePath();
-        this.context.fill();
+        
+		const real_w = (arcs[1].x - arcs[0].x + radius * 2) * m, 
+		real_h = (Math.abs(arcs[0].y) + radius + dev_y) * m;
+		this.shapeArea = {
+			x: this.shapeCenter.x - real_w / 2,
+			y: this.shapeCenter.y - (Math.abs(arcs[0].y) + radius) * m,
+			w: real_w,
+			h: real_h
+		}
+		console.log(this.shapeArea);
+		this.applyFillStyle();
+		this.context.fill();
 	}
     drawHexagon(){
-        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawHexagonPath();
+		this.applyFillStyle();
         this.context.fill();
     }
     clipHexagon(){
@@ -1061,43 +1043,54 @@ export default class ShapeStatic extends Shape {
     }
 	drawHexagonPath(){
 		this.padding = this.padding;
+		const root3 = Math.sqrt(3);
         let width = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
-        let height = width / 2 * 1.732;
+        let height = width / 2 * root3;
+		
         this.textBoxWidth = (width - this.innerPadding.x * 2) * 0.8;
 		this.context.beginPath();
-        this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / 1.732, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius , 7 * Math.PI / 6, 3 * Math.PI / 2);
-        this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / 1.732, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 11 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x + width / 2 - 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 11 * Math.PI / 6, 13 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / 1.732, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius, Math.PI / 6, 3 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / 1.732, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius , 3 * Math.PI / 6, 5 * Math.PI / 6);
-        this.context.arc(this.shapeCenter.x - width / 2 + 2 * this.cornerRadius / 1.732, this.shapeCenter.y, this.cornerRadius, 5 * Math.PI / 6, 7 * Math.PI / 6);
+        this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / root3, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius , 7 * Math.PI / 6, 3 * Math.PI / 2);
+        this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / root3, this.shapeCenter.y - height / 2 + this.cornerRadius, this.cornerRadius, 3 * Math.PI / 2, 11 * Math.PI / 6);
+        this.context.arc(this.shapeCenter.x + width / 2 - (2 * this.cornerRadius / root3), this.shapeCenter.y, this.cornerRadius, 11 * Math.PI / 6, 13 * Math.PI / 6);
+        this.context.arc(this.shapeCenter.x + width / 4 - this.cornerRadius / root3, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius, Math.PI / 6, 3 * Math.PI / 6);
+        this.context.arc(this.shapeCenter.x - width / 4 + this.cornerRadius / root3, this.shapeCenter.y + height / 2 - this.cornerRadius, this.cornerRadius , 3 * Math.PI / 6, 5 * Math.PI / 6);
+        this.context.arc(this.shapeCenter.x - width / 2 + (2 * this.cornerRadius / root3), this.shapeCenter.y, this.cornerRadius, 5 * Math.PI / 6, 7 * Math.PI / 6);
         this.context.closePath();
+		let real_w = width - ((2 / root3 - 1) * this.cornerRadius) * 2,
+			real_h = height;
+		this.shapeArea = {
+			x: this.shapeCenter.x - real_w / 2,
+			y: this.shapeCenter.y - real_h / 2,
+			w: real_w,
+			h: real_h
+		}
+	}
+	drawShapeArea(){
+		this.context.strokeStyle = '#fff';
+		this.context.strokeRect(this.shapeArea.x, this.shapeArea.y, this.shapeArea.w, this.shapeArea.h);
 	}
 	drawDiamond(){
-		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
-            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
 		
-		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
-        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
+        // this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawDiamondPath();
+		this.applyFillStyle();
         this.context.fill();
 	}
 	drawDiamondPath(ctx=null){
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
+            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
+
         let paddingX = this.padding;
         let paddingY = this.padding;
-
 		let w, h;
-		
 		let side = Math.min(this.frame.w, this.frame.h);
 			w = side - paddingX * 2;
 			h = side - paddingY * 2;
-
 		let centerX = this.shapeCenter.x, 
 			centerY = this.shapeCenter.y, 
 			r       = this.cornerRadius;
-
 		this.updateSize(w, h);
-
 		const angle = 45 * Math.PI / 180;
 		const sqrt2 = Math.sqrt(2);
 		const rect_w = w / sqrt2;
@@ -1131,16 +1124,19 @@ export default class ShapeStatic extends Shape {
 			const rotatedCorner = this.rotatePoint(corner.x, corner.y, centerX, centerY, angle);
 			ctx.arc(rotatedCorner.x, rotatedCorner.y, r, angleStart, angleEnd);
 		}
-        
 		ctx.closePath();
+		let real_w = w - ((sqrt2 - 1) * this.cornerRadius) * 2,
+			real_h = h - ((sqrt2 - 1) * this.cornerRadius) * 2;
+		this.shapeArea = {
+			x: this.shapeCenter.x - real_w / 2,
+			y: this.shapeCenter.y - real_h / 2,
+			w: real_w,
+			h: real_h
+		}
 	}
 	drawAngolo(){
-		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) ) 
-            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-		
-		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
-        this.context.fillStyle = this.color === 'upload' && this.colorPattern ? this.colorPattern : this.color;
 		this.drawAngoloPath();
+		this.applyFillStyle();
         this.context.fill('evenodd');
 
 		this.context.fillStyle = "#ffffff";
@@ -1149,7 +1145,9 @@ export default class ShapeStatic extends Shape {
 		this.context.fillStyle = this.color;
 	}
 	drawAngoloPath(ctx = null){
-		
+		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) ) 
+            this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
+		this.textBoxWidth = this.frame.w - this.padding * 2 * 0.9;
         let paddingX = this.padding;
         let paddingY = this.padding;
 		const thicknessX = this.shape.thickness[0], thicknessY = this.shape.thickness[1];
@@ -1164,6 +1162,12 @@ export default class ShapeStatic extends Shape {
 		// Inner rectangle (the "hole")
 		ctx.rect(paddingX + thicknessX, paddingY + thicknessY, inner_w, inner_h);
         this.context.closePath();
+		this.shapeArea = {
+			x: paddingX,
+			y: paddingY,
+			w: w,
+			h: h
+		}
 	}
 	drawAngoloCornerPath(ctx = null){
 		
@@ -1220,11 +1224,18 @@ export default class ShapeStatic extends Shape {
   		this.draw();
   		this.canvasObj.saveCanvasAsImage();
   	}
-
-	draw(){
+	applyFillStyle(){
 		if(this.color === 'upload') {
 			this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.shapeArea);
+			this.context.fillStyle = this.colorPattern;
+		} else {
+			this.context.fillStyle = this.color;
 		}
+	}
+	draw(){
+		// if(this.color === 'upload') {
+		// 	this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.shapeArea);
+		// }
 		if(this.shapeMethod == 'draw')
 		{
 			if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
@@ -1256,6 +1267,7 @@ export default class ShapeStatic extends Shape {
 			this.fillColorByShape(this.colorData);
 			this.context.restore();
 		}
+		
 		this.drawImages();
 		this.write(this.str, this.textPosition, 'default', this.typography, this.font, {x: this.textShiftX, y: this.textShiftY});
 		if( this.shape.watermarkPositions !== undefined)

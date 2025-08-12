@@ -86,6 +86,15 @@ export default class Media{
         this.checkEmpty();
         if(!silent) this.onUpdate();
     }
+    sync(props, silent){
+        this.update(props, true);
+        for(const item of this.controls_data) {
+            const name = item.name;
+            this.elements[name].value = this[name];
+        }
+        
+        if(!silent) this.onUpdate();
+    }
     render(){
         const cls = [];
         const [field, input] = this.renderFileField({'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});

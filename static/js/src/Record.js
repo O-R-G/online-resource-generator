@@ -186,18 +186,12 @@ export default class Record {
                     if (field_element.tagName.toLowerCase() == 'textarea') 
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
-                        if(field.id === 'animated-canvas-field-id-base')
-                            console.log('yaya', field_element.value);
                         for(let i = 0; i < field_element.options.length; i++) {
-                            if(field.id === 'animated-canvas-field-id-base')
-                                console.log(field_element.options[i].value);
                             if (field_element.options[i].value === field_element.value) {
                                 field_element.selectedIndex = i;
                                 break;
                             }
                         }
-                        if(field.id === 'animated-canvas-field-id-base')
-                            console.log('yaya', field_element.selectedIndex);
                     }
 
                     if(active) active_canvas_fields.push(field_element);
@@ -254,7 +248,6 @@ export default class Record {
         if(this.record_body['images']) {
             for(let field_id in this.record_body['images'] ){
                 let el = document.getElementById(field_id);
-                console.log(el)
                 if(!el) continue;
                 this.applySavedFile(el);
     
@@ -270,7 +263,6 @@ export default class Record {
             field_element.dispatchEvent(new CustomEvent('change', {'detail': {'isSilent': true}}));
             field_element.dispatchEvent(new CustomEvent('input', {'detail': {'isSilent': true}}));
         }
-        console.log(active_canvas);
         active_canvas.activate();
         // active_canvas.draw();
     }
@@ -279,7 +271,6 @@ export default class Record {
         let idx = input.getAttribute('image-idx');
         let id = input.id;
         let src = this.record_body['images'][id];
-        console.log(src);
         if(!src) return false;
         src = media_relative_root + src;
         input.setAttribute('data-file-src', src);
@@ -378,8 +369,6 @@ export default class Record {
                         record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
                         continue;
                     }
-                    if(field.id === 'animated-canvas-field-id-base')
-                        console.log('yaya', field.value);
                     if(field.type === 'file') {
                         // console.log(field.id);
                         if(field.files.length > 0) {

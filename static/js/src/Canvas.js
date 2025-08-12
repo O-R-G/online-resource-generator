@@ -858,7 +858,7 @@ export default class Canvas {
             props.x = calibrated_x;
             props.y = calibrated_y;
             if(this.counterpart.media[counter_key]) {
-                this.counterpart.media[counter_key].update(props);
+                this.counterpart.media[counter_key].sync(props, true);
             } else {
                 this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
             }

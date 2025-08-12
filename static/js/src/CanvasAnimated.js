@@ -40,7 +40,7 @@ export default class CanvasAnimated extends Canvas {
                 this.initialized = false;
                 this.canvas.parentNode.removeChild(this.canvas);
                 this.init();
-                for(const shape of this.shapes)
+                for(const shape of Object.values(this.shapes))
                     shape.init(this.canvas);
             }
 		});
