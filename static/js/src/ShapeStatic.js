@@ -689,12 +689,14 @@ export default class ShapeStatic extends Shape {
 		}
 	}
 	writeLine(line, initial_x, y, addStroke=false){
-		for(let seg of line.segs) {
-			this.context.fillStyle = seg.color === 'default' ? this.textColor : seg.color;
-			this.context.font = seg.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
-			this.context.fillText(seg.content, initial_x, y);
-			if(addStroke) this.context.strokeText(seg.content, initial_x, y);
-			initial_x += this.context.measureText(seg.content).width;
+		let x = initial_x;
+		for(let word of line.words) {
+			this.context.fillStyle = word.color === 'default' ? this.textColor : word.color;
+			this.context.font = word.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
+			const content = word.isSpace ? ' ' : word.content;
+			this.context.fillText(content, x, y);
+			if(addStroke) this.context.strokeText(content, x, y);
+			x += this.context.measureText(content).width;
 		}
 	}
     drawMultipleLinesFromTopKeep(lines, x, y, lineHeight, addStroke = false) {
@@ -709,30 +711,25 @@ export default class ShapeStatic extends Shape {
     }
 	getText(str, color){
 		let output = {
-			'lines': [],
+			'lines': this.getLines(str, color),
 			'max-width': 0
 		};
-		let lines = this.getLines(str, color);
-		for(let i = 0; i < lines.length; i++) {
-			output['lines'].push(lines[i]);
-		}
+		console.log(output.lines);
 		return output;
 	}
-	getSegments(str, color){
+	processWordStr(str, color){
 		const p_all = /(\[.*?\]|\*.*?\*)/g;
 		const p_white = /\[(.*?)\]/g;
 		const p_italic = /\*(.*?)\*/g;
 		const textByPattern = str.split(p_all);
 		const output = [];
-		const segments = [];
 		for(const t of textByPattern) {
 			if(t.match(p_white)) {
 				const content = t.replaceAll(p_white, "$1");
 				if(content === '') continue;
-				segments.push(
+				output.push(
 					{
 						'content': content,
-						// 'content': t.substring(1, t.length - 1),
 						'color': '#ffffff',
 						'style': 'normal'
 					}
@@ -740,7 +737,7 @@ export default class ShapeStatic extends Shape {
 			} else if(t.match(p_italic)) {
 				const content = t.replace(p_italic, "$1");
 				if(content === '') continue;
-				segments.push(
+				output.push(
 					{
 						'content': content,
 						'color': color,
@@ -749,8 +746,8 @@ export default class ShapeStatic extends Shape {
 				)
 			} else {
 				const content = t;
-				// if(content === '') continue;
-				segments.push(
+				if(content === '') continue;
+				output.push(
 					{
 						'content': content,
 						'color': color,
@@ -759,98 +756,150 @@ export default class ShapeStatic extends Shape {
 				)
 			}
 		}
-		return segments;
+		return output;
 	}
 	getLines(str, color){
 		let output = [];
-		let temp = str.split('\n');
+		const words = this.getTextNodes(str, color);
+		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
 		
-		for(let i = 0; i < temp.length; i++) {
-			const segments = this.getSegments(temp[i], color);
-			let lns = this.breakSegmentsIntoLinesByWidth(segments, this.textBoxWidth);
-			for(let l of lns) output.push(l);
+		for(const line_raw of lines_raw) {
+			let word = {
+				'content': '',
+				'style': '',
+				'color': ''
+			}
+			let line = {
+				words: [],
+				width: 0
+			};
+			for(let i = 0; i < line_raw.words.length; i++) {
+				const word_raw = line_raw.words[i];
+				if(i === 0) {
+					word = word_raw;
+					continue;
+				} else if( (word_raw.color === word.color && word_raw.style === word.style) || word_raw.isSpace) {
+					word.content += word_raw.isSpace ? ' ' : word_raw.content;
+				} else {
+					line.words.push(word);
+					word = word_raw;
+				}
+			}
+			line.words.push(word);
+			output.push(line);
 		}
 		return output;
 	}
-    breakSegmentsIntoLinesByWidth(segments, width, filterBrackets = true) {
-		if(segments.length === 0) return [];
-    	let line = '';
-    	let output = [];
-		
-		let temp, seg_color, seg_style;
-		let isSorting = true;
-		const words = [];
-		for(let i = 0; i < segments.length; i++) {
-			let seg = segments[i];
-			let words_temp = seg['content'].split(' ');
-			for(let j = 0; j < words_temp.length; j++) {
-				const word_temp = words_temp[j];
-				const new_item = {...seg, 'content': word_temp};
-				words.push(new_item);
+	getTextNodes(str, default_color){
+		let output = [];
+		const paragraphs_str = str.split('\n')
+		for (const p of paragraphs_str) {
+			const words_str = p.split(" ");
+			for(let i = 0; i < words_str.length; i++) {
+				const w = words_str[i];
+				const processed_w = this.processWordStr(w, default_color);
+				output = output.concat(processed_w);
+				if(i !== words_str.length - 1) {
+					output.push({
+						'content': '',
+						'color': default_color,
+						'style': 'normal',
+						'isSpace': true
+					});
+				}
+				
 			}
+			output.push({
+				'content': '',
+				'color': default_color,
+				'style': 'normal',
+				'isLinebreak': true
+			});
 		}
-
-		let line_unit = {
-			'segs': [],
+		return output;
+	}
+    breakSegmentsIntoLinesByWidth(words, width, filterBrackets = true) {
+		console.log('words', words);
+		if(words.length === 0) return [];
+    	let line_content_temp = '';
+		let line = {
+			'words': [],
 			'width': 0
 		}
-		let seg_unit = {
-			'content': '',
-			'style': words[0]['style'],
-			'color': words[0]['color']
-		}
-
+    	const output = [];
+		
+		// for(let i = 0; i < segments.length; i++) {
+		// 	let seg = segments[i];
+		// 	let words_temp = seg['content'].split(' ');
+		// 	for(let j = 0; j < words_temp.length; j++) {
+		// 		const word_temp = words_temp[j];
+		// 		// console.log(word_temp, word_temp.length);
+		// 		let new_item;
+		// 		if(word_temp !== '') {
+		// 			new_item = {...seg, 'content': word_temp};
+		// 			words.push(new_item);
+		// 		}
+				
+		// 		if(j !== words_temp.length - 1) {
+		// 			new_item = {...seg, 'content': '', 'isSpace': true};
+		// 			words.push(new_item);
+		// 		}
+		// 	}
+		// }
+		// console.log(words);
+		let previousWordIsSpace = false;
+		let m;
 		for(let i = 0; i < words.length; i++ ) {
 			const word = words[i];
-			temp = line ? line + ' ' + word['content'] : word['content'];
-			this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
-			let m = this.context.measureText(temp);
-			if( m.width <= width ) { 
-				line = line ? line + ' ' + word['content'] : word['content'];
+			if(!word.isLinebreak) {
 				
-				seg_unit.content += word['content'] === '' ? ' ' : (seg_unit.content ? ' ' + word['content'] : word['content']);
-				line_unit.width = m.width;
-				if((  i !== words.length - 1 && (seg_unit['color'] != words[i+1]['color'] || seg_unit['style'] != words[i+1]['style'])  )) {
-					line_unit['segs'].push(seg_unit);
-					let next_word = words[i+1];
-					seg_unit = {
-						'content': '',
-						'style': next_word['style'],
-						'color': next_word['color']
-					}
+				if(previousWordIsSpace)
+					line_content_temp += ' ';
+				if(word.isSpace) {
+					// console.log('isSpace--');
+					previousWordIsSpace = true;
+				} else {
+					line_content_temp += word['content'];
+					previousWordIsSpace = false;
 				}
-				continue;
-			}
-			if(seg_unit['content'] !== '') {
-				line_unit['segs'].push(seg_unit);
-				output.push(line_unit);
-			}
-			seg_unit = word;
-			line = word['content'];
-			temp = line;
-			m = this.context.measureText(temp);
-			line_unit = {
-				'segs': [],
-				'width': m.width,
-			}
-			if(i != words.length - 1 && (seg_unit['color'] != words[i+1]['color'] || seg_unit['style'] != words[i+1]['style'])) {
-				line_unit['segs'].push(seg_unit);
-				let next_word = words[i+1];
-				seg_unit = {
-					'content': '',
-					'style': next_word['style'],
-					'color': next_word['color']
+				// console.log(line_content_temp);
+				this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
+				m = this.context.measureText(line_content_temp);
+				
+				if( m.width <= width ) { 
+					/* no need for a new line */
+					line['words'].push(word);
+					line.width = m.width;
+					continue;
 				}
+			}
+			/* start a new line */
+			if(word.content === "INTERVIEWS") {
+				
+				console.log(line);
+			}
+			if(!(line.words.length === 1 && line.words[0].isLinebreak)) {
+				output.push(line);
+				line = {
+					'words': [],
+					'width': 0
+				};
 			}
 			
-			// isSorting = false;
+			line_content_temp = '';
+			previousWordIsSpace = false;
+
+			if(word.isSpace) continue;
+
+			line_content_temp += word.content;
+			m = this.context.measureText(line_content_temp);
+			line.words.push(word);
+			line.width = m.width;
 		}
-		temp = line;
-		let m = this.context.measureText(temp);
-		line_unit['segs'].push(seg_unit);
-		line_unit.width = m.width;
-		output.push(line_unit);
 		
+		if(line.words.length)
+			output.push(line);
+		console.log(output);
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
