@@ -244,7 +244,8 @@ export class Canvas {
             }
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
-            setTimeout(this.startRecording.bind(this), 0);
+            const delay = this.isThree ? 0 : 90; // 60 fps
+            setTimeout(this.startRecording.bind(this), delay);
             // this.startRecording();
         }, 0)
         

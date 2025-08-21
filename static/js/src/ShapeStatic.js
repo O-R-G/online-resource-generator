@@ -1493,18 +1493,18 @@ export class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
     animate(colorData = false, shape = false){
-		console.log('animate');
-		if(this.initRecording && !this.canvasObj.isRecording) {
-			// this.animate();
-			console.log('start recording...');
+		console.log(this.id + ' animate');
+		// if(this.initRecording && !this.canvasObj.isRecording) {
+		// 	// this.animate();
+		// 	console.log('start recording...');
 			
-			setTimeout(()=>{
-				this.initRecording = false;
-				this.canvasObj.startRecording();
-			}, 1000);			
+		// 	setTimeout(()=>{
+		// 		this.initRecording = false;
+		// 		this.canvasObj.startRecording();
+		// 	}, 1000);			
 			
-			// return;
-		}
+		// 	// return;
+		// }
     	if(!colorData) colorData = this.colorData;
     	if(!shape) shape = this.shape;
 		
