@@ -654,8 +654,6 @@ export class ShapeStatic extends Shape {
 		}
 	}
 	writeLine(line, initial_x, y, addStroke=false){
-		// console.log('writeLine')
-		// console.log(initial_x);
 		let x = initial_x;
 		for(let word of line.words) {
 			this.context.fillStyle = word.color === 'default' ? this.textColor : word.color;
@@ -663,7 +661,6 @@ export class ShapeStatic extends Shape {
 			const content = word.isSpace ? ' ' : word.content;
 			this.context.fillText(content, x, y);
 			if(addStroke) this.context.strokeText(content, x, y);
-			// console.log(word.content, x);
 			x += this.context.measureText(content).width;
 		}
 	}
@@ -678,12 +675,6 @@ export class ShapeStatic extends Shape {
         }
     }
 	getText(str, color){
-		// const lines_raw = this.getLines(str, color);
-		// let prev_color = '';
-		// let prev_style = '';
-		// for(const line_raw of lines_raw) {
-		// 	line_raw.
-		// }
 		let output = {
 			'lines': this.getLines(str, color),
 			'max-width': 0
@@ -736,12 +727,8 @@ export class ShapeStatic extends Shape {
 		let output = [];
 		const words = this.getTextNodes(str, color);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
-		// const lines_raw = this.getLines(str, color);
 		
-		console.log(lines_raw);
 		for(const line_raw of lines_raw) {
-			// let prev_color = '';
-			// let prev_style = '';
 			let word = {
 				'content': '',
 				'style': '',
@@ -765,13 +752,8 @@ export class ShapeStatic extends Shape {
 			}
 			line.words.push(word);
 			output.push(line);
-			// line = {
-			// 	words: [],
-			// 	width: 0
-			// };
 		}
 		return output;
-		// return output;
 	}
 	getTextNodes(str, default_color){
 		let output = [];
