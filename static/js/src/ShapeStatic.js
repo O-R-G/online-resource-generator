@@ -425,14 +425,13 @@ export default class ShapeStatic extends Shape {
 		font = font ? font['static'] : typography['font']['static'];
 		this.fontStyle = typography.size + 'px ' + font['family'];
 		if(font['weight']) this.fontStyle = font['weight'] + ' ' + this.fontStyle;
-
 		let lineHeight = parseFloat(typography['lineHeight']);
 		let addStroke = (typography == 'small' || typography == 'medium-small');
 		addStroke = false;
 		rad = rad ? rad : 0;
 		this.context.font = this.fontStyle;
-
 		let text = this.getText(str, color);
+		let lines = text.lines;
 		this.context.textBaseline = 'middle';
 		/*
 			lines = {
@@ -440,7 +439,7 @@ export default class ShapeStatic extends Shape {
 				'lines': [
 					{
 						'width': ...,
-						'segs': [
+						'words': [
 							{
 								'content': ...,
 								'color': ... 
@@ -457,6 +456,7 @@ export default class ShapeStatic extends Shape {
 			/*
 				write main text
 			*/
+
 			this.str = str;
 			this.context.textAlign='left';
 			
@@ -471,7 +471,7 @@ export default class ShapeStatic extends Shape {
 			}
 			
 			y += this.shapeCenter.y;
-			let lines = text.lines;
+			// let lines = text.lines;
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
@@ -482,7 +482,8 @@ export default class ShapeStatic extends Shape {
         /*
             write watermarks
         */
-		let lines = text.lines;	
+		// let lines = text.lines;	
+		console.log(lines);
     	let metrics = this.context.measureText(str);
 		let actualAscent = metrics.actualBoundingBoxAscent;
 		
@@ -762,7 +763,6 @@ export default class ShapeStatic extends Shape {
 		let output = [];
 		const words = this.getTextNodes(str, color);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
-		
 		for(const line_raw of lines_raw) {
 			let word = {
 				'content': '',
