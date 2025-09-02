@@ -120,8 +120,14 @@ export function renderNumeralInput(id, begin=0, step=1, min=false, extraClass=[]
 }
 export function renderCustomControls(items=[]){
     for (let item of items) {
+        console.log();
         let cls = [`field-id-${item['id']}`, 'flex-item'];
-        if(item['class']) cls.push(item['class']);
+        if(item['class']) {
+            if(Array.isArray(item['class']))
+                cls = cls.concat(item['class']);  
+            else if (typeof item['class'] === 'string')
+                cls.push(item['class']);
+        }
         if(item['input-type'] === 'select') {
             /* the formats of font and typography are saved differently so add exceptions here */
             const value = (item.name === 'font' || item.name === 'typography') ? Object.keys(item['options']).find((itm)=>{ return item['options'][itm] === item['value']; }) : item['value'];

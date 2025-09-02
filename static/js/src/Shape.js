@@ -173,6 +173,7 @@ export default class Shape {
     }
     renderTextSection(key, displayName, extraClass='')
     {
+        console.log('renderTextSection', key);
         const id = this.id + '-field-id-' + key;
         let textarea = document.createElement('TEXTAREA');
         textarea.className = getClassString(['flex-item','field-id-' + key].concat(extraClass));
@@ -183,50 +184,54 @@ export default class Shape {
         let text_controls = [
             { 
                 'name': 'position',
-                'id': key + '-position',
+                'id': id + '-position',
                 'input-type': 'select',
                 'options': this.options['textPositionOptions'],
                 'attr': {'flex': 'half'},
-                'class': ['typography-flex-item']
+                'class': [`field-id-${key}-position`, 'typography-flex-item']
             },
             { 
                 'name': 'color',
-                'id': key + '-color',
+                'id': id + '-color',
                 'input-type': 'select',
                 'options': this.options['textColorOptions'],
                 'attr': {'flex': 'half'},
-                'class': ['typography-flex-item']
+                'class': [`field-id-${key}-color`, 'typography-flex-item']
             },
             { 
                 'name': 'typography',
-                'id': key + '-typography',
+                'id': id + '-typography',
                 'input-type': 'select',
                 'options': this.options['typographyOptions'],
                 'attr': {'flex': 'half'},
-                'class': ['typography-flex-item']
+                'class': [`field-id-${key}-typography`, 'typography-flex-item']
             },
             { 
                 'name': 'font',
-                'id': key + '-font',
+                'id': id + '-font',
                 'input-type': 'select',
                 'options': this.options['fontOptions'],
                 'attr': {'flex': 'half'},
-                'class': ['typography-flex-item']
+                'class': [`field-id-${key}-font`, 'typography-flex-item']
             },
             { 
                 'name': 'shift-x',
-                'id': key + '-shift-x',
+                'id': id + '-shift-x',
                 'input-type': 'text',
                 'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
-                'class': []
+                'class': [`field-id-${key}-shift-x`]
             },{ 
                 'name': 'shift-y',
-                'id': key + '-shift-y',
+                'id': id + '-shift-y',
                 'input-type': 'text',
                 'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
-                'class': []
+                'class': [`field-id-${key}-shift-y`]
             }
         ]
+        for(const c of text_controls) {
+            if(typeof c['key'] === 'undefined')
+                c['key'] = `${key}-${c['name']}`;
+        }
         const control_items = Array.from(this.renderCustomControls(text_controls));
         const [section] = renderSection('', displayName, [textarea, ...control_items]);
         
@@ -242,7 +247,8 @@ export default class Shape {
             // if(!item['el']) continue;
             elements.push(item['el']);
             if(this.fields[item['id']]) continue;
-            this.fields[item['id']] = item['el'];
+            // this.fields[item['id']] = item['el'];
+            this.fields[item['key']] = item['el'];
         }
         
         if(typeof cb === 'function') {

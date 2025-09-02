@@ -458,7 +458,7 @@ export default class ShapeStatic extends Shape {
 			*/
 
 			this.str = str;
-			this.context.textAlign='left';
+			this.context.textAlign=align;
 			
 			let x = shift && shift.x ? shift.x : 0, 
 				y = shift && shift.y ? -shift.y : 0; // positive value means going up
@@ -472,6 +472,7 @@ export default class ShapeStatic extends Shape {
 			
 			y += this.shapeCenter.y;
 			// let lines = text.lines;
+			console.log(lines);
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
@@ -792,8 +793,10 @@ export default class ShapeStatic extends Shape {
 	}
 	getTextNodes(str, default_color){
 		let output = [];
-		const paragraphs_str = str.split('\n')
-		for (const p of paragraphs_str) {
+		const paragraphs_str = str.split('\n');
+		
+		for (let j = 0; j < paragraphs_str.length; j++)  {
+			const p = paragraphs_str[j];
 			const words_str = p.split(" ");
 			for(let i = 0; i < words_str.length; i++) {
 				const w = words_str[i];
@@ -809,12 +812,14 @@ export default class ShapeStatic extends Shape {
 				}
 				
 			}
-			output.push({
-				'content': '',
-				'color': default_color,
-				'style': 'normal',
-				'isLinebreak': true
-			});
+			if(j !== paragraphs_str.length - 1) {
+				output.push({
+					'content': '',
+					'color': default_color,
+					'style': 'normal',
+					'isLinebreak': true
+				});
+			}
 		}
 		return output;
 	}
@@ -827,26 +832,6 @@ export default class ShapeStatic extends Shape {
 			'width': 0
 		}
     	const output = [];
-		
-		// for(let i = 0; i < segments.length; i++) {
-		// 	let seg = segments[i];
-		// 	let words_temp = seg['content'].split(' ');
-		// 	for(let j = 0; j < words_temp.length; j++) {
-		// 		const word_temp = words_temp[j];
-		// 		// console.log(word_temp, word_temp.length);
-		// 		let new_item;
-		// 		if(word_temp !== '') {
-		// 			new_item = {...seg, 'content': word_temp};
-		// 			words.push(new_item);
-		// 		}
-				
-		// 		if(j !== words_temp.length - 1) {
-		// 			new_item = {...seg, 'content': '', 'isSpace': true};
-		// 			words.push(new_item);
-		// 		}
-		// 	}
-		// }
-		// console.log(words);
 		let previousWordIsSpace = false;
 		let m;
 		for(let i = 0; i < words.length; i++ ) {
@@ -856,13 +841,11 @@ export default class ShapeStatic extends Shape {
 				if(previousWordIsSpace)
 					line_content_temp += ' ';
 				if(word.isSpace) {
-					// console.log('isSpace--');
 					previousWordIsSpace = true;
 				} else {
 					line_content_temp += word['content'];
 					previousWordIsSpace = false;
 				}
-				// console.log(line_content_temp);
 				this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
 				m = this.context.measureText(line_content_temp);
 				
@@ -874,17 +857,18 @@ export default class ShapeStatic extends Shape {
 				}
 			}
 			/* start a new line */
-			if(word.content === "INTERVIEWS") {
-				
-				console.log(line);
-			}
-			if(!(line.words.length === 1 && line.words[0].isLinebreak)) {
-				output.push(line);
-				line = {
-					'words': [],
-					'width': 0
-				};
-			}
+			// if(!(line.words.length === 1 && line.words[0].isLinebreak)) {
+			// 	output.push(line);
+			// 	line = {
+			// 		'words': [],
+			// 		'width': 0
+			// 	};
+			// }
+			output.push(line);
+			line = {
+				'words': [],
+				'width': 0
+			};
 			
 			line_content_temp = '';
 			previousWordIsSpace = false;

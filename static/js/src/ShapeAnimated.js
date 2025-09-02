@@ -2122,7 +2122,7 @@ drawNone(){
 	            alert("animation type can't be changed when recording");
 	        }	        
 	    }.bind(this);
-
+		console.log(this.fields);
 	    this.fields['text-front-position'].onchange = function(e){
 	    	let position = e.target.value;
 	    	this.updateFrontTextPosition(position);
