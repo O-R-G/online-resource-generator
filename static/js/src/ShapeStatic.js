@@ -824,7 +824,6 @@ export default class ShapeStatic extends Shape {
 		return output;
 	}
     breakSegmentsIntoLinesByWidth(words, width, filterBrackets = true) {
-		console.log('words', words);
 		if(words.length === 0) return [];
     	let line_content_temp = '';
 		let line = {
