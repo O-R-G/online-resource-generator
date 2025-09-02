@@ -679,7 +679,7 @@ export class ShapeStatic extends Shape {
 			'lines': this.getLines(str, color),
 			'max-width': 0
 		};
-		console.log(output.lines);
+		// console.log(output.lines);
 		return output;
 	}
 	processWordStr(str, color){
@@ -726,8 +726,10 @@ export class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		const words = this.getTextNodes(str, color);
+		console.log('words', words);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
-		
+		if(lines_raw.length > 2)
+			console.log('lines_raw', lines_raw);
 		for(const line_raw of lines_raw) {
 			let word = {
 				'content': '',
@@ -757,29 +759,36 @@ export class ShapeStatic extends Shape {
 	}
 	getTextNodes(str, default_color){
 		let output = [];
-		const paragraphs_str = str.split('\n')
-		for (const p of paragraphs_str) {
-			const words_str = p.split(" ");
-			for(let i = 0; i < words_str.length; i++) {
-				const w = words_str[i];
-				const processed_w = this.processWordStr(w, default_color);
-				output = output.concat(processed_w);
-				if(i !== words_str.length - 1) {
+		const str_by_pattern = this.processWordStr(str, default_color);
+		for(const sbp of str_by_pattern) {
+			const paragraphs_str = sbp.content.split('\n');
+			console.log(paragraphs_str);
+			for (let j = 0; j < paragraphs_str.length; j++)  {
+				const p = paragraphs_str[j];
+				// console.log(p);
+				const words_str = p.split(" ");
+				for(let i = 0; i < words_str.length; i++) {
+					const w = {...sbp, 'content': words_str[i]};
+					output = output.concat(w);
+					if(i !== words_str.length - 1) {
+						output.push({
+							'content': '',
+							'color': default_color,
+							'style': 'normal',
+							'isSpace': true
+						});
+					}
+					
+				}
+				if(j !== paragraphs_str.length - 1) {
 					output.push({
 						'content': '',
 						'color': default_color,
 						'style': 'normal',
-						'isSpace': true
+						'isLinebreak': true
 					});
 				}
-				
 			}
-			output.push({
-				'content': '',
-				'color': default_color,
-				'style': 'normal',
-				'isLinebreak': true
-			});
 		}
 		return output;
 	}
@@ -864,7 +873,7 @@ export class ShapeStatic extends Shape {
 		
 		if(line.words.length)
 			output.push(line);
-		console.log(output);
+		// console.log(output);
     	return output;
     }
     updateWatermark(idx, values_raw = {str: false, position : false, color : false, typography:false, shift : false, rad:false}, silent = false){
