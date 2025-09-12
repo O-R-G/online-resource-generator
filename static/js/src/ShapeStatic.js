@@ -267,7 +267,7 @@ export default class ShapeStatic extends Shape {
             ){
 				if(this.canvasObj.isRecording) {
 					console.log('saving...');
-					this.canvasObj.saveCanvasAsVideo();
+					this.canvasObj.stopRecording();
 				}
                 this.animation_color_data.isForward = !this.animation_color_data.isForward;
             	
@@ -335,7 +335,7 @@ export default class ShapeStatic extends Shape {
 	            (this.animation_position_data.interval.y1 < 0 && (this.animation_position_data.current.y1 >= this.animation_position_data.begin.y1))
 	        ){
 	            this.animation_position_data.isForward = !this.animation_position_data.isForward;
-	            if(this.canvasObj.isRecording) this.canvasObj.saveCanvasAsVideo();
+	            if(this.canvasObj.isRecording) this.canvasObj.stopRecording();
 	        }
 	    }
 	    if(this.animation_position_data.color.type == 'gradient')
@@ -383,7 +383,7 @@ export default class ShapeStatic extends Shape {
                 (this.animation_shape_data.interval.r < 0 && (this.animation_shape_data.current.r >= this.animation_shape_data.begin.r))
             ){
                 this.animation_shape_data.isForward = !this.animation_shape_data.isForward;
-            	if(this.canvasObj.isRecording && !this.colorData['animation-type']) this.canvasObj.saveCanvasAsVideo();
+            	if(this.canvasObj.isRecording && !this.colorData['animation-type']) this.canvasObj.stopRecording();
             }
         }
         this.cornerRadius = this.animation_shape_data.current.r;
@@ -1536,16 +1536,14 @@ export default class ShapeStatic extends Shape {
         if(!silent) this.canvasObj.draw();
     }
     animate(colorData = false, shape = false){
-		if(this.initRecording && !this.canvasObj.isRecording) {
-			console.log('start recording...');
 			
-			setTimeout(()=>{
-				this.initRecording = false;
-				this.canvasObj.startRecording();
-			}, 1000);			
+		// 	setTimeout(()=>{
+		// 		this.initRecording = false;
+		// 		this.canvasObj.startRecording();
+		// 	}, 1000);			
 			
-			// return;
-		}
+		// 	// return;
+		// }
     	if(!colorData) colorData = this.colorData;
     	if(!shape) shape = this.shape;
 		

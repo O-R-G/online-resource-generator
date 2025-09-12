@@ -157,23 +157,36 @@ export default class Canvas {
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
                     this.isRecording = true;
-                    for(const shape_id in this.shapes) {
-                        this.shapes[shape_id].animate(performance.now());
+                    if(this.isThree) {
+                        for(const shape_id in this.shapes) {
+                            this.shapes[shape_id].animate(performance.now());
+                        }
                     }
+                    
                 });
                 this.media_recorder.addEventListener('stop', ()=>{
+                    console.log('stop');
                     this.isRecording = false;
                     this.saveCanvasAsVideo(); 
                 });
-                for(const shape_id in this.shapes) {
-                    this.shapes[shape_id].initAnimate(this.shapes[shape_id].animationName, true);
+                if(this.isThree) {
+                    for(const shape_id in this.shapes) {
+                        this.shapes[shape_id].initAnimate(this.shapes[shape_id].animationName, true);
+                    }
+                } else {
+                    for(const shape_id in this.shapes) {
+                        this.shapes[shape_id].animate();
+                    }
                 }
-            } catch{
+                
+            } catch (err) {
                 console.log('error-0');
+                console.log(err);
             }
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
-            setTimeout(this.startRecording.bind(this), 0);
+            const delay = this.isThree ? 0 : 90; // 60 fps
+            setTimeout(this.startRecording.bind(this), delay);
             // this.startRecording();
         }, 0)
         
@@ -187,7 +200,11 @@ export default class Canvas {
     }
 	startRecording(){
         this.media_recorder.start(1); 
-        this.animate(); 
+        if(this.isThree) {
+            this.animate(); 
+        }
+        
+        
     }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
@@ -615,7 +632,7 @@ export default class Canvas {
             this.downloadPdfButton = this.renderDownloadButton('pdf', ['download-pdf-button', 'download-button']);
             buttons_container.appendChild(this.downloadPdfButton);
         }
-        if(button_list.includes('mp4') && this.isThree) {
+        if(button_list.includes('mp4')) {
             this.downloadVideoButton = this.renderDownloadButton('mp4', ['download-video-button', 'download-button']);
             buttons_container.appendChild(this.downloadVideoButton);
         }
