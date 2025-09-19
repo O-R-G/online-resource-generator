@@ -59,7 +59,8 @@ async function init(data, cb){
         active_canvas = data[Object.keys(data)[0]]['canvas'];
         active_canvas.activate();
     }
-    new Record(main, record_id, canvases);
+    new Record(main, record_id, canvases, format);
+    
     main.setAttribute('canvas-status', 'initialized');
     if(typeof cb === 'function') cb();
 }

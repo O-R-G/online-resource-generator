@@ -31,14 +31,14 @@ $css = array(
 	redirect to online resource generator root
 */
 $record_id = '';
+$saved_record = '';
 $root_path_count = count(explode('/', $root_path));
 if(count($uri) > $root_path_count) {
 	$temp_url = array_slice($uri, $root_path_count);
 	$temp = $oo->urls_to_ids(array_merge($root_database, $temp_url));
 	if(count($temp) == count($root_database) + count($temp_url)) {
 		$record_id = end($temp);
-		$temp = $oo->get($record_id);
-		// if(!$temp['body']) $record_id = '';
+		$saved_record = $oo->get($record_id);
 	}   
 }
 if(!$record_id && (count($uri) > count(explode('/', $root_path)))) {

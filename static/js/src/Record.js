@@ -1,8 +1,9 @@
 export default class Record {
-    constructor(container, record_id='', canvasObjs={}){
+    constructor(container, record_id='', canvasObjs={}, format=''){
         this.container = container;
         this.record_id = record_id;
         this.canvasObjs = canvasObjs;
+        this.format = format;
         this.record_body = '';
         this.form_action = this.record_id !== '' ? 'save' : 'insert';
         this.request_url = '/online-resource-generator/static/php/recordHandler.php';
@@ -137,8 +138,8 @@ export default class Record {
     }
     applySavedRecord(){
         let active_canvas_fields = [];
-        let params = new URL(document.location).searchParams;
-        let format = params.get("format");
+        // let params = new URL(document.location).searchParams;
+        // let format = params.get("format");
         let hasSecondShape = false;
         let active_canvas = null;
         if(!this.record_body) return;
@@ -256,7 +257,7 @@ export default class Record {
          
         for(let field_element of active_canvas_fields) {
             if(field_element.classList.contains('field-id-format')) {
-                if(!format) active_canvas.changeFormat(null, null, false);
+                if(!this.format) active_canvas.changeFormat(null, null, false);
                 continue;
             }
             field_element.dispatchEvent(new Event('initImg'));
@@ -286,7 +287,6 @@ export default class Record {
     submit(event, cb){
         event.preventDefault();
         let formData = new FormData(this.elements.form);
-        
         let record_body = {
             images: {}
         };
@@ -306,9 +306,10 @@ export default class Record {
         for (let container of containers) {
             let canvas_id = container.getAttribute('data-canvas-id');
             let isThree = container.getAttribute('data-is-three') == 'true';
+            let active = container.classList.contains('active');
             record_body[canvas_id] = {
                 isThree: isThree,
-                active: container.classList.contains('active'),
+                active: active,
                 'common-controls': {},
                 'shape-controls': {},
             }
@@ -369,6 +370,9 @@ export default class Record {
                         record_body[canvas_id]['add_second_shape_button'] = {'id': field.id};
                         continue;
                     }
+                    if(field.classList.contains('field-id-format') && active) {
+                        this.format = field.value;
+                    }
                     if(field.type === 'file') {
                         // console.log(field.id);
                         if(field.files.length > 0) {
@@ -391,6 +395,7 @@ export default class Record {
         record_body = JSON.stringify(record_body);        
         formData.append('record_body', record_body);
         formData.append('record_name', record_name);
+        formData.append('format', this.format);
         formData.append('record_id', this.record_id);
         // return;
         fetch(this.request_url, {

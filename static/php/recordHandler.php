@@ -28,15 +28,18 @@ if ($action == 'insert') :
     while($obj = $result->fetch_assoc()) $sibling_urls[] = $obj['url'];
     $name1 = $_POST['record_name'] ? addslashes($_POST['record_name']) : 'untitled';
     $record_body = $_POST['record_body'] ? addslashes($_POST['record_body']) : '';
-    $url = slug($name1);
-    $url_test = $url;
+    $record_notes = $_POST['format'] ? addslashes($_POST['format']) : '';
+    // $format_query = isset($_POST['format']) && $_POST['format'] ? '?format=' . $_POST['format'] : '';
+    $format_query = '';
+    $url_base = slug($name1) ;
+    $url_test = $url_base . $format_query;
     $url_index = 1;
     while( in_array($url_test, $sibling_urls) ) {
-        $url_test = $url . '-' . $url_index;
+        $url_test = $url_base . '-' . $url_index . $format_query;
         $url_index++;
     }
     $url = $url_test;
-    $sql = "INSERT INTO `objects` (`name1`, `body`, `url`) VALUES ('$name1', '$record_body', '$url')";
+    $sql = "INSERT INTO `objects` (`name1`, `body`, `notes`, `url`) VALUES ('$name1', '$record_body', '$record_notes', '$url')";
     $db->query($sql);
     $record_id = $db->insert_id;
     $ww->create_wire($main_record_id, $record_id);
@@ -62,7 +65,8 @@ elseif ($action == 'get'):
 elseif ($action == 'save'):
     $record_id = $_POST['record_id'];
     $record_body = addslashes($_POST['record_body']);
-    $sql = "UPDATE objects SET body='$record_body' WHERE id = $record_id";
+    $record_notes = $_POST['format'] ? addslashes($_POST['format']) : '';
+    $sql = "UPDATE objects SET body='$record_body', notes='$record_notes' WHERE id = $record_id";
     $res = $db->query($sql);
     $response['status'] = 'success';
     $response['body'] = 'save success';
