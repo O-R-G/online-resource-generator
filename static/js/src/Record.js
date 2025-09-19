@@ -174,7 +174,7 @@ export default class Record {
                     if(!field['id']) continue;
                     let field_element = common_control.querySelector('#' + field['id']);
                     if(!field_element) continue;
-                    if(!field_element.classList.contains('field-id-format') || !format) { 
+                    if(!field_element.classList.contains('field-id-format') || !this.format) { 
                         if(field.type === 'file') {
                             field_element.setAttribute('data-fiel-src', field['value']);
                             continue;
