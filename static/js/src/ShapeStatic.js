@@ -1,6 +1,6 @@
 import Shape from "./Shape.js";
 import MediaStatic from './MediaStatic.js'
-import { generateFieldId, updatePositionByKey, convertAnimatedPostionToStatic } from './utils/lib.js';
+import { generateFieldId, updatePositionByKey, convertAnimatedPostionToStatic, getAncestorByClass } from './utils/lib.js';
 
 export default class ShapeStatic extends Shape {
 	constructor(prefix = '', canvasObj, options, format, shape_index=0){
@@ -1312,13 +1312,27 @@ export default class ShapeStatic extends Shape {
 	}
 	
 	renderControl(){
-		super.renderControl();
-		const [select_section] = this.renderSelectSection('shape-color', 'Color', {options: this.options.colorOptions});
-		this.control.appendChild(select_section);
+		// super.renderControl();
+		const [shape_section, shape_right] = this.renderShapeSection('shape', 'Shape')
+		const color_select = super.renderSelect('shape-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'});
+		shape_right.appendChild(color_select);
 		if(this.options.colorOptions['upload']) {
-			const [section] = this.renderMediaSection('background-image', '', ['shape-image-section'])
-			this.control.appendChild(section);
+			const media_div = document.createElement('div');
+			media_div.className = 'color-upload-section';
+			let key = super.checkMediaKey('background-image');
+        	const m = this.media[key];
+			m.addTo(media_div);
+			shape_right.appendChild(media_div);
 		}
+		this.control.appendChild(shape_section);
+
+		if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
+            const id = 'animation';
+            const [section] = super.renderSelectSection(id, 'Animation', { options: this.options.animationOptions});
+	        this.control.appendChild(section);
+        }
+
+		
 		this.control.appendChild(this.renderTextSection('text', 'Main Text'));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control.appendChild(super.renderAddMedia());
@@ -1442,14 +1456,13 @@ export default class ShapeStatic extends Shape {
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				let sec = e.target.parentNode.parentNode;
+				// let sec = getAncestorByClass(e.target, 'panel-section');
+				this.fields['shape-color'].setAttribute('data-value', e.target.value);
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
-					this.media['background-image'].show();
-					sec.classList.add('viewing-shape-image-section');
+					// this.media['background-image'].show();
 				} else {
-					sec.classList.remove('viewing-shape-image-section');
-					this.media['background-image'].hide();
+					// this.media['background-image'].hide();
 					this.colorPattern = null;
 					if(this.fields.media['background-image'])
 						this.fields.media['background-image'].parentNode.parentNode.classList.remove('viewing-image-control');

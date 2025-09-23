@@ -160,20 +160,21 @@ export default class Shape {
     }
     renderShapeSection(id, displayName, extraClass=[])
     {
-        let cls = ['flex-item', 'typography-flex-item'];
+        // let cls = ['flex-item', 'typography-flex-item'];
+        let cls = ['flex-item'];
         let select = this.renderSelect('shape', {options: this.options.shapeOptions}, cls, {'flex': 'full'});
         let input_x = this.renderInput('shape-shift-x', null, {'flex': 'half', 'placeholder' : 'X (0)'}, cls);
-        let input_y = this.renderInput('shape-shift-y', null, {'flex': 'half', 'placeholder' : 'X (0)'}, cls);
+        let input_y = this.renderInput('shape-shift-y', null, {'flex': 'half', 'placeholder' : 'Y (0)'}, cls);
         this.fields['shape'] = select;
         this.fields['shape-shift-x'] = input_x;
         this.fields['shape-shift-y'] = input_y;
-        const [section] = this.renderSection(id, displayName, [select, input_x, input_y], extraClass=[]);
+        const [section, right] = this.renderSection(id, displayName, [select, input_x, input_y], extraClass=[]);
         
-        return section;
+        return [section, right];
     }
     renderTextSection(key, displayName, extraClass='')
     {
-        console.log('renderTextSection', key);
+        // console.log('renderTextSection', key);
         const id = this.id + '-field-id-' + key;
         let textarea = document.createElement('TEXTAREA');
         textarea.className = getClassString(['flex-item','field-id-' + key].concat(extraClass));
@@ -272,14 +273,7 @@ export default class Shape {
     }
     renderMediaSection(key, displayName, extraClass=[])
     {
-        if(!key) {
-            key = 'media-' + this.mediaIndex;
-            displayName = 'Media ' + this.mediaIndex;
-            this.mediaIndex++;
-        }
-        if(!this.media[key]) {
-            this.media[key] = this.initMedia(key);
-        }    
+        key = this.checkMediaKey(key);
         const m = this.media[key];
         const ex_cls = ['media-section'].concat(extraClass);
         const [section, right] = this.renderSection('', displayName, [], ex_cls);
@@ -291,7 +285,7 @@ export default class Shape {
         });
         section.appendChild(delete_button);
         // this.fields.media[key] = input;
-        return [section];
+        return [section, right];
     }
     addMediaSection(key, displayName, extraClass=[]){
         key = key ? key : 'media-' + this.mediaIndex;
@@ -300,7 +294,17 @@ export default class Shape {
         const [section] = this.renderMediaSection(key, displayName, extraClass); 
         this.addMediaButton.parentNode.insertBefore(section, this.addMediaButton);
     }
-    
+    checkMediaKey(key){
+        if(!key) {
+            key = 'media-' + this.mediaIndex;
+            displayName = 'Media ' + this.mediaIndex;
+            this.mediaIndex++;
+        }
+        if(!this.media[key]) {
+            this.media[key] = this.initMedia(key);
+        }
+        return key;
+    }
     divToNl(nodes){
         let output = '';
         [].forEach.call(nodes, function(el){
@@ -393,13 +397,6 @@ export default class Shape {
                 'class': ['watermark-font'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['font'] : null
             },{ 
-                'name': 'rotate',
-                'id': 'watermark-rotate-' + idx,
-                'input-type': 'text',
-                'attr': {'flex': 'one-third', 'placeholder' : 'rotate (0)'},
-                'class': ['watermark-rotate'],
-                'value': this.watermarks[idx] && this.watermarks[idx]['rotate'] ? this.watermarks[idx]['rotate'] * 360 / (2 * Math.PI) : null
-            },{ 
                 'name': 'shift-x',
                 'id': 'watermark-shift-x-' + idx,
                 'input-type': 'text',
@@ -413,6 +410,13 @@ export default class Shape {
                 'attr': {'flex': 'one-third', 'placeholder' : 'Y (0)'},
                 'class': ['watermark-shift-y'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['y'] : null
+            },{ 
+                'name': 'rotate',
+                'id': 'watermark-rotate-' + idx,
+                'input-type': 'text',
+                'attr': {'flex': 'one-third', 'placeholder' : 'rotate (0)'},
+                'class': ['watermark-rotate'],
+                'value': this.watermarks[idx] && this.watermarks[idx]['rotate'] ? this.watermarks[idx]['rotate'] * 360 / (2 * Math.PI) : null
             }
         ]
         const control_items = Array.from(this.renderCustomControls(text_controls, (items)=>{
@@ -483,17 +487,7 @@ export default class Shape {
         const input = renderInput(id, value, attrs, extraClass);
         if(!this.fields[key]) this.fields[key] = input;
         return input;
-        let output = document.createElement('input');
-        output.id = id;
-        if(value !== null) output.value = value;
-        output.autocomplete = "off";
-        if(attrs) {
-            for(let attr in attrs) {
-                output.setAttribute(attr, attrs[attr]);
-            }
-        }
-        if(extraClass) output.className = extraClass;
-        return output;
+
     }
     updateRotationByKey(e, input, cb){
         if(e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -582,14 +576,14 @@ export default class Shape {
     }
 
     renderControl(){
-        if(this.options.shapeOptions && Object.keys(this.options.shapeOptions).length > 1) {
-            this.control.appendChild(this.renderShapeSection('shape', 'Shape'));
-        }
-        if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
-            const id = 'animation';
-            const [section] = this.renderSelectSection(id, 'Animation', { options: this.options.animationOptions});
-	        this.control.appendChild(section);
-        }
+        // if(this.options.shapeOptions && Object.keys(this.options.shapeOptions).length > 1) {
+        //     this.control.appendChild(this.renderShapeSection('shape', 'Shape'));
+        // }
+        // if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
+        //     const id = 'animation';
+        //     const [section] = this.renderSelectSection(id, 'Animation', { options: this.options.animationOptions});
+	    //     this.control.appendChild(section);
+        // }
     }
     
     renderImageControls(id, control_data){

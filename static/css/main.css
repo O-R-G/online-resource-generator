@@ -239,20 +239,27 @@ textarea + select
     padding-bottom: 80px;
 }
 .shape-image-section,
-.base-image-section {
+.base-image-section,
+.color-upload-section {
     display: none;
     margin-bottom: 0;
 }
-.viewing-shape-image-section + .shape-image-section,
-.viewing-base-image-section + .base-image-section {
+.viewing-shape-image-section .shape-image-section,
+.viewing-base-image-section .base-image-section,
+[data-value="upload"] + .color-upload-section {
     display: block;
 }
 .shape-image-section > .delete-button,
 .shape-image-section > .delete-button.btn,
 .base-image-section > .delete-button,
-.base-image-section > .delete-button.btn {
+.base-image-section > .delete-button.btn,
+.color-upload-section > .delete-button, 
+.color-upload-section > .delete-button.btn{
     display: none;
 }
+/* .viewing-shape-image-section .shape-image-section {
+    display: none;
+} */
 /* #content
 {
     max-width: none;

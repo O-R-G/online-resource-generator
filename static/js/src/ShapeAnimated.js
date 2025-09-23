@@ -2,7 +2,7 @@ import * as THREE from "three";
 import Shape from "./Shape.js";
 import {Text} from 'troika-three-text';
 // import MediaAnimated from './MediaAnimated.js'
-import { generateFieldId, getValueByPixelRatio, updatePositionByKey, convertStaticPostionToAnimated } from './utils/lib.js';
+import { generateFieldId, getValueByPixelRatio, updatePositionByKey, convertStaticPostionToAnimated, getAncestorByClass } from './utils/lib.js';
 import { createMesh, createGroup, initMediaAnimated, processStaticColorData, generateGradient, generateGridPattern } from './utils/lib-animated.js';
 
 
@@ -995,7 +995,8 @@ drawNone(){
 		return output;
 	}
 	updateFrontColor(color, silent = false, transparent=false){
-		let sec = this.fields['shape-front-color'].parentNode.parentNode;
+		// let sec = this.fields['shape-front-color'].parentNode.parentNode;
+		let sec = getAncestorByClass(e.target, 'panel-section');
 		if(color === 'upload') {
 			sec.classList.add('viewing-shape-image-section');
 		} else  {
@@ -1882,23 +1883,56 @@ drawNone(){
     	super.checkWatermarkPosition(position, label);
     }
     renderControl(){
-		super.renderControl();
+		// super.renderControl();
+		const [shape_section, shape_right] = this.renderShapeSection('shape', 'Shape');
+		
+		const front_color_select = super.renderSelect('shape-front-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'});
+		shape_right.appendChild(front_color_select);
+		if(this.options.colorOptions['upload']) {
+			// let prefix = 'front';
+			const media_div = document.createElement('div');
+			media_div.className = 'color-upload-section';
+			let key = super.checkMediaKey('front-background-image');
+        	const m = this.media[key];
+			m.addTo(media_div);
+			shape_right.appendChild(media_div);
+			// const [section] = this.renderMediaSection(prefix + '-background-image', '', ['shape-image-section'])
+			// this.control.appendChild(section);
+			// shape_section.appendChild(section);
+		}
+
+		const back_color_select = super.renderSelect('shape-back-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'});
+		shape_right.appendChild(back_color_select);
+		if(this.options.colorOptions['upload']) {
+			// let prefix = 'back';
+			// const [section] = this.renderMediaSection(prefix + '-background-image', '', ['shape-image-section'])
+			// shape_section.appendChild(section);
+			const media_div = document.createElement('div');
+			media_div.className = 'color-upload-section';
+			let key = super.checkMediaKey('back-background-image');
+        	const m = this.media[key];
+			m.addTo(media_div);
+			shape_right.appendChild(media_div);
+		}
+		
+		// const [select_section] = this.renderSelectSection('shape-color', 'Color', {options: this.options.colorOptions});
+		this.control.appendChild(shape_section);
+
+		// const [front_color_section] = this.renderSelectSection('shape-front-color', 'Color (front)', { options: this.options.colorOptions });
+		// const [back_color_section] = this.renderSelectSection('shape-back-color', 'Color (back)', { options: this.options.colorOptions });
+		
+		if(this.options.animationOptions && Object.keys(this.options.animationOptions).length > 1) {
+            const id = 'animation';
+            const [section] = super.renderSelectSection(id, 'Animation', { options: this.options.animationOptions});
+	        this.control.appendChild(section);
+        }
 		const [speed_section] = this.renderSelectSection('animation-speed', 'Speed', { options: this.options.animationSpeedOptions });
-		const [front_color_section] = this.renderSelectSection('shape-front-color', 'Color (front)', { options: this.options.colorOptions });
-		const [back_color_section] = this.renderSelectSection('shape-back-color', 'Color (back)', { options: this.options.colorOptions });
+
 		this.control.appendChild(speed_section);
-		this.control.appendChild(front_color_section);
-		if(this.options.colorOptions['upload']) {
-			let prefix = 'front';
-			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['shape-image-section'])
-			this.control.appendChild(section);
-		}
-		this.control.appendChild(back_color_section);
-		if(this.options.colorOptions['upload']) {
-			let prefix = 'back';
-			const [section] = this.renderMediaSection(prefix + '-background-image', '', ['shape-image-section'])
-			this.control.appendChild(section);
-		}
+		// this.control.appendChild(front_color_section);
+		
+		// this.control.appendChild(back_color_section);
+		
 		this.fields['shape-back-color'].selectedIndex = 1;
 		this.control.appendChild(this.renderTextSection('text-front', 'Main Text (front)'));
 		this.control.appendChild(this.renderTextSection('text-back', 'Main Text (back)'));
@@ -2055,6 +2089,7 @@ drawNone(){
 
 	    this.fields['shape-front-color'].onchange = function(e){
 	        let shape_color = e.target.value;
+			this.fields['shape-front-color'].setAttribute('data-value', shape_color);
 			if(shape_color === 'upload') {
 				this.updateFrontColor('upload');
 			}
@@ -2084,6 +2119,7 @@ drawNone(){
 	    this.fields['shape-back-color'].onchange = function(e){
 	        let sec = e.target.parentNode.parentNode;
 	        let shape_color = e.target.value;
+			this.fields['shape-back-color'].setAttribute('data-value', shape_color);
 			if(shape_color === 'upload') {
 				sec.classList.add('viewing-shape-image-section');
 				this.updateBackColor('upload');
