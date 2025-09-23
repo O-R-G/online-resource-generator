@@ -1934,8 +1934,8 @@ drawNone(){
 		// this.control.appendChild(back_color_section);
 		
 		this.fields['shape-back-color'].selectedIndex = 1;
-		this.control.appendChild(this.renderTextSection('text-front', 'Main Text (front)'));
-		this.control.appendChild(this.renderTextSection('text-back', 'Main Text (back)'));
+		this.control.appendChild(this.renderTextSection('text-front', 'Text (front)'));
+		this.control.appendChild(this.renderTextSection('text-back', 'Text (back)'));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control.appendChild(super.renderAddMedia());
 		this.control_wrapper.appendChild(this.control);

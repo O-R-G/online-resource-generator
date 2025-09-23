@@ -1333,7 +1333,7 @@ export default class ShapeStatic extends Shape {
         }
 
 		
-		this.control.appendChild(this.renderTextSection('text', 'Main Text'));
+		this.control.appendChild(this.renderTextSection('text', 'Text'));
 		this.control.appendChild(super.renderAddWaterMark());
 		this.control.appendChild(super.renderAddMedia());
 	}
