@@ -1329,14 +1329,26 @@ export class ShapeStatic extends Shape {
 		input.onchange = function(e){
 			this.readImageUploaded(e, this.updateMedia.bind(this));
 		}.bind(this);
-		input.addEventListener('applySavedFile', (e)=>{
+		input.addEventListener('applySavedFile', async (e)=>{
 			
 			let idx = input.getAttribute('image-idx');
 			let src = input.getAttribute('data-file-src');
-			this.readImage(idx, src, (idx, image)=>{
-				input.classList.add('not-empty');
-				this.updateMedia(idx, image);
-			});
+			console.log('applySavedFile', src);
+			console.log()
+			const type = await this.classifyMedia(src);
+			console.log('type', type);
+			if(type === 'image') {
+				this.readImage(idx, src, (idx, image)=>{
+					input.classList.add('not-empty');
+					this.updateMedia(idx, image);
+				});
+			} else if(type === 'video') {
+				this.readVideo(idx, src, (idx, image)=>{
+					input.classList.add('not-empty');
+					this.updateMedia(idx, image);
+				});
+			}
+			
 		});
 		let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
 		if(scale_input) {
@@ -1379,6 +1391,13 @@ export class ShapeStatic extends Shape {
 				this.updateMediaBlendMode(e.target.value, idx, isSilent);
 			}.bind(this);
 		}
+	}
+	async classifyMedia(url) {
+		const res = await fetch(url, { method: 'HEAD' });
+		const type = res.headers.get('Content-Type') || '';
+		if (type.startsWith('image/')) return 'image';
+		if (type.startsWith('video/')) return 'video';
+		return 'unknown';
 	}
     updateMedia(idx, image, silent = false){
 		
