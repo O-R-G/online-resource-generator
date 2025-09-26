@@ -23,6 +23,9 @@ export class Shape {
 		this.framerate = 120;
 		this.watermarks = [];
 		this.watermarkidx = 0;
+		this.videoFrameRequests = {};
+		this.videoFrameCleanup = {};
+		this.backgroundVideoData = null;
 		
         this.shapeCenter = {
             x: this.shapeShiftX,
@@ -805,10 +808,17 @@ export class Shape {
             }
             if(panel_section)
                 panel_section.parentNode.removeChild(panel_section);
-        } else if(type === 'media') {
-            if(this.media[idx]) {
-                delete this.media[idx];
-                this.resetMedia(true);
+		} else if(type === 'media') {
+			if(this.media[idx]) {
+				if(this.videoFrameCleanup[idx]) {
+					this.videoFrameCleanup[idx]();
+					delete this.videoFrameCleanup[idx];
+				}
+				if(this.backgroundVideoData && this.backgroundVideoData.idx === idx) {
+					this.backgroundVideoData = null;
+				}
+				delete this.media[idx];
+				this.resetMedia(true);
                 for(let id in this.media) {
                     if(id.indexOf('media-') === 0) {
                         this.addMedia(id, id.replace('media-', 'Media '));
@@ -821,13 +831,14 @@ export class Shape {
             this.canvasObj.draw();
     }
     async readVideo(idx, src, cb){
-        // Create video element
-        const videoElement = document.createElement('video');
-        videoElement.className = 'hidden';
+		// Create video element
+		const videoElement = document.createElement('video');
+		videoElement.style.display = 'none';
         videoElement.src = src;
-        videoElement.loop = true;
-        videoElement.controls = true;
-        videoElement.muted = true;
+		videoElement.loop = true;
+		videoElement.controls = true;
+		videoElement.muted = true;
+		videoElement.playsInline = true;
         // videoElement.width = 600; // Adjust width as needed
 
         // Append video element to body
@@ -841,21 +852,126 @@ export class Shape {
         {
             console.log(err);
         }
-        
+        this.drawVideo(idx, videoElement);
         if(typeof cb === 'function')
             cb(idx, videoElement);	
     }
+    drawVideo(idx, video=null){
+        let mediaItem = this.media[idx];
+        const targetVideo = video || (mediaItem ? mediaItem.obj : null);
+        if(!targetVideo) return null;
+        if(mediaItem && mediaItem.obj !== targetVideo && targetVideo.tagName === 'VIDEO') {
+            mediaItem.obj = targetVideo;
+        }
+		const cleanupExisting = this.videoFrameCleanup[idx];
+		if(typeof cleanupExisting === 'function') cleanupExisting();
+
+		const haveCurrentData = typeof HTMLMediaElement !== 'undefined' && typeof HTMLMediaElement.HAVE_CURRENT_DATA === 'number'
+			? HTMLMediaElement.HAVE_CURRENT_DATA
+			: 2;
+		const supportsVideoFrameCallback = typeof targetVideo.requestVideoFrameCallback === 'function';
+
+		const cancelScheduledFrame = () => {
+			const entry = this.videoFrameRequests[idx];
+			if(!entry) return;
+			if(entry.type === 'vfc' && entry.video && typeof entry.video.cancelVideoFrameCallback === 'function') {
+				entry.video.cancelVideoFrameCallback(entry.id);
+			} else if(entry.type === 'raf') {
+				cancelAnimationFrame(entry.id);
+			}
+			delete this.videoFrameRequests[idx];
+		};
+
+		const scheduleFrame = () => {
+			if(supportsVideoFrameCallback) {
+				const id = targetVideo.requestVideoFrameCallback(() => {
+					processFrame();
+				});
+				this.videoFrameRequests[idx] = { type: 'vfc', id, video: targetVideo };
+			} else {
+				const id = requestAnimationFrame(() => {
+					processFrame();
+				});
+				this.videoFrameRequests[idx] = { type: 'raf', id };
+			}
+		};
+
+		const processFrame = () => {
+			if(targetVideo.readyState >= haveCurrentData) {
+				this.updateBackgroundVideoFrame(idx, targetVideo);
+				this.videoFrameDidUpdate(idx, targetVideo);
+			}
+			if(!targetVideo.paused && !targetVideo.ended) {
+				scheduleFrame();
+			} else {
+				cancelScheduledFrame();
+			}
+		};
+
+		const stop = () => {
+			cancelScheduledFrame();
+		};
+
+		const onPlay = () => {
+			stop();
+			processFrame();
+		};
+		const onPause = stop;
+		const onEnded = stop;
+		const onLoadedData = () => {
+			this.updateBackgroundVideoFrame(idx, targetVideo);
+			this.videoFrameDidUpdate(idx, targetVideo);
+		};
+
+        targetVideo.addEventListener('play', onPlay);
+        targetVideo.addEventListener('pause', onPause);
+        targetVideo.addEventListener('ended', onEnded);
+        targetVideo.addEventListener('loadeddata', onLoadedData, { once: true });
+
+        this.videoFrameCleanup[idx] = () => {
+            targetVideo.removeEventListener('play', onPlay);
+            targetVideo.removeEventListener('pause', onPause);
+            targetVideo.removeEventListener('ended', onEnded);
+            targetVideo.removeEventListener('loadeddata', onLoadedData);
+            stop();
+        };
+
+		if(!targetVideo.paused && !targetVideo.ended) {
+			processFrame();
+		} else if(targetVideo.readyState >= haveCurrentData) {
+			this.updateBackgroundVideoFrame(idx, targetVideo);
+			this.videoFrameDidUpdate(idx, targetVideo);
+		}
+
+		return this.videoFrameCleanup[idx];
+	}
+	updateBackgroundVideoFrame(idx, video){
+		// subclasses can override
+	}
+	videoFrameDidUpdate(idx, video){
+		// subclasses can override
+	}
     readImageUploaded(event, cb){
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
 
         if (input.files && input.files[0]) {
+            const file_type = input.files[0].type.substring(0, input.files[0].type.indexOf('/'));
+            // console.log(input.files[0].type)
         	var FR = new FileReader();
             FR.onload = function (e) {
-                this.readImage(idx, e.target.result, (idx, image)=>{
-                    input.classList.add('not-empty');
-                    if(typeof cb === 'function') cb(idx, image);
-                });
+                if(file_type === 'image') {
+                    this.readImage(idx, e.target.result, (idx, image)=>{
+                        input.classList.add('not-empty');
+                        if(typeof cb === 'function') cb(idx, image);
+                    });
+                } else if(file_type === 'video') {
+                    this.readVideo(idx, e.target.result, (idx, video)=>{
+                        input.classList.add('not-empty');
+                        if(typeof cb === 'function') cb(idx, video);
+                    });
+                }
+                
             }.bind(this);
             FR.readAsDataURL(input.files[0]);
             input.parentNode.parentNode.classList.add('viewing-image-control');
@@ -902,6 +1018,12 @@ export class Shape {
 			}
 		}
 		this.media[idx].obj = obj;
+		if(obj && obj.tagName && obj.tagName.toLowerCase() === 'video') {
+			this.drawVideo(idx, obj);
+		} else if(this.videoFrameCleanup[idx]) {
+			this.videoFrameCleanup[idx]();
+			delete this.videoFrameCleanup[idx];
+		}
 	}
     updateFrame(frame){
         frame = frame ? frame : this.generateFrame();
@@ -999,13 +1121,21 @@ export class Shape {
         this.fields.watermarks = this.fields.watermarks.slice(0, idx+1);
     }
     resetMedia(fieldOnly=false){
-        if(fieldOnly) {
-            // this.mediaIndex = Object.keys(this.media).filter((item)=>item.indexOf('media') === 0).length;
-            this.reindexMedia();
-        } else {
-            this.media = {};
-            this.mediaIndex = 0;
-        }
+		if(fieldOnly) {
+			// this.mediaIndex = Object.keys(this.media).filter((item)=>item.indexOf('media') === 0).length;
+			this.reindexMedia();
+		} else {
+			for(const key in this.videoFrameCleanup) {
+                if(typeof this.videoFrameCleanup[key] === 'function') {
+                    this.videoFrameCleanup[key]();
+			}
+			delete this.videoFrameCleanup[key];
+			delete this.videoFrameRequests[key];
+		}
+		this.backgroundVideoData = null;
+			this.media = {};
+			this.mediaIndex = 0;
+		}
         this.fields.media = {};
         let container = this.renderAddMedia();
         this.fields['media-container'].parentNode.replaceChild(container, this.fields['media-container']);
@@ -1013,16 +1143,32 @@ export class Shape {
     }
     reindexMedia(){
         this.mediaIndex = 1;
-        let reindexed = {};
-        for(let key in this.media) {
-            if(key.indexOf('media') === 0) {
-                reindexed['media-' + this.mediaIndex] = this.media[key];
-                this.mediaIndex++;
-            } else {
-                reindexed[key] = this.media[key];
+        const reindexed = {};
+        const videosToRestart = [];
+		for(const key in this.media) {
+			const item = this.media[key];
+			let newKey = key;
+			if(key.indexOf('media') === 0) {
+				newKey = 'media-' + this.mediaIndex;
+				this.mediaIndex++;
+			}
+			reindexed[newKey] = item;
+			if(this.backgroundVideoData && this.backgroundVideoData.idx === key) {
+				this.backgroundVideoData.idx = newKey;
+			}
+			if(this.videoFrameCleanup[key]) {
+				this.videoFrameCleanup[key]();
+				delete this.videoFrameCleanup[key];
+				delete this.videoFrameRequests[key];
+				videosToRestart.push({idx: newKey, obj: item.obj});
             }
         }
         this.media = reindexed;
+        videosToRestart.forEach((videoData)=>{
+            if(videoData.obj && videoData.obj.tagName && videoData.obj.tagName.toLowerCase() === 'video') {
+                this.drawVideo(videoData.idx, videoData.obj);
+            }
+        });
     }
     getDefaultOption(options, returnKey = false){
         return getDefaultOption(options, returnKey);
@@ -1058,4 +1204,3 @@ export class Shape {
         this.syncMedia();
     }
 }
-

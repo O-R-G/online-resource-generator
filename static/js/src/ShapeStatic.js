@@ -27,6 +27,7 @@ export class ShapeStatic extends Shape {
 		this.timer_shape = null;
 		this.customGraphic = [];
 		this.initRecording = false;
+		this.stopRecordingTimeout = null;
 	}
 	init(canvasObj) {
 		super.init(canvasObj);
@@ -1123,6 +1124,7 @@ export class ShapeStatic extends Shape {
   	}
 
 	draw(){
+		// console.log('draw');
 		if(this.shapeMethod == 'draw')
 		{
 			if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
@@ -1157,6 +1159,10 @@ export class ShapeStatic extends Shape {
 		if( this.shape.watermarkPositions !== undefined)
 			this.drawWatermarks();
 		this.drawCustomGraphic();
+	}
+	drawVideo(idx, video=null){
+		// console.log('drawVideo');
+		return super.drawVideo(idx, video);
 	}
 	
 	renderControl(){
@@ -1376,54 +1382,97 @@ export class ShapeStatic extends Shape {
 	}
     updateMedia(idx, image, silent = false){
 		
-		super.updateMedia(idx, image, silent);
+			super.updateMedia(idx, image, silent);
         if(idx === 'background-image') {
-			let temp = document.createElement('canvas');
-			let temp_ctx = temp.getContext('2d');
-			if(this.timer_color != null)
-			{
+			const mediaItem = this.media[idx];
+			if(!mediaItem || !mediaItem.obj) {
+				this.backgroundVideoData = null;
+				if(!silent) this.canvasObj.draw();
+				return;
+			}
+			const obj = mediaItem.obj;
+			const isVideo = obj.tagName && obj.tagName.toLowerCase() === 'video';
+			const sourceWidth = isVideo ? obj.videoWidth : obj.width;
+			const sourceHeight = isVideo ? obj.videoHeight : obj.height;
+			if(isVideo && (!sourceWidth || !sourceHeight)) {
+				obj.addEventListener('loadedmetadata', ()=>{
+					this.updateMedia(idx, obj, silent);
+				}, { once: true });
+				return;
+			}
+			if(this.timer_color != null) {
 				clearInterval(this.timer_color);
 				this.timer_color = null;
 			}
-			temp.width = this.canvasW;
-			temp.height = this.canvasH;
-			
-			let length = this.frame.w - this.padding * 2;
-				
-			let temp_scale = 1;
-			let temp_scaledW = this.media[idx].obj.width * temp_scale;
-			let temp_scaledH = this.media[idx].obj.height * temp_scale;
-			
-			if(this.media[idx].obj.width > this.media[idx].obj.height)
-			{
-				temp_scale = length / this.media[idx].obj.height * this.media[idx].scale;
-				temp_scaledW = this.media[idx].obj.width * temp_scale;
-				temp_scaledH = this.media[idx].obj.height * temp_scale;
-			}
-			else
-			{
-				temp_scale = length / this.media[idx].obj.width * this.media[idx].scale;
-				temp_scaledW = this.media[idx].obj.width * temp_scale;
-				temp_scaledH = this.media[idx].obj.height * temp_scale;
-			}
-
-			this.media[idx].x = temp.width / 2 - temp_scaledW / 2 + this.media[idx].shiftX;
-			
-			this.media[idx].y = this.frame.h / 2 - temp_scaledH / 2 - this.media[idx].shiftY + this.frame.y;
-			if(this.timer_color != null)
-			{
-				clearInterval(this.timer_color);
-				this.timer_color = null;
-			}
-			if(this.timer_position != null)
-			{
+			if(this.timer_position != null) {
 				clearInterval(this.timer_position);
 				this.timer_position = null;
 			}
-			temp_ctx.drawImage(this.media[idx].obj, this.media[idx].x, this.media[idx].y, temp_scaledW, temp_scaledH);
-			this.color = this.context.createPattern(temp, "no-repeat");
+			let temp = isVideo && this.backgroundVideoData && this.backgroundVideoData.canvas ? this.backgroundVideoData.canvas : document.createElement('canvas');
+			let temp_ctx = isVideo && this.backgroundVideoData && this.backgroundVideoData.ctx ? this.backgroundVideoData.ctx : temp.getContext('2d');
+			temp.width = this.canvasW;
+			temp.height = this.canvasH;
+			let length = this.frame.w - this.padding * 2;
+			let temp_scale = 1;
+			let temp_scaledW = sourceWidth * temp_scale;
+			let temp_scaledH = sourceHeight * temp_scale;
+			if(sourceWidth > sourceHeight) {
+				temp_scale = length / sourceHeight * mediaItem.scale;
+				temp_scaledW = sourceWidth * temp_scale;
+				temp_scaledH = sourceHeight * temp_scale;
+			} else {
+				temp_scale = length / sourceWidth * mediaItem.scale;
+				temp_scaledW = sourceWidth * temp_scale;
+				temp_scaledH = sourceHeight * temp_scale;
+			}
+			mediaItem.x = temp.width / 2 - temp_scaledW / 2 + mediaItem.shiftX;
+			mediaItem.y = this.frame.h / 2 - temp_scaledH / 2 - mediaItem.shiftY + this.frame.y;
+			temp_ctx.clearRect(0, 0, temp.width, temp.height);
+			temp_ctx.drawImage(obj, mediaItem.x, mediaItem.y, temp_scaledW, temp_scaledH);
+			const pattern = this.context.createPattern(temp, "no-repeat");
+			if(pattern) this.color = pattern;
+			if(isVideo) {
+				this.backgroundVideoData = {
+					idx,
+					video: obj,
+					canvas: temp,
+					ctx: temp_ctx,
+					drawX: mediaItem.x,
+					drawY: mediaItem.y,
+					drawWidth: temp_scaledW,
+					drawHeight: temp_scaledH,
+					pattern
+				};
+			} else {
+				this.backgroundVideoData = null;
+			}
 		} 
 		if(!silent) this.canvasObj.draw();
+	}
+	updateBackgroundVideoFrame(idx, video){
+		if(!this.backgroundVideoData || this.backgroundVideoData.idx !== idx) return;
+		const data = this.backgroundVideoData;
+		if(!data.canvas || !data.ctx) return;
+		if(!video.videoWidth || !video.videoHeight) return;
+		data.ctx.clearRect(0, 0, data.canvas.width, data.canvas.height);
+		data.ctx.drawImage(video, data.drawX, data.drawY, data.drawWidth, data.drawHeight);
+		const pattern = this.context.createPattern(data.canvas, 'no-repeat');
+		if(pattern) {
+			this.color = pattern;
+			data.pattern = pattern;
+		}
+	}
+	videoFrameDidUpdate(idx, video){
+		if(this.canvasObj && this.canvasObj.isRecording && !this.stopRecordingTimeout) {
+			console.log('start recording...');
+			this.stopRecordingTimeout = setTimeout(() => {
+				if(this.canvasObj && this.canvasObj.isRecording) {
+					this.canvasObj.stopRecording();
+				}
+				this.stopRecordingTimeout = null;
+			}, 10000);
+		}
+		this.draw();
 	}
     updateFrame(frame = null, silent = false){
 		frame = frame ? frame : this.generateFrame();
@@ -1526,9 +1575,20 @@ export class ShapeStatic extends Shape {
 	drawImages(){
 		for(let idx in this.media) {
 			if(idx === 'background-image') continue;
-			if(!this.media[idx].obj) continue;
-			this.context.globalCompositeOperation = this.media[idx]['blend-mode'] ? this.media[idx]['blend-mode'] : 'normal';
-			this.context.drawImage(this.media[idx].obj, (this.media[idx].x + this.media[idx].shiftX), (this.media[idx].y - this.media[idx].shiftY), this.media[idx].obj.width * this.media[idx].scale, this.media[idx].obj.height * this.media[idx].scale);
+			const mediaItem = this.media[idx];
+			if(!mediaItem.obj) continue;
+			const isVideo = mediaItem.obj.tagName && mediaItem.obj.tagName.toLowerCase() === 'video';
+			const sourceWidth = isVideo ? (mediaItem.obj.videoWidth || mediaItem.obj.width) : mediaItem.obj.width;
+			const sourceHeight = isVideo ? (mediaItem.obj.videoHeight || mediaItem.obj.height) : mediaItem.obj.height;
+			if(!sourceWidth || !sourceHeight) continue;
+			this.context.globalCompositeOperation = mediaItem['blend-mode'] ? mediaItem['blend-mode'] : 'normal';
+			this.context.drawImage(
+				mediaItem.obj,
+				(mediaItem.x + mediaItem.shiftX),
+				(mediaItem.y - mediaItem.shiftY),
+				sourceWidth * mediaItem.scale,
+				sourceHeight * mediaItem.scale
+			);
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}
@@ -1547,7 +1607,6 @@ export class ShapeStatic extends Shape {
 		}
 	}
 	// getDisplayValue(input){
-	// 	return input / this.canvasObj.scale;
-	// }
+// 	return input / this.canvasObj.scale;
+// }
 }
-
