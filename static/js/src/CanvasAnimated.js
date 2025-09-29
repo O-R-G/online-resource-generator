@@ -73,7 +73,8 @@ export default class CanvasAnimated extends Canvas {
             this.media['base-image'].show();
             this.base = 'upload';
 		} else {
-            this.media['base-image'].hide();
+            if(this.media['base-image'])
+                this.media['base-image'].hide();
             this.base = color;
             if(color.type === 'gradient') {
                 this.mesh_base.material = this.processColor(color);
