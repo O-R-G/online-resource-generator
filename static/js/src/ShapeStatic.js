@@ -458,6 +458,7 @@ export default class ShapeStatic extends Shape {
 			*/
 
 			this.str = str;
+			console.log(align);
 			this.context.textAlign=align;
 			
 			let x = shift && shift.x ? shift.x : 0, 
@@ -474,6 +475,7 @@ export default class ShapeStatic extends Shape {
 			// let lines = text.lines;
 			// console.log(lines);
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
+			console.log(x);
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
 			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, addStroke);
@@ -484,7 +486,7 @@ export default class ShapeStatic extends Shape {
             write watermarks
         */
 		// let lines = text.lines;	
-		console.log(lines);
+		// console.log(lines);
     	let metrics = this.context.measureText(str);
 		let actualAscent = metrics.actualBoundingBoxAscent;
 		
@@ -685,7 +687,8 @@ export default class ShapeStatic extends Shape {
 
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
-			let seg_x = align == 'center' ? x - ln['width'] / 2 : x;
+			// let seg_x = align == 'center' ? x - ln['width'] / 2 : x;
+			let seg_x = align == 'center' ? x : x + ln['width'] / 2;
 			let ln_y = y + i * lineHeight;
 			this.writeLine(ln, seg_x, ln_y, addStroke);
 		}
@@ -716,6 +719,8 @@ export default class ShapeStatic extends Shape {
 			'lines': this.getLines(str, color),
 			'max-width': 0
 		};
+		const widths = output.lines.map((item)=>{ return item.width; } );
+		output['max-width'] = Math.max(widths);
 		// console.log(output.lines);
 		return output;
 	}
@@ -763,7 +768,6 @@ export default class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		const words = this.getTextNodes(str, color);
-		// console.log('words', words);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
 		for(const line_raw of lines_raw) {
 			let word = {
@@ -788,6 +792,10 @@ export default class ShapeStatic extends Shape {
 				}
 			}
 			line.words.push(word);
+			const words_content_arr = line.words.reduce((carry, item)=>{ return carry.concat(item.content)  }, []);
+			const words_content_str = words_content_arr.join(' ');
+			const m = this.context.measureText(words_content_str);
+			line.width = m.width;
 			output.push(line);
 		}
 		return output;
