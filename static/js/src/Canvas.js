@@ -64,7 +64,7 @@ export default class Canvas {
         this.fields = {};
         this.fields.media = {};
         this.colorPattern = null;
-        this.media = {};
+		this.media = {};
         this.isdebug = false;
         this.r = 1;
         this.pdfSize = {
@@ -90,6 +90,8 @@ export default class Canvas {
             this.checkWrapperWidth.bind(this)
         ]
         this.canvas = this.createCanvas();
+        this.isMediaFrame = false;
+        this.recording_timer = null;
 	}
 	init(){
 		
@@ -143,7 +145,8 @@ export default class Canvas {
         let match = this.fields['recordName'].value.split(pattern).filter(word => word != '');
         this.autoRecordingQueue = match;
     }
-    initRecording(){
+    initRecording(duration=10000){
+        if(this.isRecording) return;
         this.isInitRecording = true;
         this.downloadVideoButton.innerText = 'Loading . . .';
         this.readyState = 0;
@@ -186,7 +189,10 @@ export default class Canvas {
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
             const delay = this.isThree ? 0 : 90; // 60 fps
-            setTimeout(this.startRecording.bind(this), delay);
+            setTimeout(()=>{
+                console.log(duration);
+                this.startRecording(duration)
+            }, delay);
             // this.startRecording();
         }, 0)
         
@@ -198,12 +204,19 @@ export default class Canvas {
         document.body.classList.add('saving');
         this.prepareNextSaving();
     }
-	startRecording(){
+	startRecording(duration=0){
+        console.log(duration)
+        if(this.isRecording) return;
         this.media_recorder.start(1); 
         if(this.isThree) {
             this.animate(); 
         }
-        
+        if(duration > 0) {
+            this.recording_timer = setTimeout(()=>{
+                this.recording_timer = null;
+                this.stopRecording();
+            }, duration);
+        }
         
     }
     getDefaultOption(options, returnKey = false){
@@ -411,6 +424,7 @@ export default class Canvas {
     }
     
     stopRecording(){
+        if(!this.isRecording) return;
         this.media_recorder.stop(); // https://webkit.org/blog/11353/mediarecorder-api/
         document.body.classList.remove('recording');
         this.downloadVideoButton.innerText = 'mp4';
@@ -657,7 +671,7 @@ export default class Canvas {
     
     addListenersBottom(){
         if(this.downloadImageButton) this.downloadImageButton.onclick = this.saveCanvasAsImage.bind(this);
-        if(this.downloadVideoButton) this.downloadVideoButton.onclick = this.initRecording.bind(this);
+        if(this.downloadVideoButton) this.downloadVideoButton.onclick = ()=>this.initRecording();
         if(this.downloadGifButton) this.downloadGifButton.onclick = this.initDownloadGif.bind(this);
         if(this.downloadPdfButton) this.downloadPdfButton.onclick = this.promptPdfSize.bind(this);
     }
@@ -706,7 +720,9 @@ export default class Canvas {
         inputs.y.classList.add('pseudo-focused');
         if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
     }
-    draw(){
+    draw(trigger = null){
+        const isMediaFrame = trigger && typeof trigger === 'object' && trigger.isMediaFrame === true;
+        this.isMediaFrame = isMediaFrame;
         this.drawBase();
         for(let shape of Object.values(this.shapes)) {
             shape.draw();
@@ -714,6 +730,7 @@ export default class Canvas {
         for(let m of Object.values(this.media)) {
             m.draw();
         }
+        this.isMediaFrame = false;
     }
     animate(isSilent = false){
         for(let shape_id in this.shapes) {

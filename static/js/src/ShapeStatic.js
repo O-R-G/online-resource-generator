@@ -472,7 +472,7 @@ export default class ShapeStatic extends Shape {
 			
 			y += this.shapeCenter.y;
 			// let lines = text.lines;
-			console.log(lines);
+			// console.log(lines);
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
@@ -763,7 +763,7 @@ export default class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		const words = this.getTextNodes(str, color);
-		console.log('words', words);
+		// console.log('words', words);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
 		for(const line_raw of lines_raw) {
 			let word = {
@@ -797,7 +797,7 @@ export default class ShapeStatic extends Shape {
 		const str_by_pattern = this.processWordStr(str, default_color);
 		for(const sbp of str_by_pattern) {
 			const paragraphs_str = sbp.content.split('\n');
-			console.log(paragraphs_str);
+			// console.log(paragraphs_str);
 			for (let j = 0; j < paragraphs_str.length; j++)  {
 				const p = paragraphs_str[j];
 				// console.log(p);
@@ -1261,17 +1261,20 @@ export default class ShapeStatic extends Shape {
   		this.canvasObj.saveCanvasAsImage();
   	}
 	applyFillStyle(){
+		// console.log('applyFillStyle');
 		if(this.color === 'upload') {
-			this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.shapeArea);
+			const m = this.media['background-image'];
+			const isMediaFrame = !!this.canvasObj.isMediaFrame;
+			if(m.isVideo && !isMediaFrame && typeof m.restartPlayback === 'function') {
+				m.restartPlayback();
+			}
+			this.colorPattern = m.generatePattern(this.context, this.canvas, this.shapeArea);
 			this.context.fillStyle = this.colorPattern;
 		} else {
 			this.context.fillStyle = this.color;
 		}
 	}
 	draw(){
-		// if(this.color === 'upload') {
-		// 	this.colorPattern = this.media['background-image'].generatePattern(this.context, this.canvas, this.shapeArea);
-		// }
 		if(this.shapeMethod == 'draw')
 		{
 			if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
@@ -1314,7 +1317,7 @@ export default class ShapeStatic extends Shape {
 	renderControl(){
 		// super.renderControl();
 		const [shape_section, shape_right] = this.renderShapeSection('shape', 'Shape')
-		const color_select = super.renderSelect('shape-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'});
+		const color_select = super.renderSelect('shape-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'}, 'Shape color');
 		shape_right.appendChild(color_select);
 		if(this.options.colorOptions['upload']) {
 			const media_div = document.createElement('div');
@@ -1342,6 +1345,8 @@ export default class ShapeStatic extends Shape {
 		if(this.fields['shape']) {
 			this.fields['shape'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
+				if(this.fields['shape'].classList.contains('showing-placeholder'))
+					this.fields['shape'].classList.remove('showing-placeholder');
 				let shape = this.options.shapeOptions[e.target.value]['shape'];
 				this.shape = shape;
 				this.updateShape(this.shape, isSilent);
@@ -1456,7 +1461,8 @@ export default class ShapeStatic extends Shape {
 		if(this.fields['shape-color']) {
 			this.fields['shape-color'].onchange = function(e){
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
-				// let sec = getAncestorByClass(e.target, 'panel-section');
+				if(this.fields['shape-color'].classList.contains('showing-placeholder'))
+					this.fields['shape-color'].classList.remove('showing-placeholder');
 				this.fields['shape-color'].setAttribute('data-value', e.target.value);
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
@@ -1576,12 +1582,15 @@ export default class ShapeStatic extends Shape {
 		this.context.globalCompositeOperation = 'normal';
 	}
 	drawImages(){
+		const isMediaFrame = !!this.canvasObj.isMediaFrame;
 		for(let key in this.media) {
 			const m = this.media[key];
 			if(m.isShapeColor) continue;
+			if(m.isVideo && !isMediaFrame && typeof m.restartPlayback === 'function') {
+				m.restartPlayback();
+			}
 			m.draw(this.context);
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}
 }
-

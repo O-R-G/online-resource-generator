@@ -996,7 +996,7 @@ drawNone(){
 	}
 	updateFrontColor(color, silent = false, transparent=false){
 		// let sec = this.fields['shape-front-color'].parentNode.parentNode;
-		let sec = getAncestorByClass(e.target, 'panel-section');
+		let sec = getAncestorByClass(this.fields['shape-front-color'], 'panel-section');
 		if(color === 'upload') {
 			sec.classList.add('viewing-shape-image-section');
 		} else  {

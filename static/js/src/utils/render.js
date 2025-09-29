@@ -42,18 +42,27 @@ export function renderInput(id, value='', attrs = null, extraClass = []){
     output.className = getClassString([...extraClass, 'input-element']);
     return output;
 }
-export function renderSelect(id, data, extraClass=[], attrs=null){
+export function renderSelect(id, data, extraClass=[], attrs=null, placeholder=''){
     const options = data && data.options ? data.options : null;
     if(!options) return null;
     const selected_value = data && data.selected_value ? data.selected_value : null;
     const output = document.createElement('select');
     const cls = ['select-element'].concat(extraClass);
+    if(placeholder) cls.push('showing-placeholder');
     output.className = getClassString(cls);
     output.id = id;
     const default_key = getDefaultOption(options, true);
     let default_idx = 0;
     if(typeof options === 'object' && options !== null)
     {
+        if(placeholder) {
+            let opt = document.createElement('option');
+            opt.value = '';
+            opt.innerText = placeholder;
+            opt.disabled = true;
+            opt.selected = true;
+            output.appendChild(opt);
+        }
         let idx = 0;
         for (const [key, value] of Object.entries(options)) {
             let opt = document.createElement('option');

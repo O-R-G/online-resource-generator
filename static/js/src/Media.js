@@ -11,6 +11,7 @@ export default class Media{
         this.options = options;
         this.isEmpty = true;
         this.isShown = true;
+        this.isVideo = false;
         this.elements = {};
         this.dom = null;
         this.shared_props = {
@@ -170,17 +171,37 @@ export default class Media{
 		}.bind(this);
 		this.elements['file-input'].onchange = function(e){
 			this.readImageUploaded(e, (image)=>{
+                console.log(this.isThree);
+                if(this.isThree) {
+                    console.log(this.onUpload);
+                }
                 if(typeof this.onUpload === 'function')
                     this.onUpload(image);
                 else
                     this.update({obj:image});
 			});
 		}.bind(this);
-		this.elements['file-input'].addEventListener('applySavedFile', (e)=>{
+		this.elements['file-input'].addEventListener('applySavedFile', async (e)=>{
 			let src = this.elements['file-input'].getAttribute('data-file-src');
-			this.readImage(src, (image)=>{
-                this.update({'obj': image, 'src': src})
-			});
+            const type = await this.classifyFile(src);
+			console.log('type', type);
+			if(type === 'image') {
+                this.isVideo = false;
+				this.readImage(src, (image)=>{
+					// input.classList.add('not-empty');
+					this.update({'obj': image, 'src': src})
+				});
+			} else if(type === 'video') {
+                this.isVideo = true;
+				this.readVideo(src, (video)=>{
+					// input.classList.add('not-empty');
+					// this.updateMedia(idx, image);
+                    this.update({'obj': video, 'src': src})
+				});
+			}
+			// this.readImage(src, (image)=>{
+            //     this.update({'obj': image, 'src': src})
+			// });
 		});
 		if(this.elements['scale']) {
 			this.elements['scale'].oninput = function(e){
@@ -243,14 +264,79 @@ export default class Media{
         };
         image.src = src;
     }
+    readVideo(src, cb){
+        if(!src) src = this.src;
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        video.muted = true;
+        video.loop = false;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        video.src = src;
+
+        const handleLoaded = () => {
+            video.removeEventListener('loadeddata', handleLoaded);
+            if(typeof cb === 'function') cb(video);
+        };
+
+        if(video.readyState >= 2) {
+            handleLoaded();
+        } else {
+            video.addEventListener('loadeddata', handleLoaded, { once: true });
+            try {
+                video.load();
+            } catch(err) {
+                /* ignore load errors; callback will not fire without data */
+            }
+        }
+    }
+    async classifyFile(url){
+        const res = await fetch(url, { method: 'HEAD' });
+		const type = res.headers.get('Content-Type') || '';
+		if (type.startsWith('image/')) return 'image';
+		if (type.startsWith('video/')) return 'video';
+		return 'unknown';
+    }
+    // readImageUploaded(event, cb){
+    //     let input = event.target;
+    //     if (input.files && input.files[0]) {
+    //         const file_type = input.files[0].type.substring(0, input.files[0].type.indexOf('/'));
+    //     	var FR = new FileReader();
+    //         FR.onload = function (e) {
+    //             this.readImage(e.target.result, (image)=>{
+    //                 if(typeof cb === 'function') cb(image);
+    //             });
+    //         }.bind(this);
+    //         FR.readAsDataURL(input.files[0]);
+    //         input.parentNode.parentNode.parentNode.classList.add('viewing-image-control');
+    //     }
+    // }
     readImageUploaded(event, cb){
+        console.log('readImageUploaded');
         let input = event.target;
+		let idx = input.getAttribute('image-idx');
+
         if (input.files && input.files[0]) {
+            const file_type = input.files[0].type.substring(0, input.files[0].type.indexOf('/'));
+            // console.log(input.files[0].type)
         	var FR = new FileReader();
             FR.onload = function (e) {
-                this.readImage(e.target.result, (image)=>{
-                    if(typeof cb === 'function') cb(image);
-                });
+                if(file_type === 'image') {
+                    this.isVideo = false;
+                    this.readImage(e.target.result, (image)=>{
+                        // input.classList.add('not-empty');
+                        if(typeof cb === 'function') cb(image);
+                    });
+                } else if(file_type === 'video') {
+                    this.isVideo = true;
+                    console.log('viddd');
+                    this.readVideo(e.target.result, (video)=>{
+                        // input.classList.add('not-empty');
+                        if(typeof cb === 'function') cb(video);
+                    });
+                }
+                
             }.bind(this);
             FR.readAsDataURL(input.files[0]);
             input.parentNode.parentNode.parentNode.classList.add('viewing-image-control');

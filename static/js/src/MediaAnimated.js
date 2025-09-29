@@ -10,7 +10,7 @@ export default class MediaAnimated extends Media{
             mesh: null
         };
         this.isThree = true;
-        this.isVideo = this.false;
+        // this.isVideo = this.false;
         this.init(props);
     }
     update(props, silent=false){
@@ -138,6 +138,46 @@ export default class MediaAnimated extends Media{
             
         })
     }
+    async applyVideoAsMaterial(silent=false, isBack=false){
+        // let this.obj = this.media[idx].obj;
+        const texture = new THREE.VideoTexture( this.obj );
+        for(const key in this.mesh){
+            const mesh = this.mesh[key];
+            if(!mesh) continue;
+            const width = this.obj.videoWidth, height = this.obj.videoHeight;
+            const videoAspect = width / height;
+            let material = new THREE.MeshBasicMaterial({ map: texture })
+            mesh.material = material;
+
+            
+            let geometry = new THREE.PlaneGeometry(width, height);
+            mesh.geometry = geometry;
+            geometry.computeBoundingBox();
+
+            const bbox = geometry.boundingBox;
+            const geomWidth = bbox.max.x - bbox.min.x;
+            const geomHeight = bbox.max.y - bbox.min.y;
+            const geometryAspect = geomWidth / geomHeight;
+            // Adjust the UV coordinates to match the aspect ratio
+            let offsetX = 0, offsetY = 0, repeatX = 1, repeatY = 1;
+            if (videoAspect > geometryAspect) {
+                // Video is wider than geometry, scale UV coordinates horizontally
+                repeatX = geometryAspect / videoAspect;
+                offsetX = (1 - repeatX) / 2;  // Center the video horizontally
+            } else {
+                // Video is taller than geometry, scale UV coordinates vertically
+                repeatY = videoAspect / geometryAspect;
+                offsetY = (1 - repeatY) / 2;  // Center the video vertically
+            }
+            
+            // Set the UV transformation on the texture
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.offset.set(offsetX, offsetY);
+            texture.repeat.set(repeatX, repeatY);
+        }
+        
+    }
     updateScale(value, silent = false){
         if(!value) value = 1;
         else value = parseFloat(value);
@@ -158,10 +198,13 @@ export default class MediaAnimated extends Media{
     }
     
     async draw(){
-        if(this.key === 'front-background-image') console.log('front-background-image draw');
+        // if(this.key === 'front-background-image') console.log('front-background-image draw');
         // console.log(this.key, this['shift-x'], this.x);
         if((!this.obj && !this.src) || !this.isShown) return;
+        // console.log('draw', this);
+        console.log(this.isVideo);
         if(this.isVideo) {
+            console.log('yaya');
             this.applyVideoAsMaterial();
         }
         else {

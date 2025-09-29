@@ -160,8 +160,8 @@ export default class CanvasAnimated extends Canvas {
             this.renderer.render(shape.scene, shape.camera);
         this.renderer.autoClear = true;
     }
-    draw(){
-        super.draw();
+    draw(trigger = null){
+        super.draw(trigger);
         this.render();
     }
     drawRectanglePath(w,h){

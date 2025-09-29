@@ -698,6 +698,10 @@ input[value="fetch"]
     transform-origin: top left;
     position: relative;
 }
+.select-element.showing-placeholder {
+    color: #aaa;
+}
+
 @media screen and (max-width: 1080px)
 {
     #content
