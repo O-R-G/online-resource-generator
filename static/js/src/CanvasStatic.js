@@ -126,4 +126,15 @@ export default class CanvasStatic extends Canvas {
     sync(){
         super.sync();
     }
+    deactivate(){
+        if(!this.active) return;
+        if(Object.keys(this.shapes).length > 1) {
+            for(const shape of Object.values(this.shapes)) {
+                if(shape.fields['animation'].value == 'none') {
+                    shape.fields['animation'].value = 'restFront';
+                }
+            }
+        }
+        super.deactivate();
+    }
 }

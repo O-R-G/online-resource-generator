@@ -1508,6 +1508,8 @@ drawNone(){
 	updateAnimation(animationData, syncing = false, silent = false){
 		// const switchCanvas = (this.animationName !== 'none' && animationData !== 'none') || (this.animationName === 'none' && animationData === 'none')
 		this.animationName = animationData;
+		// if(!syncing)
+		// 	this.ensureSiblingAnimationState();
 		if(!silent) this.canvasObj.draw();
 		if(this.animationName !== 'none')
 		{
@@ -1521,12 +1523,40 @@ drawNone(){
 		// 		isAllNone = false;
 		// 	}
 		// }
-		let isAllNone = Object.keys(this.canvasObj.shapes).filter((key)=> this.canvasObj.shapes[key].animationName !== 'none' ).length === 0;
+		// let isAllNone = Object.keys(this.canvasObj.shapes).filter((key)=> this.canvasObj.shapes[key].animationName !== 'none' ).length === 0;
 		if(syncing) return; 
-		if(isAllNone) {
-			this.canvasObj.deactivate();
-		}
+		this.canvasObj.deactivate();
+		// if(isAllNone) {
+		// 	this.canvasObj.deactivate();
+		// }
 	}
+	// ensureSiblingAnimationState(){
+	// 	if(!this.canvasObj || !this.canvasObj.shapes) return;
+	// 	for(const shapeId of Object.keys(this.canvasObj.shapes)) {
+	// 		const sibling = this.canvasObj.shapes[shapeId];
+	// 		if(sibling === this || sibling.animationName !== 'none') continue;
+	// 		if(typeof sibling.updateAnimation === 'function') {
+	// 			sibling.updateAnimation('restFront', true, true);
+	// 		} else {
+	// 			sibling.animationName = 'restFront';
+	// 		}
+	// 		if(sibling.fields && sibling.fields['animation']) {
+	// 			const siblingField = sibling.fields['animation'];
+	// 			if(siblingField.value !== 'restFront')
+	// 				siblingField.value = 'restFront';
+	// 			if(typeof sibling.updateAnimation !== 'function') {
+	// 				siblingField.dispatchEvent(new CustomEvent('change', { detail: { isSilent: true } }));
+	// 			}
+	// 		}
+	// 		if(sibling.counterpart && sibling.counterpart.fields && sibling.counterpart.fields['animation']) {
+	// 			sibling.counterpart.animationName = 'restFront';
+	// 			const counterpartField = sibling.counterpart.fields['animation'];
+	// 			if(counterpartField.value !== 'restFront')
+	// 				counterpartField.value = 'restFront';
+	// 			counterpartField.dispatchEvent(new CustomEvent('change', { detail: { isSilent: true } }));
+	// 		}
+	// 	}
+	// }
 	updateAnimationSpeed(speed, silent = false){
 		this.animationSpeed = parseFloat(this.options.animationSpeedOptions[speed].value);
 		// this.flipAngleInterval = this.flipAngleInterval_base * this.animationSpeed;
@@ -2271,18 +2301,34 @@ drawNone(){
     	if(!silent) this.canvasObj.draw();
     }
 	setShapeGroupPosition(){
-		this.group_front_shape.position.x = getValueByPixelRatio(this.shapeShiftX);
-		// this.shapeShiftY = -960;
-		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY);
-		} else {
-			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY) + this.frame.y;
+		const shapeCount = Object.keys(this.canvasObj.shapes).length;
+		const shiftX = getValueByPixelRatio(this.shapeShiftX);
+		const shiftY = getValueByPixelRatio(this.shapeShiftY);
+		const baseX = this.frame && typeof this.frame.x === 'number' ? this.frame.x : 0;
+		const baseY = this.frame && typeof this.frame.y === 'number' ? this.frame.y : 0;
+
+		const posX = shiftX + baseX;
+		let posY = -shiftY + baseY;
+		if(shapeCount > 1) {
+			// When multiple shapes share the canvas the frame already carries the vertical offset.
+			posY = getValueByPixelRatio(-this.shapeShiftY) + baseY;
+		}
+
+		if(this.group_front) {
+			this.group_front.position.set(posX, posY, this.group_front.position.z);
+		}
+		if(this.group_back) {
+			this.group_back.position.set(posX, posY, this.group_back.position.z);
+		}
+
+		if(this.group_front_shape) {
+			const currentZ = this.group_front_shape.position.z;
+			this.group_front_shape.position.set(0, 0, currentZ);
 		}
 		if(this.group_back_shape) {
-			this.group_back_shape.position.x = this.group_front_shape.position.x;
-			this.group_back_shape.position.y = this.group_front_shape.position.y;
+			const currentZ = this.group_back_shape.position.z;
+			this.group_back_shape.position.set(0, 0, currentZ);
 		}
-		console.log(this.id, this.group_front_shape.position.y);
 	}
 	generateShapeCenter(){
 		let output = {x: 0, y: 0};
