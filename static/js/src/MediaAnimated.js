@@ -138,46 +138,105 @@ export default class MediaAnimated extends Media{
             
         })
     }
-    async applyVideoAsMaterial(silent=false, isBack=false){
-        // let this.obj = this.media[idx].obj;
-        const texture = new THREE.VideoTexture( this.obj );
-        for(const key in this.mesh){
-            const mesh = this.mesh[key];
-            if(!mesh) continue;
-            const width = this.obj.videoWidth, height = this.obj.videoHeight;
-            const videoAspect = width / height;
-            let material = new THREE.MeshBasicMaterial({ map: texture })
-            mesh.material = material;
+	async applyVideoAsMaterial(silent=false, isBack=false){
+		const video = this.obj;
+		if(!video) return;
+		const texture = new THREE.VideoTexture(video);
+		texture.wrapS = THREE.ClampToEdgeWrapping;
+		texture.wrapT = THREE.ClampToEdgeWrapping;
+		texture.magFilter = THREE.LinearFilter;
+		texture.minFilter = THREE.LinearFilter;
+		texture.generateMipmaps = false;
+		texture.colorSpace = THREE.SRGBColorSpace;
+		texture.needsUpdate = true;
+		video.loop = true;
+		video.addEventListener('ended', () => {
+			video.currentTime = 0;
+			video.play().catch(()=>{});
+		});
+		try {
+			video.play().catch(()=>{});
+		} catch(err) {
+			/* ignore play rejection */
+		}
+		const videoWidth = video.videoWidth || video.width;
+		const videoHeight = video.videoHeight || video.height;
+		if(!videoWidth || !videoHeight) return;
+		const videoAspect = videoWidth / videoHeight;
+		for(const key in this.mesh){
+			const mesh = this.mesh[key];
+			if(!mesh) continue;
+			const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+			if(this.isShapeColor) {
+				const geometry = mesh.geometry;
+				if(!geometry) continue;
+				geometry.computeBoundingBox();
+				const bbox = geometry.boundingBox;
+				const geomWidth = bbox.max.x - bbox.min.x;
+				const geomHeight = bbox.max.y - bbox.min.y;
+				const geometryAspect = geomWidth / geomHeight;
+				let scaleX = 1 / this.scale;
+				let scaleY = 1 / this.scale;
+				if(videoAspect > geometryAspect) {
+					scaleX *= geometryAspect / videoAspect;
+				} else {
+					scaleY *= videoAspect / geometryAspect;
+				}
+				const dev_x = this['shift-x'] ? getValueByPixelRatio(this['shift-x']) * scaleX / geomWidth : 0;
+				const dev_y = this['shift-y'] ? - getValueByPixelRatio(this['shift-y']) * scaleY / geomHeight : 0;
+				const position = geometry.attributes.position;
+				const uvArray = [];
+				for (let i = 0; i < position.count; i++) {
+					const x = position.getX(i);
+					const y = position.getY(i);
+					let u = (x - bbox.min.x) / (bbox.max.x - bbox.min.x);
+					let v = (y - bbox.min.y) / (bbox.max.y - bbox.min.y);
+					u = u * scaleX + (1 - scaleX) / 2 - dev_x;
+					v = v * scaleY + (1 - scaleY) / 2 + dev_y;
+					uvArray.push(u, v);
+				}
+				geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+				geometry.attributes.uv.needsUpdate = true;
+				mesh.material = material;
+				mesh.material.depthTest = false;
+				mesh.material.depthWrite = false;
+				mesh.material.needsUpdate = true;
+				if(!mesh.initialized) mesh.initialized = true;
+				continue;
+			}
 
-            
-            let geometry = new THREE.PlaneGeometry(width, height);
-            mesh.geometry = geometry;
-            geometry.computeBoundingBox();
-
-            const bbox = geometry.boundingBox;
-            const geomWidth = bbox.max.x - bbox.min.x;
-            const geomHeight = bbox.max.y - bbox.min.y;
-            const geometryAspect = geomWidth / geomHeight;
-            // Adjust the UV coordinates to match the aspect ratio
-            let offsetX = 0, offsetY = 0, repeatX = 1, repeatY = 1;
-            if (videoAspect > geometryAspect) {
-                // Video is wider than geometry, scale UV coordinates horizontally
-                repeatX = geometryAspect / videoAspect;
-                offsetX = (1 - repeatX) / 2;  // Center the video horizontally
-            } else {
-                // Video is taller than geometry, scale UV coordinates vertically
-                repeatY = videoAspect / geometryAspect;
-                offsetY = (1 - repeatY) / 2;  // Center the video vertically
-            }
-            
-            // Set the UV transformation on the texture
-            texture.wrapS = THREE.ClampToEdgeWrapping;
-            texture.wrapT = THREE.ClampToEdgeWrapping;
-            texture.offset.set(offsetX, offsetY);
-            texture.repeat.set(repeatX, repeatY);
-        }
-        
-    }
+			const scale = this.scale || 1;
+			const scaledWidth = getValueByPixelRatio(videoWidth) * scale;
+			const scaledHeight = getValueByPixelRatio(videoHeight) * scale;
+			const geometry = new THREE.PlaneGeometry(scaledWidth, scaledHeight);
+			geometry.computeBoundingBox();
+			const bbox = geometry.boundingBox;
+			const position = geometry.attributes.position;
+			const uvArray = [];
+			for (let i = 0; i < position.count; i++) {
+				const x = position.getX(i);
+				const y = position.getY(i);
+				let u = (x - bbox.min.x) / (bbox.max.x - bbox.min.x);
+				let v = (y - bbox.min.y) / (bbox.max.y - bbox.min.y);
+				uvArray.push(u, v);
+			}
+			geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
+			geometry.attributes.uv.needsUpdate = true;
+			mesh.geometry = geometry;
+			mesh.material = material;
+			if(!mesh.initialized) {
+				mesh.initialized = true;
+				mesh.position.z = 0.5;
+			}
+			const dev_x = this['shift-x'] ? getValueByPixelRatio(this['shift-x']) : 0;
+			const dev_y = this['shift-y'] ? - getValueByPixelRatio(this['shift-y']) : 0;
+			const canvasWidth = getValueByPixelRatio(this.canvas.width);
+			const canvasHeight = getValueByPixelRatio(this.canvas.height);
+			mesh.position.x = (scaledWidth - canvasWidth) / 2 + dev_x;
+			mesh.position.y = - (scaledHeight - canvasHeight) / 2 - dev_y;
+			mesh.material.needsUpdate = true;
+		}
+	}
     readVideo(src, cb){
         this.isVideo = true;
         if(!src) src = this.src;
@@ -230,12 +289,11 @@ export default class MediaAnimated extends Media{
         // console.log(this.key, this['shift-x'], this.x);
         if((!this.obj && !this.src) || !this.isShown) return;
         // console.log('draw', this);
-        console.log(this.isVideo);
+        // console.log(this.isVideo);
         if(this.isVideo) {
-            console.log('yaya');
+            // console.log('yaya');
             this.applyVideoAsMaterial();
-        }
-        else {
+        } else {
             await this.applyImageAsMaterial()
         }
     }

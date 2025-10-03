@@ -171,10 +171,10 @@ export default class Media{
 		}.bind(this);
 		this.elements['file-input'].onchange = function(e){
 			this.readImageUploaded(e, (image)=>{
-                console.log(this.isThree);
-                if(this.isThree) {
-                    console.log(this.onUpload);
-                }
+                // console.log(this.isThree);
+                // if(this.isThree) {
+                    // console.log(this.onUpload);
+                // }
                 if(typeof this.onUpload === 'function')
                     this.onUpload(image);
                 else
@@ -287,7 +287,7 @@ export default class Media{
     //     }
     // }
     readImageUploaded(event, cb){
-        console.log('readImageUploaded');
+        // console.log('readImageUploaded');
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
 
@@ -304,7 +304,7 @@ export default class Media{
                     });
                 } else if(file_type === 'video') {
                     this.isVideo = true;
-                    console.log('viddd');
+                    // console.log('viddd');
                     this.readVideo(e.target.result, (video)=>{
                         // input.classList.add('not-empty');
                         if(typeof cb === 'function') cb(video);
