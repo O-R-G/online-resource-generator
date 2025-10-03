@@ -84,3 +84,4 @@ x unify text-handling (main texts and watermarks)
 - angolo corner doesn't show up when the shape color is an image on animated shapes
 + saved text doesnt show up
 + mobile css
+- when the animation is rest and background is custom image, the text on the right disappears (likely a z-index issue). e.g., 2024/alex-sloane/alex-sloane-spotlight

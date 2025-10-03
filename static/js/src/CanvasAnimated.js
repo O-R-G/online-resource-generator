@@ -157,8 +157,12 @@ export default class CanvasAnimated extends Canvas {
             this.renderer.render(this.scene_base, this.camera_base);
             this.renderer.clearDepth();
         }
-        for(const shape of Object.values(this.shapes))
+        // console.log('render()');
+        for(const shape of Object.values(this.shapes)) {
+            // console.log(shape.id);
             this.renderer.render(shape.scene, shape.camera);
+        }
+            
         this.renderer.autoClear = true;
     }
     draw(trigger = null){

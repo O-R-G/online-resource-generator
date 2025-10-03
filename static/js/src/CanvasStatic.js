@@ -36,7 +36,8 @@ export default class CanvasStatic extends Canvas {
                     this.media[m_key].show();
 					sec.classList.add('viewing-base-image-section');
 				} else {                    
-                    this.media[m_key].hide();
+                    if(this.media['base-image'])
+                        this.media[m_key].hide();
 					this.colorPattern = null;
 					sec.classList.remove('viewing-base-image-section');
 					this.updateBase(e.target.value);

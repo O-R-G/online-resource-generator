@@ -8,6 +8,7 @@ import { createMesh, createGroup, initMediaAnimated, processStaticColorData, gen
 
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
+		// console.log('ShapeAnimated', shape_index);
 		super(prefix, canvasObj, options, format, shape_index);
 		this.group_front = createGroup('group-front');
 		this.group_front.renderOrder = 2;
@@ -111,14 +112,11 @@ export default class ShapeAnimated extends Shape {
 	}
 	init(canvasObj){
 		super.init(canvasObj);
-		
-		// this.context = this.canvas.getContext("2d");
 		this.updateCanvasSize();		
 		this.control.classList.add('animated-shape-control');
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;	
-		// this.scale = new THREE.Vector3(1, this.canvas.width / this.canvas.height, 1);
 		this.scale = new THREE.Vector3(1, 1, 1);
 		this.group = createGroup('main-group');
 		this.group.renderOrder = 2;
@@ -129,7 +127,6 @@ export default class ShapeAnimated extends Shape {
 		this.updateShape(this.shape, true);
 	}
 	updateCanvasSize(){
-		// this.context = this.canvas.getContext("2d");
 		this.renderer = this.canvasObj.renderer;
 		this.scene = this.canvasObj.scene;
 		this.camera = this.canvasObj.camera;
@@ -316,6 +313,10 @@ export default class ShapeAnimated extends Shape {
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	drawRectanglePath(){
+		console.log(this.id)
+		console.log(this.shapeCenter);
+		console.log(this.frame);
+		console.log(this.group.position);
 		const output = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
@@ -329,18 +330,21 @@ export default class ShapeAnimated extends Shape {
 			let side = Math.min(this.frame.w, this.frame.h);
 			w = side - this_p * 2 - this_r * 2;
 			h = side - this_p * 2 - this_r * 2;
+			// console.log(this.id, this.frame, side);
 		}
-		output.moveTo(this.shapeCenter.x - w / 2, 0 + h / 2 + this_r);
-		output.lineTo(this.shapeCenter.x + w / 2, 0 + h / 2 + this_r);
+		this.shapeCenter.x = 0;
+		this.shapeCenter.y = 0;
+		output.moveTo(this.shapeCenter.x - w / 2, this.shapeCenter.y + h / 2 + this_r);
+		output.lineTo(this.shapeCenter.x + w / 2, this.shapeCenter.y + h / 2 + this_r);
 		output.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
-		output.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 + h / 2);
-		output.lineTo( this.shapeCenter.x + w / 2 + this_r, 0 - h / 2);
+		output.lineTo( this.shapeCenter.x + w / 2 + this_r, this.shapeCenter.y + h / 2);
+		output.lineTo( this.shapeCenter.x + w / 2 + this_r, this.shapeCenter.y - h / 2);
 		output.arc( -this_r, 0, this_r, 0, 3 * Math.PI / 2, true);
-		output.lineTo(this.shapeCenter.x + w / 2, 0 - (h / 2 + this_r));
-		output.lineTo(this.shapeCenter.x - w / 2, 0 - (h / 2 + this_r));
+		output.lineTo(this.shapeCenter.x + w / 2, this.shapeCenter.y - (h / 2 + this_r));
+		output.lineTo(this.shapeCenter.x - w / 2, this.shapeCenter.y - (h / 2 + this_r));
 		output.arc( 0, this_r, this_r, 3 * Math.PI / 2, Math.PI, true);
-		output.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 - h / 2);
-		output.lineTo(this.shapeCenter.x -(w / 2 + this_r), 0 + h / 2);
+		output.lineTo(this.shapeCenter.x -(w / 2 + this_r), this.shapeCenter.y - h / 2);
+		output.lineTo(this.shapeCenter.x -(w / 2 + this_r), this.shapeCenter.y + h / 2);
 		output.arc( this_r, 0, this_r, Math.PI, Math.PI / 2, true);
 		output.closePath();
 
@@ -372,6 +376,7 @@ export default class ShapeAnimated extends Shape {
 		return output;
 	}
 	drawDiamond(){
+		
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
 		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
@@ -390,7 +395,6 @@ export default class ShapeAnimated extends Shape {
 	}
 	drawDiamondPath(){
 		const output = new THREE.Shape();
-		// const angleRad = this.rotate;
 		const angleRad = 45 * Math.PI / 180;
 		const sqrt2 = Math.sqrt(2);
 		let side = Math.min(this.frame.w, this.frame.h);
@@ -399,8 +403,9 @@ export default class ShapeAnimated extends Shape {
 
 		const hw = w / 2;
 		const hh = h / 2;
-		const cx = this.shapeCenter.x;
-		const cy = this.shapeCenter.y;
+		// Keep the geometry centered at the origin so scene-level positioning works consistently
+		const cx = 0;
+		const cy = 0;
 
 		// Unrotated corner centers
 		const corners = [
@@ -542,6 +547,7 @@ drawNone(){
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
+		// console.log(str);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? getValueByPixelRatio(shift.y) : 0;
@@ -707,7 +713,7 @@ drawNone(){
 				let textObjs = [];
 				let output = new THREE.Group();
 				const radius = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) / 2;
-				const spaceWidth = typography.size * 0.35 ; // Define a fixed width for spaces
+				const spaceWidth = typography.size * getValueByPixelRatio(0.35) ; // Define a fixed width for spaces
 				const charWidths = [];
 				let currentAngle = Math.PI / 2;
 				let synced = 0;
@@ -718,15 +724,12 @@ drawNone(){
 					let text = new Text();
 					this.applyTypographyAndFontToTextMesh(text, typography, font, isBack);
 					text.text = char;
-					// text.fontSize = typography.size;
 					text.material = material;
 					text.position.z = 0.5;
-					text.textAlign = align == 'align-left' ? 'left' : 'center';
+					// text.textAlign = align == 'align-left' ? 'left' : 'center';
+					text.textAlign = 'left';
 					text.anchorX = 'center';
 					text.anchorY = 'middle';
-					// text.font = fontData.path;
-					// text.lineHeight = fontData.lineHeight;
-					// text.letterSpacing = fontData.letterSpacing;
 					textObjs[i] = text;
 					text.sync(()=>{
 						const charWidth = text.textRenderInfo.blockBounds[2] - text.textRenderInfo.blockBounds[0];
@@ -760,6 +763,7 @@ drawNone(){
 					});
 					output.add(text);
 				}
+				
 				return output;
 			}
     		else if(align.indexOf('left') !== -1){
@@ -787,21 +791,21 @@ drawNone(){
 			let a = (side - this_padding * 2) / 2;
 			const sqrt2 = Math.sqrt(2);
 			if(align.indexOf('left') !== -1){
-    			x = this.shapeCenter.x - a / 2 + inner_p_x / sqrt2;
-       		}
-    		else if(align.indexOf('right') !== -1){
-    			x = this.shapeCenter.x + a / 2 - inner_p_x / sqrt2;
-    		}
-    		
+	   			x = - a / 2 + inner_p_x / sqrt2;
+	      		}
+	   		else if(align.indexOf('right') !== -1){
+	   			x = a / 2 - inner_p_x / sqrt2;
+	   		}
+	   		
 			if(align.indexOf('top') !== -1){
-				y = this.shapeCenter.y + a / 2 - inner_p_y / sqrt2;
+				y = a / 2 - inner_p_y / sqrt2;
 				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 45 * Math.PI / 180 : -45 * Math.PI / 180);
-       		}
-    		else if(align.indexOf('bottom') !== -1){
-    			y = this.shapeCenter.y - a / 2 + inner_p_y / sqrt2;
+	      		}
+	   		else if(align.indexOf('bottom') !== -1){
+	   			y = - a / 2 + inner_p_y / sqrt2;
 				y += (lineHeight - getValueByPixelRatio(parseFloat(typography['size'])));
 				output.rotation.z = rad + (align.indexOf('left') !== -1 ? 135 * Math.PI / 180 : 225 * Math.PI / 180);
-    		}
+	   		}
 			output.position.x = x + shift.x;
 			output.position.y = y + shift.y;
 		}
@@ -1258,6 +1262,8 @@ drawNone(){
 		}
 	}
 	actualDraw (animate = true){
+		// console.log(this.id, '.actualDraw()');
+		// console.log(this.frame);
 		let sync = !animate;
 		this.scene.add( this.group );
 		
@@ -1300,11 +1306,15 @@ drawNone(){
 		let animationName = animate ? this.animationName : 'rest-front';
 		if(animationName.indexOf('rest') !== -1 && animationName.indexOf('back') !== -1 && this.mesh_back.parent !== this.group_back_shape) {
 			if(this.group_back.parent !== this.group)
-				this.group.add(this.group_back);	
+				this.group.add(this.group_back);
+			if(this.group_front.parent === this.group)
+				this.group.add(this.group_front);	
 		}
 		else  {
 			if(this.group_front.parent !== this.group)
 				this.group.add(this.group_front);
+			if(this.group_back.parent === this.group)
+				this.group.remove(this.group_back);
 			
 		}
 		if(this.shape.base !== 'none') {
@@ -1343,6 +1353,7 @@ drawNone(){
 	}
 	
 	draw (animate = true){
+		// console.log(this.id, '.draw()');
 		this.resetGroups();
 		this.resetAnimation();
 		this.isForward = true;
@@ -2158,7 +2169,6 @@ drawNone(){
 	            alert("animation type can't be changed when recording");
 	        }	        
 	    }.bind(this);
-		console.log(this.fields);
 	    this.fields['text-front-position'].onchange = function(e){
 	    	let position = e.target.value;
 	    	this.updateFrontTextPosition(position);
@@ -2262,13 +2272,17 @@ drawNone(){
     }
 	setShapeGroupPosition(){
 		this.group_front_shape.position.x = getValueByPixelRatio(this.shapeShiftX);
+		// this.shapeShiftY = -960;
 		if(Object.keys(this.canvasObj.shapes).length === 1) {
-			// this.group.position.y = getValueByPixelRatio(-this.shapeShiftY * this.scale.y);
 			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY);
 		} else {
-			// this.group.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y * this.scale.y);
-			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY + this.frame.y);
+			this.group_front_shape.position.y = getValueByPixelRatio(-this.shapeShiftY) + this.frame.y;
 		}
+		if(this.group_back_shape) {
+			this.group_back_shape.position.x = this.group_front_shape.position.x;
+			this.group_back_shape.position.y = this.group_front_shape.position.y;
+		}
+		console.log(this.id, this.group_front_shape.position.y);
 	}
 	generateShapeCenter(){
 		let output = {x: 0, y: 0};
@@ -2287,6 +2301,8 @@ drawNone(){
 		let output = {};
         let unit_w = getValueByPixelRatio(this.canvasObj.canvas.width);
 		let unit_h = getValueByPixelRatio(this.canvasObj.canvas.height) / (Object.keys(this.canvasObj.shapes).length || 1);
+		// let unit_w = this.canvasObj.canvas.width;
+		// let unit_h = this.canvasObj.canvas.height / (Object.keys(this.canvasObj.shapes).length || 1);
 		output.w = unit_w;
 		output.h = unit_h;
         this.shapeCenter = this.generateShapeCenter();
@@ -2344,4 +2360,3 @@ drawNone(){
 			cb(videoElement);
 	}
 }
-

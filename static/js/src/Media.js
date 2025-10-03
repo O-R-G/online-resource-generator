@@ -192,7 +192,7 @@ export default class Media{
 					this.update({'obj': image, 'src': src})
 				});
 			} else if(type === 'video') {
-                this.isVideo = true;
+                
 				this.readVideo(src, (video)=>{
 					// input.classList.add('not-empty');
 					// this.updateMedia(idx, image);
@@ -264,33 +264,7 @@ export default class Media{
         };
         image.src = src;
     }
-    readVideo(src, cb){
-        if(!src) src = this.src;
-        const video = document.createElement('video');
-        video.preload = 'auto';
-        video.muted = true;
-        video.loop = false;
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('muted', '');
-        video.src = src;
-
-        const handleLoaded = () => {
-            video.removeEventListener('loadeddata', handleLoaded);
-            if(typeof cb === 'function') cb(video);
-        };
-
-        if(video.readyState >= 2) {
-            handleLoaded();
-        } else {
-            video.addEventListener('loadeddata', handleLoaded, { once: true });
-            try {
-                video.load();
-            } catch(err) {
-                /* ignore load errors; callback will not fire without data */
-            }
-        }
-    }
+    
     async classifyFile(url){
         const res = await fetch(url, { method: 'HEAD' });
 		const type = res.headers.get('Content-Type') || '';

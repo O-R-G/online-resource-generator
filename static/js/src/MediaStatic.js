@@ -55,51 +55,7 @@ export default class MediaStatic extends Media{
         return super.render(parent);
     }
     async readVideo(src, cb){
-        const video = document.createElement('video');
-        video.className = 'hidden';
-        video.loop = true;
-        video.muted = true;
-        video.preload = 'auto';
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('muted', '');
-        video.crossOrigin = 'anonymous';
-        video.dataset.source = src;
-        video.src = src;
-
-        const appendIfNeeded = () => {
-            if(!video.parentNode && document.body) {
-                video.dataset.mediaOwner = this.prefix;
-                document.body.appendChild(video);
-            }
-        };
-
-        const handleReady = async () => {
-            appendIfNeeded();
-            if(video.videoWidth && video.videoHeight) {
-                video.width = video.videoWidth;
-                video.height = video.videoHeight;
-            }
-            try {
-                const playPromise = video.play();
-                if(playPromise && typeof playPromise.then === 'function') {
-                    await playPromise;
-                }
-            } catch(err) {
-                console.warn('Unable to autoplay uploaded video', err);
-            }
-            if(typeof cb === 'function') {
-                cb(video);
-            }
-        };
-
-        if(video.readyState >= 1) {
-            handleReady();
-        } else {
-            video.addEventListener('loadedmetadata', handleReady, { once: true });
-            appendIfNeeded();
-            video.load();
-        }
+        alert('To upload a video, animation must not be "None"');
     }
     generatePattern(context, canvas, frame){
         if(!this.obj) return null;

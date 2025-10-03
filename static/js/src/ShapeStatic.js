@@ -451,15 +451,16 @@ export default class ShapeStatic extends Shape {
 				]
 			}
 		*/
-		
+		let textAlign = align.indexOf('center') !== -1 ? 'center' : (align.indexOf('right') !== -1 ? 'right' : 'left');
         if(this.options.textPositionOptions.hasOwnProperty(align)) {
 			/*
 				write main text
 			*/
 
 			this.str = str;
-			console.log(align);
-			this.context.textAlign=align;
+			
+			// console.log(align);
+			this.context.textAlign= textAlign;
 			
 			let x = shift && shift.x ? shift.x : 0, 
 				y = shift && shift.y ? -shift.y : 0; // positive value means going up
@@ -472,12 +473,10 @@ export default class ShapeStatic extends Shape {
 			}
 			
 			y += this.shapeCenter.y;
-			// let lines = text.lines;
-			// console.log(lines);
 			x += align == 'align-left' ? this.shapeCenter.x - this.frame.w / 2 + this.innerPadding.x + this.padding : this.shapeCenter.x;
-			console.log(x);
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
+			// console.log('main text', x, y);
 			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, addStroke);
 			
 			return;
@@ -485,8 +484,7 @@ export default class ShapeStatic extends Shape {
         /*
             write watermarks
         */
-		// let lines = text.lines;	
-		// console.log(lines);
+		
     	let metrics = this.context.measureText(str);
 		let actualAscent = metrics.actualBoundingBoxAscent;
 		
@@ -676,10 +674,10 @@ export default class ShapeStatic extends Shape {
 			else if(align.indexOf('right') !== -1) 
 				rad += Math.PI/2;
 		}
+
 		this.context.translate(x, y);
-		this.context.rotate(rad);
-		
-		this.writeLines(lines, 0, 0, parseFloat(typography['lineHeight']), '', addStroke);
+		this.context.rotate(rad);		
+		this.writeLines(lines, 0, 0, parseFloat(typography['lineHeight']), align, addStroke);
 		this.context.restore();
     }
 	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
@@ -687,8 +685,8 @@ export default class ShapeStatic extends Shape {
 
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
-			// let seg_x = align == 'center' ? x - ln['width'] / 2 : x;
-			let seg_x = align == 'center' ? x : x + ln['width'] / 2;
+			// let seg_x = align.indexOf('center') !== -1 ? x : x + ln['width'] / 2;
+			let seg_x = x;
 			let ln_y = y + i * lineHeight;
 			this.writeLine(ln, seg_x, ln_y, addStroke);
 		}

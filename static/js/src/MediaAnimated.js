@@ -178,6 +178,34 @@ export default class MediaAnimated extends Media{
         }
         
     }
+    readVideo(src, cb){
+        this.isVideo = true;
+        if(!src) src = this.src;
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        video.muted = true;
+        video.loop = false;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        video.src = src;
+
+        const handleLoaded = () => {
+            video.removeEventListener('loadeddata', handleLoaded);
+            if(typeof cb === 'function') cb(video);
+        };
+
+        if(video.readyState >= 2) {
+            handleLoaded();
+        } else {
+            video.addEventListener('loadeddata', handleLoaded, { once: true });
+            try {
+                video.load();
+            } catch(err) {
+                /* ignore load errors; callback will not fire without data */
+            }
+        }
+    }
     updateScale(value, silent = false){
         if(!value) value = 1;
         else value = parseFloat(value);

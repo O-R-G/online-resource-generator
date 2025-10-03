@@ -145,7 +145,7 @@ export default class Shape {
     renderSelect(key, data, extraClass=[], attrs=null, selected_value=null){
         // if(!data) return null;
         const ex_cls = ['field-id-' + key].concat(extraClass);
-        const id = this.id + '-field-id-' + key;
+        const id = generateFieldId(this.id, key);
         const select = renderSelect(id, data, ex_cls, attrs, selected_value);
         if(!this.fields[key]) this.fields[key] = select;
         return select;
@@ -153,7 +153,7 @@ export default class Shape {
     renderSelectSection(key, displayName, data, extraSelectClass=[], extraSectionClass=[], extraAttr = null, extraSectionAttr=null)
     {
         const s_cls = ['field-id-' + key].concat(extraSelectClass);
-        const id = this.id + '-field-id-' + key;
+        const id = generateFieldId(this.id, key);
         const [section, select] = renderSelectSection(id, displayName, data, s_cls, extraSectionClass, extraAttr = null, extraSectionAttr=null);
         if(!this.fields[key]) this.fields[key] = select;
         return [section, select];
@@ -175,7 +175,7 @@ export default class Shape {
     renderTextSection(key, displayName, extraClass='')
     {
         // console.log('renderTextSection', key);
-        const id = this.id + '-field-id-' + key;
+        const id = generateFieldId(this.id, key);
         let textarea = document.createElement('TEXTAREA');
         textarea.className = getClassString(['flex-item','field-id-' + key].concat(extraClass));
         textarea.id = id;
@@ -332,13 +332,10 @@ export default class Shape {
     renderWatermarkSection(idx, extraClass=[])
     {
         let key = 'watermark-' + idx;
-        let id = this.id + '-field-id-' +key;
+        let id = generateFieldId(this.id, key);
         let displayName = 'Text ' + (idx + 1);
         const ex_section_cls = ['watermark-section'].concat(extraClass);
         
-
-        // let right = document.createElement('div');
-        // right.className = 'half-right flex-container typography-control';
         let textarea = document.createElement('TEXTAREA');
         textarea.className = 'field-id-' +key + ' watermark flex-item';
         textarea.id = id;
@@ -348,8 +345,6 @@ export default class Shape {
             textarea.value = this.watermarks[idx]['str'];
             textarea.innerText = this.watermarks[idx]['str'];
         }
-        // right.appendChild(textarea);
-
         this.fields['watermarks'][idx] = 
         {
             'text': textarea,
@@ -366,7 +361,7 @@ export default class Shape {
         let text_controls = [
             { 
                 'name': 'position',
-                'id': 'watermark-position-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-position'),
                 'input-type': 'select',
                 'options': this.options['watermarkPositionOptions'],
                 'attr': {'flex': 'one-third'},
@@ -374,7 +369,7 @@ export default class Shape {
                 'value': this.watermarks[idx] ? this.watermarks[idx]['position'] : null
             },{ 
                 'name': 'color',
-                'id': 'watermark-color-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-color'),
                 'input-type': 'select',
                 'options': this.options['textColorOptions'],
                 'attr': {'flex': 'one-third'},
@@ -382,7 +377,7 @@ export default class Shape {
                 'value': this.watermarks[idx] ? this.watermarks[idx]['color'] : null
             },{ 
                 'name': 'typography',
-                'id': 'watermark-typography-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-typography'),
                 'input-type': 'select',
                 'options': this.options['watermarkTypographyOptions'],
                 'attr': {'flex': 'one-third'},
@@ -390,7 +385,7 @@ export default class Shape {
                 'value': this.watermarks[idx] ? this.watermarks[idx]['typography'] : null
             },{ 
                 'name': 'font',
-                'id': 'watermark-font-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-font'),
                 'input-type': 'select',
                 'options': this.options['fontOptions'],
                 'attr': {'flex': 'one-third'},
@@ -398,21 +393,21 @@ export default class Shape {
                 'value': this.watermarks[idx] ? this.watermarks[idx]['font'] : null
             },{ 
                 'name': 'shift-x',
-                'id': 'watermark-shift-x-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-shift-x'),
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'X (0)'},
                 'class': ['watermark-shift-x'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['x'] : null
             },{ 
                 'name': 'shift-y',
-                'id': 'watermark-shift-y-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-shift-y'),
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'Y (0)'},
                 'class': ['watermark-shift-y'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['y'] : null
             },{ 
                 'name': 'rotate',
-                'id': 'watermark-rotate-' + idx,
+                'id': generateFieldId(this.id, 'watermark-'+idx+'-rotate'),
                 'input-type': 'text',
                 'attr': {'flex': 'one-third', 'placeholder' : 'rotate (0)'},
                 'class': ['watermark-rotate'],
@@ -483,7 +478,7 @@ export default class Shape {
         return section;
     }
     renderInput(key, value='', attrs = null, extraClass = []){
-        const id = this.id + '-field-id-' + key;
+        const id = generateFieldId(this.id, key);
         const input = renderInput(id, value, attrs, extraClass);
         if(!this.fields[key]) this.fields[key] = input;
         return input;
@@ -499,22 +494,6 @@ export default class Shape {
 
         if(typeof cb === 'function') cb({rotate: input.value});
     }
-    // updatePositionByKey(e, inputs, cb){
-    //     if(e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowDown') return;
-    //     e.preventDefault();
-    //     let val = e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -1.0 : 1.0;
-    //     val *= e.shiftKey ? 10 : 1;
-    //     if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    //         if(!inputs.y.value) inputs.y.value = 0;
-    //         inputs.y.value = this.toFix(inputs.y.value) + val;
-    //     } else if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-    //         if(!inputs.x.value) inputs.x.value = 0;
-    //         inputs.x.value = this.toFix(inputs.x.value) + val;
-    //     }
-    //     inputs.x.classList.add('pseudo-focused');
-    //     inputs.y.classList.add('pseudo-focused');
-    //     if(typeof cb === 'function') cb({x: inputs.x.value, y: inputs.y.value});
-    // }
     toFix(val, digits=2){
         let output = parseFloat(val).toFixed(digits);
         return parseFloat(output);
@@ -589,17 +568,17 @@ export default class Shape {
     renderImageControls(id, control_data){
         return renderImageControls(id, control_data);
 	}
-    renderNumeralSection(id, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
+    renderNumeralSection(key, displayName, begin, step, min=false, extraClass='', extraWrapperClass='')
     {
-        const ex_cls = 'field-id-' + id + ' ' + extraClass;
-        const final_id = this.id + '-field-id-' + id;
+        const ex_cls = 'field-id-' + key + ' ' + extraClass;
+        const final_id = generateFieldId(this.id, key);
         const [section, input] = renderNumeralSection(final_id, displayName, begin, step, min, ex_cls, extraWrapperClass);
-        this.fields[id] = input;
+        this.fields[key] = input;
         return section;
     }
-    renderNumeralInput(id, begin, step, min=false, extraClass='', attrs=null){
+    renderNumeralInput(key, begin, step, min=false, extraClass='', attrs=null){
         let output = document.createElement('INPUT');
-        output.className = 'field-id-' + id + ' flex-item ' + extraClass;
+        output.className = 'field-id-' + key + ' flex-item ' + extraClass;
         output.type = 'number';
         output.value = begin;
         output.setAttribute('step', step);
@@ -609,7 +588,7 @@ export default class Shape {
                 output.setAttribute(attr, attrs[attr]);
             }
         }
-		output.id = this.id + '-field-id-' + id;
+		output.id = generateFieldId(this.id, key);
         return output;
     }
     
