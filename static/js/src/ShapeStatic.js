@@ -1520,6 +1520,8 @@ export default class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
+		console.log(this.id + '.sync()');
+		if(!this.counterpart) console.log('has no counterpart');
 		if(!this.counterpart) return;
 		let isSilent = true;
 		super.sync();

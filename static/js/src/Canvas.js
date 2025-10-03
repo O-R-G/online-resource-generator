@@ -773,7 +773,7 @@ export default class Canvas {
     }
     toggleSecondShape(event, isSync = false){
         let shapes_length = Object.keys(this.shapes).length;
-        console.log('toggleSecondShape', shapes_length);
+        // console.log('toggleSecondShape', shapes_length);
         if( (isSync || event.target.checked) && shapes_length < 2)
         {
             let format = this.format;            
@@ -785,6 +785,7 @@ export default class Canvas {
             if(!isSync && this.counterpart) {
                 let counterNewShape = this.counterpart.toggleSecondShape(event, true);
                 newShape.addCounterpart(counterNewShape);
+                counterNewShape.addCounterpart(newShape);
             }
             newShape.init(this);
             firstShape.updateFrame();
@@ -838,6 +839,7 @@ export default class Canvas {
     }
 
     sync(){
+        console.log(this.id + '.sync()');
         if(!this.counterpart) return;
         for(const name in this.fieldCounterparts) {
 			let field = this.fields[name];
@@ -846,6 +848,7 @@ export default class Canvas {
             this.updateCounterpartField(field, counterField);
 		}
         for(let shape_id in this.shapes) {
+            console.log(shape_id);
             let shape = this.shapes[shape_id];
             shape.sync();
         }

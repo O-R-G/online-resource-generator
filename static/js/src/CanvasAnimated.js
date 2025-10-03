@@ -191,14 +191,18 @@ export default class CanvasAnimated extends Canvas {
         return output;
     }
     deactivate(){
+        console.log(this.id, 'deactivate');
         if(!this.active) return;
         if(Object.keys(this.shapes).length > 1) {
             for(const shape of Object.values(this.shapes)) {
+                // console.log(shape.fields['animation'].value);
                 if(shape.fields['animation'].value !== 'none') {
+                    console.log('resetting...');
                     shape.fields['animation'].value = 'none';
                 }
             }
         }
+        console.log('...')
         super.deactivate();
     }
 }

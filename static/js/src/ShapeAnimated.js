@@ -48,6 +48,7 @@ export default class ShapeAnimated extends Shape {
 		this.backFont = this.getDefaultOption(this.options.fontOptions);
 		this.backTextPosition = this.getDefaultOption(this.options.textPositionOptions).value;
 
+		this.shapeCenter = {x: 0, y: 0};
 		this.isForward = true;
 		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);		
 		this.flipAngleInterval_base = 0.005;     // aka, speed
@@ -313,10 +314,6 @@ export default class ShapeAnimated extends Shape {
 		this.updateSize(w + this_r * 2, h + this_r * 2);
 	}
 	drawRectanglePath(){
-		console.log(this.id)
-		console.log(this.shapeCenter);
-		console.log(this.frame);
-		console.log(this.group.position);
 		const output = new THREE.Shape();
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
@@ -332,8 +329,8 @@ export default class ShapeAnimated extends Shape {
 			h = side - this_p * 2 - this_r * 2;
 			// console.log(this.id, this.frame, side);
 		}
-		this.shapeCenter.x = 0;
-		this.shapeCenter.y = 0;
+		// this.shapeCenter.x = 500;
+		// this.shapeCenter.y = 500;
 		output.moveTo(this.shapeCenter.x - w / 2, this.shapeCenter.y + h / 2 + this_r);
 		output.lineTo(this.shapeCenter.x + w / 2, this.shapeCenter.y + h / 2 + this_r);
 		output.arc( 0, -this_r, this_r, Math.PI / 2, 0, true);
@@ -1242,7 +1239,6 @@ drawNone(){
 	}
 	drawShape()
 	{
-		
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
 			this.drawRectangle();
 		else if(this.shape.base == 'circle')
@@ -1511,8 +1507,7 @@ drawNone(){
 		// if(!syncing)
 		// 	this.ensureSiblingAnimationState();
 		if(!silent) this.canvasObj.draw();
-		if(this.animationName !== 'none')
-		{
+		if(this.animationName !== 'none') {
 			return;
 		}
 		
@@ -1526,9 +1521,6 @@ drawNone(){
 		// let isAllNone = Object.keys(this.canvasObj.shapes).filter((key)=> this.canvasObj.shapes[key].animationName !== 'none' ).length === 0;
 		if(syncing) return; 
 		this.canvasObj.deactivate();
-		// if(isAllNone) {
-		// 	this.canvasObj.deactivate();
-		// }
 	}
 	// ensureSiblingAnimationState(){
 	// 	if(!this.canvasObj || !this.canvasObj.shapes) return;
@@ -2351,15 +2343,17 @@ drawNone(){
 		// let unit_h = this.canvasObj.canvas.height / (Object.keys(this.canvasObj.shapes).length || 1);
 		output.w = unit_w;
 		output.h = unit_h;
-        this.shapeCenter = this.generateShapeCenter();
-        output.x = this.shapeCenter.x;
-        output.y = this.shapeCenter.y;
+        const center = this.generateShapeCenter();
+        output.x = center.x;
+        output.y = center.y;
 		return output;
 	}
 	calibratePosition(x, y){
         return convertStaticPostionToAnimated(x, y, this.canvas.width, this.canvas.height)
     }
     sync(){
+		console.log(this.id + '.sync()');
+		if(!this.counterpart) console.log('has no counterpart');
 		if(!this.counterpart) return;
     	let isSilent = true;
 		super.sync();

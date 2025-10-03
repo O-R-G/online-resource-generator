@@ -681,9 +681,11 @@ export default class Shape {
         this.frame = frame;
     }
     updateCounterpartField(field, counter_field){
+        // console.log('updateCounterpartField');
         let tagName = field.tagName.toLowerCase();
         if(tagName === 'select') {
             let val = field.value;
+            if(field.id === 'animated-shape-0-field-id-animation') console.log(val);
             if(val !== counter_field.value) {
                 let options = counter_field.querySelectorAll('option');
                 for(const [index, option] of options.entries()) {
@@ -822,6 +824,7 @@ export default class Shape {
         }
     }
     sync(){
+        // console.log(this.id + '.sync()');
         for(const name in this.fieldCounterparts) {
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];
