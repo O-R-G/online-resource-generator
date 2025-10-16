@@ -125,7 +125,7 @@ export default class CanvasAnimated extends Canvas {
         this.renderer.setSize( this.canvas.width / this.devicePixelRatio, this.canvas.height / this.devicePixelRatio, false);
     }
     setCamera(){
-        let z = this.canvas.width * 5.71 * this.devicePixelRatio;
+        let z = this.canvas.width * 5.7 * this.devicePixelRatio; // secret formula to make it the same size as the static canvas
 		this.near = z - this.canvas.width / this.scale * this.devicePixelRatio;
 		this.far = z + this.canvas.width / this.scale * this.devicePixelRatio;
 		this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);

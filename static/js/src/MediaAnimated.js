@@ -10,7 +10,6 @@ export default class MediaAnimated extends Media{
             mesh: null
         };
         this.isThree = true;
-        // this.isVideo = this.false;
         this.init(props);
     }
     update(props, silent=false){
@@ -30,7 +29,12 @@ export default class MediaAnimated extends Media{
                     texture.magFilter = THREE.LinearFilter;
                     texture.minFilter = THREE.LinearFilter;
                     texture.colorSpace = THREE.SRGBColorSpace;
-                    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
+                    const material = new THREE.MeshBasicMaterial({ 
+                        map: texture, 
+                        transparent: true,
+                        depthWrite: false,
+                        depthTest: true 
+                    }),
                         imageWidth = texture.image.width,
                         imageHeight = texture.image.height;
                     if(this.isShapeColor) {
@@ -77,12 +81,10 @@ export default class MediaAnimated extends Media{
                                 mesh.initialized = true;
                             }
                             mesh.material = material;
-                            mesh.material.depthTest = false;
-                            mesh.material.depthWrite = false;
+                            mesh.renderOrder = 0;
                             mesh.material.needsUpdate = true;
                         }
                     } else {
-                        console.log('not shape color', this.key);
                         for(const key in this.mesh){
                             const mesh = this.mesh[key];
                             if(!mesh) continue;
@@ -99,7 +101,6 @@ export default class MediaAnimated extends Media{
                             
                             const dev_x = this['shift-x'] ? getValueByPixelRatio(this['shift-x']) * scaleX : 0;
                             const dev_y = this['shift-y'] ? - getValueByPixelRatio(this['shift-y']) * scaleY : 0;
-                            console.log('dev', dev_x, dev_y);
                             const position = geometry.attributes.position;
                             const max = bbox.max;
                             const min = bbox.min;
@@ -118,13 +119,13 @@ export default class MediaAnimated extends Media{
                             geometry.attributes.uv.needsUpdate = true;
                         
                             mesh.material = material;
+                            mesh.renderOrder = 5;
                             if(!mesh.initialized) {
                                 mesh.initialized = true;
                                 mesh.position.z = 0.5;
                             }
                             const x = (width - getValueByPixelRatio(this.canvas.width)) / 2 + dev_x,
                             y  = - (height - getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
-                            console.log('x', x);
                             mesh.position.x = x;
                             mesh.position.y = y;
                             mesh.material.needsUpdate = true;
