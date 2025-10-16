@@ -100,6 +100,9 @@ if(!empty($_FILES)) {
         try{
             move_uploaded_file($tmp_name, $m_dest);
             $record_body_json['images'][$key] = $m_file;
+            // $counterpart_key = str_replace('static-', 'animated-', $key);
+            // if(!isset($record_body_json['images'][$counterpart_key])) 
+            //     $record_body_json['images'][$counterpart_key] = $m_file;
         } catch(Exception $e) {
             var_dump($e);
         }

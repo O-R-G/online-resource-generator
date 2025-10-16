@@ -163,7 +163,7 @@ export function generateTwoColorsGradient(uniforms, angle){
     });
     return material_gradient;
 }
-export function initMediaAnimated(key, prefix, canvas, onUpdate, onUpload, options, props){
+export function initMediaAnimated(key, prefix, canvas, onUpdate, onUpload, options, props, file){
     if(!props['mesh']) {
         let mesh = {
             front: createMesh(key),
@@ -171,5 +171,5 @@ export function initMediaAnimated(key, prefix, canvas, onUpdate, onUpload, optio
         };
         props['mesh'] = mesh;
     }
-    return new MediaAnimated(key, prefix, canvas, onUpdate, onUpload, options, props);
+    return new MediaAnimated(key, prefix, canvas, onUpdate, onUpload, options, props, file);
 }

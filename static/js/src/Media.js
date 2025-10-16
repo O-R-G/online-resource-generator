@@ -69,7 +69,7 @@ export default class Media{
         }
         return output;
     }
-    init(props){
+    init(props, file){
         for(const key in this.props_template) {
             const value = typeof props[key] !== 'undefined' ? props[key] : this.props_template[key];
             this[key] = value;
@@ -77,6 +77,11 @@ export default class Media{
         
         this.initialized = true;
         this.render();
+        console.log(file);
+        console.log(typeof file);
+        if(file && this.elements['file-input']) {
+            this.elements['file-input'].files = file;
+        }
         this.checkEmpty();
     }
     update(props, silent){  
@@ -87,8 +92,14 @@ export default class Media{
         this.checkEmpty();
         if(!silent) this.onUpdate();
     }
-    sync(props, silent){
+    sync(props, file, silent){
         this.update(props, true);
+        console.log('sync', file);
+        if(file) {
+            this.elements['file-input'].files = file;
+        }
+            
+        // if(props[])
         for(const item of this.controls_data) {
             const name = item.name;
             this.elements[name].value = this[name];
@@ -171,21 +182,18 @@ export default class Media{
 		}.bind(this);
 		this.elements['file-input'].onchange = function(e){
 			this.readImageUploaded(e, (image)=>{
-                // console.log(this.isThree);
-                // if(this.isThree) {
-                    // console.log(this.onUpload);
-                // }
+                
                 if(typeof this.onUpload === 'function')
                     this.onUpload(image);
                 else
-                    this.update({obj:image});
+                    this.update({obj:image}); // resetting src
 			});
 		}.bind(this);
 		this.elements['file-input'].addEventListener('applySavedFile', async (e)=>{
 			let src = this.elements['file-input'].getAttribute('data-file-src');
             const type = await this.classifyFile(src);
-			console.log('type', type);
-			if(type === 'image') {
+
+            if(type === 'image') {
                 this.isVideo = false;
 				this.readImage(src, (image)=>{
 					// input.classList.add('not-empty');
@@ -272,22 +280,7 @@ export default class Media{
 		if (type.startsWith('video/')) return 'video';
 		return 'unknown';
     }
-    // readImageUploaded(event, cb){
-    //     let input = event.target;
-    //     if (input.files && input.files[0]) {
-    //         const file_type = input.files[0].type.substring(0, input.files[0].type.indexOf('/'));
-    //     	var FR = new FileReader();
-    //         FR.onload = function (e) {
-    //             this.readImage(e.target.result, (image)=>{
-    //                 if(typeof cb === 'function') cb(image);
-    //             });
-    //         }.bind(this);
-    //         FR.readAsDataURL(input.files[0]);
-    //         input.parentNode.parentNode.parentNode.classList.add('viewing-image-control');
-    //     }
-    // }
     readImageUploaded(event, cb){
-        // console.log('readImageUploaded');
         let input = event.target;
 		let idx = input.getAttribute('image-idx');
 

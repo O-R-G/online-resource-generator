@@ -4,8 +4,9 @@ import { generateFieldId, updatePositionByKey, convertAnimatedPostionToStatic, g
 
 export default class ShapeStatic extends Shape {
 	constructor(prefix = '', canvasObj, options, format, shape_index=0){
+		
 		super(prefix, canvasObj, options, format, shape_index);
-
+		// console.log('static shape', shape_index);
 		this.colorData = this.getDefaultOption(this.options.colorOptions);
 		this.colorData = this.colorData.color;
 		this.color = this.colorData.code;
@@ -962,6 +963,8 @@ export default class ShapeStatic extends Shape {
 	}
 	
 	drawCircle(){
+		// if(this.shape_index === 1)
+		// 	console.log(this.frame);
 		this.drawCirclePath();
 		this.applyFillStyle();
 	    this.context.fill();
@@ -1002,7 +1005,6 @@ export default class ShapeStatic extends Shape {
         	x: this.shapeCenter.x,
         	y: this.shapeCenter.y + h / 8 // not sure why it's h/8... should be h/6?
         }
-		
 		this.textBoxWidth = (w - this.innerPadding.x * 2) * 0.6;
 		this.context.beginPath();
         this.context.arc(
@@ -1070,7 +1072,6 @@ export default class ShapeStatic extends Shape {
 			w: real_w,
 			h: real_h
 		}
-		console.log(this.shapeArea);
 		this.applyFillStyle();
 		this.context.fill();
 	}
@@ -1484,10 +1485,10 @@ export default class ShapeStatic extends Shape {
 			}.bind(this);
 		}
 	}
-	initMedia(key, props={}, onUpload=null){
+	initMedia(key, props={}, file=null, onUpload=null){
 		if(!key) return null;
 		const prefix = generateFieldId(this.id, key);
-		return new MediaStatic(key, prefix, this.canvas, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props);
+		return new MediaStatic(key, prefix, this.canvas, this.canvasObj.draw.bind(this.canvasObj), onUpload, this.mediaOptions, props, file);
 	}
 	calibratePosition(x, y){
 		return convertAnimatedPostionToStatic(x, y, this.canvas.width, this.canvas.height)
@@ -1520,7 +1521,6 @@ export default class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		console.log(this.id + '.sync()');
 		if(!this.counterpart) console.log('has no counterpart');
 		if(!this.counterpart) return;
 		let isSilent = true;

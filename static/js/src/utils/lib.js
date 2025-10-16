@@ -20,24 +20,6 @@ export function addExtraAttr(el, attrs){
     }
     return el;
 };
-export function initMediaStatic(key, values={}){
-    let output = {
-        obj: null,
-        src: '',
-        x: 0,
-        y: 0,
-        'shift-y': 0,
-        'shift-x': 0,
-        scale: 1,
-        'blend-mode': 'normal',
-        isShapeColor: false
-    };
-    for(const prop in values) {
-        if(typeof output[prop] === 'undefined') continue;
-        output[prop] = values[prop];
-    }
-    return output;
-}
 
 export function generateFieldId(id, key){
     return id + '-field-id-' + key;

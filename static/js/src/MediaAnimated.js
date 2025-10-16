@@ -3,20 +3,20 @@ import Media from './Media.js';
 import { getValueByPixelRatio } from './utils/lib.js';
 
 export default class MediaAnimated extends Media{
-    constructor(key, prefix, canvas, onUpdate, onUpload, options={}, props={}){
+    constructor(key, prefix, canvas, onUpdate, onUpload, options={}, props={}, file){
         super(key, prefix, canvas, onUpdate, onUpload, options);
         this.props_template = {
             ...this.shared_props, 
             mesh: null
         };
         this.isThree = true;
-        this.init(props);
+        this.init(props, file);
     }
     update(props, silent=false){
         super.update(props, silent);
     }
-    sync(props, silent=false){
-        super.sync(props, silent);
+    sync(props, file, silent=false){
+        super.sync(props, file, silent);
     }
     render(parent){
         return super.render(parent);
@@ -119,7 +119,7 @@ export default class MediaAnimated extends Media{
                             geometry.attributes.uv.needsUpdate = true;
                         
                             mesh.material = material;
-                            mesh.renderOrder = 5;
+                            mesh.renderOrder = 0;
                             if(!mesh.initialized) {
                                 mesh.initialized = true;
                                 mesh.position.z = 0.5;
@@ -286,11 +286,7 @@ export default class MediaAnimated extends Media{
     }
     
     async draw(){
-        // if(this.key === 'front-background-image') console.log('front-background-image draw');
-        // console.log(this.key, this['shift-x'], this.x);
         if((!this.obj && !this.src) || !this.isShown) return;
-        // console.log('draw', this);
-        // console.log(this.isVideo);
         if(this.isVideo) {
             // console.log('yaya');
             this.applyVideoAsMaterial();

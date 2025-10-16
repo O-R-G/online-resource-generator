@@ -812,11 +812,19 @@ export default class Shape {
             const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
             props.x = calibrated_x;
             props.y = calibrated_y;
-            console.log(key, this.counterpart.media[counter_key]);
+            // console.log(key, this.counterpart.media[counter_key]);
+            let file = null;
+            if(media.elements['file-input'].files && media.elements['file-input'].files[0]) {
+                console.log(key);
+                const dt = new DataTransfer();
+                dt.items.add(media.elements['file-input'].files[0]); // add the first file
+                file = dt.files;
+            } 
+            console.log(this.counterpart.media[counter_key]);
             if(this.counterpart.media[counter_key]) {
-                this.counterpart.media[counter_key].sync(props, true);
+                this.counterpart.media[counter_key].sync(props, file, true);
             } else {
-                this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
+                this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props, file);
             }
             if(!media.isShapeColor) {
                 this.counterpart.addMediaSection(counter_key, '');

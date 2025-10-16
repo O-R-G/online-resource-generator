@@ -274,13 +274,13 @@ export default class Record {
         let src = this.record_body['images'][id];
         if(!src) return false;
         src = media_relative_root + src;
-        input.setAttribute('data-file-src', src);
+        input.dataset.fileSrc = src;
         input.dispatchEvent(new Event('applySavedFile'));
         return idx;
     }
     formatField(field){
         let output = {id: field.id};
-        if(field.type === 'file') output.value = field.getAttribute('data-file-src') ? field.getAttribute('data-file-src') : '';
+        if(field.type === 'file') output.value = field.dataset.fileSrc ? field.dataset.fileSrc : '';
         else output.value = field.value;
         return output;
     }
@@ -340,9 +340,18 @@ export default class Record {
                     if(field.type === 'file') {
                         if(field.files.length > 0) {
                             formData.append(field.id, field.files[0]);
-                        } else if(field.getAttribute('data-file-src')) {
-                            record_body['images'][field.id] = field.getAttribute('data-file-src').replace(media_relative_root, '');
-                        } else {
+                        // } else if( 
+                        //     (field.dataset.fileSrc && field.dataset.fileSrc.indexOf('data:image') !== -1) || // uploaded as static media first, then synced to animated
+                        //     (field.classList.contains('not-empty') && !field.dataset.fileSrc) // uploaded as animated media first, then synced to static
+                        // ) {
+                        //     const counterpart_id = field.id.indexOf('static-') !== -1 ? field.id.replace('static-', 'animated-') : field.id.replace('animated-', 'static-');
+                        //     const counterpart = document.getElementById(counterpart_id);
+                        //     if(!counterpart || !counterpart.files || counterpart.files.length == 0)
+                        //         continue;
+                        //     formData.append(field.id, counterpart.files[0]);
+                        } else if(field.dataset.fileSrc) {
+                            record_body['images'][field.id] = field.dataset.fileSrc.replace(media_relative_root, '');
+                        }else {
                             continue;
                         }
                     } else {
@@ -377,8 +386,8 @@ export default class Record {
                         // console.log(field.id);
                         if(field.files.length > 0) {
                             formData.append(field.id, field.files[0]);
-                        } else if(field.getAttribute('data-file-src')) {
-                            record_body['images'][field.id] = field.getAttribute('data-file-src').replace(media_relative_root, '');
+                        } else if(field.dataset.fileSrc) {
+                            record_body['images'][field.id] = field.dataset.fileSrc.replace(media_relative_root, '');
                         } else {
                             continue;
                         }

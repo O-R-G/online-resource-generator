@@ -1,7 +1,7 @@
 import Media from './Media.js';
 
 export default class MediaStatic extends Media{
-    constructor(key, prefix, canvas, onUpdate, onUpload, options={}, props={}){
+    constructor(key, prefix, canvas, onUpdate, onUpload, options={}, props={}, file){
         super(key, prefix, canvas, onUpdate, onUpload, options);
         this.props_template = this.shared_props;
         this.isThree = false;
@@ -10,7 +10,7 @@ export default class MediaStatic extends Media{
         this.videoFrameLoop = null;
         this.videoEventHandlers = null;
         this.usingVideoFrameCallback = false;
-        this.init(props);
+        this.init(props, file);
     }
     update(props, silent=false){
         const hasObjProp = props && Object.prototype.hasOwnProperty.call(props, 'obj');
@@ -44,12 +44,15 @@ export default class MediaStatic extends Media{
             }
         }
 
-        if(this.elements['file-input'] && this.src) {
-            this.elements['file-input'].setAttribute('data-file-src', this.src);
+        if(this.elements['file-input'] && this.src ) {
+            if( this.src.indexOf('data:image') !== -1 )
+                this.elements['file-input'].dataset.fileSrc = '';
+            else
+                this.elements['file-input'].dataset.fileSrc = this.src;
         }
     }
-    sync(props, silent=false){
-        super.sync(props, silent);
+    sync(props, file, silent=false){
+        super.sync(props, file, silent);
     }
     render(parent){
         return super.render(parent);

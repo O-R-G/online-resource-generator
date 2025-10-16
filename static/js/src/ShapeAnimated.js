@@ -295,7 +295,8 @@ export default class ShapeAnimated extends Shape {
 	drawRectangle(){
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		this.textBoxWidth = (this.frame.w - this_p * 2 - this.innerPadding.x * 2);
+		
+		// console.log(this.textBoxWidth);
 		let w, h;
 		
 		if(this.shape.base === 'fill') {
@@ -545,7 +546,7 @@ drawNone(){
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		// console.log(str);
+		console.log(str);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? getValueByPixelRatio(shift.y) : 0;
@@ -560,14 +561,17 @@ drawNone(){
 			}.bind(this));
 		}
 		this.applyTypographyAndFontToTextMesh(output, typography, font, isBack);
-		output.text = str.replaceAll(' ', '\u00A0');
+		
+		output.text = str;
 		output.material = material;
+		output.whiteSpace = 'pre-wrap'; 
 		output.material.depthTest = false;
 		if(renderOrder) output.renderOrder = renderOrder;
 		output.position.z = 0.5;
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
 		output.anchorY = 'middle';
+		console.log(this.textBoxWidth);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = 0;
 		if(this.shape.base === 'triangle') {
@@ -586,6 +590,7 @@ drawNone(){
 			output.sync();
 			return output;
 		}
+		output.maxWidth = Infinity;
 		output.lineHeight = parseFloat(typography['lineHeight']) / parseFloat(typography['size']);
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill' || this.shape.base == 'angolo' || this.shape.base == 'none'){
 			let inner_p_x = this.innerPadding.x;
@@ -816,10 +821,10 @@ drawNone(){
 		output.sync();
 		return output;
 	}
-	initMedia(key, props={}, onUpload=null){
+	initMedia(key, props={}, file=null, onUpload=null){
 		if(!key) return null;
 		const prefix = generateFieldId(this.id, key);
-		return initMediaAnimated(key, prefix, this.canvas, this.draw.bind(this), onUpload, this.mediaOptions, props, this.renderer);
+		return initMediaAnimated(key, prefix, this.canvas, this.draw.bind(this), onUpload, this.mediaOptions, props, file);
 	}
 	
 	applyTypographyAndFontToTextMesh(text_mesh, typography, font, isBack=false){
@@ -1129,114 +1134,6 @@ drawNone(){
 		texture.repeat.set(repeatX, repeatY);
 	}
 	
-	// async applyImageAsMaterial(key){
-	// 	const media = this.media[key];
-	// 	const textureLoader = new THREE.TextureLoader();
-	// 	return new Promise((resolve, reject) => {
-	// 		try{
-	// 			textureLoader.load(media.obj.src, (texture) => {
-	// 				texture.magFilter = THREE.LinearFilter;
-	// 				texture.minFilter = THREE.LinearFilter;
-	// 				texture.colorSpace = THREE.SRGBColorSpace;
-	// 				const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
-	// 					imageWidth = texture.image.width,
-	// 					imageHeight = texture.image.height;
-	// 				if(media.isShapeColor) {
-	// 					/* when media is the shape color, the size/position of the mesh can't be updated  */
-	// 					const imageAspect = imageWidth / imageHeight;
-	// 					for(const key in media.mesh){
-	// 						const mesh = media.mesh[key];
-	// 						if(!mesh) continue;
-	// 						let scaleX = 1 / media.scale,
-	// 							scaleY = 1 / media.scale,
-	// 							uvArray = [],
-	// 							geometry = mesh.geometry;
-	// 						geometry.computeBoundingBox();
-	// 						let bbox = geometry.boundingBox;
-	// 						const geomWidth = bbox.max.x - bbox.min.x,
-	// 							geomHeight = bbox.max.y - bbox.min.y;
-	// 						const geometryAspect = geomWidth / geomHeight;
-							
-	// 						if (imageAspect > geometryAspect) {
-	// 							scaleX *= geometryAspect / imageAspect;
-	// 						} else {
-	// 							scaleY *= imageAspect / geometryAspect;
-	// 						}
-	// 						const dev_x = media['shift-x'] ? getValueByPixelRatio(media['shift-x']) * scaleX / geomWidth : 0;
-	// 						const dev_y = media['shift-y'] ? - getValueByPixelRatio(media['shift-y']) * scaleY / geomHeight : 0;
-	// 						const position = geometry.attributes.position;
-	// 						const max = bbox.max;
-	// 						const min = bbox.min;
-
-	// 						for (let i = 0; i < position.count; i++) {
-	// 							const x = position.getX(i);
-	// 							const y = position.getY(i);
-						
-	// 							let u = (x - min.x) / (max.x - min.x);
-	// 							let v = (y - min.y) / (max.y - min.y);
-	// 							u = u * scaleX + (1 - scaleX) / 2 - dev_x;
-	// 							v = v * scaleY + (1 - scaleY) / 2 + dev_y;
-
-	// 							uvArray.push(u, v);
-	// 						}
-	// 						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-	// 						geometry.attributes.uv.needsUpdate = true;
-	// 						mesh.material = material;
-	// 					}
-	// 				} else {
-	// 					for(const key in media.mesh){
-	// 						const mesh = media.mesh[key];
-	// 						if(!mesh) continue;
-	// 						let scaleX = 1, 
-	// 							scaleY = 1, 
-	// 							scale = media.scale,
-	// 							width = getValueByPixelRatio(imageWidth) * scale, 
-	// 							height = getValueByPixelRatio(imageHeight) * scale,
-	// 							geometry = new THREE.PlaneGeometry(width, height),
-	// 							uvArray = [];
-	// 						mesh.geometry = geometry;
-	// 						geometry.computeBoundingBox();
-	// 						let bbox = geometry.boundingBox;
-							
-	// 						const dev_x = media['shift-x'] ? getValueByPixelRatio(media['shift-x']) * scaleX : 0;
-	// 						const dev_y = media['shift-y'] ? - getValueByPixelRatio(media['shift-y']) * scaleY : 0;
-							
-	// 						const position = geometry.attributes.position;
-	// 						const max = bbox.max;
-	// 						const min = bbox.min;
-
-	// 						for (let i = 0; i < position.count; i++) {
-	// 							const x = position.getX(i);
-	// 							const y = position.getY(i);
-						
-	// 							let u = (x - min.x) / (max.x - min.x);
-	// 							let v = (y - min.y) / (max.y - min.y);
-	// 							u = u * scaleX + (1 - scaleX) / 2;
-	// 							v = v * scaleY + (1 - scaleY) / 2;
-	// 							uvArray.push(u, v);
-	// 						}
-	// 						geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvArray, 2));
-	// 						geometry.attributes.uv.needsUpdate = true;
-						
-	// 						mesh.material = material;
-	// 						if(!mesh.initialized) {
-	// 							mesh.initialized = true;
-	// 							mesh.position.z = 0.5;
-	// 						}
-	// 						const x = (width - getValueByPixelRatio(this.canvas.width)) / 2 + dev_x,
-	// 						y  = - (height - getValueByPixelRatio(this.canvas.height)) / 2 - dev_y;
-	// 						mesh.position.x = x;
-	// 						mesh.position.y = y;
-	// 					}
-	// 				}							
-	// 				resolve();
-	// 			});
-	// 		} catch(err) {
-	// 			console.log(key, this.media);
-	// 		}
-			
-	// 	})
-	// }
 	drawShape()
 	{
 		if(this.shape.base == 'rectangle' || this.shape.base == 'fill')
@@ -1288,12 +1185,10 @@ drawNone(){
 					
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_front) {
-						console.log('front', shift);
 						this.frontWatermarkGroup.add(el.mesh_front);
 					}
 					el.mesh_back = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_back) {
-						console.log('back', shift);
 						this.backWatermarkGroup.add(el.mesh_back);
 					}
 				}
@@ -1344,11 +1239,9 @@ drawNone(){
 		}
 		this.addExtraShapeMeshes(this.group_front_shape, this.shapes_geometry_front, this.shapes_material_front);
 		this.addExtraShapeMeshes(this.group_back_shape, this.shapes_geometry_back, this.shapes_material_back, true);
-		// console.log(this.mesh_front.children);
 		this.drawImages();
 		for(const key in this.media) {
 			if(this.media[key].isShapeColor) continue;
-			console.log('mm');
 			if(this.media[key].mesh.front)
 				this.group_front.add(this.media[key].mesh.front);
 			if(this.media[key].mesh.back)
@@ -1359,7 +1252,6 @@ drawNone(){
 	}
 	
 	draw (animate = true){
-		// console.log(this.id, '.draw()');
 		this.resetGroups();
 		this.resetAnimation();
 		this.isForward = true;
@@ -2223,69 +2115,6 @@ drawNone(){
 		// 	this.addMediaListener(key);
 		// }
 	}
-	// addMediaListener(key){
-	// 	if(!key || !this.media[key]) return;
-	// 	let input = this.fields.media[key];
-	// 	if(!input) console.error('media field doesnt exist: ', key);
-	// 	input.onclick = function (e) {
-	// 		e.target.value = null;
-	// 	}.bind(this);
-	// 	input.onchange = function(e){
-	// 		this.readImageUploaded(e, (key, image)=>{
-	// 			this.updateMedia(key, {obj: image})
-	// 		});
-	// 	}.bind(this);
-	// 	input.addEventListener('applySavedFile', (e)=>{
-			
-	// 		let idx = input.getAttribute('image-idx');
-	// 		let src = input.getAttribute('data-file-src');
-	// 		this.readImage(idx, src, (idx, image)=>{
-	// 			input.classList.add('not-empty');
-	// 			this.updateMedia(idx, { obj: image});
-	// 		});
-	// 	});
-	// 	let scale_input = input.parentNode.parentNode.querySelector('.img-control-scale');
-	// 	if(scale_input) {
-	// 		scale_input.oninput = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			e.preventDefault();
-	// 			// let scale = e.target.value >= 1 ? e.target.value : 1;
-	// 			let scale = e.target.value;
-	// 			this.updateMediaScale(scale, key, isSilent);
-	// 		}.bind(this);
-	// 	}	
-	// 	let shift_x_input = input.parentNode.parentNode.querySelector('.img-control-shift-x');
-	// 	let shift_y_input = input.parentNode.parentNode.querySelector('.img-control-shift-y');
-	// 	if(shift_x_input) {
-	// 		shift_x_input.oninput = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionX(e.target.value, key, isSilent);
-	// 		}.bind(this);
-	// 		shift_x_input.onkeydown = e => updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionX(shift.x, key, isSilent)
-	// 			this.updateMediaPositionY(shift.y, key, isSilent)
-	// 		});
-	// 	}
-	// 	if(shift_y_input) {
-	// 		shift_y_input.oninput = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionY(e.target.value, key, isSilent);
-	// 		}.bind(this);
-	// 		shift_y_input.onkeydown = e => updatePositionByKey(e, {x: shift_x_input, y:shift_y_input}, (shift)=>{
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaPositionX(shift.x, key, isSilent)
-	// 			this.updateMediaPositionY(shift.y, key, isSilent)
-	// 		});
-	// 	}
-	// 	let blend_mode_input = input.parentNode.parentNode.querySelector('.img-control-blend-mode');
-	// 	if(blend_mode_input) {
-	// 		blend_mode_input.onchange = function(e){
-	// 			let isSilent = e && e.detail ? e.detail.isSilent : false;
-	// 			this.updateMediaBlendMode(e.target.value, key, isSilent);
-	// 		}.bind(this);
-	// 	}
-	// }
     updateFrame(frame=null, silent = false)
     {
 		silent = false;
@@ -2325,12 +2154,10 @@ drawNone(){
 
 		if(this.group_front_shape) {
 			const currentZ = this.group_front_shape.position.z;
-			console.log('group_front_shape z: ', currentZ);
 			this.group_front_shape.position.set(0, 0, currentZ);
 		}
 		if(this.group_back_shape) {
 			const currentZ = this.group_back_shape.position.z;
-			console.log('group_back_shape z: ', currentZ);
 			this.group_back_shape.position.set(0, 0, currentZ);
 		}
 	}
@@ -2364,7 +2191,6 @@ drawNone(){
         return convertStaticPostionToAnimated(x, y, this.canvas.width, this.canvas.height)
     }
     sync(){
-		console.log(this.id + '.sync()');
 		if(!this.counterpart) console.log('has no counterpart');
 		if(!this.counterpart) return;
     	let isSilent = true;

@@ -191,7 +191,6 @@ export default class CanvasAnimated extends Canvas {
         return output;
     }
     deactivate(){
-        console.log(this.id, 'deactivate');
         if(!this.active) return;
         if(Object.keys(this.shapes).length > 1) {
             for(const shape of Object.values(this.shapes)) {
@@ -202,7 +201,6 @@ export default class CanvasAnimated extends Canvas {
                 }
             }
         }
-        console.log('...')
         super.deactivate();
     }
 }
