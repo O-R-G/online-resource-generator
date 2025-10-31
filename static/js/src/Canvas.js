@@ -510,7 +510,6 @@ export default class Canvas {
         return temp_panel_section;
     }
     renderAddShape(extraClass=""){
-        console.log(extraClass)
         let id = this.id + '-add-second-shape';
         let text = 'Add a shape';
         let element = this.renderButtonLikeCheckbox(id, text, extraClass);

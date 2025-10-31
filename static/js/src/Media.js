@@ -77,8 +77,6 @@ export default class Media{
         
         this.initialized = true;
         this.render();
-        console.log(file);
-        console.log(typeof file);
         if(file && this.elements['file-input']) {
             this.elements['file-input'].files = file;
         }
