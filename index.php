@@ -8,6 +8,9 @@ if(empty(end($uri))){
 }
 
 require_once("views/head.php");
-require_once("views/main.php");
+if($uri[1] === 'helper')
+	require_once("views/helper.php");
+else
+	require_once("views/main.php");
 require_once("views/foot.php");
 ?>

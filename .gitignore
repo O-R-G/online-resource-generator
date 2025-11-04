@@ -17,3 +17,5 @@ static/js/dist/*
 static/js/package-lock.json
 static/js/node_modules
 *.js.LICENSE.txt
+
+views/helper.php
