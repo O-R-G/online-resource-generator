@@ -154,7 +154,7 @@ export default class Record {
         let active_canvas = null;
         if(!this.record_body) {
             /* body is empty. could be that the record is created first for the sake of organizaing records. */
-            Object.values(this.canvasObjs)[0].show();
+            Object.values(this.canvasObjs)[0].activate();
             return;
         }
         for(let canvas_id in this.record_body) {
