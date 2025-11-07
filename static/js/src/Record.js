@@ -12,6 +12,7 @@ export default class Record {
             'form': null,
             'button': null
         }
+        this.htmlentityDecodeTextarea = document.createElement('textarea');
         if (this.record_id)
             this.fetchRecord(this.record_id, () => {
                 setTimeout(()=>this.applySavedRecord(), 0);
@@ -127,7 +128,15 @@ export default class Record {
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
-                this.record_body = JSON.parse(json['body']);
+                if(!json['body']) alert('This resource is broken. Please update the body so that it is compatible with the current version of Online Resource Generator.');
+                try{
+                    this.record_body = JSON.parse(json['body']);
+                } catch(error){
+                    alert('This resource is broken. Please update the body so that it is compatible with the current version of Online Resource Generator.');
+                    console.error(error);
+                }
+                
+                
                 if (typeof callback == 'function') {
                     callback();
                 }
@@ -138,8 +147,6 @@ export default class Record {
     }
     applySavedRecord(){
         let active_canvas_fields = [];
-        // let params = new URL(document.location).searchParams;
-        // let format = params.get("format");
         let hasSecondShape = false;
         let active_canvas = null;
         if(!this.record_body) return;
@@ -229,8 +236,11 @@ export default class Record {
                     if(field_element.type === 'number'){
                         field_element.value = parseFloat(field['value']);
                     }
-                    else 
-                        field_element.value = field['value'];
+                    else {
+                        const decoded = this.decodeHTMLEntities(field['value']);
+                        field_element.value = decoded;
+                    }
+                        
                     if (field_element.tagName.toLowerCase() == 'textarea') 
                         field_element.innerText = field['value'];
                     else if(field_element.tagName.toLowerCase() == 'select') {
@@ -283,6 +293,14 @@ export default class Record {
         if(field.type === 'file') output.value = field.dataset.fileSrc ? field.dataset.fileSrc : '';
         else output.value = field.value;
         return output;
+    }
+    sanitizeSrc(src){
+        return src.substring(src.lastIndexOf('/') + 1);
+
+    }
+    decodeHTMLEntities(encodedString) {
+        this.htmlentityDecodeTextarea.innerHTML = encodedString;
+        return this.htmlentityDecodeTextarea.value;
     }
     submit(event, cb){
         event.preventDefault();
@@ -340,17 +358,8 @@ export default class Record {
                     if(field.type === 'file') {
                         if(field.files.length > 0) {
                             formData.append(field.id, field.files[0]);
-                        // } else if( 
-                        //     (field.dataset.fileSrc && field.dataset.fileSrc.indexOf('data:image') !== -1) || // uploaded as static media first, then synced to animated
-                        //     (field.classList.contains('not-empty') && !field.dataset.fileSrc) // uploaded as animated media first, then synced to static
-                        // ) {
-                        //     const counterpart_id = field.id.indexOf('static-') !== -1 ? field.id.replace('static-', 'animated-') : field.id.replace('animated-', 'static-');
-                        //     const counterpart = document.getElementById(counterpart_id);
-                        //     if(!counterpart || !counterpart.files || counterpart.files.length == 0)
-                        //         continue;
-                        //     formData.append(field.id, counterpart.files[0]);
                         } else if(field.dataset.fileSrc) {
-                            record_body['images'][field.id] = field.dataset.fileSrc.replace(media_relative_root, '');
+                            record_body['images'][field.id] = this.sanitizeSrc(field.dataset.fileSrc);
                         }else {
                             continue;
                         }

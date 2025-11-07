@@ -59,9 +59,6 @@ elseif ($action == 'get'):
     $res->close();
     $response['status'] = 'success';
     $response['body'] = $item['body'];
-    // $response['id'] = $item['id'];
-    // $response['url'] = $item['url'];
-    // exit(json_encode($response));
 elseif ($action == 'save'):
     $record_id = $_POST['record_id'];
     $record_body = addslashes($_POST['record_body']);

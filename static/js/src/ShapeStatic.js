@@ -658,7 +658,6 @@ export default class ShapeStatic extends Shape {
 				}
     		}
 		}
-
 		y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 		if(align.indexOf('top') !== -1)
 			y += lines.length / 2 * lineHeight;
@@ -683,10 +682,8 @@ export default class ShapeStatic extends Shape {
     }
 	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
 		let ln;
-
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
-			// let seg_x = align.indexOf('center') !== -1 ? x : x + ln['width'] / 2;
 			let seg_x = x;
 			let ln_y = y + i * lineHeight;
 			this.writeLine(ln, seg_x, ln_y, addStroke);
@@ -697,7 +694,7 @@ export default class ShapeStatic extends Shape {
 		for(let word of line.words) {
 			this.context.fillStyle = word.color === 'default' ? this.textColor : word.color;
 			this.context.font = word.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
-			const content = word.isSpace ? ' ' : word.content;
+			const content = word.content;
 			this.context.fillText(content, x, y);
 			if(addStroke) this.context.strokeText(content, x, y);
 			x += this.context.measureText(content).width;
@@ -714,13 +711,13 @@ export default class ShapeStatic extends Shape {
         }
     }
 	getText(str, color){
+		const lines = this.getLines(str, color)
 		let output = {
-			'lines': this.getLines(str, color),
+			'lines': lines,
 			'max-width': 0
 		};
 		const widths = output.lines.map((item)=>{ return item.width; } );
 		output['max-width'] = Math.max(widths);
-		// console.log(output.lines);
 		return output;
 	}
 	processWordStr(str, color){
@@ -767,7 +764,11 @@ export default class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		const words = this.getTextNodes(str, color);
+		
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
+		// if(words.length === 27){
+		// 	console.log(lines_raw);
+		// }
 		for(const line_raw of lines_raw) {
 			let word = {
 				'content': '',
@@ -781,7 +782,11 @@ export default class ShapeStatic extends Shape {
 			for(let i = 0; i < line_raw.words.length; i++) {
 				const word_raw = line_raw.words[i];
 				if(i === 0) {
-					word = word_raw;
+					if(word_raw.isSpace) {
+						word = {...word_raw, content: ' ', 'isSpace': false};
+					} else {
+						word = word_raw;
+					}
 					continue;
 				} else if( (word_raw.color === word.color && word_raw.style === word.style) || word_raw.isSpace) {
 					word.content += word_raw.isSpace ? ' ' : word_raw.content;
@@ -804,14 +809,15 @@ export default class ShapeStatic extends Shape {
 		const str_by_pattern = this.processWordStr(str, default_color);
 		for(const sbp of str_by_pattern) {
 			const paragraphs_str = sbp.content.split('\n');
-			// console.log(paragraphs_str);
 			for (let j = 0; j < paragraphs_str.length; j++)  {
 				const p = paragraphs_str[j];
-				// console.log(p);
 				const words_str = p.split(" ");
 				for(let i = 0; i < words_str.length; i++) {
-					const w = {...sbp, 'content': words_str[i]};
-					output = output.concat(w);
+					if(words_str[i] !== '') {
+						const w = {...sbp, 'content': words_str[i]};
+						output.push(w);
+					}
+					
 					if(i !== words_str.length - 1) {
 						output.push({
 							'content': '',
@@ -834,7 +840,7 @@ export default class ShapeStatic extends Shape {
 		}
 		return output;
 	}
-    breakSegmentsIntoLinesByWidth(words, width, filterBrackets = true) {
+    breakSegmentsIntoLinesByWidth(words, width) {
 		if(words.length === 0) return [];
     	let line_content_temp = '';
 		let line = {
@@ -847,10 +853,10 @@ export default class ShapeStatic extends Shape {
 		for(let i = 0; i < words.length; i++ ) {
 			const word = words[i];
 			if(!word.isLinebreak) {
-				
 				if(previousWordIsSpace)
 					line_content_temp += ' ';
 				if(word.isSpace) {
+					// console.log(line_content_temp);
 					previousWordIsSpace = true;
 				} else {
 					line_content_temp += word['content'];
@@ -859,7 +865,7 @@ export default class ShapeStatic extends Shape {
 				this.context.font = word['style'] === 'italic' ?  word['style'] + ' ' + this.fontStyle : this.fontStyle;
 				m = this.context.measureText(line_content_temp);
 				
-				if( m.width <= width ) { 
+				if( m.width <= width || line['words'].length === 0) { 
 					/* no need for a new line */
 					line['words'].push(word);
 					line.width = m.width;
@@ -867,13 +873,6 @@ export default class ShapeStatic extends Shape {
 				}
 			}
 			/* start a new line */
-			// if(!(line.words.length === 1 && line.words[0].isLinebreak)) {
-			// 	output.push(line);
-			// 	line = {
-			// 		'words': [],
-			// 		'width': 0
-			// 	};
-			// }
 			output.push(line);
 			line = {
 				'words': [],
@@ -883,7 +882,7 @@ export default class ShapeStatic extends Shape {
 			line_content_temp = '';
 			previousWordIsSpace = false;
 
-			if(word.isSpace) continue;
+			if(word.isSpace || word.isLinebreak) continue;
 
 			line_content_temp += word.content;
 			m = this.context.measureText(line_content_temp);
@@ -1521,7 +1520,6 @@ export default class ShapeStatic extends Shape {
 		return output;
     }
     sync(){
-		if(!this.counterpart) console.log('has no counterpart');
 		if(!this.counterpart) return;
 		let isSilent = true;
 		super.sync();

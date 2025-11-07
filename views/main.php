@@ -30,6 +30,7 @@
     const root_path = '<?php echo $root_path; ?>';
     const record_id = '<?php echo $record_id; ?>';
     const media_relative_root = '<?php echo $media_relative_root; ?>';
+    // console.log(media_relative_root);
     const action = '<?php echo $action; ?>';
     
 </script>
