@@ -13,10 +13,12 @@ export default class Record {
             'button': null
         }
         this.htmlentityDecodeTextarea = document.createElement('textarea');
-        if (this.record_id)
+        if (this.record_id) {
             this.fetchRecord(this.record_id, () => {
                 setTimeout(()=>this.applySavedRecord(), 0);
             });
+        }
+            
         this.renderElements();
         this.addListeners();
     }
@@ -128,9 +130,10 @@ export default class Record {
         }).then((response) => response.json()
         ).then((json) => {
             if(json['status'] == 'success') {
-                if(!json['body']) alert('This resource is broken. Please update the body so that it is compatible with the current version of Online Resource Generator.');
+                // console.log(json['body']);
+                // if(!json['body']) alert('This resource is broken. Please update the body so that it is compatible with the current version of Online Resource Generator.');
                 try{
-                    this.record_body = JSON.parse(json['body']);
+                    this.record_body = json['body'] ? JSON.parse(json['body']) : '';
                 } catch(error){
                     alert('This resource is broken. Please update the body so that it is compatible with the current version of Online Resource Generator.');
                     console.error(error);
@@ -149,7 +152,11 @@ export default class Record {
         let active_canvas_fields = [];
         let hasSecondShape = false;
         let active_canvas = null;
-        if(!this.record_body) return;
+        if(!this.record_body) {
+            /* body is empty. could be that the record is created first for the sake of organizaing records. */
+            Object.values(this.canvasObjs)[0].show();
+            return;
+        }
         for(let canvas_id in this.record_body) {
             if(canvas_id === 'images'){
                 continue;
