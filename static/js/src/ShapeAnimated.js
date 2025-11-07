@@ -546,7 +546,6 @@ drawNone(){
 		if(str == '') return false;
 		if(typography === false)
 			typography = this.frontTypography;
-		console.log(str);
 		shift = shift ? { ...shift } : {x: isBack ? this.backTextShiftX : this.frontTextShiftX, y: isBack ? this.backTextShiftY : this.frontTextShiftY};
 		shift.x = shift.x ? getValueByPixelRatio(shift.x) : 0;
 		shift.y = shift.y ? getValueByPixelRatio(shift.y) : 0;
@@ -571,7 +570,6 @@ drawNone(){
 		output.textAlign = align == 'align-left' ? 'left' : 'center';
 		output.anchorX = align == 'align-left' ? 'left' : 'center';
 		output.anchorY = 'middle';
-		console.log(this.textBoxWidth);
 		output.maxWidth = this.textBoxWidth;
 		let text_dev_y = 0;
 		if(this.shape.base === 'triangle') {
@@ -716,10 +714,11 @@ drawNone(){
 				let textObjs = [];
 				let output = new THREE.Group();
 				const radius = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) / 2;
-				const spaceWidth = typography.size * getValueByPixelRatio(0.51) ; // Define a fixed width for spaces
+				let spaceWidth = '';
 				const charWidths = [];
 				let currentAngle = Math.PI / 2;
 				let synced = 0;
+
 				for (let i = 0; i < str.length; i++) {
 					
 					const char = str[i];
@@ -742,13 +741,18 @@ drawNone(){
 						if(synced == str.length) {
 							for (let j = 0; j < str.length; j++) {
 								const char = str[j];
+								const charWidth = charWidths[j];
 								if (char === ' ') {
+									if(spaceWidth === ''){
+										spaceWidth = text.geometry.boundingBox.max.x - text.geometry.boundingBox.min.x
+										console.log(spaceWidth);
+									}
+										
 									currentAngle -= spaceWidth / (2 * radius);
-									// currentAngle -= spaceWidth / (2 * radius);
 									continue;
 								}
 								let txt = textObjs[j];
-								const charWidth = charWidths[j];
+								
 								const angleOffset = charWidth / (2 * radius);
 								currentAngle -= angleOffset;
 								const x = radius * Math.cos(currentAngle);
