@@ -580,6 +580,7 @@ export default class ShapeStatic extends Shape {
     	else if(this.shape.base == 'circle'){
     		let inner_p_x = this.innerPadding.x;
 			if(align === 'surrounding') {
+				this.context.textAlign = 'left';
 				const spaceWidth = this.typography.size * 0.35 ; // Define a fixed width for spaces
 				const charWidths = [];
 				let currentAngle = -Math.PI / 2;

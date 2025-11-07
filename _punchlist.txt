@@ -81,7 +81,8 @@ x unify text-handling (main texts and watermarks)
 - three js mix blend mode for images
 + gradient doesn't work for base
 - when updated, make sure the triangle corner radius is half of the previous value
-- angolo corner doesn't show up when the shape color is an image on animated shapes
++ angolo corner doesn't show up when the shape color is an image on animated shapes
 + saved text doesnt show up
 + mobile css
-- when the animation is rest and background is custom image, the text on the right disappears (likely a z-index issue). e.g., 2024/alex-sloane/alex-sloane-spotlight
++ when the animation is rest and background is custom image, the text on the right disappears (likely a z-index issue). e.g., 2024/alex-sloane/alex-sloane-spotlight
+- surrounding watermarks look weird on static shapes.

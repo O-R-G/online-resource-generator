@@ -716,7 +716,7 @@ drawNone(){
 				let textObjs = [];
 				let output = new THREE.Group();
 				const radius = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) / 2;
-				const spaceWidth = typography.size * getValueByPixelRatio(0.35) ; // Define a fixed width for spaces
+				const spaceWidth = typography.size * getValueByPixelRatio(0.51) ; // Define a fixed width for spaces
 				const charWidths = [];
 				let currentAngle = Math.PI / 2;
 				let synced = 0;
@@ -744,7 +744,7 @@ drawNone(){
 								const char = str[j];
 								if (char === ' ') {
 									currentAngle -= spaceWidth / (2 * radius);
-									currentAngle -= spaceWidth / (2 * radius);
+									// currentAngle -= spaceWidth / (2 * radius);
 									continue;
 								}
 								let txt = textObjs[j];
