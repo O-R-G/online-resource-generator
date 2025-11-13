@@ -427,8 +427,7 @@ export default class ShapeStatic extends Shape {
 		this.fontStyle = typography.size + 'px ' + font['family'];
 		if(font['weight']) this.fontStyle = font['weight'] + ' ' + this.fontStyle;
 		let lineHeight = parseFloat(typography['lineHeight']);
-		let addStroke = (typography == 'small' || typography == 'medium-small');
-		addStroke = false;
+		let stroke = typography['stroke'] ?? false;
 		rad = rad ? rad : 0;
 		this.context.font = this.fontStyle;
 		let text = this.getText(str, color);
@@ -478,7 +477,7 @@ export default class ShapeStatic extends Shape {
 			y -= lines.length % 2 == 0 ? (lines.length / 2 - 0.5) * lineHeight : parseInt(lines.length / 2 ) * lineHeight;
 			y += text_dev_y;
 			// console.log('main text', x, y);
-			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, addStroke);
+			this.writeLines(lines, x, y, parseFloat(typography['lineHeight']), align, stroke);
 			
 			return;
         }
@@ -719,35 +718,39 @@ export default class ShapeStatic extends Shape {
 
 		this.context.translate(x, y);
 		this.context.rotate(rad);		
-		this.writeLines(lines, 0, 0, parseFloat(typography['lineHeight']), align, addStroke);
+		this.writeLines(lines, 0, 0, parseFloat(typography['lineHeight']), align, stroke);
 		this.context.restore();
     }
-	writeLines(lines, x, y, lineHeight, align='', addStroke=false){
+	writeLines(lines, x, y, lineHeight, align='', stroke=false){
 		let ln;
 		for(let i = 0; i < lines.length; i++) { 
 			ln = lines[i];
 			let seg_x = x;
 			let ln_y = y + i * lineHeight;
-			this.writeLine(ln, seg_x, ln_y, addStroke);
+			this.writeLine(ln, seg_x, ln_y, stroke);
 		}
 	}
-	writeLine(line, initial_x, y, addStroke=false){
+	writeLine(line, initial_x, y, stroke=false){
 		let x = initial_x;
 		for(let word of line.words) {
 			this.context.fillStyle = word.color === 'default' ? this.textColor : word.color;
 			this.context.font = word.style === 'normal' ? this.fontStyle : 'italic ' + this.fontStyle;
 			const content = word.content;
 			this.context.fillText(content, x, y);
-			if(addStroke) this.context.strokeText(content, x, y);
+			if(stroke) {
+				this.context.lineWidth = stroke;
+				this.context.strokeText(content, x, y);
+			} else 
+				this.context.lineWidth = 0;
 			x += this.context.measureText(content).width;
 		}
 	}
-    drawMultipleLinesFromTopKeep(lines, x, y, lineHeight, addStroke = false) {
+    drawMultipleLinesFromTopKeep(lines, x, y, lineHeight, stroke = false) {
         for (var i = 0, len = lines.length; i < len; i++) {
             let offset = lineHeight * (i);
 			for(let j = 0; j < lines[i].segs.length; j++ ){
 				this.context.fillText(lines[i].segs[j].content, x, y + offset);
-				if(addStroke) this.context.strokeText(lines[i].segs[j].content, x, y + offset);
+				if(stroke) this.context.strokeText(lines[i].segs[j].content, x, y + offset);
 			}
             
         }
@@ -806,11 +809,9 @@ export default class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		const words = this.getTextNodes(str, color);
-		
+		console.log(this.textBoxWidth);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
-		// if(words.length === 27){
-		// 	console.log(lines_raw);
-		// }
+		
 		for(const line_raw of lines_raw) {
 			let word = {
 				'content': '',
@@ -972,7 +973,10 @@ export default class ShapeStatic extends Shape {
 	drawRectanglePath(ctx = null){
 		if(this.cornerRadius * 2 > this.frame.w - (this.padding * 2) )
             this.cornerRadius = (this.frame.w - (this.padding * 2)) / 2;
-		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) * 0.9;
+		this.textBoxWidth = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2);
+		if(this.shape.base !== 'fill') {
+			this.textBoxWidth *= 0.9;
+		}
         let paddingX = this.padding;
         let paddingY = this.padding;
 
