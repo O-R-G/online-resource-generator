@@ -581,7 +581,7 @@ export default class ShapeStatic extends Shape {
     		let inner_p_x = this.innerPadding.x;
 			if(align === 'surrounding') {
 				this.context.textAlign = 'left';
-				const spaceWidth = this.typography.size * 0.35 ; // Define a fixed width for spaces
+				// const spaceWidth = this.typography.size * 0.35 ; // Define a fixed width for spaces
 				const charWidths = [];
 				let currentAngle = -Math.PI / 2;
 				let radius = (this.frame.w - (this.padding * 2)) / 2 - this.innerPadding.x;
@@ -610,19 +610,60 @@ export default class ShapeStatic extends Shape {
 				}
 				return;
 				// synced = 0;
+			} else {
+				this.context.textAlign = 'center';
+				const charWidths = [];
+				const charAngles = [];
+				let targetAngle = 0;
+				console.log(align);
+				if(align === 'top-left')
+					targetAngle = -3 * Math.PI / 4;
+				else if(align ==='top-center')
+					targetAngle = -1 * Math.PI / 2;
+				else if(align ==='top-right')
+					targetAngle = -1 * Math.PI / 4;
+				else if(align ==='middle-left')
+					targetAngle = -1 * Math.PI;
+				else if(align === 'middle-right') 
+					targetAngle = 0;
+				else if(align === 'bottom-left') 
+					targetAngle = 3 * Math.PI / 4;
+				else if(align ==='bottom-center')
+					targetAngle = 1 * Math.PI / 2;
+				else if(align ==='bottom-right')
+					targetAngle = 1 * Math.PI / 4;
+				const radius = (this.frame.w - (this.padding * 2)) / 2 - this.innerPadding.x;
+				const centerX = this.canvasW / 2;
+				const centerY = this.frame.h / 2;
+				let totalAngle = 0;
+
+				for (let i = 0; i < str.length; i++) {
+					const width = this.context.measureText(str[i]).width;
+					charWidths[i] = width;
+					const angle = width / radius;
+					charAngles[i] = angle;
+					totalAngle += angle;
+				}
+
+				let currentAngle = targetAngle - totalAngle / 2;
+
+				for (let j = 0; j < str.length; j++) {
+					this.context.save();
+					const char = str[j];
+					const charAngle = charAngles[j];
+					const charCenterAngle = currentAngle + charAngle / 2;
+					const x = radius * Math.cos(charCenterAngle) + centerX;
+					const y = radius * Math.sin(charCenterAngle) + centerY;
+					const rad = charCenterAngle + Math.PI / 2;
+					this.context.translate(x, y);
+					this.context.rotate(rad);
+					this.context.fillText(char, 0, 0);
+					currentAngle += charAngle;
+					this.context.restore();
+				}
+				return;
 			}
-    		else if(align.indexOf('left') !== -1){
-    			this.context.textAlign = 'left';
-    			x = this.frame.x + this.padding + inner_p_x;
-    		}
-    		else if(align.indexOf('right') !== -1){
-    			this.context.textAlign = 'right';
-    			x = this.frame.x  + this.frame.w - (this.padding + inner_p_x);
-    		}
-			if(align.indexOf('middle') !== -1){
-    			y = this.frame.y + this.frame.h / 2;
-    		}
-    		else return;
+    		
     	} else if(this.shape.base === 'diamond') {
 			if(align.indexOf('center') !== -1 || align.indexOf('middle') !== -1) return;
 			let this_padding = this.padding;
