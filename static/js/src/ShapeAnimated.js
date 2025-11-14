@@ -295,8 +295,6 @@ export default class ShapeAnimated extends Shape {
 	drawRectangle(){
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		
-		// console.log(this.textBoxWidth);
 		let w, h;
 		
 		if(this.shape.base === 'fill') {
@@ -706,13 +704,14 @@ drawNone(){
 		else if(this.shape.base == 'circle')
 		{
 			
-			let x = 0;
-			let y = 0;
-			let inner_p_x = this.innerPadding.x;
-			let length = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
+			// let x = 0;
+			// let y = 0;
+			// let inner_p_x = this.innerPadding.x;
+			// let length = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
     		if(align === 'surrounding') {
 				let textObjs = [];
 				let output = new THREE.Group();
+				output.renderOrder = renderOrder;
 				const radius = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) / 2;
 				let spaceWidth = '';
 				const charWidths = [];
@@ -798,7 +797,7 @@ drawNone(){
 					this.applyTypographyAndFontToTextMesh(text, typography, font, isBack);
 					text.text = char;
 					text.material = material;
-					text.position.z = 0.5;
+					text.position.z = 0.1;
 					text.textAlign = 'center';
 					text.anchorX = 'center';
 					text.anchorY = 'middle';
@@ -841,6 +840,7 @@ drawNone(){
 				textGroup.position.x = shift.x;
 				textGroup.position.y = shift.y;
 				textGroup.rotation.z += rad;
+				textGroup.renderOrder = renderOrder;
 				return textGroup;
     		}
     		// output.rotation.z += rad;

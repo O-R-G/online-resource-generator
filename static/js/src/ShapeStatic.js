@@ -809,7 +809,6 @@ export default class ShapeStatic extends Shape {
 	getLines(str, color){
 		let output = [];
 		const words = this.getTextNodes(str, color);
-		console.log(this.textBoxWidth);
 		const lines_raw = this.breakSegmentsIntoLinesByWidth(words, this.textBoxWidth);
 		
 		for(const line_raw of lines_raw) {

@@ -272,7 +272,6 @@ export default class Media{
     }
     
     async classifyFile(url){
-        console.log(url);
         const res = await fetch(url, { method: 'HEAD' });
 		const type = res.headers.get('Content-Type') || '';
 		if (type.startsWith('image/')) return 'image';
