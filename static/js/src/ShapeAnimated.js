@@ -295,8 +295,6 @@ export default class ShapeAnimated extends Shape {
 	drawRectangle(){
 		let this_r = this.cornerRadius;
 		let this_p = this.padding;
-		
-		// console.log(this.textBoxWidth);
 		let w, h;
 		
 		if(this.shape.base === 'fill') {
@@ -706,13 +704,14 @@ drawNone(){
 		else if(this.shape.base == 'circle')
 		{
 			
-			let x = 0;
-			let y = 0;
-			let inner_p_x = this.innerPadding.x;
-			let length = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
+			// let x = 0;
+			// let y = 0;
+			// let inner_p_x = this.innerPadding.x;
+			// let length = Math.min(this.frame.w, this.frame.h) - this.padding * 2;
     		if(align === 'surrounding') {
 				let textObjs = [];
 				let output = new THREE.Group();
+				output.renderOrder = renderOrder;
 				const radius = (this.frame.w - this.padding * 2 - this.innerPadding.x * 2) / 2;
 				let spaceWidth = '';
 				const charWidths = [];
@@ -769,26 +768,85 @@ drawNone(){
 						}
 					});
 					output.add(text);
-				}
+    				}
 				
-				return output;
-			}
-    		else if(align.indexOf('left') !== -1){
-    			output.textAlign = 'left';
-				output.anchorX = 'left';
-    			x = - length / 2 + inner_p_x;
+    				return output;
+    			}
+    		else {
+				const alignmentAngles = {
+					'top-left': 3 * Math.PI / 4,
+					'top-center': Math.PI / 2,
+					'top-right': Math.PI / 4,
+					'middle-left': Math.PI,
+					'middle-right': 0,
+					'bottom-left': -3 * Math.PI / 4,
+					'bottom-center': -Math.PI / 2,
+					'bottom-right': -Math.PI / 4
+				};
+				const radius = (this.frame.w - (this.padding * 2)) / 2 - this.innerPadding.x;
+				const targetAngle = alignmentAngles[align] !== undefined ? alignmentAngles[align] : 0;
+				const textGroup = new THREE.Group();
+				const textObjs = [];
+				const charWidths = [];
+				let synced = 0;
+				let spaceWidth = getValueByPixelRatio(parseFloat(typography['size'])) * 0.35;
+
+				for (let i = 0; i < str.length; i++) {
+					const char = str[i];
+					let text = new Text();
+					this.applyTypographyAndFontToTextMesh(text, typography, font, isBack);
+					text.text = char;
+					text.material = material;
+					text.position.z = 0.1;
+					text.textAlign = 'center';
+					text.anchorX = 'center';
+					text.anchorY = 'middle';
+					text.material.depthTest = false;
+					textObjs[i] = text;
+					text.sync(()=>{
+						let width = text.textRenderInfo.blockBounds[2] - text.textRenderInfo.blockBounds[0];
+						if(char === ' ') {
+							if(width === 0) width = spaceWidth;
+							else spaceWidth = width;
+						}
+						charWidths[i] = width;
+						synced++;
+						if(synced == str.length) {
+							const charAngles = [];
+							let totalAngle = 0;
+							for(let k = 0; k < charWidths.length; k++) {
+								const angle = charWidths[k] / radius;
+								charAngles[k] = angle;
+								totalAngle += angle;
+							}
+							let currentAngle = targetAngle + totalAngle / 2;
+							for(let k = 0; k < textObjs.length; k++) {
+								const txt = textObjs[k];
+								const charAngle = charAngles[k];
+								const charCenterAngle = currentAngle - charAngle / 2;
+								txt.position.x = radius * Math.cos(charCenterAngle);
+								txt.position.y = radius * Math.sin(charCenterAngle);
+								txt.rotation.z = charCenterAngle - Math.PI / 2;
+								currentAngle -= charAngle;
+								txt.needsUpdate = true;
+								txt.sync();
+							}
+							this.canvasObj.render();
+						}
+					});
+					textGroup.add(text);
+				}
+
+				textGroup.position.x = shift.x;
+				textGroup.position.y = shift.y;
+				textGroup.rotation.z += rad;
+				textGroup.renderOrder = renderOrder;
+				return textGroup;
     		}
-    		else if(align.indexOf('right') !== -1){
-    			output.textAlign = 'right';
-				output.anchorX = 'right';
-    			x = length / 2 - inner_p_x;
-    		}
-			if(align.indexOf('middle') !== -1)
-				y = 0;
-			output.rotation.z += rad;
-			output.position.x = x + shift.x;
-			output.position.y = y + shift.y;
-		} else if(this.shape.base === 'diamond') {
+    		// output.rotation.z += rad;
+    		// output.position.x = x + shift.x;
+    		// output.position.y = y + shift.y;
+    	} else if(this.shape.base === 'diamond') {
 			let x = 0;
 			let y = 0;
 			let this_padding = this.padding;
