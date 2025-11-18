@@ -29,7 +29,7 @@ textarea {
 }
 canvas {
     display: block;
-    min-height: 200px;
+    /* min-height: 200px; */
 }
 canvas + canvas {
     margin-top: 60px;

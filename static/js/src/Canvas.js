@@ -623,11 +623,21 @@ export default class Canvas {
             const [base_section] = this.renderSelectSection('base', 'Base', { options: this.baseOptions });
             this.control_top.appendChild(base_section);
             if(this.baseOptions['upload']) {
-                const m_key = 'base-image';
-                let [section, right] = this.renderSection('', '', [], m_key + '-section');
-                const m = this.media[m_key];
-                m.addTo(right);
-                this.control_top.appendChild(section);
+                const right = base_section.querySelector('.half-right');
+                const media_div = document.createElement('div');
+			    media_div.className = 'color-upload-section';
+                // const m_key = 'base-image';
+                let key = this.checkMediaKey('base-image');
+                // let [section, right] = this.renderSection('', '', [], key + '-section');
+                const m = this.media[key];
+                m.addTo(media_div);
+                right.appendChild(media_div);
+
+                
+			
+        	// const m = this.media[key];
+			// m.addTo(media_div);
+			// shape_right.appendChild(media_div);
             }
         }
             
@@ -836,9 +846,20 @@ export default class Canvas {
 
         return output;
     }
-
+    checkMediaKey(key){
+        console.log('yaya');
+        if(!key) {
+            key = 'media-' + this.mediaIndex;
+            displayName = 'Media ' + this.mediaIndex;
+            this.mediaIndex++;
+        }
+        if(!this.media[key]) {
+            this.media[key] = this.initMedia(key);
+        }
+        return key;
+    }
     sync(){
-        console.log(this.id + '.sync()');
+        // console.log(this.id + '.sync()');
         if(!this.counterpart) return;
         for(const name in this.fieldCounterparts) {
 			let field = this.fields[name];
@@ -895,8 +916,15 @@ export default class Canvas {
             const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
             props.x = calibrated_x;
             props.y = calibrated_y;
+            let file = null;
+            if(media.elements['file-input'].files && media.elements['file-input'].files[0]) {
+                // console.log(key);
+                const dt = new DataTransfer();
+                dt.items.add(media.elements['file-input'].files[0]); // add the first file
+                file = dt.files;
+            } 
             if(this.counterpart.media[counter_key]) {
-                this.counterpart.media[counter_key].sync(props, true);
+                this.counterpart.media[counter_key].sync(props, file, true);
             } else {
                 this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props);
             }

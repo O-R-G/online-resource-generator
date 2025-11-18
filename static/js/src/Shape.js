@@ -59,6 +59,8 @@ export default class Shape {
         this.initialized = true;
         if(!canvasObj) canvasObj = this.canvasObj;
         else this.canvasObj = canvasObj;
+        // console.log(this.canvasObj);
+        // console.log(this.canvasObj.control_shape);
         this.control_wrapper = this.canvasObj.control_shape;
         this.control = document.createElement('div');
         this.control.className = 'shape-control';
@@ -815,12 +817,11 @@ export default class Shape {
             // console.log(key, this.counterpart.media[counter_key]);
             let file = null;
             if(media.elements['file-input'].files && media.elements['file-input'].files[0]) {
-                console.log(key);
+                // console.log(key);
                 const dt = new DataTransfer();
                 dt.items.add(media.elements['file-input'].files[0]); // add the first file
                 file = dt.files;
             } 
-            console.log(this.counterpart.media[counter_key]);
             if(this.counterpart.media[counter_key]) {
                 this.counterpart.media[counter_key].sync(props, file, true);
             } else {

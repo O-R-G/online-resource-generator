@@ -1474,7 +1474,8 @@ export default class ShapeStatic extends Shape {
 				let isSilent = e && e.detail ? e.detail.isSilent : false;
 				if(this.fields['shape-color'].classList.contains('showing-placeholder'))
 					this.fields['shape-color'].classList.remove('showing-placeholder');
-				this.fields['shape-color'].setAttribute('data-value', e.target.value);
+				// this.fields['shape-color'].setAttribute('data-value', e.target.value);
+				this.fields['shape-color'].dataset.value = e.target.value;
 				if(e.target.value === 'upload') {
 					this.color = 'upload';
 					// this.media['background-image'].show();

@@ -325,8 +325,11 @@ export default class Record {
             minute: '2-digit',
             hour12: true
         }).replace(',', '')}`;
+        const main_text_field = document.querySelector('.generator-container.active .field-id-text, .generator-container.active .field-id-text-front');
         let record_name = record_name_default;
-
+        if(main_text_field && main_text_field.value) {
+            record_name = main_text_field.value + ' ' + record_name;
+        }
         let containers = document.querySelectorAll('.generator-container');
         for (let container of containers) {
             let canvas_id = container.getAttribute('data-canvas-id');
@@ -403,8 +406,8 @@ export default class Record {
                         if(field.files.length > 0) {
                             formData.append(field.id, field.files[0]);
                         } else if(field.dataset.fileSrc) {
-                            record_body['images'][field.id] = field.dataset.fileSrc.replace(media_relative_root, '');
-                        } else {
+                            record_body['images'][field.id] = this.sanitizeSrc(field.dataset.fileSrc);
+                        }else {
                             continue;
                         }
                         

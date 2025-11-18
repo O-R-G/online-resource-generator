@@ -42,6 +42,7 @@ export default class CanvasStatic extends Canvas {
 					sec.classList.remove('viewing-base-image-section');
 					this.updateBase(e.target.value);
 				}
+                this.fields['base'].dataset.value = e.target.value;
             }.bind(this);
         }
     }

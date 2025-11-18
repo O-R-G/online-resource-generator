@@ -38,6 +38,7 @@ if ($action == 'insert') :
         $url_test = $url_base . '-' . $url_index . $format_query;
         $url_index++;
     }
+    $name1 = $url_index == 1 ? $name1 : $name1 . ' (' . ($url_index - 1) . ')';
     $url = $url_test;
     $sql = "INSERT INTO `objects` (`name1`, `body`, `notes`, `url`) VALUES ('$name1', '$record_body', '$record_notes', '$url')";
     $db->query($sql);
