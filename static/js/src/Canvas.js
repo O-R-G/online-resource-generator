@@ -847,7 +847,6 @@ export default class Canvas {
         return output;
     }
     checkMediaKey(key){
-        console.log('yaya');
         if(!key) {
             key = 'media-' + this.mediaIndex;
             displayName = 'Media ' + this.mediaIndex;
