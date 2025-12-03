@@ -322,4 +322,7 @@ export default class MediaStatic extends Media{
         this.videoElement = null;
         this.isVideo = false;
     }
+    initRecording(){
+        this.restartPlayback();
+    }
 }

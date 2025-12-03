@@ -31,7 +31,7 @@ export default class ShapeStatic extends Shape {
 		this.timer_shape = null;
 		this.customGraphic = [];
 		this.shapeArea = {x: 0, y: 0, w: 0, h: 0};
-		this.initRecording = false;
+		// this.initRecording = false;
 		this.canvas = canvasObj.canvas;
 		if(this.options.colorOptions['upload']) {
 			const key = 'background-image';
@@ -1644,5 +1644,16 @@ export default class ShapeStatic extends Shape {
 			m.draw(this.context);
 		}
 		this.context.globalCompositeOperation = 'normal';
+	}
+	initRecording(timestamp){
+		console.log('static initRecording');
+		this.animate(timestamp);
+		for(const m_key in this.media) {
+			const m = this.media[m_key];
+			console.log(m.isVideo);
+			if(m.isVideo) {
+				m.restartPlayback();
+			}
+		}
 	}
 }

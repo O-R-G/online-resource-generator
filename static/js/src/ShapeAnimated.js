@@ -2299,4 +2299,7 @@ drawNone(){
 		if(typeof cb === 'function')
 			cb(videoElement);
 	}
+	initRecording(timestamp){
+		this.animate(timestamp);
+	}
 }

@@ -117,7 +117,7 @@ export default class Canvas {
 	    	this.media_recorder.ondataavailable = (evt) => { this.chunks.push(evt.data); };
             this.media_recorder.addEventListener('start', ()=>{
                 for(const shape_id in this.shapes) {
-                    this.shapes[shape_id].animate(performance.now());
+                    this.shapes[shape_id].initRecording(performance.now());
                 }
             });
 	    }
@@ -159,11 +159,11 @@ export default class Canvas {
                 this.media_recorder.ondataavailable = (evt) => { 
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
+                    console.log('start');
                     this.isRecording = true;
-                    if(this.isThree) {
-                        for(const shape_id in this.shapes) {
-                            this.shapes[shape_id].animate(performance.now());
-                        }
+                    for(const shape_id in this.shapes) {
+                        console.log(this.shapes[shape_id]);
+                        this.shapes[shape_id].initRecording(performance.now());
                     }
                     
                 });

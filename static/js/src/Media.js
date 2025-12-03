@@ -337,4 +337,7 @@ export default class Media{
             this.elements[name].id = control.id;
         }
     }
+    initRecording(){
+        
+    }
 }
