@@ -103,6 +103,24 @@ export default class Media{
         
         if(!silent) this.onUpdate();
     }
+    updateScale(value, silent = false){
+        if(!value) value = 1;
+        else value = parseFloat(value);
+        this.update({'scale': value}, silent);
+    };
+    updatePositionX(value, silent = false){
+        if(!value) value = 0;
+        else value = parseFloat(value);
+        this.update({'shift-x': value}, silent);
+    };
+    updatePositionY(value, silent = false){
+        if(!value) value = 0;
+        else value = parseFloat(value);
+    	this.update({'shift-y': value}, silent);
+    };
+    updateBlendMode(value, silent=false){
+    	this.update({'blend-mode': value}, silent);
+    }
     render(){
         const cls = [];
         const [field, input] = this.renderFileField({'wrapper':['flex-item'], 'input': cls}, {'wrapper': {'flex': 'full'}});
@@ -332,6 +350,33 @@ export default class Media{
             const name = control.name;
             this.elements[name].id = control.id;
         }
+    }
+    requestCanvasDraw(isMediaFrame = false){
+        if(typeof this.onUpdate !== 'function') return;
+        if(isMediaFrame) {
+            this.onUpdate({isMediaFrame: true, mediaKey: this.key});
+        } else {
+            this.onUpdate();
+        }
+    }
+    restartPlayback(){
+        if(!this.isVideo || !this.videoElement || typeof this.startVideoLoop !== 'function') return;
+        const video = this.videoElement;
+        if(typeof this.stopVideoLoop === 'function') {
+            this.stopVideoLoop();
+        }
+        try {
+            video.currentTime = 0;
+        } catch(err) {
+            /* ignore inability to seek */
+        }
+        if(video.paused || video.ended) {
+            const playPromise = video.play();
+            if(playPromise && typeof playPromise.then === 'function') {
+                playPromise.catch(()=>{});
+            }
+        }
+        this.startVideoLoop();
     }
     initRecording(){
         

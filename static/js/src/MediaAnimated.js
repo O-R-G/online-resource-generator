@@ -461,50 +461,6 @@ export default class MediaAnimated extends Media{
         this.videoFrameLoop = null;
         this.usingVideoFrameCallback = false;
     }
-    updateScale(value, silent = false){
-        if(!value) value = 1;
-        else value = parseFloat(value);
-        this.update({'scale': value}, silent);
-    };
-    updatePositionX(value, silent = false){
-        if(!value) value = 0;
-        else value = parseFloat(value);
-        this.update({'shift-x': value}, silent);
-    };
-    updatePositionY(value, silent = false){
-        if(!value) value = 0;
-        else value = parseFloat(value);
-    	this.update({'shift-y': value}, silent);
-    };
-    updateBlendMode(value, silent=false){
-    	this.update({'blend-mode': value}, silent);
-    }
-    requestCanvasDraw(isMediaFrame = false){
-        if(typeof this.onUpdate !== 'function') return;
-        if(isMediaFrame) {
-            this.onUpdate({isMediaFrame: true, mediaKey: this.key});
-        } else {
-            this.onUpdate();
-        }
-    }
-    restartPlayback(){
-        if(!this.isVideo || !this.videoElement) return;
-        const video = this.videoElement;
-        this.stopVideoLoop();
-        try {
-            video.currentTime = 0;
-        } catch(err) {
-            /* ignore inability to seek */
-        }
-        if(video.paused || video.ended) {
-            const playPromise = video.play();
-            if(playPromise && typeof playPromise.then === 'function') {
-                playPromise.catch(()=>{});
-            }
-        }
-        this.startVideoLoop();
-    }
-    
     async draw(){
         if((!this.obj && !this.src) || !this.isShown) return;
         if(this.isVideo) {

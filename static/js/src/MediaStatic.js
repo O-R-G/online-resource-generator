@@ -12,6 +12,14 @@ export default class MediaStatic extends Media{
         this.usingVideoFrameCallback = false;
         this.init(props, file);
     }
+    init(props, file){
+        super.init(props, file);
+        if(this.obj && this.obj instanceof HTMLVideoElement) {
+            this.isVideo = true;
+            this.setupVideoElement(this.obj);
+            this.src = this.obj?.dataset?.source || this.obj.currentSrc || this.obj.src || this.src;
+        }
+    }
     update(props, silent=false){
         const hasObjProp = props && Object.prototype.hasOwnProperty.call(props, 'obj');
         const incomingObj = hasObjProp ? props.obj : undefined;
@@ -24,7 +32,6 @@ export default class MediaStatic extends Media{
         }
 
         super.update(props, silent);
-
         if(this.obj instanceof HTMLVideoElement) {
             if(this.videoElement !== this.obj) {
                 this.setupVideoElement(this.obj, silent);
@@ -127,24 +134,6 @@ export default class MediaStatic extends Media{
         temp_ctx.drawImage(this.obj, this.x, this.y, final_width, final_height);
         return context.createPattern(temp, "no-repeat");
     }
-    updateScale(value, silent = false){
-        if(!value) value = 1;
-        else value = parseFloat(value);
-        this.update({'scale': value}, silent);
-    };
-    updatePositionX(value, silent = false){
-        if(!value) value = 0;
-        else value = parseFloat(value);
-        this.update({'shift-x': value}, silent);
-    };
-    updatePositionY(value, silent = false){
-        if(!value) value = 0;
-        else value = parseFloat(value);
-    	this.update({'shift-y': value}, silent);
-    };
-    updateBlendMode(value, silent=false){
-    	this.update({'blend-mode': value}, silent);
-    }
     draw(context = null){
         if(!this.obj || this.isShapeColor || !this.isShown) return;
         const { width, height } = this.getMediaDimensions();
@@ -162,31 +151,6 @@ export default class MediaStatic extends Media{
     }
     drawShapeColor(context, canvas, frame){
         return this.generatePattern(context, canvas, frame);
-    }
-    requestCanvasDraw(isMediaFrame = false){
-        if(typeof this.onUpdate !== 'function') return;
-        if(isMediaFrame) {
-            this.onUpdate({isMediaFrame: true, mediaKey: this.key});
-        } else {
-            this.onUpdate();
-        }
-    }
-    restartPlayback(){
-        if(!this.isVideo || !this.videoElement) return;
-        const video = this.videoElement;
-        this.stopVideoLoop();
-        try {
-            video.currentTime = 0;
-        } catch(err) {
-            /* ignore inability to seek */
-        }
-        if(video.paused || video.ended) {
-            const playPromise = video.play();
-            if(playPromise && typeof playPromise.then === 'function') {
-                playPromise.catch(()=>{});
-            }
-        }
-        this.startVideoLoop();
     }
     getMediaDimensions(){
         if(!this.obj) return { width: 0, height: 0 };
