@@ -86,4 +86,4 @@ x unify text-handling (main texts and watermarks)
 + mobile css
 + when the animation is rest and background is custom image, the text on the right disappears (likely a z-index issue). e.g., 2024/alex-sloane/alex-sloane-spotlight
 + surrounding watermarks look weird on static shapes.
-- video is not sync correctly, both position and file loading
++ video is not sync correctly, both position and file loading

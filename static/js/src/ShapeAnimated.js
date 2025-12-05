@@ -1646,7 +1646,6 @@ drawNone(){
 		}
 		
 		if(!this.startTime) {
-			console.log('no start time...');
 			this.startTime = timestamp;
 		}
 		let fn = this[this.animationName].bind(this);
