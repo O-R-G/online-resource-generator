@@ -1019,6 +1019,7 @@ drawNone(){
 		if(!silent) this.canvasObj.draw();
 	}
 	updateBackTextPositionY(silent=false){
+		if(!this.mesh_back_text) return;
 		let y = parseFloat(this.backTextShiftY) ? parseFloat(this.backTextShiftY) : 0;
 		this.mesh_back_text.position.y = getValueByPixelRatio(-y);
 		this.mesh_back_text.needsUpdate = true;
@@ -1643,11 +1644,19 @@ drawNone(){
 			console.log(`${this.animationName} is not an animation of ShapeAnimated`)
 			return;
 		}
+		
 		if(!this.startTime) {
+			console.log('no start time...');
 			this.startTime = timestamp;
 		}
 		let fn = this[this.animationName].bind(this);
-		const progress = ((timestamp - this.startTime) / this.animationDuration );
+		let dev = 100;
+		let progress;
+		if(timestamp - this.startTime < dev) {
+			progress = 0;
+		} else progress = ((timestamp - this.startTime - dev) / this.animationDuration );
+		// const progress = 0;
+		// console.log('p', progress);
 		fn( progress );
 		this.timer = requestAnimationFrame( this.animate.bind(this) );
 		if(this.canvasObj.isRecording && ((timestamp - this.startTime) / this.animationDuration >= 1)) {
@@ -1777,6 +1786,7 @@ drawNone(){
 		this.canvasObj.render();
 	}
 	rotateEaseOut(progress){
+		// console.log(progress);
 		if(progress >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 

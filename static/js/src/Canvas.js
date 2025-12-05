@@ -159,10 +159,11 @@ export default class Canvas {
                 this.media_recorder.ondataavailable = (evt) => { 
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
-                    // console.log('start');
+                    console.log('start--');
                     this.isRecording = true;
                     for(const shape_id in this.shapes) {
-                        // console.log(this.shapes[shape_id]);
+                        // if(this.isThree)
+                        //     this.shapes[shape_id].initAnimate(this.shapes[shape_id].animationName, true);
                         this.shapes[shape_id].initRecording(performance.now());
                     }
                     
@@ -189,6 +190,7 @@ export default class Canvas {
             this.downloadVideoButton.innerText = 'Recording . . .';
             document.body.classList.add('recording');
             const delay = this.isThree ? 0 : 90; // 60 fps
+            console.log('delay', delay);
             setTimeout(()=>{
                 // console.log(duration);
                 this.startRecording(duration)
