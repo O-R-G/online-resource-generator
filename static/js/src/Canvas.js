@@ -159,16 +159,16 @@ export default class Canvas {
                 this.media_recorder.ondataavailable = (evt) => { 
                     this.chunks.push(evt.data); };
                 this.media_recorder.addEventListener('start', ()=>{
-                    console.log('start');
+                    // console.log('start');
                     this.isRecording = true;
                     for(const shape_id in this.shapes) {
-                        console.log(this.shapes[shape_id]);
+                        // console.log(this.shapes[shape_id]);
                         this.shapes[shape_id].initRecording(performance.now());
                     }
                     
                 });
                 this.media_recorder.addEventListener('stop', ()=>{
-                    console.log('stop');
+                    // console.log('stop');
                     this.isRecording = false;
                     this.saveCanvasAsVideo(); 
                 });
@@ -190,7 +190,7 @@ export default class Canvas {
             document.body.classList.add('recording');
             const delay = this.isThree ? 0 : 90; // 60 fps
             setTimeout(()=>{
-                console.log(duration);
+                // console.log(duration);
                 this.startRecording(duration)
             }, delay);
             // this.startRecording();
@@ -205,7 +205,7 @@ export default class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(duration=0){
-        console.log(duration)
+        // console.log(duration)
         if(this.isRecording) return;
         this.media_recorder.start(1); 
         if(this.isThree) {
@@ -867,7 +867,7 @@ export default class Canvas {
             this.updateCounterpartField(field, counterField);
 		}
         for(let shape_id in this.shapes) {
-            console.log(shape_id);
+            // console.log(shape_id);
             let shape = this.shapes[shape_id];
             shape.sync();
         }
@@ -901,6 +901,7 @@ export default class Canvas {
         f.selectedIndex = index;
     }
     syncMedia(){
+        // console.log('canvas syncMedia');
         const m_key_pattern = /media\-\d+/;
         for(const key in this.media) {
             if(!this.media[key].isShapeColor && this.media[key].isEmpty) delete this.media[key];

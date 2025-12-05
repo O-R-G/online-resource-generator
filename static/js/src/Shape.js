@@ -176,7 +176,6 @@ export default class Shape {
     }
     renderTextSection(key, displayName, extraClass='')
     {
-        // console.log('renderTextSection', key);
         const id = generateFieldId(this.id, key);
         let textarea = document.createElement('TEXTAREA');
         textarea.className = getClassString(['flex-item','field-id-' + key].concat(extraClass));
@@ -687,7 +686,6 @@ export default class Shape {
         let tagName = field.tagName.toLowerCase();
         if(tagName === 'select') {
             let val = field.value;
-            if(field.id === 'animated-shape-0-field-id-animation') console.log(val);
             if(val !== counter_field.value) {
                 let options = counter_field.querySelectorAll('option');
                 for(const [index, option] of options.entries()) {
@@ -814,6 +812,7 @@ export default class Shape {
             const {calibrated_x, calibrated_y} = this.counterpart.calibratePosition(props.x, props.y);
             props.x = calibrated_x;
             props.y = calibrated_y;
+            // console.log(key, props);
             // console.log(key, this.counterpart.media[counter_key]);
             let file = null;
             if(media.elements['file-input'].files && media.elements['file-input'].files[0]) {
@@ -822,9 +821,13 @@ export default class Shape {
                 dt.items.add(media.elements['file-input'].files[0]); // add the first file
                 file = dt.files;
             } 
+            // console.log(this.counterpart.media);
             if(this.counterpart.media[counter_key]) {
+                // console.log('syncing counterpart');
+                // console.log(props);
                 this.counterpart.media[counter_key].sync(props, file, true);
             } else {
+                // console.log(counter_key , 'doesnt have a counterpart. creating counterpart');
                 this.counterpart.media[counter_key] = this.counterpart.initMedia(key, props, file);
             }
             if(!media.isShapeColor) {
@@ -833,7 +836,6 @@ export default class Shape {
         }
     }
     sync(){
-        // console.log(this.id + '.sync()');
         for(const name in this.fieldCounterparts) {
 			let field = this.fields[name];
 			let counterField = this.counterpart.fields[this.fieldCounterparts[name]];

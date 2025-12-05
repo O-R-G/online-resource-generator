@@ -24,7 +24,8 @@ export default class Media{
             scale: 1,
             'blend-mode': 'normal',
             fit: 'auto',
-            isShapeColor: false
+            isShapeColor: false,
+            isVideo: false
         }
         this.controls_data = this.generateControlsData();
     }
@@ -92,12 +93,9 @@ export default class Media{
     }
     sync(props, file, silent){
         this.update(props, true);
-        console.log('sync', file);
         if(file) {
             this.elements['file-input'].files = file;
         }
-            
-        // if(props[])
         for(const item of this.controls_data) {
             const name = item.name;
             this.elements[name].value = this[name];
@@ -284,7 +282,6 @@ export default class Media{
 
         if (input.files && input.files[0]) {
             const file_type = input.files[0].type.substring(0, input.files[0].type.indexOf('/'));
-            // console.log(input.files[0].type)
         	var FR = new FileReader();
             FR.onload = function (e) {
                 if(file_type === 'image') {
@@ -295,7 +292,6 @@ export default class Media{
                     });
                 } else if(file_type === 'video') {
                     this.isVideo = true;
-                    // console.log('viddd');
                     this.readVideo(e.target.result, (video)=>{
                         // input.classList.add('not-empty');
                         if(typeof cb === 'function') cb(video);
