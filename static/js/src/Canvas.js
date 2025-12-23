@@ -907,7 +907,8 @@ export default class Canvas {
             if(!this.media[key].isShapeColor && this.media[key].isEmpty) delete this.media[key];
         }
         this.media = this.reindexMedia();
-        this.counterpart.resetMedia();
+        if(this.counterpart)
+            this.counterpart.resetMedia();
         for(const key in this.media) {
             let counter_key = key.match(m_key_pattern) ? key : this.fieldCounterparts[key];
             if(!counter_key) continue;
@@ -1084,7 +1085,8 @@ export default class Canvas {
         if(this.active) return;
         this.active = true;
         this.show();
-        this.counterpart.deactivate();
+        if(this.counterpart)
+            this.counterpart.deactivate();
         this.draw();
     }
     deactivate(){
@@ -1092,7 +1094,8 @@ export default class Canvas {
         this.active = false;
         this.sync();
         this.hide();
-        this.counterpart.activate();
+        if(this.counterpart)
+            this.counterpart.activate();
     }
     onSave(){
         // anything to clean up before saving?
