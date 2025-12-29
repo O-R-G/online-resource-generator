@@ -365,15 +365,15 @@ export default class Shape {
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-position'),
                 'input-type': 'select',
                 'options': this.options['watermarkPositionOptions'],
-                'attr': {'flex': 'one-third'},
+                'attr': {'flex': 'half'},
                 'class': ['watermark-position'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['position'] : null
             },{ 
                 'name': 'color',
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-color'),
                 'input-type': 'select',
-                'options': this.options['textColorOptions'],
-                'attr': {'flex': 'one-third'},
+                'options': this.options['watermarkColorOptions'],
+                'attr': {'flex': 'half'},
                 'class': ['watermark-color'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['color'] : null
             },{ 
@@ -381,7 +381,7 @@ export default class Shape {
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-typography'),
                 'input-type': 'select',
                 'options': this.options['watermarkTypographyOptions'],
-                'attr': {'flex': 'one-third'},
+                'attr': {'flex': 'half'},
                 'class': ['watermark-typography'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['typography'] : null
             },{ 
@@ -389,28 +389,28 @@ export default class Shape {
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-font'),
                 'input-type': 'select',
                 'options': this.options['fontOptions'],
-                'attr': {'flex': 'one-third'},
+                'attr': {'flex': 'half'},
                 'class': ['watermark-font'],
                 'value': this.watermarks[idx] ? this.watermarks[idx]['font'] : null
             },{ 
                 'name': 'shift-x',
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-shift-x'),
                 'input-type': 'text',
-                'attr': {'flex': 'one-third', 'placeholder' : 'X (0)'},
+                'attr': {'flex': 'half', 'placeholder' : 'X (0)'},
                 'class': ['watermark-shift-x'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['x'] : null
             },{ 
                 'name': 'shift-y',
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-shift-y'),
                 'input-type': 'text',
-                'attr': {'flex': 'one-third', 'placeholder' : 'Y (0)'},
+                'attr': {'flex': 'half', 'placeholder' : 'Y (0)'},
                 'class': ['watermark-shift-y'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['shift'] ? this.watermarks[idx]['shift']['y'] : null
             },{ 
                 'name': 'rotate',
                 'id': generateFieldId(this.id, 'watermark-'+idx+'-rotate'),
                 'input-type': 'text',
-                'attr': {'flex': 'one-third', 'placeholder' : 'rotate (0)'},
+                'attr': {'flex': 'half', 'placeholder' : 'rotate (0)'},
                 'class': ['watermark-rotate'],
                 'value': this.watermarks[idx] && this.watermarks[idx]['rotate'] ? this.watermarks[idx]['rotate'] * 360 / (2 * Math.PI) : null
             }
