@@ -1368,7 +1368,7 @@ export default class ShapeStatic extends Shape {
 	renderControl(){
 		// super.renderControl();
 		const [shape_section, shape_right] = this.renderShapeSection('shape', 'Shape')
-		const color_select = super.renderSelect('shape-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'}, 'Shape color');
+		const color_select = super.renderSelect('shape-color', {options: this.options.colorOptions}, ['flex-item'], {'flex': 'full'});
 		shape_right.appendChild(color_select);
 		if(this.options.colorOptions['upload']) {
 			const media_div = document.createElement('div');
