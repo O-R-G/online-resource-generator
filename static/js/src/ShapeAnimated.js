@@ -840,6 +840,7 @@ drawNone(){
 				textGroup.position.x = shift.x;
 				textGroup.position.y = shift.y;
 				textGroup.rotation.z += rad;
+				console.log(renderOrder);
 				textGroup.renderOrder = renderOrder;
 				return textGroup;
     		}
@@ -1244,7 +1245,7 @@ drawNone(){
 					let thisColor = this.options.watermarkColorOptions[el.color]['color'];
 					let thisMaterial = new THREE.MeshBasicMaterial(processStaticColorData(thisColor));
 					let shift = el.shift ? el.shift : {x: 0, y: 0};
-					let renderOrder = i * 5;
+					let renderOrder = (i + 1) * 5;
 					
 					el.mesh_front = this.write(el.str, el.typography, thisMaterial, el.position, this.animationName, false, shift, el.font, el.rotate, sync, renderOrder);
 					if(el.mesh_front) {
