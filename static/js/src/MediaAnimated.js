@@ -20,6 +20,7 @@ export default class MediaAnimated extends Media{
         this.init(props, file);
     }
     update(props, silent=false){
+        console.log('update');
         const hasObjProp = props && Object.prototype.hasOwnProperty.call(props, 'obj');
         const incomingObj = hasObjProp ? props.obj : undefined;
         const isIncomingVideo = incomingObj instanceof HTMLVideoElement;
@@ -67,6 +68,7 @@ export default class MediaAnimated extends Media{
         return super.render(parent);
     }
     async applyImageAsMaterial(){
+        console.log('applyImageAsMaterial');
         const textureLoader = new THREE.TextureLoader();
         return new Promise((resolve, reject) => {
             try{

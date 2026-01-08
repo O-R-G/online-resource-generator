@@ -157,7 +157,6 @@ export default class ShapeAnimated extends Shape {
 		this.fieldCounterparts['front-background-image-scale'] = 'background-image-scale';
 	}
 	updateShape(shape, silent = false){
-		
 		super.updateShape(shape);
 		this.resetExtraShapes();
 		this.padding = getValueByPixelRatio(this.padding);
@@ -172,6 +171,11 @@ export default class ShapeAnimated extends Shape {
 			let label = el.querySelector('label[for^="watermark"]');
 			this.checkWatermarkPosition(position, label);
 		}.bind(this));
+		for(const m of Object.values(this.media) ) {
+			if(!m.isShapeColor || !m.isShown) continue;
+			m.needsMaterialUpdate = true;
+			m.draw();
+		}
 		if(!silent) this.canvasObj.draw();
 		
 	}
@@ -840,7 +844,6 @@ drawNone(){
 				textGroup.position.x = shift.x;
 				textGroup.position.y = shift.y;
 				textGroup.rotation.z += rad;
-				console.log(renderOrder);
 				textGroup.renderOrder = renderOrder;
 				return textGroup;
     		}
