@@ -28,6 +28,7 @@ export default class MediaAnimated extends Media{
         const clearingVideo = hasObjProp && !incomingObj && this.videoElement;
 
         if(isReplacingVideo || clearingVideo) {
+            // console.log('remove current media');
             this.teardownVideo();
         }
 
@@ -60,6 +61,8 @@ export default class MediaAnimated extends Media{
         if(props) {
             this.needsMaterialUpdate = true;
         }
+        if(!silent)
+            this.draw();
     }
     sync(props, file, silent=false){
         super.sync(props, file, silent);
