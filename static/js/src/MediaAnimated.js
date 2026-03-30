@@ -20,7 +20,7 @@ export default class MediaAnimated extends Media{
         this.init(props, file);
     }
     update(props, silent=false){
-        console.log('update');
+        // console.log('update');
         const hasObjProp = props && Object.prototype.hasOwnProperty.call(props, 'obj');
         const incomingObj = hasObjProp ? props.obj : undefined;
         const isIncomingVideo = incomingObj instanceof HTMLVideoElement;

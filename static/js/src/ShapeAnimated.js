@@ -51,7 +51,8 @@ export default class ShapeAnimated extends Shape {
 
 		this.shapeCenter = {x: 0, y: 0};
 		this.isForward = true;
-		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);		
+		this.animationSpeed = parseFloat(this.getDefaultOption(this.options.animationSpeedOptions).value);	
+		
 		this.flipAngleInterval_base = 0.005;     // aka, speed
         this.spinAngleInterval_base = 0.005;
 		this.rotateAngleInterval_base = 0.005;
@@ -77,8 +78,12 @@ export default class ShapeAnimated extends Shape {
 		this.timer = null;
 		this.timer_delaySaveVideo = null;
 		this.watermarkTimer = null;
-		this.animationName = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]].name;
+		const defaultAnimationOption = this.options.animationOptions[Object.keys(this.options.animationOptions)[0]]
+		this.animationName = defaultAnimationOption.name;
 		
+		this.animationDelay = defaultAnimationOption.delay;	
+		console.log('this.animationName', this.animationName);
+		console.log('this.animationDelay', this.animationDelay);
 		this.shapeShiftX = 0;
 		this.shapeShiftY = 0;
 		
@@ -1341,6 +1346,7 @@ drawNone(){
 		}
 	}
 	resetAnimation(){
+		console.log('resetAnimation');
 		cancelAnimationFrame(this.timer);
 		this.group_front.rotation.x = 0;
 		this.group_front.rotation.y = 0;
@@ -1471,8 +1477,15 @@ drawNone(){
 			trash.parent.remove(trash);
 	}
 	updateAnimation(animationData, syncing = false, silent = false){
-		// const switchCanvas = (this.animationName !== 'none' && animationData !== 'none') || (this.animationName === 'none' && animationData === 'none')
 		this.animationName = animationData;
+		const option = this.options.animationOptions[animationData];
+		// console.log('this.animationName', this.animationName);
+		// console.log('option', option);
+		if(option) {
+			this.animationDelay = option.delay;
+		} else {
+			console.log('option somehow doesnt exist for animation:', animationData);
+		}
 		// if(!syncing)
 		// 	this.ensureSiblingAnimationState();
 		if(!silent) this.canvasObj.draw();
@@ -1527,6 +1540,7 @@ drawNone(){
 	}
 	
 	initAnimate(animationName, isSilent = false){
+		// console.log('initAnimate');
 		this.resetAnimation();
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
@@ -1650,6 +1664,7 @@ drawNone(){
 		}
 		
 		if(!this.startTime) {
+			// console.log('st');
 			this.startTime = timestamp;
 		}
 		let fn = this[this.animationName].bind(this);
@@ -1658,15 +1673,70 @@ drawNone(){
 		if(timestamp - this.startTime < dev) {
 			progress = 0;
 		} else progress = ((timestamp - this.startTime - dev) / this.animationDuration );
-		// const progress = 0;
-		// console.log('p', progress);
-		fn( progress );
-		this.timer = requestAnimationFrame( this.animate.bind(this) );
-		if(this.canvasObj.isRecording && ((timestamp - this.startTime) / this.animationDuration >= 1)) {
-			setTimeout(()=>{
-				this.canvasObj.stopRecording();
-			}, 0)
+		if(progress <= 1) {
+			fn( progress );
+			this.timer = requestAnimationFrame( this.animate.bind(this) );
+		} else {
+			console.log('p>1');
+			// console.log(timestamp - this.startTime);
+			const delayData = this.animationDelay;
+			// console.log(delayData)
+			if(delayData && delayData.loop) {
+				const delay = this.decodeDelayData(delayData.loop);
+				// console.log('delay.loop', delay);
+				const idleEndTime = performance.now() + delay;
+				const idleAnimate = (idleTimestamp) => {
+					fn(1); // render at final state
+					if(idleTimestamp < idleEndTime) {
+						this.timer = requestAnimationFrame(idleAnimate);
+					} else {
+						if(this.canvasObj.isRecording){
+							this.canvasObj.stopRecording();
+						}
+						console.log('?');
+						this.startTime = null;
+						this.timer = requestAnimationFrame( this.animate.bind(this) );
+					}
+				};
+				this.timer = requestAnimationFrame(idleAnimate);
+			}
+
+
 		}
+	}
+	decodeDelayData(delayData) {
+		// Pure number - treat as milliseconds
+		if (typeof delayData === 'number') {
+			return delayData;
+		}
+
+		// String input
+		if (typeof delayData === 'string') {
+			const trimmed = delayData.trim();
+
+			// Check for "[animationDuration]*multiplier" format (tolerates spaces around *)
+			const animDurationRegex = /^\[animationDuration\]\s*\*\s*([\d.]+)$/;
+			const animDurationMatch = trimmed.match(animDurationRegex);
+			if (animDurationMatch) {
+				const multiplier = parseFloat(animDurationMatch[1]);
+				return this.animationDuration * multiplier;
+			}
+
+			// Check for "500ms" format
+			if (trimmed.endsWith('ms')) {
+				const value = parseFloat(trimmed);
+				if (!isNaN(value)) return value;
+			}
+
+			// Check for "2s" format - convert seconds to milliseconds
+			if (trimmed.endsWith('s')) {
+				const value = parseFloat(trimmed);
+				if (!isNaN(value)) return value * 1000;
+			}
+		}
+
+		// Default fallback
+		return 0;
 	}
 	rest(progress){
 		this.canvasObj.render();
@@ -1791,15 +1861,15 @@ drawNone(){
 	rotateEaseOut(progress){
 		// console.log(progress);
 		if(progress >= 1) {
-			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
-				this.timer_delaySaveVideo = setTimeout(()=>{ 
-					this.canvasObj.saveCanvasAsVideo(); 
-					this.initAnimate();
-				}, 0);
-			} 
-			else {
-				this.initAnimate();
-			}
+			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+			// 	this.timer_delaySaveVideo = setTimeout(()=>{ 
+			// 		this.canvasObj.saveCanvasAsVideo(); 
+			// 		this.initAnimate();
+			// 	}, 0);
+			// } 
+			// else {
+			// 	this.initAnimate();
+			// }
 		} else {
 			const easedProgress = this.easeOutQuart(progress);
 			const angle = -easedProgress * Math.PI * 2 * 4; // `this.rounds` = number of full spins
@@ -1822,15 +1892,15 @@ drawNone(){
 	}
 	rotateBackwardEaseOut(progress){
 		if(progress >= 1) {
-			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
-				this.timer_delaySaveVideo = setTimeout(()=>{ 
-					this.canvasObj.saveCanvasAsVideo(); 
-					this.initAnimate();
-				}, 0);
-			} 
-			else {
-				this.initAnimate();
-			}
+			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+			// 	this.timer_delaySaveVideo = setTimeout(()=>{ 
+			// 		this.canvasObj.saveCanvasAsVideo(); 
+			// 		this.initAnimate();
+			// 	}, 0);
+			// } 
+			// else {
+			// 	this.initAnimate();
+			// }
 		} else {
 			const easedProgress = this.easeOutQuart(progress);
 			const angle = easedProgress * Math.PI * 2 * 4; // `this.rounds` = number of full spins
