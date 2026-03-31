@@ -1845,7 +1845,7 @@ drawNone(){
 		this.canvasObj.render();
 	}
 	rotateEaseOut(progress){
-		if(progress >= 1) {
+		if(progress > 1) {
 			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 			// 	this.timer_delaySaveVideo = setTimeout(()=>{ 
 			// 		this.canvasObj.saveCanvasAsVideo(); 
@@ -1876,7 +1876,7 @@ drawNone(){
 		this.canvasObj.render();
 	}
 	rotateBackwardEaseOut(progress){
-		if(progress >= 1) {
+		if(progress > 1) {
 			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 			// 	this.timer_delaySaveVideo = setTimeout(()=>{ 
 			// 		this.canvasObj.saveCanvasAsVideo(); 
@@ -1898,7 +1898,7 @@ drawNone(){
 	fadeIn(progress){
 		// let fade_finish = this.fadeInDelay / this.animationSpeed / this.animationDuration;
 		// console.log('p', progress);
-		if(progress >= 1) {
+		if(progress > 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
 					this.canvasObj.saveCanvasAsVideo(); 
@@ -1925,7 +1925,7 @@ drawNone(){
 	}
 	fadeOut(progress){
 		let delay_progress = this.fadeOutDelayBase / this.animationSpeed / this.animationDuration;
-		if(progress >= 1) {
+		if(progress > 1) {
 			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 			// 	this.canvasObj.saveCanvasAsVideo(); 
 			// } 
