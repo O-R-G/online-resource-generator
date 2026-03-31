@@ -52,7 +52,7 @@ export default class Shape {
         this.fields.media = {};
         this.fields.watermarks = [];
         this.fieldCounterparts = {};
-
+        this.isRecording = false;
         this.shapeMethod = 'draw';
 	}
     init(canvasObj){
@@ -857,5 +857,8 @@ export default class Shape {
             this.addMediaSection(key, '');
         }
     }
+    onRecordingEnd(){
+		this.isRecording = false;
+	}
 }
 

@@ -8,12 +8,10 @@ import { createMesh, createGroup, initMediaAnimated, processStaticColorData, gen
 
 export default class ShapeAnimated extends Shape {
 	constructor(prefix = '', canvasObj, options = {}, format, animated_fonts = {}, shape_index=0){
-		// console.log('ShapeAnimated', shape_index);
 		super(prefix, canvasObj, options, format, shape_index);
 		this.group_front = createGroup('group-front');
 		this.group_front.renderOrder = 2;
 		this.group_front_shape = createGroup('group-front-shape');
-		// this.group_front_shape.position.z = 5;
 		this.mesh_front = createMesh('mesh-front');
 		this.mesh_front.material = this.processColor(Object.values(this.options.colorOptions)[0].color);
 		this.mesh_front.initialized = true;
@@ -82,8 +80,6 @@ export default class ShapeAnimated extends Shape {
 		this.animationName = defaultAnimationOption.name;
 		
 		this.animationDelay = defaultAnimationOption.delay;	
-		console.log('this.animationName', this.animationName);
-		console.log('this.animationDelay', this.animationDelay);
 		this.shapeShiftX = 0;
 		this.shapeShiftY = 0;
 		
@@ -336,7 +332,6 @@ export default class ShapeAnimated extends Shape {
 			let side = Math.min(this.frame.w, this.frame.h);
 			w = side - this_p * 2 - this_r * 2;
 			h = side - this_p * 2 - this_r * 2;
-			// console.log(this.id, this.frame, side);
 		}
 		// this.shapeCenter.x = 500;
 		// this.shapeCenter.y = 500;
@@ -753,7 +748,6 @@ drawNone(){
 								if (char === ' ') {
 									if(spaceWidth === ''){
 										spaceWidth = text.geometry.boundingBox.max.x - text.geometry.boundingBox.min.x
-										console.log(spaceWidth);
 									}
 										
 									currentAngle -= spaceWidth / (2 * radius);
@@ -1346,14 +1340,13 @@ drawNone(){
 		}
 	}
 	resetAnimation(){
-		console.log('resetAnimation');
-		cancelAnimationFrame(this.timer);
 		this.group_front.rotation.x = 0;
 		this.group_front.rotation.y = 0;
 		this.group_front.rotation.z = 0;
 		this.group_back.rotation.x = 0;
 		this.group_back.rotation.y = 0;
 		this.group_back.rotation.z = 0;
+		if(this.timer) cancelAnimationFrame(this.timer);
 		this.timer = null;
 		this.startTime = null;
 		this.timer_delaySaveVideo = null;
@@ -1479,8 +1472,6 @@ drawNone(){
 	updateAnimation(animationData, syncing = false, silent = false){
 		this.animationName = animationData;
 		const option = this.options.animationOptions[animationData];
-		// console.log('this.animationName', this.animationName);
-		// console.log('option', option);
 		if(option) {
 			this.animationDelay = option.delay;
 		} else {
@@ -1540,7 +1531,6 @@ drawNone(){
 	}
 	
 	initAnimate(animationName, isSilent = false){
-		// console.log('initAnimate');
 		this.resetAnimation();
 		this.resetMaterials();
 		if(!animationName) animationName = this.animationName;
@@ -1664,11 +1654,11 @@ drawNone(){
 		}
 		
 		if(!this.startTime) {
-			// console.log('st');
+			console.log('start');
 			this.startTime = timestamp;
 		}
 		let fn = this[this.animationName].bind(this);
-		let dev = 100;
+		let dev = this.isRecording ? 100 : 0; // wait for safari to be ready
 		let progress;
 		if(timestamp - this.startTime < dev) {
 			progress = 0;
@@ -1677,13 +1667,9 @@ drawNone(){
 			fn( progress );
 			this.timer = requestAnimationFrame( this.animate.bind(this) );
 		} else {
-			console.log('p>1');
-			// console.log(timestamp - this.startTime);
 			const delayData = this.animationDelay;
-			// console.log(delayData)
 			if(delayData && delayData.loop) {
 				const delay = this.decodeDelayData(delayData.loop);
-				// console.log('delay.loop', delay);
 				const idleEndTime = performance.now() + delay;
 				const idleAnimate = (idleTimestamp) => {
 					fn(1); // render at final state
@@ -1693,14 +1679,14 @@ drawNone(){
 						if(this.canvasObj.isRecording){
 							this.canvasObj.stopRecording();
 						}
-						console.log('?');
-						this.startTime = null;
-						this.timer = requestAnimationFrame( this.animate.bind(this) );
+						this.initAnimate();
 					}
 				};
 				this.timer = requestAnimationFrame(idleAnimate);
+			} else {
+				this.initAnimate();
 			}
-
+			console.log(this.animationName, progress);
 
 		}
 	}
@@ -1859,7 +1845,6 @@ drawNone(){
 		this.canvasObj.render();
 	}
 	rotateEaseOut(progress){
-		// console.log(progress);
 		if(progress >= 1) {
 			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 			// 	this.timer_delaySaveVideo = setTimeout(()=>{ 
@@ -1912,6 +1897,7 @@ drawNone(){
 	}
 	fadeIn(progress){
 		// let fade_finish = this.fadeInDelay / this.animationSpeed / this.animationDuration;
+		// console.log('p', progress);
 		if(progress >= 1) {
 			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
 				this.timer_delaySaveVideo = setTimeout(()=>{ 
@@ -1940,10 +1926,10 @@ drawNone(){
 	fadeOut(progress){
 		let delay_progress = this.fadeOutDelayBase / this.animationSpeed / this.animationDuration;
 		if(progress >= 1) {
-			if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
-				this.canvasObj.saveCanvasAsVideo(); 
-			} 
-			this.initAnimate();
+			// if( this.canvasObj.isRecording && this.timer_delaySaveVideo === null ) {
+			// 	this.canvasObj.saveCanvasAsVideo(); 
+			// } 
+			// this.initAnimate();
 		} else if(progress > delay_progress){
 			let opacity = (1 - progress)  / (1 - delay_progress);
 			this.mesh_front.material.opacity = opacity;
@@ -2180,12 +2166,6 @@ drawNone(){
 					this.options.colorOptions[shape_color]['color']['type'] == 'special')
 				{
 					this.updateFrontColor(this.options.colorOptions[shape_color]['color']);
-					// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-					// this.updateCounterpartSelectField('shape-color', e.target.selectedIndex);
-					// if(this.options.colorOptions[shape_color] !== undefined){
-					// 	// this.updateCounterpartSelect(sShape_color, shape_color);
-					// 	// this.counterpart.updateColor(this.options.colorOptions[shape_color]['color']);
-					// }
 				}
 				else if(this.options.colorOptions[shape_color]['color']['type'] == 'special')
 				{
@@ -2365,7 +2345,6 @@ drawNone(){
 		videoElement.loop = true;
 		videoElement.controls = true;
 		videoElement.muted = true;
-		// videoElement.width = 600; // Adjust width as needed
 
 		// Append video element to body
 		document.body.appendChild(videoElement);
@@ -2383,6 +2362,8 @@ drawNone(){
 			cb(videoElement);
 	}
 	initRecording(timestamp){
+		this.isRecording = true;
+		this.initAnimate();
 		this.animate(timestamp);
 	}
 }

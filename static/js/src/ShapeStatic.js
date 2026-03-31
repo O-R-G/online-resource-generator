@@ -1646,14 +1646,16 @@ export default class ShapeStatic extends Shape {
 		this.context.globalCompositeOperation = 'normal';
 	}
 	initRecording(timestamp){
+		this.isRecording = true;
 		// console.log('static initRecording');
 		this.animate(timestamp);
 		for(const m_key in this.media) {
 			const m = this.media[m_key];
-			console.log(m.isVideo);
+			// console.log(m.isVideo);
 			if(m.isVideo) {
 				m.restartPlayback();
 			}
 		}
 	}
+	
 }
