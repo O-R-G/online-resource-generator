@@ -201,6 +201,7 @@ export default class Canvas {
         this.prepareNextSaving();
     }
 	startRecording(duration=0){
+        console.log('startRecording', duration);
         if(this.isRecording) return;
         for(const shape_id in this.shapes) {
             if(this.shapes[shape_id].timer) {
@@ -210,7 +211,8 @@ export default class Canvas {
             this.shapes[shape_id].startTime = null;
             this.shapes[shape_id].resetAnimation();
         }
-        this.render();
+        if(this.isThree && typeof this.render === 'function')
+            this.render();
         // Small delay to ensure canvas is ready (helps with Safari timing issues)
         setTimeout(() => {
             this.media_recorder.start(1);

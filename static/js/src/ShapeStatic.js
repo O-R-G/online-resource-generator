@@ -1645,10 +1645,8 @@ export default class ShapeStatic extends Shape {
 		}
 		this.context.globalCompositeOperation = 'normal';
 	}
-	initRecording(timestamp){
-		this.isRecording = true;
-		// console.log('static initRecording');
-		this.animate(timestamp);
+	resetAnimation(){
+		console.log('static resetAnimation');
 		for(const m_key in this.media) {
 			const m = this.media[m_key];
 			// console.log(m.isVideo);
@@ -1656,6 +1654,12 @@ export default class ShapeStatic extends Shape {
 				m.restartPlayback();
 			}
 		}
+	}
+	initRecording(timestamp){
+		this.isRecording = true;
+		// console.log('static initRecording');
+		this.animate(timestamp);
+		
 	}
 	
 }
